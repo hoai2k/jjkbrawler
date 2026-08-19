@@ -43346,19 +43346,13 @@
    "attack_dash": {
     "w": 1176,
     "h": 815,
-    "ox": -347.5,
+    "ox": -307,
     "oy": -504,
-    "bodyBottom": 250.9,
-    "bodyH": 209.9,
+    "bodyBottom": 258.9,
+    "bodyH": 230.9,
     "centroidX": 73.0,
-    "renderScale": 0.258,
+    "renderScale": 0.2838,
     "file": "kashimo/attack_dash.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1176,
@@ -43366,8 +43360,8 @@
     "coreRight": 1021.6,
     "anchors": {
      "com": [
-      505.1,
-      339.8
+      484.6,
+      324.1
      ]
     },
     "autoTuned": {
@@ -43375,6 +43369,17 @@
      "fields": {
       "bodyBottom": "foot=0.926 (character)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "renderScale": 0.258,
+     "ox": -347.5,
+     "bodyBottom": 250.9,
+     "anchors": {
+      "com": [
+       505.1,
+       339.8
+      ]
      }
     }
    },
@@ -43488,17 +43493,11 @@
     "h": 1081,
     "ox": -227.5,
     "oy": -770,
-    "bodyBottom": 231.3,
+    "bodyBottom": 296.8,
     "bodyH": 278.4,
     "centroidX": 161.0,
     "renderScale": 0.258,
     "file": "kashimo/teeter.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 760,
@@ -43506,12 +43505,12 @@
     "coreRight": 662.1,
     "anchors": {
      "com": [
-      383.1,
-      430.3
+      349.2,
+      404.3
      ],
      "teeter": [
-      753.3,
-      1077.6
+      310.0,
+      1067.2
      ]
     },
     "autoTuned": {
@@ -43519,6 +43518,19 @@
      "fields": {
       "bodyBottom": "foot=0.926 (character)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "bodyBottom": 231.3,
+     "anchors": {
+      "com": [
+       383.1,
+       430.3
+      ],
+      "teeter": [
+       753.3,
+       1077.6
+      ]
      }
     }
    },
@@ -43527,17 +43539,11 @@
     "h": 1073,
     "ox": -51.3,
     "oy": -762,
-    "bodyBottom": 231.9,
-    "bodyH": 276.3,
+    "bodyBottom": 302.4,
+    "bodyH": 269.3,
     "centroidX": 127.8,
-    "renderScale": 0.258,
+    "renderScale": 0.2515,
     "file": "kashimo/walk_a.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 474,
@@ -43545,8 +43551,8 @@
     "coreRight": 395.7,
     "anchors": {
      "com": [
-      209.4,
-      468.7
+      232.3,
+      464.9
      ]
     },
     "autoTuned": {
@@ -43555,6 +43561,16 @@
       "bodyBottom": "foot=0.926 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.258,
+     "bodyBottom": 231.9,
+     "anchors": {
+      "com": [
+       209.4,
+       468.7
+      ]
+     }
     }
    },
    "walk_b": {
@@ -43562,17 +43578,11 @@
     "h": 1095,
     "ox": -58.8,
     "oy": -784,
-    "bodyBottom": 230.2,
-    "bodyH": 282.0,
+    "bodyBottom": 300.7,
+    "bodyH": 269.3,
     "centroidX": 130.8,
-    "renderScale": 0.258,
+    "renderScale": 0.2464,
     "file": "kashimo/walk_b.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 483,
@@ -43580,8 +43590,8 @@
     "coreRight": 396.9,
     "anchors": {
      "com": [
-      217.3,
-      483.4
+      241.5,
+      472.1
      ]
     },
     "autoTuned": {
@@ -43589,6 +43599,16 @@
      "fields": {
       "bodyBottom": "foot=0.926 (character)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "renderScale": 0.258,
+     "bodyBottom": 230.2,
+     "anchors": {
+      "com": [
+       217.3,
+       483.4
+      ]
      }
     }
    }
@@ -44739,12 +44759,6 @@
     "centroidX": 212.1,
     "renderScale": 0.25,
     "file": "naoya/attack_dash.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1146,
@@ -44752,8 +44766,8 @@
     "coreRight": 988.4,
     "anchors": {
      "com": [
-      628.9,
-      499.1
+      647.6,
+      465.6
      ]
     },
     "autoTuned": {
@@ -44761,6 +44775,14 @@
      "fields": {
       "bodyBottom": "foot=0.965 (character)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "anchors": {
+      "com": [
+       628.9,
+       499.1
+      ]
      }
     }
    },
@@ -44874,17 +44896,11 @@
     "h": 1111,
     "ox": -281.2,
     "oy": -800,
-    "bodyBottom": 271.8,
+    "bodyBottom": 309.3,
     "bodyH": 277.8,
     "centroidX": 134.7,
     "renderScale": 0.25,
     "file": "naoya/teeter.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 920,
@@ -44892,12 +44908,12 @@
     "coreRight": 736.0,
     "anchors": {
      "com": [
-      436.9,
-      490.8
+      481.7,
+      459.4
      ],
      "teeter": [
-      663.1,
-      1107.5
+      649.1,
+      1110.7
      ]
     },
     "autoTuned": {
@@ -44906,6 +44922,19 @@
       "bodyBottom": "foot=0.965 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 271.8,
+     "anchors": {
+      "com": [
+       436.9,
+       490.8
+      ],
+      "teeter": [
+       663.1,
+       1107.5
+      ]
+     }
     }
    },
    "walk_a": {
@@ -44913,17 +44942,11 @@
     "h": 1172,
     "ox": -69.6,
     "oy": -861,
-    "bodyBottom": 269.6,
-    "bodyH": 293.0,
+    "bodyBottom": 297.1,
+    "bodyH": 282.7,
     "centroidX": 114.1,
-    "renderScale": 0.25,
+    "renderScale": 0.2412,
     "file": "naoya/walk_a.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 538,
@@ -44941,6 +44964,10 @@
       "bodyBottom": "foot=0.965 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 269.6
     }
    },
    "walk_b": {
@@ -44948,17 +44975,11 @@
     "h": 1166,
     "ox": -98.0,
     "oy": -855,
-    "bodyBottom": 269.8,
-    "bodyH": 291.5,
+    "bodyBottom": 302.3,
+    "bodyH": 282.8,
     "centroidX": 139.5,
-    "renderScale": 0.25,
+    "renderScale": 0.2425,
     "file": "naoya/walk_b.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 544,
@@ -44976,6 +44997,10 @@
       "bodyBottom": "foot=0.965 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 269.8
     }
    }
   },
@@ -46128,19 +46153,13 @@
    "attack_dash": {
     "w": 1116,
     "h": 1003,
-    "ox": -426.3,
+    "ox": -381.3,
     "oy": -692,
-    "bodyBottom": 240.3,
-    "bodyH": 250.8,
+    "bodyBottom": 268.8,
+    "bodyH": 238.3,
     "centroidX": 181.8,
-    "renderScale": 0.25,
+    "renderScale": 0.2375,
     "file": "yaga/attack_dash.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1116,
@@ -46148,8 +46167,8 @@
     "coreRight": 1004.4,
     "anchors": {
      "com": [
-      583.3,
-      438.1
+      564.3,
+      401.1
      ]
     },
     "autoTuned": {
@@ -46157,6 +46176,17 @@
      "fields": {
       "bodyBottom": "foot=0.930 (character)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -426.3,
+     "bodyBottom": 240.3,
+     "anchors": {
+      "com": [
+       583.3,
+       438.1
+      ]
      }
     }
    },
@@ -46309,17 +46339,11 @@
     "h": 1399,
     "ox": -185.3,
     "oy": -1088,
-    "bodyBottom": 212.4,
-    "bodyH": 349.8,
+    "bodyBottom": 270.9,
+    "bodyH": 288.5,
     "centroidX": 136.3,
-    "renderScale": 0.25,
+    "renderScale": 0.2062,
     "file": "yaga/walk_a.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 725,
@@ -46337,6 +46361,10 @@
       "bodyBottom": "foot=0.930 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 212.4
     }
    },
    "walk_b": {
@@ -46344,17 +46372,11 @@
     "h": 1401,
     "ox": -196.1,
     "oy": -1090,
-    "bodyBottom": 212.3,
-    "bodyH": 350.2,
+    "bodyBottom": 271.3,
+    "bodyH": 290.7,
     "centroidX": 134.6,
-    "renderScale": 0.25,
+    "renderScale": 0.2075,
     "file": "yaga/walk_b.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 750,
@@ -46372,6 +46394,10 @@
       "bodyBottom": "foot=0.930 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 212.3
     }
    }
   },
@@ -47577,19 +47603,13 @@
    "attack_dash": {
     "w": 892,
     "h": 1199,
-    "ox": -281.2,
+    "ox": -233.7,
     "oy": -888,
-    "bodyBottom": 263.8,
-    "bodyH": 295.2,
+    "bodyBottom": 271.3,
+    "bodyH": 317.3,
     "centroidX": 148.7,
-    "renderScale": 0.246,
+    "renderScale": 0.2644,
     "file": "kirara/attack_dash.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 892,
@@ -47597,8 +47617,8 @@
     "coreRight": 764.4,
     "anchors": {
      "com": [
-      438.4,
-      475.0
+      429.6,
+      452.9
      ]
     },
     "autoTuned": {
@@ -47606,6 +47626,17 @@
      "fields": {
       "bodyBottom": "foot=0.961 (character)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "renderScale": 0.246,
+     "ox": -281.2,
+     "bodyBottom": 263.8,
+     "anchors": {
+      "com": [
+       438.4,
+       475.0
+      ]
      }
     }
    },
@@ -47719,17 +47750,11 @@
     "h": 1311,
     "ox": -251.3,
     "oy": -1000,
-    "bodyBottom": 259.3,
-    "bodyH": 322.8,
+    "bodyBottom": 294.3,
+    "bodyH": 335.7,
     "centroidX": 151.3,
-    "renderScale": 0.246,
+    "renderScale": 0.2558,
     "file": "kirara/teeter.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 827,
@@ -47741,8 +47766,8 @@
       519.4
      ],
      "teeter": [
-      766.1,
-      1306.9
+      362.8,
+      1298.5
      ]
     },
     "autoTuned": {
@@ -47751,6 +47776,16 @@
       "bodyBottom": "foot=0.961 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.246,
+     "bodyBottom": 259.3,
+     "anchors": {
+      "teeter": [
+       766.1,
+       1306.9
+      ]
+     }
     }
    },
    "walk_a": {
@@ -47758,17 +47793,11 @@
     "h": 1361,
     "ox": -130.7,
     "oy": -1050,
-    "bodyBottom": 257.4,
-    "bodyH": 335.1,
+    "bodyBottom": 282.9,
+    "bodyH": 338.5,
     "centroidX": 142.2,
-    "renderScale": 0.246,
+    "renderScale": 0.2485,
     "file": "kirara/walk_a.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 604,
@@ -47786,6 +47815,10 @@
       "bodyBottom": "foot=0.961 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.246,
+     "bodyBottom": 257.4
     }
    },
    "walk_b": {
@@ -47793,17 +47826,11 @@
     "h": 1406,
     "ox": -116.9,
     "oy": -1095,
-    "bodyBottom": 255.6,
-    "bodyH": 346.2,
+    "bodyBottom": 235.1,
+    "bodyH": 349.7,
     "centroidX": 165.9,
-    "renderScale": 0.246,
+    "renderScale": 0.2485,
     "file": "kirara/walk_b.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 529,
@@ -47821,6 +47848,10 @@
       "bodyBottom": "foot=0.961 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.246,
+     "bodyBottom": 255.6
     }
    }
   },
@@ -48985,19 +49016,13 @@
    "attack_dash": {
     "w": 875,
     "h": 744,
-    "ox": -192.4,
+    "ox": -174.9,
     "oy": -433,
-    "bodyBottom": 278.5,
-    "bodyH": 186.0,
+    "bodyBottom": 276,
+    "bodyH": 297.6,
     "centroidX": 68.4,
-    "renderScale": 0.25,
+    "renderScale": 0.4,
     "file": "haruta/attack_dash.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 875,
@@ -49005,8 +49030,8 @@
     "coreRight": 689.1,
     "anchors": {
      "com": [
-      350.0,
-      304.7
+      330.3,
+      295.7
      ]
     },
     "autoTuned": {
@@ -49015,24 +49040,31 @@
       "bodyBottom": "foot=0.956 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "ox": -192.4,
+     "bodyBottom": 278.5,
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       350.0,
+       304.7
+      ]
+     }
+    },
+    "rotationDeg": 4
    },
    "grab_hold": {
     "w": 816,
     "h": 1334,
     "ox": -231.7,
     "oy": -1023,
-    "bodyBottom": 252.7,
-    "bodyH": 333.5,
+    "bodyBottom": 270.7,
+    "bodyH": 346.8,
     "centroidX": 137.2,
-    "renderScale": 0.25,
+    "renderScale": 0.26,
     "file": "haruta/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 816,
@@ -49050,6 +49082,10 @@
       "bodyBottom": "foot=0.956 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 252.7
     }
    },
    "grab_reach": {
@@ -49058,16 +49094,10 @@
     "ox": -294.0,
     "oy": -679,
     "bodyBottom": 267.7,
-    "bodyH": 247.5,
+    "bodyH": 329.2,
     "centroidX": 183.0,
-    "renderScale": 0.25,
+    "renderScale": 0.3325,
     "file": "haruta/grab_reach.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 849,
@@ -49077,6 +49107,10 @@
      "com": [
       450.6,
       420.2
+     ],
+     "grabHand": [
+      810.9,
+      186.1
      ]
     },
     "autoTuned": {
@@ -49084,6 +49118,12 @@
      "fields": {
       "bodyBottom": "foot=0.956 (character)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "anchors": {
+      "grabHand": null
      }
     }
    },
@@ -49127,17 +49167,11 @@
     "h": 1276,
     "ox": -349.7,
     "oy": -965,
-    "bodyBottom": 255.2,
-    "bodyH": 319.0,
+    "bodyBottom": 293.7,
+    "bodyH": 354.1,
     "centroidX": 244.2,
-    "renderScale": 0.25,
+    "renderScale": 0.2775,
     "file": "haruta/teeter.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 838,
@@ -49149,8 +49183,8 @@
       494.5
      ],
      "teeter": [
-      809.5,
-      1272.0
+      629.8,
+      1271.2
      ]
     },
     "autoTuned": {
@@ -49159,6 +49193,16 @@
       "bodyBottom": "foot=0.956 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 255.2,
+     "anchors": {
+      "teeter": [
+       809.5,
+       1272.0
+      ]
+     }
     }
    },
    "walk_a": {
@@ -49166,17 +49210,11 @@
     "h": 1330,
     "ox": -125.2,
     "oy": -1019,
-    "bodyBottom": 252.9,
-    "bodyH": 332.5,
+    "bodyBottom": 294.4,
+    "bodyH": 342.5,
     "centroidX": 142.7,
-    "renderScale": 0.25,
+    "renderScale": 0.2575,
     "file": "haruta/walk_a.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 592,
@@ -49194,6 +49232,10 @@
       "bodyBottom": "foot=0.956 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 252.9
     }
    },
    "walk_b": {
@@ -49201,17 +49243,11 @@
     "h": 1386,
     "ox": -148.0,
     "oy": -1075,
-    "bodyBottom": 250.4,
-    "bodyH": 346.5,
+    "bodyBottom": 291.9,
+    "bodyH": 344.7,
     "centroidX": 142.0,
-    "renderScale": 0.25,
+    "renderScale": 0.2487,
     "file": "haruta/walk_b.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 639,
@@ -49229,6 +49265,10 @@
       "bodyBottom": "foot=0.956 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 250.4
     }
    }
   },
@@ -50422,16 +50462,10 @@
     "ox": -395.4,
     "oy": -760,
     "bodyBottom": 283.3,
-    "bodyH": 261.0,
+    "bodyH": 309.2,
     "centroidX": 136.4,
-    "renderScale": 0.244,
+    "renderScale": 0.2891,
     "file": "tengen/attack_dash.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1145,
@@ -50449,6 +50483,9 @@
       "bodyBottom": "foot=0.974 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.244
     }
    },
    "grab_hold": {
@@ -50561,17 +50598,11 @@
     "h": 1216,
     "ox": -306.2,
     "oy": -905,
-    "bodyBottom": 279.6,
-    "bodyH": 296.3,
+    "bodyBottom": 296.1,
+    "bodyH": 337.8,
     "centroidX": 134.2,
-    "renderScale": 0.244,
+    "renderScale": 0.2782,
     "file": "tengen/teeter.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 971,
@@ -50583,8 +50614,8 @@
       556.9
      ],
      "teeter": [
-      870.2,
-      1212.2
+      299.8,
+      1209.6
      ]
     },
     "autoTuned": {
@@ -50593,6 +50624,16 @@
       "bodyBottom": "foot=0.974 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.244,
+     "bodyBottom": 279.6,
+     "anchors": {
+      "teeter": [
+       870.2,
+       1212.2
+      ]
+     }
     }
    },
    "walk_a": {
@@ -50600,17 +50641,11 @@
     "h": 1421,
     "ox": -157.8,
     "oy": -1110,
-    "bodyBottom": 274.3,
+    "bodyBottom": 300.8,
     "bodyH": 346.3,
     "centroidX": 147.3,
     "renderScale": 0.244,
     "file": "tengen/walk_a.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 648,
@@ -50628,6 +50663,9 @@
       "bodyBottom": "foot=0.974 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 274.3
     }
    },
    "walk_b": {
@@ -50635,17 +50673,11 @@
     "h": 1430,
     "ox": -210.2,
     "oy": -1119,
-    "bodyBottom": 274.0,
+    "bodyBottom": 299,
     "bodyH": 348.5,
     "centroidX": 133.2,
     "renderScale": 0.244,
     "file": "tengen/walk_b.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 781,
@@ -50663,6 +50695,9 @@
       "bodyBottom": "foot=0.974 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 274.0
     }
    }
   },
@@ -51845,17 +51880,11 @@
     "h": 903,
     "ox": -261.9,
     "oy": -592,
-    "bodyBottom": 245.6,
-    "bodyH": 228.0,
+    "bodyBottom": 285.6,
+    "bodyH": 364.8,
     "centroidX": -75.1,
-    "renderScale": 0.252,
+    "renderScale": 0.4032,
     "file": "miwa/attack_dash.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1301,
@@ -51873,6 +51902,10 @@
       "bodyBottom": "foot=0.928 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.252,
+     "bodyBottom": 245.6
     }
    },
    "grab_hold": {
@@ -51985,17 +52018,11 @@
     "h": 1132,
     "ox": -324.6,
     "oy": -821,
-    "bodyBottom": 229.1,
-    "bodyH": 285.8,
+    "bodyBottom": 300.1,
+    "bodyH": 390.1,
     "centroidX": 166.1,
-    "renderScale": 0.252,
+    "renderScale": 0.344,
     "file": "miwa/teeter.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 944,
@@ -52007,8 +52034,8 @@
       415.6
      ],
      "teeter": [
-      555.4,
-      1128.5
+      519.0,
+      1117.4
      ]
     },
     "autoTuned": {
@@ -52017,6 +52044,16 @@
       "bodyBottom": "foot=0.928 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.252,
+     "bodyBottom": 229.1,
+     "anchors": {
+      "teeter": [
+       555.4,
+       1128.5
+      ]
+     }
     }
    },
    "walk_a": {
@@ -52024,17 +52061,11 @@
     "h": 1500,
     "ox": -156.1,
     "oy": -1189,
-    "bodyBottom": 202.4,
-    "bodyH": 378.8,
+    "bodyBottom": 283.9,
+    "bodyH": 403.4,
     "centroidX": 141.6,
-    "renderScale": 0.253,
+    "renderScale": 0.2694,
     "file": "miwa/walk_a.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 656,
@@ -52052,6 +52083,10 @@
       "bodyBottom": "foot=0.928 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.253,
+     "bodyBottom": 202.4
     }
    },
    "walk_b": {
@@ -52059,17 +52094,11 @@
     "h": 1585,
     "ox": -161.1,
     "oy": -1274,
-    "bodyBottom": 196.3,
-    "bodyH": 400.2,
+    "bodyBottom": 252.8,
+    "bodyH": 418.1,
     "centroidX": 147.6,
-    "renderScale": 0.252,
+    "renderScale": 0.2633,
     "file": "miwa/walk_b.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 654,
@@ -52087,6 +52116,10 @@
       "bodyBottom": "foot=0.928 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.252,
+     "bodyBottom": 196.3
     }
    }
   }

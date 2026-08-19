@@ -26,7 +26,7 @@ import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/mov
 import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
 import { muzzleOf, spawnOffset, REFERENCE_MUZZLE } from "../../src/muzzle.js";
 import { PIVOTED_STATES } from "../../src/motion.js";
-import { HURTBOX, GRAB } from "../../src/constants.js";
+import { HURTBOX, GRAB, WORLD } from "../../src/constants.js";
 import { grabReachOf, holdGapOf } from "../../src/grab.js";
 import { HEIGHT_BASE_PX } from "../../src/config_tuning.js";
 import { CHARACTERS, CHARACTER_KEYS, STAGED_CHARACTER_KEYS, SPRITE_ACTORS, getActor }
@@ -579,13 +579,22 @@ function sharedTodoNote(frameKey) {
   // it is read explicitly rather than counted as a number below, because it is
   // a record of the looking rather than a placement.
   if (peekMeta(OTHER_KEY, frameKey)?.surfacedReviewed) return null;
-  // A DRAWING WITH NOTHING TO DECIDE is not undecided. A domain backdrop is
-  // cover-fitted to the whole stage (drawDomainBackdrop, render.js): no size,
-  // no offset, no tilt, and the panel says so. All nine sat here permanently,
-  // because the only way off this list is a number and there is no number to
-  // set — a to-do item nobody could ever do. What such a drawing still has is a
-  // redraw flag, which is the other list and the right place for "this backdrop
-  // is wrong".
+  // A DOMAIN BACKDROP IS NEVER TO-DO. Cover-fitted to the whole stage
+  // (drawDomainBackdrop, render.js): no size, no offset, no tilt. All nine sat
+  // here permanently once, because the only way off this list is a number and
+  // there was no number to set — a to-do item nobody could ever do.
+  //
+  // They came BACK when the panel learned that a plate wider than the frame can
+  // be panned, because "has a control" is what this list reads as "has a
+  // decision". Two of the nine really can pan — captivating_skandha and
+  // time_cell_moon_palace are 1536x1024 against a 1280x720 stage, so 133px of
+  // vertical is a genuine choice — but choosing a crop on a backdrop drawn at
+  // 0.82 alpha behind a fight is not work anybody is waiting on, and the list is
+  // for work somebody must do. The control stays in the panel, where the art is
+  // loaded and the slack can be measured; the queue does not ask for it. What a
+  // backdrop still has is a redraw flag, which is the other list and the right
+  // place for "this backdrop is wrong".
+  if (sharedSpriteInfo(frameKey)?.anchor === "screen") return null;
   const controls = sharedControls(frameKey);
   if (controls && !controls.size && !controls.offset && !controls.rotate) return null;
   // One entry per DRAWING. A creature's six poses are one drawing set with one
@@ -3746,6 +3755,24 @@ const CODE_DRAWN = {
   "effect:shrine": "the shrine behind Sukuna's domain (src/domains.js)",
 };
 
+/** How much of a cover-fitted backdrop falls outside the frame, in stage px, or
+ *  null when none of it does. The cover fit scales the plate up until it covers
+ *  the stage on both axes; whatever the longer axis has left over is the range
+ *  a pan can move within. A plate at the stage's own aspect has none, which is
+ *  the case for seven of the nine domains. */
+function panSlack(key) {
+  const art = getImage(key);
+  // NOT LOADED IS NOT "NO SLACK". Domain plates are fetched lazily (`optional`
+  // in src/assets.js), so the panel can be built before the picture arrives —
+  // and answering "no" then would take a live control away on a race. Undefined
+  // means unknown; the caller offers the control and the note stays general.
+  if (!art?.width || !art?.height) return undefined;
+  const scale = Math.max(WORLD.w / art.width, WORLD.h / art.height);
+  const x = art.width * scale - WORLD.w;
+  const y = art.height * scale - WORLD.h;
+  return (x > 1 || y > 1) ? { x: Math.max(0, x), y: Math.max(0, y) } : null;
+}
+
 function sharedControls(key) {
   if (!key) return null;
   const info = sharedSpriteInfo(key);
@@ -3754,13 +3781,30 @@ function sharedControls(key) {
              what: "nothing in the game draws this, so there is no size or position to set" };
   }
   if (info.anchor === "screen") {
-    // A domain backdrop: cover-fitted, so no size and no tilt — but `pan` says
-    // the one thing it CAN do. drawDomainBackdrop reads dx/dy to choose which
-    // part of an over-wide plate shows, and this panel used to say the drawing
-    // could not be moved at all, which was wrong about the nine largest
-    // drawings in the game.
-    return { used: true, size: false, offset: !!info.pan, rotate: false, info,
-             what: info.what };
+    // A domain backdrop: cover-fitted, so no size and no tilt. `pan` is the one
+    // thing it can do — drawDomainBackdrop reads dx/dy to choose which part of
+    // an over-wide plate shows — but ONLY where the plate is actually bigger
+    // than the frame it is fitted into. Seven of the nine are exactly 1280x720,
+    // the stage's own aspect: the cover fit consumes the whole picture, so a
+    // nudge slides it off one edge and leaves a gap at the other. There is no
+    // choice to make.
+    //
+    // Saying `pan: true` for all nine put every domain on the recently-updated
+    // list, because "has a control" is what that list means by "has a decision
+    // to make". Two of them belong there — captivating_skandha and
+    // time_cell_moon_palace are 1536x1024 and carry 133px of vertical slack, so
+    // which 720 rows show is a real unmade decision. The other seven do not.
+    const slack = panSlack(key);
+    return { used: true, size: false, rotate: false, info, slack,
+             offset: !!info.pan && slack !== null,
+             what: slack
+               ? `${info.what} — this plate has ${Math.round(slack.y)}px of vertical`
+                 + `${slack.x > 1 ? ` and ${Math.round(slack.x)}px of horizontal` : ""}`
+                 + " slack to choose from"
+               : slack === null
+                 ? "a full-screen backdrop at exactly the stage's aspect — the fit uses"
+                   + " the whole plate, so there is no size, no tilt and nothing to pan to"
+                 : info.what };
   }
   // Every spawn site reads sharedAdjust now, so the nudge and the tilt are
   // always live. They were not: a dozen ultimate directors and a handful of
