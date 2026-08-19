@@ -43738,17 +43738,11 @@
     "h": 1087,
     "ox": -105.9,
     "oy": -776,
-    "bodyBottom": 230.8,
+    "bodyBottom": 260.8,
     "bodyH": 279.9,
     "centroidX": 83.4,
     "renderScale": 0.257,
     "file": "kashimo/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 672,
@@ -43766,6 +43760,9 @@
       "bodyBottom": "foot=0.926 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 230.8
     }
    },
    "grab_reach": {
@@ -43774,9 +43771,9 @@
     "ox": -300.9,
     "oy": -697,
     "bodyBottom": 236.7,
-    "bodyH": 259.6,
+    "bodyH": 251.9,
     "centroidX": 128.4,
-    "renderScale": 0.258,
+    "renderScale": 0.2503,
     "file": "kashimo/grab_reach.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -43803,7 +43800,8 @@
     "edited": {
      "anchors": {
       "grabHand": null
-     }
+     },
+     "renderScale": 0.258
     }
    },
    "grabbed": {
@@ -43812,9 +43810,9 @@
     "ox": -128.7,
     "oy": -817,
     "bodyBottom": 227.8,
-    "bodyH": 290.5,
+    "bodyH": 278.9,
     "centroidX": 158.7,
-    "renderScale": 0.258,
+    "renderScale": 0.2477,
     "file": "kashimo/grabbed.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -43841,7 +43839,8 @@
     "edited": {
      "anchors": {
       "grabChest": null
-     }
+     },
+     "renderScale": 0.258
     }
    },
    "teeter": {
@@ -45148,16 +45147,10 @@
     "ox": -58.3,
     "oy": -864,
     "bodyBottom": 269.5,
-    "bodyH": 293.8,
+    "bodyH": 289.3,
     "centroidX": 47.8,
-    "renderScale": 0.25,
+    "renderScale": 0.2462,
     "file": "naoya/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 648,
@@ -45175,6 +45168,9 @@
       "bodyBottom": "foot=0.965 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "grab_reach": {
@@ -45213,17 +45209,18 @@
      "anchors": {
       "grabHand": null
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "grabbed": {
     "w": 523,
     "h": 1174,
     "ox": -112.4,
     "oy": -863,
-    "bodyBottom": 269.6,
-    "bodyH": 293.5,
+    "bodyBottom": 251.1,
+    "bodyH": 280.2,
     "centroidX": 164.4,
-    "renderScale": 0.25,
+    "renderScale": 0.2387,
     "file": "naoya/grabbed.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -45250,7 +45247,9 @@
     "edited": {
      "anchors": {
       "grabChest": null
-     }
+     },
+     "renderScale": 0.25,
+     "bodyBottom": 269.6
     }
    },
    "teeter": {
@@ -46557,17 +46556,11 @@
     "h": 1302,
     "ox": -277.5,
     "oy": -991,
-    "bodyBottom": 219.3,
-    "bodyH": 325.5,
+    "bodyBottom": 210.3,
+    "bodyH": 289.7,
     "centroidX": 106.0,
-    "renderScale": 0.25,
+    "renderScale": 0.2225,
     "file": "yaga/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 970,
@@ -46585,6 +46578,10 @@
       "bodyBottom": "foot=0.930 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 219.3
     }
    },
    "grab_reach": {
@@ -46592,10 +46589,10 @@
     "h": 1189,
     "ox": -339.0,
     "oy": -878,
-    "bodyBottom": 227.2,
-    "bodyH": 297.2,
+    "bodyBottom": 265.7,
+    "bodyH": 263.1,
     "centroidX": 167.0,
-    "renderScale": 0.25,
+    "renderScale": 0.2213,
     "file": "yaga/grab_reach.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -46622,7 +46619,9 @@
     "edited": {
      "anchors": {
       "grabHand": null
-     }
+     },
+     "renderScale": 0.25,
+     "bodyBottom": 227.2
     }
    },
    "grabbed": {
@@ -46630,10 +46629,10 @@
     "h": 1155,
     "ox": -144.1,
     "oy": -844,
-    "bodyBottom": 229.6,
-    "bodyH": 288.8,
+    "bodyBottom": 281.1,
+    "bodyH": 267.2,
     "centroidX": 140.1,
-    "renderScale": 0.25,
+    "renderScale": 0.2313,
     "file": "yaga/grabbed.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -46660,7 +46659,9 @@
     "edited": {
      "anchors": {
       "grabChest": null
-     }
+     },
+     "renderScale": 0.25,
+     "bodyBottom": 229.6
     }
    },
    "teeter": {
@@ -46668,17 +46669,11 @@
     "h": 1258,
     "ox": -368.4,
     "oy": -947,
-    "bodyBottom": 222.4,
-    "bodyH": 314.5,
+    "bodyBottom": 191.4,
+    "bodyH": 268.8,
     "centroidX": 200.4,
-    "renderScale": 0.25,
+    "renderScale": 0.2137,
     "file": "yaga/teeter.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 963,
@@ -46690,8 +46685,8 @@
       503.1
      ],
      "teeter": [
-      955.3,
-      1254.1
+      360.8,
+      1141.6
      ]
     },
     "autoTuned": {
@@ -46699,6 +46694,16 @@
      "fields": {
       "bodyBottom": "foot=0.930 (character)",
       "ox": "centre of mass, not of the box"
+     }
+    },
+    "edited": {
+     "renderScale": 0.25,
+     "bodyBottom": 222.4,
+     "anchors": {
+      "teeter": [
+       955.3,
+       1254.1
+      ]
      }
     }
    },
@@ -47987,16 +47992,10 @@
     "ox": -131.8,
     "oy": -946,
     "bodyBottom": 261.5,
-    "bodyH": 309.5,
+    "bodyH": 343.6,
     "centroidX": 70.8,
-    "renderScale": 0.246,
+    "renderScale": 0.2731,
     "file": "kirara/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 749,
@@ -48014,17 +48013,20 @@
       "bodyBottom": "foot=0.961 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.246
     }
    },
    "grab_reach": {
     "w": 875,
     "h": 1076,
-    "ox": -320.9,
+    "ox": -288.4,
     "oy": -765,
     "bodyBottom": 268.6,
-    "bodyH": 264.9,
+    "bodyH": 323.2,
     "centroidX": 196.9,
-    "renderScale": 0.246,
+    "renderScale": 0.3001,
     "file": "kirara/grab_reach.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -48051,7 +48053,9 @@
     "edited": {
      "anchors": {
       "grabHand": null
-     }
+     },
+     "renderScale": 0.246,
+     "ox": -320.9
     }
    },
    "grabbed": {
@@ -48090,7 +48094,8 @@
      "anchors": {
       "grabChest": null
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "teeter": {
     "w": 827,
@@ -49480,9 +49485,9 @@
     "ox": -259.1,
     "oy": -905,
     "bodyBottom": 257.8,
-    "bodyH": 304.0,
+    "bodyH": 345.1,
     "centroidX": 192.1,
-    "renderScale": 0.25,
+    "renderScale": 0.2838,
     "file": "haruta/grabbed.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -49509,7 +49514,8 @@
     "edited": {
      "anchors": {
       "grabChest": null
-     }
+     },
+     "renderScale": 0.25
     }
    },
    "teeter": {
@@ -50843,17 +50849,11 @@
     "h": 1246,
     "ox": -286.5,
     "oy": -935,
-    "bodyBottom": 278.8,
-    "bodyH": 303.7,
+    "bodyBottom": 230.8,
+    "bodyH": 334.1,
     "centroidX": 164.0,
-    "renderScale": 0.244,
+    "renderScale": 0.2684,
     "file": "tengen/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 872,
@@ -50871,6 +50871,10 @@
       "bodyBottom": "foot=0.974 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.244,
+     "bodyBottom": 278.8
     }
    },
    "grab_reach": {
@@ -50878,10 +50882,10 @@
     "h": 1170,
     "ox": -308.7,
     "oy": -859,
-    "bodyBottom": 280.7,
-    "bodyH": 285.1,
+    "bodyBottom": 241.2,
+    "bodyH": 335.0,
     "centroidX": 156.2,
-    "renderScale": 0.244,
+    "renderScale": 0.2867,
     "file": "tengen/grab_reach.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -50908,7 +50912,9 @@
     "edited": {
      "anchors": {
       "grabHand": null
-     }
+     },
+     "renderScale": 0.244,
+     "bodyBottom": 280.7
     }
    },
    "grabbed": {
@@ -50916,10 +50922,10 @@
     "h": 1406,
     "ox": -142.4,
     "oy": -1095,
-    "bodyBottom": 274.6,
-    "bodyH": 342.6,
+    "bodyBottom": 229.1,
+    "bodyH": 356.4,
     "centroidX": 117.9,
-    "renderScale": 0.244,
+    "renderScale": 0.2538,
     "file": "tengen/grabbed.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -50946,7 +50952,9 @@
     "edited": {
      "anchors": {
       "grabChest": null
-     }
+     },
+     "renderScale": 0.244,
+     "bodyBottom": 274.6
     }
    },
    "teeter": {
@@ -52267,19 +52275,13 @@
    "grab_hold": {
     "w": 770,
     "h": 929,
-    "ox": -227.2,
+    "ox": -215.7,
     "oy": -618,
     "bodyBottom": 243.8,
-    "bodyH": 234.6,
+    "bodyH": 375.4,
     "centroidX": 155.7,
-    "renderScale": 0.253,
+    "renderScale": 0.4048,
     "file": "miwa/grab_hold.png",
-    "replaced": {
-     "at": "2026-08-19T01:41:01+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 770,
@@ -52297,6 +52299,10 @@
       "bodyBottom": "foot=0.928 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.253,
+     "ox": -227.2
     }
    },
    "grab_reach": {
@@ -52305,9 +52311,9 @@
     "ox": -310.7,
     "oy": -567,
     "bodyBottom": 247.5,
-    "bodyH": 221.7,
+    "bodyH": 354.7,
     "centroidX": 124.2,
-    "renderScale": 0.253,
+    "renderScale": 0.4048,
     "file": "miwa/grab_reach.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -52334,7 +52340,8 @@
     "edited": {
      "anchors": {
       "grabHand": null
-     }
+     },
+     "renderScale": 0.253
     }
    },
    "grabbed": {
@@ -52373,7 +52380,8 @@
      "anchors": {
       "grabChest": null
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "teeter": {
     "w": 944,
@@ -78425,6 +78433,32 @@
   },
   "stagefx:stage_fang": {
    "surfacedReviewed": true
+  },
+  "effect:hand_sword": {
+   "edited": {
+    "renderScale": null,
+    "dx": null,
+    "dy": null
+   },
+   "renderScale": 0.46,
+   "dx": 0.4,
+   "dy": -1.5,
+   "src": {
+    "file": "assets/sprites/effects/hand_sword.png",
+    "sha": "809ca5307baf"
+   }
+  },
+  "effect:nyoi_staff": {
+   "edited": {
+    "renderScale": null,
+    "rotationDeg": null
+   },
+   "renderScale": 0.735,
+   "rotationDeg": 1.5,
+   "src": {
+    "file": "assets/sprites/effects/nyoi_staff.png",
+    "sha": "abe0d4417607"
+   }
   }
  }
 }
