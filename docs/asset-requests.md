@@ -409,6 +409,16 @@ too, and both halves of the pair have to pass the ruler.
 | `yaga/attack_air_a.png` | Yaga | Same fault, airborne |
 | `nanami/teeter.png` | Nanami | **Framing.** The pose is right — weight back, arms out, head down toward the drop — but his blunt blade runs off the LEFT edge of the plate and is cut flat by the canvas. The delivery spec's "nothing may touch the canvas edge" rule, and the "reach falls off the canvas" fault the brief has named since round 13. Redraw the same pose with margin on all four sides so the blade finishes inside the frame |
 
+**A promoted fighter owes a grab set too, and for the same reason.** 20C drew
+`grab_reach`, `grab_hold` and `grabbed` for the roster of 26 and 20E added
+Yuji's; the seven staged fighters were staged after it, so none of them has any
+of the three. Until each is promoted the grab falls back the way it did before
+20C landed, so nothing is broken — but a promoted fighter with no grab poses is
+one who reaches, holds and is held in their idle. **Three sprites each for
+`kashimo`, `yaga`, `naoya`, `kirara`, `haruta`, `tengen` and `miwa`**, on the
+20C brief, in the round that promotes them. The grip point is the constraint
+that spans the pair — see pose-brief.md, and the workbench now draws it.
+
 **A promoted fighter owes a teeter.** 22A drew the pose for the roster of 27;
 the seven staged fighters were not in it, and until each is promoted their
 teeter falls back to their idle frames with the procedural lean `src/motion.js`

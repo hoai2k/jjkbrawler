@@ -2092,7 +2092,10 @@ function drawGrabShape(cx, g) {
     ctx.beginPath();                       // the far edge: the last px it closes on
     ctx.moveTo(wx(g.w), wy(-g.h)); ctx.lineTo(wx(g.w), wy(0));
     ctx.stroke();
-    ctx.fillText(`Grab reach · ${Math.round(g.w)}px`, wx(g.w) + 6, wy(-g.h) + 12);
+    ctx.fillText(`Grab reach · ${Math.round(g.w)}px — a grab connects up to here`,
+      wx(g.w) + 6, wy(-g.h) + 12);
+    ctx.fillStyle = "rgba(255, 140, 110, 0.7)";
+    ctx.fillText("put the grasping hand ON it", wx(g.w) + 6, wy(-g.h) + 26);
   } else {
     // The other body, where the pin puts it: a plain hurtbox, because that is
     // all the pose has to agree with — hands on it, and not through it.
@@ -2106,6 +2109,26 @@ function drawGrabShape(cx, g) {
     ctx.moveTo(wx(g.gap), wy(-g.h)); ctx.lineTo(wx(g.gap), wy(0));
     ctx.strokeStyle = "rgba(255, 120, 90, 0.9)";
     ctx.stroke();
+    // THE GRIP, which is the thing these two poses actually have to agree on
+    // and the one line this canvas was not drawing. The brief calls it "the
+    // constraint that spans fighters": `grab_hold`'s closed fist and
+    // `grabbed`'s prying hands both sit at chest height on the leading edge,
+    // because the game stands the two bodies at a fixed gap and the pair is
+    // what a player reads. Halfway between the two body centres is where those
+    // two hands meet — derived from `holdGap`, not invented for the picture.
+    //
+    // NEITHER POSE MOVES TO IT. The body stays on its own ground contact; what
+    // lines up with this is the HANDS. Sliding the drawing sideways to reach
+    // the line would take the fighter off the spot the game pins them to.
+    const grip = g.gap / 2;
+    ctx.strokeStyle = "rgba(120, 210, 240, 0.9)";
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(wx(grip), wy(-g.h)); ctx.lineTo(wx(grip), wy(0));
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(150, 220, 250, 0.95)";
+    ctx.fillText("the grip — hands here, chest height", wx(grip) + 6, wy(-g.h * 0.62));
   }
   ctx.restore();
 }
