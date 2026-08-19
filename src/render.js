@@ -1,6 +1,6 @@
 import { state } from "./state.js";
 import { getImage } from "./assets.js";
-import { sharedAdjust, sharedFadeIn, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "./shared_sprites.js";
+import { sharedAdjust, sharedFadeIn, paintedHeight, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "./shared_sprites.js";
 import { getStage } from "./stages.js";
 import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { getActor } from "./characters.js";
@@ -8,6 +8,7 @@ import { fighterTransform, trailStrength } from "./motion.js";
 import { bodyMetrics } from "./silhouette.js";
 import { comFrac } from "./body_points.js";
 import { TRAIL_ALPHA, STRIKE_ARC, COM_HOLD_MAX_FRAC, MOTION } from "./config_tuning.js";
+import { paintShared } from "./shared_paint.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
 import { hitboxRect, hurtbox, summonBox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
@@ -258,10 +259,11 @@ function drawProjectiles(ctx) {
       // scale folded in already — it is a kit number — so only the nudge is
       // read here, and it moves the PICTURE, never `p.x`/`p.y`, which are what
       // the projectile collides on.
-      const adj = sharedAdjust(p.sprite);
-      const h = p.spriteH || p.r * 3;
-      const w = sprite.width * h / sprite.height;
-      ctx.save();
+      // The one multiply, here where it is drawn: the kit's authored height
+      // times whatever the workbench set on the picture (paintedHeight,
+      // src/shared_sprites.js). No spawn site carries a pre-scaled number any
+      // more, so there is nothing to double-apply and nothing to forget.
+      const h = paintedHeight(p.sprite, p.spriteH || p.r * 3);
       // Energy gathers rather than appearing. A drawing that asks for it eases
       // in over its first few frames (sharedFadeIn) instead of cutting to full
       // opacity one frame after the hand opens — which reads as a decal being
@@ -269,23 +271,20 @@ function drawProjectiles(ctx) {
       // spawned, whatever it looks like, because a hitbox you can see through
       // is a hitbox that lies.
       const fade = sharedFadeIn(p.sprite);
-      if (fade) ctx.globalAlpha = Math.min(1, p.age / fade);
-      ctx.translate(p.x, p.y + (p.wave ? p.r * 0.68 : 0));
       // Point the art along its actual flight path. An arcing shot used to
       // hold one orientation the whole way, which read as a sliding decal.
       // The art faces LEFT natively and is mirrored when travelling right, so
       // the nose already points along vx; the rotation only has to add the
       // vertical component, measured in that same mirrored frame.
       const flip = p.vx > 0 ? -1 : 1;
-      if (p.vy) ctx.rotate(Math.atan2(-flip * p.vy, -flip * p.vx));
-      ctx.scale(flip, 1);
-      if (adj.rot) ctx.rotate(adj.rot);
-      ctx.shadowColor = p.color;
-      ctx.shadowBlur = 12;
-      // Inside the mirrored frame, so a nudge follows the drawing rather than
-      // reversing when the shot travels the other way.
-      ctx.drawImage(sprite, -w / 2 + adj.dx, -h / 2 + adj.dy, w, h);
-      ctx.restore();
+      paintShared(ctx, p.sprite, sprite,
+        { x: p.x, y: p.y + (p.wave ? p.r * 0.68 : 0) }, h, {
+          anchor: "centre",
+          rotation: p.vy ? Math.atan2(-flip * p.vy, -flip * p.vx) : 0,
+          mirrored: flip < 0,
+          alpha: fade ? Math.min(1, p.age / fade) : 1,
+          shadow: { color: p.color, blur: 12 },
+        });
       continue;
     }
     ctx.save();
@@ -593,23 +592,17 @@ function drawFighters(ctx, { bodies = true } = {}) {
     // goes on animating in front of it (`behind` on the move, src/characters.js).
     const behind = !!f.installs?.spriteBehind;
     if (transformed) {
-      const h = 210;
-      const w = transformed.width * h / transformed.height;
-      ctx.save();
-      ctx.translate(f.x + shakeX, f.y + 10);
-      ctx.scale(f.facing > 0 ? -1 : 1, 1);
-      ctx.globalAlpha = flicker ? 0.6 : 1;
-      ctx.shadowColor = f.installs.color || f.char.shadow;
-      ctx.shadowBlur = 24;
       // A transformed body is shared art like any other — Mahoraga standing in
       // for Megumi, the triceratops for Panda — and it stands on a fighter's
-      // feet, where being a few pixels out is as visible as it gets. Its HEIGHT
-      // is the renderer's (the kit has no say, hence `sizable: false` in the
-      // registry), but the nudge and the tilt are the drawing's own.
-      const tAdj = sharedAdjust(f.installs.sprite);
-      if (tAdj.rot) ctx.rotate(tAdj.rot);
-      ctx.drawImage(transformed, -w / 2 + tAdj.dx, -h + tAdj.dy, w, h);
-      ctx.restore();
+      // feet, where being a few pixels out is as visible as it gets. Its
+      // nominal height is the renderer's rather than the kit's; the size, the
+      // nudge and the tilt are the drawing's own.
+      paintShared(ctx, f.installs.sprite, transformed,
+        { x: f.x + shakeX, y: f.y + 10 }, paintedHeight(f.installs.sprite, 210), {
+          anchor: "feet", mirrored: f.facing > 0,
+          alpha: flicker ? 0.6 : 1,
+          shadow: { color: f.installs.color || f.char.shadow, blur: 24 },
+        });
     }
     // The fighter's own body — unless the drawing REPLACED it, which is the
     // case this guard is for. When it stands behind, both are painted, in this
@@ -809,23 +802,16 @@ function drawInstallAura(ctx, f) {
   ctx.globalCompositeOperation = "lighter";
   const pulse = AURA_PULSE.base + AURA_PULSE.amp * Math.sin(state.matchTime * AURA_PULSE.rate);
   if (art) {
-    // An aura's height is a constant here rather than a kit number, so the
-    // drawing's own scale has to be read at the draw — the kit-side folding in
-    // shared_sprites.js never reaches it.
-    const adj = sharedAdjust(f.installs.aura);
-    const h = AURA_H * pulse * adj.scale;
-    const w = art.width * h / art.height;
-    ctx.globalAlpha = 0.72;
-    ctx.shadowColor = f.installs.color;
-    ctx.shadowBlur = 18;
-    if (adj.rot) {
-      // About the point it is painted on — the fighter's feet — so a tilt
-      // leans the aura rather than sliding it.
-      ctx.translate(f.x, f.y + AURA_FOOT_DY);
-      ctx.rotate(adj.rot);
-      ctx.translate(-f.x, -(f.y + AURA_FOOT_DY));
-    }
-    ctx.drawImage(art, f.x - w / 2 + adj.dx, f.y + AURA_FOOT_DY - h + adj.dy, w, h);
+    // An aura's nominal height is a constant rather than a kit number, and it
+    // breathes: `pulse` is applied on top of the drawing's own size. It stands
+    // ten pixels UNDER the fighter's feet so the glow skirts the platform, and
+    // its tilt turns about that same point — which is what `anchor: "feet"`
+    // means, so the common transform is the whole of it.
+    paintShared(ctx, f.installs.aura, art,
+      { x: f.x, y: f.y + AURA_FOOT_DY }, paintedHeight(f.installs.aura, AURA_H) * pulse, {
+        anchor: "feet", alpha: 0.72,
+        shadow: { color: f.installs.color, blur: 18 },
+      });
     ctx.restore();
     return;
   }

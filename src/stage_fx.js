@@ -16,7 +16,8 @@
 import { state } from "./state.js";
 import { getStage, mainPlatform } from "./stages.js";
 import { getImage } from "./assets.js";
-import { sharedAdjust } from "./shared_sprites.js";
+import { paintedHeight } from "./shared_sprites.js";
+import { paintShared } from "./shared_paint.js";
 import { playSfx } from "./audio.js";
 import { burst, dust, popup, banner, ring, sparkLine } from "./particles.js";
 import { hitboxRect, shieldBreak } from "./combat.js";
@@ -51,11 +52,13 @@ function fighters() {
 }
 
 const fxImage = (name) => getImage(`stagefx:${name}`);
-// The per-drawing adjustment for a hazard's art (src/shared_sprites.js). Each
-// hazard's size is a constant at its own draw site, so the workbench's Size
-// reaches these only by being read here; `dx`/`dy` move the picture and never
-// the hazard, whose position is what it hits you with.
-const fxAdjust = (name) => sharedAdjust(`stagefx:${name}`);
+/** A hazard's painted height: its own number times the workbench's size, the
+ *  one multiply every shared drawing goes through (paintedHeight). Each
+ *  hazard's base size is a constant at its own draw site, so the workbench's
+ *  Size reaches these only by being read here; the nudge and the tilt come
+ *  with paintShared, and both move the picture and never the hazard, whose
+ *  position is what it hits you with. */
+const fxHeight = (name, base) => paintedHeight(`stagefx:${name}`, base);
 
 // A hazard landing on a fighter. Deliberately simpler than combat.applyHit:
 // no attacker exists, so there is no meter economy, staling or passives —
@@ -396,18 +399,12 @@ const STAGE_FX = {
             const count = Math.max(3, Math.round(z.w / 46));
             for (let i = 0; i < count; i++) {
               const fx = z.x + (i + 0.5) * (z.w / count);
-              const fa = fxAdjust("stage_fang");
-              const h = (34 + (i % 3) * 14) * rise * fa.scale;
+              const h = fxHeight("stage_fang", 34 + (i % 3) * 14) * rise;
               if (img) {
-                const w = img.width * (h * 2) / img.height;
-                ctx.save();
-                ctx.translate(fx, plat.y + 6);
-                // The standing tilt, about the point it grows out of. The four
-                // hazards were the last drawings storing a rotation nobody
-                // drew.
-                if (fa.rot) ctx.rotate(fa.rot);
-                ctx.drawImage(img, -w / 2 + fa.dx, -h * 2 + fa.dy, w, h * 2);
-                ctx.restore();
+                // "feet" is the point it grows out of: the floor holds the
+                // bottom edge and the tilt turns about it.
+                paintShared(ctx, "stagefx:stage_fang", img,
+                  { x: fx, y: plat.y + 6 }, h * 2, { anchor: "feet" });
               } else {
                 ctx.save();
                 ctx.fillStyle = "#dff6f6";
@@ -475,12 +472,8 @@ const STAGE_FX = {
         const img = fxImage("stage_flower");
         ctx.save();
         if (img && grow >= 1) {
-          const fa = fxAdjust("stage_flower");
-          const h = 46 * fa.scale;
-          const w = img.width * h / img.height;
-          ctx.translate(bloom.x, y);
-          if (fa.rot) ctx.rotate(fa.rot);
-          ctx.drawImage(img, -w / 2 + fa.dx, -h + fa.dy, w, h);
+          paintShared(ctx, "stagefx:stage_flower", img, { x: bloom.x, y },
+            fxHeight("stage_flower", 46), { anchor: "feet" });
         } else {
           // stem
           ctx.strokeStyle = "#5aa86a";
@@ -574,16 +567,10 @@ const STAGE_FX = {
             ctx.stroke();
           }
           if (img) {
-            const fa = fxAdjust("stage_lantern");
-            const h = 44 * fa.scale;
-            const w = img.width * h / img.height;
-            // About the cord it hangs from, which is the top of the drawing:
-            // a lantern swings from its knot, not about its middle.
-            ctx.save();
-            ctx.translate(x, lantern.y - 16);
-            if (fa.rot) ctx.rotate(fa.rot);
-            ctx.drawImage(img, -w / 2 + fa.dx, fa.dy, w, h);
-            ctx.restore();
+            // Hung from the cord, which is the TOP of the drawing: a lantern
+            // swings from its knot, not about its middle.
+            paintShared(ctx, "stagefx:stage_lantern", img, { x, y: lantern.y - 16 },
+              fxHeight("stage_lantern", 44), { anchor: "top" });
           } else {
             ctx.fillStyle = "#c8452e";
             ctx.strokeStyle = "#5a2618";
@@ -975,12 +962,9 @@ const STAGE_FX = {
             const img = fxImage("stage_fang");
             ctx.globalAlpha = 1;
             if (img) {
-              const fa = fxAdjust("stage_fang");
-              const h = 72 * fa.scale;
-              const w = img.width * h / img.height;
-              ctx.translate(fang.x, fang.y);
-              ctx.rotate(Math.PI); // art points up; this one dives
-              ctx.drawImage(img, -w / 2 + fa.dx, -h / 2 + fa.dy, w, h);
+              paintShared(ctx, "stagefx:stage_fang", img, { x: fang.x, y: fang.y },
+                fxHeight("stage_fang", 72),
+                { rotation: Math.PI });   // art points up; this one dives
             } else {
               ctx.fillStyle = "#efe6ff";
               ctx.strokeStyle = "#b06cff";
@@ -1144,13 +1128,9 @@ const STAGE_FX = {
         const img = fxImage("stage_weak_curse");
         ctx.save();
         if (img) {
-          const fa = fxAdjust("stage_weak_curse");
-          const h = 60 * fa.scale;
-          const w = img.width * h / img.height;
-          ctx.translate(bx, by);
-          ctx.scale(blob.vx > 0 ? -1 : 1, 1);
-          if (fa.rot) ctx.rotate(fa.rot);
-          ctx.drawImage(img, -w / 2 + fa.dx, -h + fa.dy, w, h);
+          paintShared(ctx, "stagefx:stage_weak_curse", img, { x: bx, y: by },
+            fxHeight("stage_weak_curse", 60),
+            { anchor: "feet", mirrored: blob.vx > 0 });
         } else {
           ctx.fillStyle = "#4b2d73";
           ctx.strokeStyle = "#b06cff";

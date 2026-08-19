@@ -669,6 +669,10 @@ other:
 | `DRAW_SITES` + `LAUNCH` in `src/shared_sprites.js` | anchor, mirroring, spawn point | the still viewer, the panel, the crosshair |
 | `DIRECTORS`, `FLASH_MOVES`, `PLANTED_MOVES`, `ULT_SHOTS`, `ULT_DROPS`, `WORN`, `HAZARDS` in `sprites/workbench/effect_preview.js` | the same facts again, as playback | the action player |
 
+**This has been fixed since.** The table above is what the code used to look
+like; what follows is the record of why, because the same shape will grow back
+if nobody remembers what it cost.
+
 A new move type has to be entered in the second and third by hand, and nothing
 notices when it is not. `massDrive` was in the registry and not the player, so
 Miwa's ultimate had no Play button. `boomerang` was in the player and not the
@@ -683,13 +687,53 @@ gap from the outside: it plays every drawing and asserts the two views agree
 about the anchor and the mirroring, which is exactly the pair a missing table
 entry gets wrong. It found four more the day it was written.
 
-**The refactor it is standing in for** is one table per move type, in one file,
-holding anchor / mirrored / height source / launch / playback shape, with the
-handler's file and line beside it — read by the registry and the player instead
-of duplicated by them, and by a check that every `type` a kit uses has an entry.
-That is a real day's work and it touches both workbenches, so it has not been
-done; the check is the cheap half, and it fails loudly enough to make the
-expensive half optional rather than urgent.
+#### What replaced it
+
+Four things, in the order they were done. Each one turns a class of bug from
+*detectable* into *impossible*, and each carries a check so it stays that way.
+
+**One spawn-shape table** — `src/config_spawn_shapes.js`. One entry per move
+type: anchor, mirroring, whether it travels, its launch point, its height
+source, which playback the action player uses, and the handler's file beside
+it. The registry and the player both read it; neither holds its own copy.
+`tools/check_spawn_shapes.mjs` asserts that every kit type naming a drawing has
+an entry, that every entry names a playback the player implements, that every
+playback belongs to an entry, and that every `site` path exists. Its first run
+found a missing `ultDrop`, a dead `cardrop` and a `site` pointing at nothing.
+
+**One owner for a drawing's height** — `paintedHeight(key, base)` in
+`src/shared_sprites.js`. The workbench's Size used to be folded into every
+kit's `spriteH` at boot, un-folded by the registry, and applied a third time at
+the draw by anything whose height was not a kit number. Three conventions, and
+the only way to know which one a line was written under was to know the
+history: the action player did not, so every drawing anybody had resized was
+previewed at scale-squared while the game drew it right. There is one multiply
+now, and `tools/check_shared_heights.mjs` fails any line outside that function
+that reaches for a scale itself.
+
+**One transform** — `paintShared` in `src/shared_paint.js`, with
+`sharedPlacement` for a painter that cannot use a canvas (the 2.5D scene builds
+the chain out of matrices) and `sharedRect` for a caller that wants the
+rectangle without the picture. Thirty-one draw sites each rebuilt the same five
+lines by hand — translate, mirror, tilt, draw with the nudge and the anchor —
+and each got a different part of it wrong at some point. The conversion itself
+turned up two more of the same fault: Hanami's root spikes ignored the
+workbench's Size, and the summon preview applied the nudge before the tilt
+where the game applies it after.
+
+**A layered bench** — `workbench.js` was 6,321 lines and 233 functions in one
+module, which is the reason a fix in one panel could quietly change another:
+everything could see everything, so nothing had to declare what it needed. It
+is six modules now — `bench_state` (canvas, geometry, the mutable state),
+`bench_model` (what a sprite *is*), `bench_picker`, `bench_shared_art`,
+`bench_export`, and the page itself — importing downward only, with
+`tools/check_bench_layers.mjs` holding the direction. The two leaves that need
+something back from the page are handed it at boot (`initSpritePicker`,
+`initSharedArt`) rather than importing it.
+
+`tools/check_effect_previews.mjs` stays: it plays every drawing and asserts the
+two views agree about the anchor and the mirroring. It was written as the cheap
+half of this work and it is still the outside check on all of it.
 
 #### Shared art is on the same list, for a different reason
 

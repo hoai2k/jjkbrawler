@@ -1,6 +1,5 @@
 import { CHARACTER_KEYS, actorsFor } from "./characters.js";
 import { applyAllHeightScales } from "./heights.js";
-import { applySharedSpriteScales } from "./shared_sprites.js";
 import { STAGES, backgroundFile } from "./stages.js";
 import { cameraMode } from "./camera_mode.js";
 import { transformActorsFor } from "./config_transform.js";
@@ -485,10 +484,6 @@ export async function loadCoreAssets() {
   // drawn. Doing it here rather than at each call site means the game and both
   // workbenches cannot disagree about how tall a fighter is.
   applyAllHeightScales();
-  // Same reasoning, for the art that belongs to no fighter: the sizes the kits
-  // declare for effects and summons are folded with whatever the workbench has
-  // tuned, once, before anything spawns.
-  applySharedSpriteScales();
 }
 
 // ------------------------------------------------------------- group catalogue
