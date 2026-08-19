@@ -657,6 +657,40 @@ preview, and does it paint anything). The rest of this is arithmetic that no
 check can see: when a new spawn shape is added, the honest test is to open the
 handler and the player side by side.
 
+#### Why these keep happening, and the shape of the fix
+
+Every fault in the list above is the same fault. **What a move type does with
+its drawing is written down three times**, in three places that cannot see each
+other:
+
+| Where | What it holds | Who reads it |
+|---|---|---|
+| the handler in `src/specials.js` / `src/ultimates.js` | the truth: where it is painted, at what height, mirrored or not | the game |
+| `DRAW_SITES` + `LAUNCH` in `src/shared_sprites.js` | anchor, mirroring, spawn point | the still viewer, the panel, the crosshair |
+| `DIRECTORS`, `FLASH_MOVES`, `PLANTED_MOVES`, `ULT_SHOTS`, `ULT_DROPS`, `WORN`, `HAZARDS` in `sprites/workbench/effect_preview.js` | the same facts again, as playback | the action player |
+
+A new move type has to be entered in the second and third by hand, and nothing
+notices when it is not. `massDrive` was in the registry and not the player, so
+Miwa's ultimate had no Play button. `boomerang` was in the player and not the
+registry, so the same staff pointed one way in the viewer and the other in the
+player, the fighter beside it stood in his idle instead of the pose that throws
+it, and there was no crosshair. Three directors said they were not mirrored
+while their handlers mirrored them. A creature declared inline in a move put its
+stand-in's answer in the registry over the use that really draws.
+
+**The check that exists now** (`tools/check_effect_previews.mjs`) closes the
+gap from the outside: it plays every drawing and asserts the two views agree
+about the anchor and the mirroring, which is exactly the pair a missing table
+entry gets wrong. It found four more the day it was written.
+
+**The refactor it is standing in for** is one table per move type, in one file,
+holding anchor / mirrored / height source / launch / playback shape, with the
+handler's file and line beside it — read by the registry and the player instead
+of duplicated by them, and by a check that every `type` a kit uses has an entry.
+That is a real day's work and it touches both workbenches, so it has not been
+done; the check is the cheap half, and it fails loudly enough to make the
+expensive half optional rather than urgent.
+
 #### Shared art is on the same list, for a different reason
 
 An effect or a summon has no intake marker to carry: a delivery overwrites those

@@ -348,8 +348,11 @@ const DIRECTORS = {
   // spinning?" was about. The handler's own numbers, read off src/ultimates.js.
   vortex: (p) => ({
     life: p.dur || 2.6, anchor: "centre", flip: false,
-    at: (u, S) => ({ x: S.FIGHTER_X + (p.ox ?? 130) + u * (p.dur || 2.6) * (p.speed || 300),
-                     y: S.GROUND + (p.oy ?? -110) }),
+    // `cast` is the move's point with any unsaved drag folded in — the third
+    // argument every `at` may take and only the draggable ones need.
+    at: (u, S, cast = p) => ({
+      x: S.FIGHTER_X + (cast.ox ?? 130) + u * (p.dur || 2.6) * (p.speed || 300),
+      y: S.GROUND + (cast.oy ?? -110) }),
     h: () => p.spriteH || 250,
     spin: (u) => u * (p.dur || 2.6) * (p.spin ?? 2.2),
     // The cast point is the KIT's, so it can be dragged here like a muzzle.
@@ -718,7 +721,24 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
   // nothing, which is what a missing preview looks like from the outside.
   // tools/check_effect_previews.mjs walks the loop and asks.
   let drew = false;
+  // WHAT THE LAST FRAME ACTUALLY DID with the drawing — which point it was
+  // painted around, and whether it was mirrored. Recorded rather than declared,
+  // so it is the truth about the picture on the canvas, and compared against
+  // the registry's answer for the same drawing by
+  // tools/check_effect_previews.mjs. The two views of one drawing disagreeing
+  // about which way it points is exactly the fault that check exists for: the
+  // viewer mirrors from `DRAW_SITES` in src/shared_sprites.js and the player
+  // decides per mode, and a move type in one table and not the other showed the
+  // staff pointing one way here and the other way there.
+  let painted = null;
   let drag = null;
+  // WHICH OF THE TWO MARKERS A DRAG GRABS. They sit on top of each other
+  // whenever the nudge is zero — a shot's drawing marker starts exactly on its
+  // muzzle, a director's on its cast point — and the tie went to the drawing
+  // every time, so the spawn point of anything nobody had nudged yet could not
+  // be picked up at all. That is not a tie-break anybody can discover; it is a
+  // control that does nothing. The panel names which one is being moved.
+  let prefer = "drawing";
   let grabbed = false;
   let lastTick = 0;
 
@@ -1031,10 +1051,16 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
   }
 
   /** Where a director's own drawing is, `u` of the way through its action. */
-  function directorAt(age) {
+  function directorAt(age, adj) {
     const p = use.p;
     const u = Math.max(0, Math.min(1, age / p.life));
-    const at = p.at(u, { FIGHTER_X, ENEMY_X, GROUND });
+    // A DIRECTOR WHOSE CAST POINT THE KIT OWNS can be dragged, and dragging it
+    // has to move the drawing — the marker moved and the spiral did not, which
+    // reads as a dead control. `kitLaunch` says the point is `ox`/`oy` on the
+    // move, so the pending edit is substituted the same way a shot's is.
+    const cast = p.kitLaunch && adj
+      ? { ...p, ox: adj.spawnOx ?? p.ox, oy: adj.spawnOy ?? p.oy } : p;
+    const at = p.at(u, { FIGHTER_X, ENEMY_X, GROUND }, cast);
     return { x0: at.x, y0: at.y, x: at.x, y: at.y, vx: 0, vy: 0,
              foot: p.anchor === "feet", h: p.h(u, p),
              // A director that turns its own drawing — the spiral — says so,
@@ -1058,7 +1084,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
         : { x0: FIGHTER_X - (use.cfg.backOff ?? 60), y0: GROUND })
     : use.mode === "planted" ? plantedAt(use.p.armed)
     : use.mode === "worn" ? wornAt()
-    : use.mode === "director" ? directorAt(0)
+    : use.mode === "director" ? directorAt(0, adj)
     : use.mode === "hazard" ? hazardAt(0)
     : use.mode === "backdrop" ? { x0: FIGHTER_X, y0: GROUND }
     : shotAt(0, adj));
@@ -1098,14 +1124,17 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // never turns it into its fall, so the only tilt it has is the standing
     // one, and previewing it under the projectile's flight rotate would show a
     // meteor lying on its side that the game draws nose-down.
+    let mirrored = false;
     if (use.mode === "flash" || (use.mode === "director" && use.p.flip)
         || (use.mode === "worn" && use.p.kind === "rampage")) {
       ctx.scale(-1, 1);   // mirrored to the caster's facing, as the handler does
+      mirrored = true;
     } else if (use.mode !== "drop" && use.mode !== "planted"
                && use.mode !== "worn" && use.mode !== "director") {
       const flip = pos.vx > 0 ? -1 : 1;
       if (use.p.vy || use.p.gravity || use.p.homing) ctx.rotate(Math.atan2(-flip * pos.vy, -flip * pos.vx));
       ctx.scale(flip, 1);
+      mirrored = flip < 0;
     }
     if (pos.spin) ctx.rotate(pos.spin);
     if (adj.rot) ctx.rotate(adj.rot);
@@ -1116,6 +1145,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     // Three anchors, because the game has three: standing on the point, hung
     // from it, or painted around it (ANCHOR_WORDS in the sprite bench).
     const top = pos.foot ? -h : pos.top ? 0 : -h / 2;
+    painted = { anchor: pos.foot ? "feet" : pos.top ? "top" : "centre", mirrored };
     if (pos.sway) ctx.rotate(pos.sway);
     ctx.drawImage(sprite, -w / 2 + (adj.dx || 0) * persp, top + (adj.dy || 0) * persp, w, h);
     ctx.restore();
@@ -1231,7 +1261,7 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
         : use.mode === "flash" ? flashAt(t)
         : use.mode === "planted" ? plantedAt(t)
         : use.mode === "worn" ? wornAt()
-        : use.mode === "director" ? directorAt(t)
+        : use.mode === "director" ? directorAt(t, adj)
         : use.mode === "hazard" ? hazardAt(t)
         : shotAt(t, adj);
       const sprite = getImage(use.spriteKey);
@@ -1369,15 +1399,19 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
     const adj = read();
     const o = originAt(adj);
     const dPt = { x: o.x0 + (adj.dx || 0), y: o.y0 + (adj.dy || 0) };
-    // The drawing marker wins a tie: it is the one that moves most often, and
-    // it sits on top of the spawn point whenever the nudge is zero.
-    if (Math.hypot(pt.x - dPt.x, pt.y - dPt.y) < 18) drag = "drawing";
     // A director joins the draggable set only where the kit owns its cast
     // point (`kitLaunch`); the rest write their offsets into their own handler,
     // where a number dragged here could not land.
-    else if ((!["drop", "flash", "summon", "planted", "worn", "director", "hazard"].includes(use.mode)
-              || (use.mode === "director" && use.p.kitLaunch))
-             && Math.hypot(pt.x - o.x0, pt.y - o.y0) < 18) drag = "spawn";
+    const spawnable = !["drop", "flash", "summon", "planted", "worn", "director", "hazard"]
+      .includes(use.mode) || (use.mode === "director" && use.p.kitLaunch);
+    const near = (q) => Math.hypot(pt.x - q.x, pt.y - q.y) < 18;
+    // Whichever the panel says is being moved is tested first, so two markers
+    // on one point are both reachable. Falling through to the other one keeps a
+    // deliberate grab of the far marker working without touching the switch.
+    const wantSpawn = prefer === "spawn" && spawnable;
+    if (wantSpawn && near({ x: o.x0, y: o.y0 })) drag = "spawn";
+    else if (near(dPt)) drag = "drawing";
+    else if (spawnable && near({ x: o.x0, y: o.y0 })) drag = "spawn";
     else return;
     grabbed = false;
     canvas.setPointerCapture(ev.pointerId);
@@ -1433,6 +1467,16 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
       cancelAnimationFrame(raf);
       onClose?.();
     },
+    /** Which marker a drag grabs when both are under the pointer. */
+    prefer(which) { prefer = which === "spawn" ? "spawn" : "drawing"; return prefer; },
+    get preferring() { return prefer; },
+    /** Whether this action HAS a spawn point somebody can move. */
+    get spawnable() {
+      if (!use) return false;
+      return !["drop", "flash", "summon", "planted", "worn", "director", "hazard"]
+        .includes(use.mode) || (use.mode === "director" && !!use.p.kitLaunch);
+    },
+
     /** Stop the clock where it is, or start it again. */
     hold(on) {
       held = !!on;
@@ -1448,7 +1492,11 @@ export function makeEffectPreview({ canvas, read, write, onClose }) {
      *  advance the clock, and ask again — that is the coverage check's whole
      *  method. */
     get drew() { return drew; },
-    clearDrew() { drew = false; },
+    clearDrew() { drew = false; painted = null; },
+    /** How the last painted frame placed the drawing: `{ anchor, mirrored }`,
+     *  or null if nothing was painted. The registry's claim about the same
+     *  drawing has to match it. */
+    get painted() { return painted; },
     get use() { return use; },
   };
 }

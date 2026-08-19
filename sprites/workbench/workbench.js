@@ -3986,6 +3986,7 @@ function openEffectPreview() {
   title.textContent = `${u.name} — ${CHARACTERS[u.charKey]?.name || u.charKey}, ${u.state}`;
   refreshFadeIn();
   setHold(false);
+  setDragTarget("drawing");
   $("effectOverlay").hidden = false;
 }
 
@@ -4040,6 +4041,29 @@ const fadeDragging = () => (fadeStarted ? true : (fadeStarted = true, false));
 $("fadeInRange")?.addEventListener("change", () => { fadeStarted = false; });
 $("fadeInClear")?.addEventListener("click", () => { fadeStarted = false; setFadeIn(0, true); });
 
+/** Which of the two markers a drag picks up.
+ *
+ *  They coincide until one of them is moved — a shot's drawing marker starts
+ *  exactly on its muzzle — and the tie always went to the drawing, so the spawn
+ *  point of anything nobody had nudged could not be grabbed at all. Saying
+ *  which one is being moved also says, on the one screen where it matters, that
+ *  they are two different numbers going to two different places. */
+function setDragTarget(which) {
+  const spawnable = effectPreview.spawnable;
+  const now = effectPreview.prefer(spawnable ? which : "drawing");
+  const draw = $("moveDrawingBtn"), spawn = $("moveSpawnBtn");
+  if (draw) draw.classList.toggle("ghost--go", now === "drawing");
+  if (spawn) {
+    spawn.classList.toggle("ghost--go", now === "spawn");
+    spawn.disabled = !spawnable;
+    spawn.title = spawnable
+      ? "The point the game spawns this from — exports as a note against the move"
+      : "This action has no spawn point to move: its handler decides where the drawing goes";
+  }
+}
+
+$("moveDrawingBtn")?.addEventListener("click", () => setDragTarget("drawing"));
+$("moveSpawnBtn")?.addEventListener("click", () => setDragTarget("spawn"));
 $("holdBtn")?.addEventListener("click", () => setHold(!effectPreview.held));
 $("scrubRange")?.addEventListener("input", (e) => {
   effectPreview.at = Number(e.target.value);

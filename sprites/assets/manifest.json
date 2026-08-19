@@ -37274,38 +37274,10 @@
     "ox": -370.8,
     "oy": -529,
     "bodyBottom": 255.2,
-    "bodyH": 285.2,
+    "bodyH": 275.2,
     "centroidX": 117.3,
-    "renderScale": 0.3684,
-    "file": "dagon/incoming/run_reach_b-2.png",
-    "awaitingApproval": {
-     "at": "2026-08-18T23:44:53+00:00",
-     "live": {
-      "w": 960,
-      "h": 1220,
-      "ox": -314.3,
-      "oy": -909,
-      "bodyBottom": 245.9,
-      "bodyH": 305.0,
-      "bodyTop": 0,
-      "centroidX": 147.8,
-      "renderScale": 0.2787,
-      "anchors": {
-       "com": [
-        502.4,
-        457.9
-       ]
-      },
-      "needsReplacement": "pose",
-      "replacementNote": "should reach with leg instead of arm",
-      "edited": {
-       "renderScale": 0.25,
-       "ox": -314.3,
-       "bodyBottom": 245.9
-      },
-      "file": "dagon/run_reach_b.png"
-     }
-    },
+    "renderScale": 0.3555,
+    "file": "dagon/run_reach_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1134,
@@ -45586,37 +45558,10 @@
     "ox": -205.4,
     "oy": -917,
     "bodyBottom": 203.2,
-    "bodyH": 319.7,
+    "bodyH": 324.5,
     "centroidX": 117.4,
-    "renderScale": 0.2737,
-    "file": "kirara/incoming/attack_heavy_b.png",
-    "awaitingApproval": {
-     "at": "2026-08-18T23:44:53+00:00",
-     "live": {
-      "w": 877,
-      "h": 1168,
-      "ox": -251.0,
-      "oy": -857,
-      "bodyBottom": 265.2,
-      "bodyH": 319.7,
-      "bodyTop": 0,
-      "centroidX": 126.0,
-      "renderScale": 0.2737,
-      "anchors": {
-       "com": [
-        407.8,
-        461.1
-       ]
-      },
-      "needsReplacement": "pose",
-      "replacementNote": "Should have her right arm forward in a punch",
-      "edited": {
-       "renderScale": 0.25,
-       "bodyBottom": 248.7
-      },
-      "file": "kirara/attack_heavy_b.png"
-     }
-    },
+    "renderScale": 0.2778,
+    "file": "kirara/attack_heavy_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 880,
@@ -73072,6 +73017,49 @@
    "run_reach_b": {
     "options": [
      {
+      "w": 1134,
+      "h": 775,
+      "ox": -370.8,
+      "oy": -529,
+      "bodyBottom": 255.2,
+      "bodyH": 285.2,
+      "bodyTop": 0,
+      "centroidX": 117.3,
+      "renderScale": 0.3684,
+      "anchors": {
+       "com": [
+        528.1,
+        314.7
+       ]
+      },
+      "edited": {
+       "renderScale": 0.394,
+       "bodyBottom": 180.7
+      },
+      "file": "dagon/run_reach_b.png",
+      "label": "In game"
+     },
+     {
+      "file": "dagon/archive/run_reach_b_2.png",
+      "w": 1052,
+      "h": 1160,
+      "ox": -303.4,
+      "oy": -914,
+      "bodyBottom": 143.1,
+      "bodyH": 305.0,
+      "bodyTop": 0,
+      "centroidX": 90.9,
+      "renderScale": 0.263,
+      "anchors": {
+       "com": [
+        460.3,
+        433.3
+       ]
+      },
+      "label": "Not approved",
+      "supersededAt": "2026-08-10T23:21:06+00:00"
+     },
+     {
       "w": 960,
       "h": 1220,
       "ox": -314.3,
@@ -73094,32 +73082,9 @@
        "ox": -314.3,
        "bodyBottom": 245.9
       },
-      "file": "dagon/run_reach_b.png",
-      "label": "In game",
-      "bodyLeft": 0,
-      "bodyRight": 1052,
-      "coreLeft": 58.0,
-      "coreRight": 971.5
-     },
-     {
-      "file": "dagon/archive/run_reach_b_2.png",
-      "w": 1052,
-      "h": 1160,
-      "ox": -303.4,
-      "oy": -914,
-      "bodyBottom": 143.1,
-      "bodyH": 305.0,
-      "bodyTop": 0,
-      "centroidX": 90.9,
-      "renderScale": 0.263,
-      "anchors": {
-       "com": [
-        460.3,
-        433.3
-       ]
-      },
-      "label": "Not approved",
-      "supersededAt": "2026-08-10T23:21:06+00:00"
+      "file": "dagon/archive/run_reach_b_3.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-18T23:44:53+00:00"
      }
     ]
    }
@@ -74343,6 +74308,59 @@
        "renderScale": 0.25
       },
       "file": "kirara/archive/attack_light_b_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-18T23:44:53+00:00"
+     }
+    ]
+   },
+   "attack_heavy_b": {
+    "options": [
+     {
+      "w": 880,
+      "h": 1166,
+      "ox": -205.4,
+      "oy": -917,
+      "bodyBottom": 203.2,
+      "bodyH": 319.7,
+      "bodyTop": 0,
+      "centroidX": 117.4,
+      "renderScale": 0.2737,
+      "anchors": {
+       "com": [
+        388.0,
+        437.7
+       ]
+      },
+      "edited": {
+       "renderScale": 0.25,
+       "ox": -243.9
+      },
+      "file": "kirara/attack_heavy_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 877,
+      "h": 1168,
+      "ox": -251.0,
+      "oy": -857,
+      "bodyBottom": 265.2,
+      "bodyH": 319.7,
+      "bodyTop": 0,
+      "centroidX": 126.0,
+      "renderScale": 0.2737,
+      "anchors": {
+       "com": [
+        407.8,
+        461.1
+       ]
+      },
+      "needsReplacement": "pose",
+      "replacementNote": "Should have her right arm forward in a punch",
+      "edited": {
+       "renderScale": 0.25,
+       "bodyBottom": 248.7
+      },
+      "file": "kirara/archive/attack_heavy_b_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
@@ -75925,6 +75943,121 @@
    "surfacedReviewed": true
   },
   "summon:tsukamoto": {
+   "surfacedReviewed": true
+  },
+  "effect:curse_dragon": {
+   "edited": {
+    "renderScale": null
+   },
+   "renderScale": 1.335,
+   "src": {
+    "file": "assets/sprites/effects/curse_dragon.png",
+    "sha": "d1c6fae2544c"
+   }
+  },
+  "effect:doll_needle": {
+   "edited": {
+    "faceLeft": null
+   },
+   "faceLeft": true,
+   "hit": {
+    "dx": 31.7,
+    "dy": -20.1,
+    "scale": 1
+   },
+   "src": {
+    "file": "assets/sprites/effects/doll_needle.png",
+    "sha": "50782cdde6e3"
+   }
+  },
+  "effect:drop_futon": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": 0.9,
+   "dy": 35.2,
+   "src": {
+    "file": "assets/sprites/effects/drop_futon.png",
+    "sha": "2bc6199d07fd"
+   }
+  },
+  "effect:root_spikes": {
+   "edited": {
+    "renderScale": null
+   },
+   "renderScale": 0.925,
+   "src": {
+    "file": "assets/sprites/effects/root_spikes.png",
+    "sha": "ceb1a3165abf"
+   }
+  },
+  "effect:sky_ripple": {
+   "edited": {
+    "renderScale": null
+   },
+   "renderScale": 1.255,
+   "src": {
+    "file": "assets/sprites/effects/sky_ripple.png",
+    "sha": "92f9ecfe6124"
+   }
+  },
+  "effect:soul_isomer": {
+   "edited": {
+    "faceLeft": null,
+    "dx": null,
+    "dy": null
+   },
+   "faceLeft": true,
+   "dx": 1.3,
+   "dy": 7.8,
+   "attackBox": {
+    "x": 0.093,
+    "y": 0.506,
+    "w": 0.465,
+    "h": 0.897
+   },
+   "src": {
+    "file": "assets/sprites/effects/soul_isomer.png",
+    "sha": "d78de3368390"
+   }
+  },
+  "effect:spray_cloud": {
+   "edited": {
+    "renderScale": null,
+    "dx": null,
+    "dy": null
+   },
+   "renderScale": 1.135,
+   "dx": 4.2,
+   "dy": 16.1,
+   "src": {
+    "file": "assets/sprites/effects/spray_cloud.png",
+    "sha": "5b87cac7ecf4"
+   }
+  },
+  "effect:uzumaki": {
+   "edited": {
+    "dx": null,
+    "dy": null
+   },
+   "dx": -1.4,
+   "dy": -0.3,
+   "src": {
+    "file": "assets/sprites/effects/uzumaki.png",
+    "sha": "1fc5f90ec488"
+   }
+  },
+  "effect:lava_geyser": {
+   "surfacedReviewed": true
+  },
+  "effect:naoya_spirit": {
+   "surfacedReviewed": true
+  },
+  "effect:star_tomb": {
+   "surfacedReviewed": true
+  },
+  "stagefx:stage_fang": {
    "surfacedReviewed": true
   }
  }
