@@ -84,6 +84,11 @@ const SOURCES = [
   },
 ];
 
+// How many sprites carry a workbench flag. Filled in below, before the document
+// is assembled --- modeSection needs it and is defined above the point where the
+// manifest is read.
+let FLAGGED_COUNT = 0;
+
 // ---------------------------------------------------------------- the sources
 
 /** Character blocks: the design text, verbatim, from the 2D request doc. */
@@ -344,12 +349,28 @@ const totalOf = (source) => source.sections.reduce((n, s) => n + countOf(s), 0);
 function modeSection(source) {
   const out = [`# ${source.heading}`, "", ...source.blurb, ""];
   if (!source.sections.length) {
-    out.push(`**Nothing outstanding.** No open round in [${path.basename(source.file)}](${linkTo(source.file)}).`, "");
+    // "No open round" is not "nothing to draw", and for the sprite mode it can
+    // be flatly wrong: the flagged sprites are images for this same game and
+    // this line sat directly under a headline counting them. Say which of the
+    // two is true.
+    const flags = source.mode === "sprite" && FLAGGED_COUNT;
+    out.push(`**No open round** in [${path.basename(source.file)}](${linkTo(source.file)}).`
+      + (flags
+          ? ` ${flags} image${flags === 1 ? " is" : "s are"} still outstanding for this mode —`
+            + " they are flagged in the workbench rather than asked for by a round, and they are"
+            + " in [Outstanding by manifest, not by request](#outstanding-by-manifest-not-by-request)."
+          : " Nothing outstanding here."), "");
     return out.join("\n");
   }
   const total = totalOf(source);
-  out.push(`**${total} image${total === 1 ? "" : "s"}${source.round ? `, round ${source.round}` : ""}.** Authored in`,
-    `[${source.file}](${linkTo(source.file)}) and reproduced whole below.`, "");
+  const flags = source.mode === "sprite" ? FLAGGED_COUNT : 0;
+  out.push(`**${total + flags} image${total + flags === 1 ? "" : "s"} outstanding for this mode.**`
+    + ` ${total}${source.round ? ` asked for by round ${source.round}` : ""}, authored in`,
+    `[${source.file}](${linkTo(source.file)}) and reproduced whole below`
+    + (flags
+        ? `, and ${flags} flagged in the workbench and listed in`
+          + " [Outstanding by manifest, not by request](#outstanding-by-manifest-not-by-request)."
+        : "."), "");
   for (const s of source.sections) out.push(`- **${s.id}** — ${s.title} (${countOf(s)} ${s.unit})`);
   out.push("");
   for (const s of source.sections) out.push(renderSection(s, source));
@@ -444,21 +465,40 @@ function manifestSection(work) {
 const sources = SOURCES.map(roundsFrom);
 const total = sources.reduce((n, s) => n + totalOf(s), 0);
 
-// THE HEADLINE HAS TO COUNT BOTH KINDS OF WORK, and for a long time it counted
-// one. `total` is images a ROUND asks for --- art that is absent --- and the
-// manifest section below counts art that EXISTS AND IS WRONG. They are
-// deliberately different questions (see the note at the top of this file), but
-// a reader does not open a request document to learn that: they read the first
-// bold line and stop. So the file said "0 images outstanding" over a section
-// listing 28 flagged sprites, and somebody who had spent an afternoon flagging
-// them in the workbench came away thinking the flags had gone nowhere.
+// THE HEADLINE STATES THE TOTAL, AND A ZERO NEVER LEADS IT.
 //
-// Two numbers rather than a sum, because the distinction is real and a sum
-// would hide it --- one is answered by drawing something new, the other by
-// redrawing something that exists.
+// If you are rewriting this line, that is the rule, and it has now been broken
+// twice in opposite directions:
+//
+//   1. It counted only images a ROUND asks for, so it read "0 images
+//      outstanding" above a section listing 28 flagged sprites. Somebody who
+//      had spent an afternoon flagging them came away thinking the flags had
+//      gone nowhere.
+//   2. Fixing that by printing both numbers --- "0 images requested by a round,
+//      and 29 sprites flagged in the workbench" --- STILL OPENED WITH A ZERO,
+//      and an image generator reading the first bold line took the zero and
+//      stopped. Accurate, and no better.
+//
+// So: one number, and it is everything outstanding. The breakdown goes
+// underneath, where it explains the total rather than competing with it. The
+// two kinds of work are still worth telling apart --- a round knows about art
+// that is ABSENT, the manifest knows about art that EXISTS AND IS WRONG, and
+// they are answered differently --- but that is a detail of HOW, and the
+// headline answers WHETHER.
+//
+// A zero here has to mean nothing is outstanding, and nothing else, or the line
+// cannot be trusted the one time it says so.
 const work = spriteWork();
 const flaggedN = work ? work.replacements.length + work.deletions.length : null;
 const standInN = work ? work.standIns.length : null;
+// Stand-ins are NOT counted as outstanding. A pose drawing another pose's file
+// is usually a deliberate substitution somebody picked in the workbench --- the
+// borrow that fixed an inverted attack pair is one --- so counting them as
+// images to draw would inflate the total with decisions that have already been
+// made. They are reported in their own section, where the number can be read
+// as what it is.
+const outstanding = total + (flaggedN || 0);
+FLAGGED_COUNT = flaggedN || 0;
 
 const doc = [
   "# Image Requests — every image still to draw",
@@ -475,21 +515,37 @@ const doc = [
   "that second one is the guard, because a round written in an unexpected shape",
   "is exactly how 172 images once went missing from this list.",
   "",
-  `**${total} image${total === 1 ? "" : "s"} requested by a round`
-    + (flaggedN === null
-        ? ", and the manifest was not checked.**"
-        : flaggedN
-          ? `, and ${flaggedN} sprite${flaggedN === 1 ? "" : "s"} flagged in the workbench.**`
-          : ", and nothing flagged in the workbench.**"),
+  outstanding
+    ? `**${outstanding} image${outstanding === 1 ? "" : "s"} outstanding.** Every one of them is`
+      + " listed below, with a full URL for anything you need to look at."
+    : flaggedN === null
+      ? "**Nothing outstanding in the rounds** — and the manifest was not checked,"
+        + " so this is not a clean sheet, only half an answer."
+      : "**Nothing outstanding.** No open round asks for an image, and no pose"
+        + " carries a replacement flag.",
   "",
-  ...sources.map((s) => {
-    const n = totalOf(s);
-    return `- **${s.heading}** — ${n} image${n === 1 ? "" : "s"}${s.round ? `, round ${s.round}` : ""}`;
-  }),
-  ...(flaggedN
-    ? [`- **[Flagged in the workbench](#outstanding-by-manifest-not-by-request)** — ${flaggedN} sprite`
-       + `${flaggedN === 1 ? "" : "s"} whose art exists and is wrong`
-       + (standInN ? `, plus ${standInN} drawing another pose's file` : "")]
+  ...(outstanding
+    ? [
+      ...sources.map((s) => {
+        const n = totalOf(s);
+        // The sprite mode owns the flagged sprites too — they are images for
+        // the same game, and splitting them into a third bullet made the mode's
+        // own line read 0 while 29 of its images were outstanding.
+        const own = s.mode === "sprite" ? n + (flaggedN || 0) : n;
+        const parts = [];
+        if (n) parts.push(`${n} asked for by round ${s.round}`);
+        if (s.mode === "sprite" && flaggedN) {
+          parts.push(`[${flaggedN} flagged in the workbench](#outstanding-by-manifest-not-by-request)`
+            + " as art that exists and is wrong");
+        }
+        return `- **${s.heading}** — ${own} image${own === 1 ? "" : "s"}`
+          + (parts.length ? `: ${parts.join(", plus ")}` : "");
+      }),
+      ...(standInN
+        ? [`- Separately, ${standInN} pose${standInN === 1 ? " is" : "s are"} drawing another pose's`
+           + " file. Not counted above: those are substitutions somebody chose, not images anybody is owed."]
+        : []),
+    ]
     : []),
   "",
   "## Rules that hold everywhere here",
@@ -547,7 +603,7 @@ if (process.argv.includes("--check")) {
     console.log("FAIL docs/image-requests.md is stale — run: node tools/build_image_requests.mjs");
     failed++;
   }
-  if (!failed) console.log(`ok   docs/image-requests.md is up to date — ${total} image(s) outstanding`);
+  if (!failed) console.log(`ok   docs/image-requests.md is up to date — ${outstanding} image(s) outstanding`);
   process.exit(failed ? 1 : 0);
 }
 
@@ -555,7 +611,8 @@ for (const s of unparsed) {
   console.log(`WARNING ${s.file} has an open round but nothing was parsed out of it`);
 }
 fs.writeFileSync(OUT, doc);
-console.log(`wrote docs/image-requests.md — ${total} image(s) outstanding`);
+console.log(`wrote docs/image-requests.md — ${outstanding} image(s) outstanding`
+  + (FLAGGED_COUNT ? ` (${total} by round, ${FLAGGED_COUNT} flagged)` : ""));
 for (const s of sources) {
   for (const sec of s.sections) {
     console.log(`  ${s.mode.padEnd(9)} ${sec.id.padEnd(4)} ${String(countOf(sec)).padStart(3)}  ${sec.title}`);
