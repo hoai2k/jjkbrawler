@@ -21,14 +21,16 @@
 //                   particular, so shots depart one fighter's forehead and
 //                   another's waist.
 //
-// THERE IS NO GRAB-GRIP OR TEETER-FOOT SET EITHER, for exactly the same
-// reason, and this one was learned the expensive way: all three were added
-// here as per-fighter numbers in BODY_POINTS, with a second teeter shift in
-// motion.js competing with the `anchorTo` render.js already applies. They are
-// points ON A DRAWING. `teeter` was already an anchor and had been since the
-// pose landed; `grabHand` and `grabChest` are anchors now (EXTRA_ANCHORS in
-// sprites/src/sprites.js), edited on the drawing, read by src/grab.js. One
-// store, one editor, one value.
+// THE GRAB AND TEETER POINTS ARE NOT HERE, and the way they got here and
+// left again is the lesson. All three were first added as per-fighter numbers
+// in BODY_POINTS, with a second teeter shift in motion.js competing with the
+// `anchorTo` render.js already applied. They are points ON A DRAWING, so they
+// are anchors: `teeter` always was one, and `grabHand`/`grabChest` are now
+// (EXTRA_ANCHORS in sprites/src/sprites.js), dragged in the sprite workbench
+// and read by src/grab.js. They still have review queues — "Grabbing hand",
+// "Held chest" and "Teeter foot" in the picker — but those live in
+// verify_anchors.js and write the anchor, not a copy of it. One store, two
+// editors, one value.
 //
 // THERE IS NO LEDGE-GRIP SET, and there should not be. Where the hand meets
 // the lip is already a per-frame `ledge` anchor in the sprite manifest —

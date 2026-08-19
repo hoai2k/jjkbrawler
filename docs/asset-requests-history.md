@@ -40,6 +40,7 @@ why the numbering is not strictly chronological.
 | 22A, 22E–22H | The roster-wide teeter, round 23's technique effects, Yaga's doll family, three hero cards and Naoya's domain backdrop (41 assets) + 12 DI reference images | Delivered; `nanami/teeter` came back with the blade off the canvas and is re-requested |
 | 23 | Round 24's four staged fighters — four 36-pose sets, seven effects, Tengen's barrier, four hero cards (156 assets) + 16 DI references, plus three of 22I's redraws | Delivered; `miwa/attack_heavy_b` re-requested as 23H, and Tengen's barrier colour needs a decision |
 | 22I, 22J | The redraw round: the wind-up fault across Yaga's, Naoya's, Dagon's and Haruta's attack pairs, Nanami's re-framed teeter, both `dizzy` contact sheets, Miwa's cropped blades and everything else the workbench had flagged (30 sprites) | Delivered whole; `kirara/attack_down` needed a `FACING_OVERRIDE`, and every frame is in the workbench's approval queue |
+| 22K | The seven poses each of the seven newly promoted fighters — teeter, both walk contacts, the dash attack and the three grab poses (49 sprites) | Delivered whole; all 49 are new pose keys, so nothing was replaced and nothing waited for an approval. `check_pose_coverage` now reports 0 undrawn poses across the roster |
 
 ---
 
@@ -4129,6 +4130,111 @@ they sit in the sprite workbench waiting for somebody to choose between them
 and the drawings in the game; the other two are equivalent.
 
 ---
+
+# Round 22K — the newly promoted seven's missing poses, delivered
+
+**All 49 landed together and every one is in the game.** Nothing was replaced —
+each is a pose key the fighter had never had art for — so none of them went
+through the approval queue: a brand-new pose has nothing to compare against.
+Imported, anchored, auto-tuned, and seeded a pose read each.
+
+The round read clean at the sheets: 49 frames processed, **0 mirrored** (all
+were delivered facing right), one figure per plate, and Tengen's set came back
+white and grey with no magenta screen, which was the one colour note the
+request carried. Fourteen frames were flagged for keying holes, the ordinary
+kind, and none needed a `FACING_OVERRIDE`.
+
+**This is what closed pose coverage.** `node tools/check_pose_coverage.mjs`
+reports 34 fighters and 0 undrawn poses for the first time — and that check is
+what found this round in the first place.
+
+### What was delivered
+
+| Fighter | Poses |
+|---|---|
+| Kashimo | `teeter` `walk_a` `walk_b` `attack_dash` `grab_reach` `grab_hold` `grabbed` |
+| Yaga | `teeter` `walk_a` `walk_b` `attack_dash` `grab_reach` `grab_hold` `grabbed` |
+| Naoya | `teeter` `walk_a` `walk_b` `attack_dash` `grab_reach` `grab_hold` `grabbed` |
+| Kirara | `teeter` `walk_a` `walk_b` `attack_dash` `grab_reach` `grab_hold` `grabbed` |
+| Haruta | `teeter` `walk_a` `walk_b` `attack_dash` `grab_reach` `grab_hold` `grabbed` |
+| Tengen | `teeter` `walk_a` `walk_b` `attack_dash` `grab_reach` `grab_hold` `grabbed` |
+| Miwa | `teeter` `walk_a` `walk_b` `attack_dash` `grab_reach` `grab_hold` `grabbed` |
+
+The originals are archived at `assets/reference/round22k/<char>/`.
+
+**No new pose key, so no 3D state was owed.** All seven keys already resolve in
+`render3d/src/states.js` — `teeter`, `grabbed`, `grabReach` and `grabHold` as
+aliases, `walk` and `run` as authored cycles — which is step 9 of the intake
+checklist answered by inspection rather than by work.
+
+### The request as it was written
+
+
+## 22K. The four rounds that ran without the newly promoted seven — 49 sprites
+
+Seven fighters joined the select screen when their kits came out of
+`STAGED_CHARACTER_KEYS`, and four roster-wide rounds had already run without
+them: they were staged at the time, deliberately left out, and the rounds are
+in the history. So each of the seven is short the same seven poses, and this
+asks for all of them together rather than one round at a time.
+
+**Nothing is broken meanwhile, which is exactly why it went unnoticed.** Every
+one of these states falls back to art the fighter does have — the teeter to
+their idle with the procedural lean `src/motion.js` supplies, the walk to the
+run, the dash attack to the light strike, the grab set to a light attack, the
+`charge` and `hurt` frames. It reads correctly enough that nobody notices, and
+`node tools/check_pose_coverage.mjs` now says so out loud instead: it compares
+every fighter's states against what has been drawn and fails on a gap no round
+has asked for. That check is what turned a missing teeter into this list.
+
+| Pose | Round it belongs to | What it must read as |
+|---|---|---|
+| `teeter` | [22A](asset-requests-history.md#22a-balanced-on-the-lip-the-teeter--27-sprites) | Balanced on the lip: weight shifted BACK from the drop, arms out, front foot at or just over the edge, head turned down toward the fall. Caught, not alarmed — the moment after realising the ground ran out |
+| `walk_a`, `walk_b` | [21](asset-requests-history.md#round-21--the-walk-cycle) | The two contacts of an unhurried walk, one per leading leg — a stroll, not a slowed run |
+| `attack_dash` | [20D](asset-requests-history.md#20d-the-dash-attack-pose--27-sprites) | The blow that ends a run, one pose: the run was the wind-up, so there is no coil to draw |
+| `grab_reach` | [20C](asset-requests-history.md#20c-the-grab-poses--81-sprites) | A committed forward lunge with one open, grasping hand leading — reaching to seize, not to strike. The other arm guards |
+| `grab_hold` | 20C | Gripping an unseen opponent at arm's length by the collar — front hand closed in a fist at **chest height on the leading edge of the body**, weight planted, coiled to heave. The opponent is NOT in the drawing |
+| `grabbed` | 20C | Seized and struggling: body arched back from the collar, feet scrabbling, both hands prying at an unseen grip at their own chest, at that same chest height |
+
+**The grip point is the one hard constraint**, carried over from 20C: the fist
+in `grab_hold` and the prying hands in `grabbed` both sit at chest height on
+the leading edge, because the game overlaps the two drawings at a fixed gap
+(`holdGap` in `src/grab.js`). A fist drawn high on one fighter and low on
+another makes every pairing look like they are holding different arguments.
+**The sprite workbench draws that grip line** on both poses now — halfway
+between the two body centres, where the fist and the prying hands meet — so it
+can be checked on the drawing rather than agreed in words.
+
+**Facing.** Drawn facing RIGHT like every other pose. The teeter is drawn with
+the drop on the right; the engine mirrors it for the left-hand lip and leans it
+the correct way either side (`teeterLean` in `src/config_tuning.js`), so one
+drawing serves both edges.
+
+Seven poses each, for seven fighters — 49 sprites. Each fighter's own `idle_a`
+is the canon for costume, proportions, palette and figure scale:
+
+| Fighter | Sprites | Idle to draw against |
+|---|---|---|
+| Kashimo | `kashimo/teeter.png`, `kashimo/walk_a.png`, `kashimo/walk_b.png`, `kashimo/attack_dash.png`, `kashimo/grab_reach.png`, `kashimo/grab_hold.png`, `kashimo/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kashimo/idle_a.png> |
+| Yaga | `yaga/teeter.png`, `yaga/walk_a.png`, `yaga/walk_b.png`, `yaga/attack_dash.png`, `yaga/grab_reach.png`, `yaga/grab_hold.png`, `yaga/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yaga/idle_a.png> |
+| Naoya | `naoya/teeter.png`, `naoya/walk_a.png`, `naoya/walk_b.png`, `naoya/attack_dash.png`, `naoya/grab_reach.png`, `naoya/grab_hold.png`, `naoya/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_a.png> |
+| Kirara | `kirara/teeter.png`, `kirara/walk_a.png`, `kirara/walk_b.png`, `kirara/attack_dash.png`, `kirara/grab_reach.png`, `kirara/grab_hold.png`, `kirara/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kirara/idle_a.png> |
+| Haruta | `haruta/teeter.png`, `haruta/walk_a.png`, `haruta/walk_b.png`, `haruta/attack_dash.png`, `haruta/grab_reach.png`, `haruta/grab_hold.png`, `haruta/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/haruta/idle_a.png> |
+| Tengen | `tengen/teeter.png`, `tengen/walk_a.png`, `tengen/walk_b.png`, `tengen/attack_dash.png`, `tengen/grab_reach.png`, `tengen/grab_hold.png`, `tengen/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/tengen/idle_a.png> |
+| Miwa | `miwa/teeter.png`, `miwa/walk_a.png`, `miwa/walk_b.png`, `miwa/attack_dash.png`, `miwa/grab_reach.png`, `miwa/grab_hold.png`, `miwa/grabbed.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/miwa/idle_a.png> |
+
+**Tengen is white and grey.** The panes on his delivered set arrived carrying
+the magenta screen they were shot against and have been neutralised in place
+(`tools/depurple_panes.py`), so draw the robe and any barrier as white glass —
+nothing on him is violet.
+
+**The four throw poses are NOT in this list**, for the reason 20C gave when it
+registered them: `throw_fwd`, `throw_back`, `throw_up` and `throw_down` each
+play the heavy attack swung that way, a throw IS a heave in that direction, and
+nobody on the roster has bespoke art for them. They are recorded as deliberately
+unowed in `tools/check_pose_coverage.mjs` so the coverage check does not ask
+for 136 sprites nobody wants.
+
 
 # Round 23 — round 24's four staged fighters, delivered
 
