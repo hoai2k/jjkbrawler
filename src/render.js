@@ -1482,6 +1482,41 @@ function drawDebug(ctx) {
       ctx.setLineDash([]);
     }
   }
+  drawLastContact(ctx);
+  ctx.restore();
+}
+
+/**
+ * THE LAST JUDGED CONTACT, on the overlay: where it landed and how clean it
+ * was (src/contact.js), as a ring sized by the quality and the number beside
+ * it.
+ *
+ * The tier's whole output is otherwise implicit — a slightly bigger spark, a
+ * slightly longer stun — which is impossible to check against an intention.
+ * This is the number the FX came from, held for a second so a trade can be
+ * paused on and read. Nothing draws when the tier had no opinion (an
+ * unverified fighter, a projectile, the flag off), which is itself the answer
+ * to "is this hit being judged at all".
+ */
+function drawLastContact(ctx) {
+  const c = state.lastContact;
+  if (!c) return;
+  const age = state.matchTime - c.at;
+  if (age < 0 || age > 1) return;
+  const fade = 1 - age;
+  const tone = c.band === "clean" ? "120, 240, 180"
+    : c.band === "graze" ? "255, 150, 120" : "220, 220, 140";
+  ctx.save();
+  ctx.globalAlpha = fade;
+  ctx.strokeStyle = `rgba(${tone}, 0.9)`;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(c.x, c.y, 10 + 22 * c.quality, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = `rgba(${tone}, 0.95)`;
+  ctx.font = "600 12px system-ui, sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillText(`${c.band} ${c.quality.toFixed(2)}`, c.x + 14, c.y - 12);
   ctx.restore();
 }
 

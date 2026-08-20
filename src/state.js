@@ -80,6 +80,12 @@ export const state = {
   // Ad-hoc hit-test shapes registered by special/ultimate scripts while the
   // overlay is on (combat.js debugShape); drawn and decayed by drawDebug.
   debugShapes: [],
+  // The last judged contact (src/contact.js): where it landed, how clean it
+  // was and when. Written by applyHit, read by the hitbox overlay and by
+  // nothing else — a hit's quality is otherwise only visible as the size of
+  // its own spark, which is exactly the thing that has to be checked against a
+  // number while the tier is being judged.
+  lastContact: null,
   // Mirrors of main.js's round countdown / round end timers, written each sim
   // step. Read-only for everyone else; the 2.5D camera rig keys its intro
   // pull-out and final-blow framing off them.

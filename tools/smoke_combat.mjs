@@ -262,7 +262,13 @@ for (const s of samples) {
     const lo = 0.55 * f.span.minW;
     const hi = 0.95 * f.span.maxH;
     const wide = 1.25 * f.span.maxW;
-    const flat = hr <= 0.30 && f.box.w <= f.want.height * 0.70 && wr >= lo;
+    // The flat ceiling carries the reviewed fit for the same reason `hi` does.
+    // A tumble box is prone-shaped and then reshaped by whatever somebody
+    // signed off for this fighter — Gojo's tumble fit is x1.38 tall — so a
+    // fixed 0.30 called a correctly-fitted spin "not flat" and then failed it
+    // for being wider than a standing body, which is the one thing a body spun
+    // on its side is entitled to be.
+    const flat = hr <= 0.30 * f.span.maxH && f.box.w <= f.want.height * 0.70 && wr >= lo;
     if (flat) continue;
     if (wr < lo || wr > wide || hr > hi) {
       offenders.push(`${f.charKey} as ${f.drawn} `
