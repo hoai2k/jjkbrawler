@@ -254,14 +254,22 @@ export function symmetrises(charKey) {
   return SYMMETRISE[charKey] === true;
 }
 
+// Per-rig caches, keyed off the root rather than stored on it: three.js
+// deep-copies `userData` through JSON when a rig is cloned, and a Map comes out
+// of that as `{}` — truthy, and missing every method the caller uses. See the
+// note on BIND_FRAMES in ik.js, which is the same cache and the same trap.
+const BIND_TRS = new WeakMap();
+const MIRROR_LOCALS = new WeakMap();
+
 /**
- * The bind pose's bone positions and rotations, in MODEL space, cached on the
+ * The bind pose's bone positions and rotations, in MODEL space, cached per
  * root. The same reading `ik.js` takes for the arm layer and for the same
  * reason: the inverse-bind matrices are the only record of the skeleton as it
  * was built, before any clip touched it.
  */
 function bindPose(THREE, root) {
-  if (root.userData.__bindTRS) return root.userData.__bindTRS;
+  const held = BIND_TRS.get(root);
+  if (held) return held;
   let map = null;
   root.traverse((o) => {
     if (map || !o.isSkinnedMesh || !o.skeleton) return;
@@ -274,8 +282,9 @@ function bindPose(THREE, root) {
       });
     });
   });
-  root.userData.__bindTRS = map || new Map();
-  return root.userData.__bindTRS;
+  const out = map || new Map();
+  BIND_TRS.set(root, out);
+  return out;
 }
 
 /**
@@ -298,10 +307,11 @@ function bindPose(THREE, root) {
  * how many times or in what state it happens.
  */
 function mirroredLocals(THREE, root) {
-  if (root.userData.__mirrorLocals) return root.userData.__mirrorLocals;
+  const held = MIRROR_LOCALS.get(root);
+  if (held) return held;
   const bind = bindPose(THREE, root);
   const out = new Map();
-  root.userData.__mirrorLocals = out;
+  MIRROR_LOCALS.set(root, out);
   const hipL = bind.get("LeftUpLeg"), hipR = bind.get("RightUpLeg");
   if (!hipL || !hipR) return out;
 
