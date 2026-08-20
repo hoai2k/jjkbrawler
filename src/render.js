@@ -16,7 +16,7 @@ import { hitboxRect, hurtbox, summonBox } from "./combat.js";
 import { applyCamera, releaseCamera } from "./camera.js";
 import { cameraMode, camera3d } from "./camera_mode.js";
 import {
-  WORLD, SHIELD_MAX, PARRY_WINDOW, SAKURAI, SAKURAI_POP,
+  WORLD, VIEW_BLEED, SHIELD_MAX, PARRY_WINDOW, SAKURAI, SAKURAI_POP,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME,
 } from "./constants.js";
 import { clamp, colorAlpha } from "./utils.js";
@@ -135,14 +135,37 @@ function draw3d(ctx) {
   drawScreenFlash(ctx);
 }
 
+/** How far past each world edge the shot currently reaches. Zero at zoom 1 and
+ *  above; below it the camera has pulled out to hold an off-stage fighter
+ *  (camera.js), and everything painted world-wide has to follow it out. Read
+ *  off the real frame, not off the zoom alone — an off-centre shot spends its
+ *  whole overhang on one side — and the plates are world-centred, so the wider
+ *  of the two sides is what both have to cover. */
+function gutter() {
+  const cam = state.camera;
+  const halfW = WORLD.w / 2 / (cam.zoom || 1) + cam.shake;
+  const halfH = WORLD.h / 2 / (cam.zoom || 1) + cam.shake;
+  return {
+    x: clamp(Math.max(halfW - cam.x, cam.x + halfW - WORLD.w), 0, VIEW_BLEED),
+    y: clamp(Math.max(halfH - cam.y, cam.y + halfH - WORLD.h), 0, VIEW_BLEED),
+  };
+}
+
+/** Cover-fit a plate over the world plus its current gutter, nudged by (dx, dy).
+ *  At zoom 1 this is exactly the old world-rect cover fit. */
+function drawCovered(ctx, img, dx = 0, dy = 0) {
+  const g = gutter();
+  const scale = Math.max((WORLD.w + g.x * 2) / img.width, (WORLD.h + g.y * 2) / img.height);
+  const w = img.width * scale;
+  const h = img.height * scale;
+  ctx.drawImage(img, (WORLD.w - w) / 2 + dx, (WORLD.h - h) / 2 + dy, w, h);
+}
+
 function drawBackdrop(ctx) {
   const stage = getStage(state.stageKey);
   const img = getImage(`bg:${stage.key}`);
   if (img) {
-    const scale = Math.max(WORLD.w / img.width, WORLD.h / img.height);
-    const w = img.width * scale;
-    const h = img.height * scale;
-    ctx.drawImage(img, (WORLD.w - w) / 2, (WORLD.h - h) / 2, w, h);
+    drawCovered(ctx, img);
   } else {
     ctx.fillStyle = cachedGradient("backdrop", () => {
       const grad = ctx.createLinearGradient(0, 0, 0, WORLD.h);
@@ -150,12 +173,14 @@ function drawBackdrop(ctx) {
       grad.addColorStop(1, "#05070f");
       return grad;
     });
-    ctx.fillRect(0, 0, WORLD.w, WORLD.h);
+    // Same gutter as the art path: the gradient's end stops carry past the
+    // world edge rather than leaving a hard line there.
+    ctx.fillRect(-VIEW_BLEED, -VIEW_BLEED, WORLD.w + VIEW_BLEED * 2, WORLD.h + VIEW_BLEED * 2);
   }
   ctx.fillStyle = "rgba(3, 5, 12, 0.30)";
-  ctx.fillRect(-200, -200, WORLD.w + 400, WORLD.h + 400);
+  ctx.fillRect(-VIEW_BLEED, -VIEW_BLEED, WORLD.w + VIEW_BLEED * 2, WORLD.h + VIEW_BLEED * 2);
   ctx.fillStyle = stage.tint;
-  ctx.fillRect(-200, -200, WORLD.w + 400, WORLD.h + 400);
+  ctx.fillRect(-VIEW_BLEED, -VIEW_BLEED, WORLD.w + VIEW_BLEED * 2, WORLD.h + VIEW_BLEED * 2);
 }
 
 function drawPlatforms(ctx) {
@@ -1372,23 +1397,20 @@ function drawDomainBackdrop(ctx) {
   // dim the stage first, then place any domain-specific environment above it
   ctx.globalAlpha = Math.min(0.72, a * 0.8);
   ctx.fillStyle = "rgba(2, 2, 8, 0.78)";
-  ctx.fillRect(-200, -200, WORLD.w + 400, WORLD.h + 400);
+  ctx.fillRect(-VIEW_BLEED, -VIEW_BLEED, WORLD.w + VIEW_BLEED * 2, WORLD.h + VIEW_BLEED * 2);
   const art = d.sprite ? getImage(d.sprite) : null;
   if (art) {
-    const scale = Math.max(WORLD.w / art.width, WORLD.h / art.height);
-    const w = art.width * scale;
-    const h = art.height * scale;
     ctx.globalAlpha = Math.min(0.82, a * 1.35);
     // Cover-fitted to the stage, so there is no size to set — but a plate wider
     // than the frame has a CHOICE about which part of it shows, and the nudge is
     // that choice. Centred was not a decision, only a default.
     const dAdj = sharedAdjust(d.sprite);
-    ctx.drawImage(art, (WORLD.w - w) / 2 + dAdj.dx, (WORLD.h - h) / 2 + dAdj.dy, w, h);
+    drawCovered(ctx, art, dAdj.dx, dAdj.dy);
   }
   // finish with a light color grade
   ctx.globalAlpha = Math.min(0.18, a * 0.22);
   ctx.fillStyle = d.color;
-  ctx.fillRect(-200, -200, WORLD.w + 400, WORLD.h + 400);
+  ctx.fillRect(-VIEW_BLEED, -VIEW_BLEED, WORLD.w + VIEW_BLEED * 2, WORLD.h + VIEW_BLEED * 2);
   ctx.restore();
 }
 

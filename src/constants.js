@@ -7,6 +7,13 @@ export const GRAVITY = 2350;
 export const MAX_FALL = 1340;
 export const FASTFALL_MULT = 1.62;
 
+// How far past the world rect full-screen washes and cover-fitted plates
+// paint. The camera drops below zoom 1 to keep an off-stage fighter in frame
+// (camera.js), and this is the budget that keeps that gutter painted instead
+// of void. Sized for the widest legal shot: 1280/0.78 − 1280 ≈ 361 px, all of
+// it possibly on one side.
+export const VIEW_BLEED = 400;
+
 export const BLAST = { left: -300, right: 1580, top: -420, bottom: 1000 };
 
 // jumping

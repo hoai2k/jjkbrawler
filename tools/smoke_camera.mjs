@@ -205,5 +205,78 @@ for (const [x, y, tol] of [[640, 568, 0.75], [500, 480, 0.75], [300, 400, 4], [1
 }
 pass(`overlay affine fit (fov=${CAMERA.fov}, yawMax=${CAMERA.yawMax})`);
 
+// ---- 10. flat framing: nobody leaves the shot
+// The rig rides on cam.x/y/zoom, so this section checks those directly — the
+// contract camera.js owes both renderers. A fighter inside the painted world
+// is always in frame with slack; one out in the gutter is in frame as long as
+// the camera is allowed to reach that far (camera.js OVERSCAN).
+function flatView() {
+  const cam = state.camera;
+  return { halfW: WORLD.w / 2 / cam.zoom, halfH: WORLD.h / 2 / cam.zoom, x: cam.x, y: cam.y };
+}
+function checkFramed(label) {
+  const v = flatView();
+  for (const f of state.fighters) {
+    if (f.dead || f.respawnTimer > 0) continue;
+    // Past the gutter the fighter is on their way out of the match: camera.js
+    // deliberately stops following rather than showing the void.
+    if (f.x < -170 || f.x > WORLD.w + 170 || f.y < -90 || f.y > WORLD.h + 90) continue;
+    const inWorld = f.x >= 0 && f.x <= WORLD.w && f.y >= 0 && f.y <= WORLD.h;
+    // Body box around the foot point: widest fighter ~76 px, tallest ~200.
+    // Inside the world we demand slack on top of that; out in the gutter,
+    // where the shot is already at its widest, the body itself is the bar.
+    const slack = inWorld ? 30 : 0;
+    const halfBody = 45;
+    check(Math.abs(f.x - v.x) + halfBody + slack <= v.halfW,
+      `${label}: fighter ${f.id} framed horizontally`,
+      `x=${f.x.toFixed(0)} cx=${v.x.toFixed(0)} half=${v.halfW.toFixed(0)}`);
+    check(f.y - 200 >= v.y - v.halfH - (inWorld ? 0 : 40) + slack &&
+          f.y + 20 <= v.y + v.halfH - slack,
+      `${label}: fighter ${f.id} framed vertically`,
+      `y=${f.y.toFixed(0)} cy=${v.y.toFixed(0)} half=${v.halfH.toFixed(0)}`);
+  }
+}
+
+// A launch: fighter 2 takes a heavy hit and sails up and out while fighter 1
+// stays put. This is the case the old symmetric smoothing lost.
+for (const [vx0, vy0] of [[1900, -1500], [-2100, -900], [400, 2000], [-2600, -2400]]) {
+  resetState();
+  run(1);
+  const f = state.fighters[1];
+  f.vx = vx0; f.vy = vy0;
+  state.camera.kick = 0.14;
+  state.camera.shake = 14;
+  for (let i = 0; i < 90; i++) {
+    f.vy += 2350 * DT;
+    f.x += f.vx * DT;
+    f.y += f.vy * DT;
+    updateCamera(DT);
+    checkFramed(`launch ${vx0}/${vy0} @${i}`);
+  }
+}
+pass("launches stay framed");
+
+// Both fighters at opposite gutters at once — the widest legal shot.
+resetState();
+state.fighters[0].x = -120; state.fighters[0].y = 400;
+state.fighters[1].x = WORLD.w + 120; state.fighters[1].y = 300;
+for (let i = 0; i < 240; i++) { updateCamera(DT); }
+checkFramed("opposite gutters");
+check(state.camera.zoom >= 0.78, "zoom never falls under its floor", `zoom=${state.camera.zoom.toFixed(3)}`);
+pass("gutter framing");
+
+// A fast ground chase across the whole stage, every frame framed.
+resetState();
+state.fighters[0].y = state.fighters[1].y = 568;
+for (let i = 0; i < 400; i++) {
+  const t = i * DT;
+  const a = state.fighters[0], b = state.fighters[1];
+  a.x = 640 + Math.sin(t * 3.1) * 560; a.vx = Math.cos(t * 3.1) * 560 * 3.1;
+  b.x = 640 + Math.sin(t * 3.1 + 2.2) * 560; b.vx = Math.cos(t * 3.1 + 2.2) * 560 * 3.1;
+  updateCamera(DT);
+  checkFramed(`chase @${i}`);
+}
+pass("full-stage chase stays framed");
+
 console.log(failures ? `\n${failures} check(s) failed` : "\nall checks passed");
 process.exit(failures ? 1 : 0);
