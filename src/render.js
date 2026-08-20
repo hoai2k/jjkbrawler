@@ -26,7 +26,7 @@ import { strikeArcs, visibleArtReach, swingExtent } from "./moves.js";
 import { bodyWidth } from "./silhouette.js";
 import { strikePoint, STRIKE_STATES } from "./strike_points.js";
 import { respawnX } from "./fighter.js";
-import { SMOOTH_COM_FADE, SMOOTH_HOLD_FADE } from "./flags.js";
+import { SMOOTH_COM_FADE, SMOOTH_HOLD_FADE, SPRITE_XFADE_ON } from "./flags.js";
 
 // The cross-fade window on a sprite state change, and the states a change INTO
 // stays a cut. Both mirror the 3D backend's contract (pose.js DIALS.blendTime
@@ -837,7 +837,11 @@ function drawFighters(ctx, { bodies = true } = {}) {
 function spriteGhost(f, spriteKey, frameKey) {
   if (SPRITE_NO_XFADE.has(f.animKey) || String(frameKey).includes(":")) return null;
 
-  const prev = f.prevAnim;
+  // SPRITE_XFADE_ON is the game's own fade, and it is a switch only so the
+  // character bench can turn it OFF — with it off you see the cut the other two
+  // experiments are trying to improve on, which is the comparison that makes
+  // either of them judgeable. It ships on; nothing else touches it.
+  const prev = SPRITE_XFADE_ON ? f.prevAnim : null;
   if (prev && f.animTime < SPRITE_XFADE) {
     const prevFrame = currentFrame(spriteKey, prev.key, prev.t);
     if (prevFrame && !String(prevFrame).includes(":")) {

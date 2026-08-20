@@ -25,9 +25,11 @@
          entry in ROOTS below, and the module and stylesheet in router.js. -->
     <div id="verificationRoot" hidden></div>
     <div id="cardsRoot" hidden></div>
+    <div id="characterRoot" hidden></div>
     <script>
       (function () {
-        var ROOTS = { verification: "verificationRoot", cards: "cardsRoot" };
+        var ROOTS = { verification: "verificationRoot", cards: "cardsRoot",
+                      character: "characterRoot" };
         var bench = document.documentElement.dataset.bench || "audio";
         Object.keys(ROOTS).forEach(function (name) {
           var node = document.getElementById(ROOTS[name]);

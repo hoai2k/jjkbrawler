@@ -126,6 +126,7 @@ the query (`&char=gojo`) travels with you.
 | Shortcut | Bench | |
 |---|---|---|
 | [`?edit=audio`](workbench/?edit=audio) | [`/workbench/`](workbench/) | **Audio** — every voice in the game beside the fighter it belongs to, and every sound their techniques make, each recording on its own button. Playing a technique puts its art on the stage for two seconds, so a sound is judged against the thing it belongs to. Auditioning a take is the one thing the generator cannot check; **⭳ Export changes** hands the verdict back as JSON |
+| [`?edit=character`](workbench/?edit=character) | [`/workbench/`](workbench/) | **Character** — pick a fighter on the left, drive them on the right. Every action they have in a match, on a pad or WASD+JKLI, with a training dummy to hit and nobody hitting back. Arrow keys walk the roster, the zoom slider gets close enough to see a pose, and the lights in the corner switch the three sprite-smoothing mechanisms on and off while you hold the stick. Runs the game's own `stepWorld` and renderer, so what it shows is what a player gets |
 | [`?edit=sprites`](workbench/?edit=sprites) | [`/sprites/workbench/`](sprites/workbench/) | 2D sprite placement, anchors, the cleanup flags |
 | [`?edit=actions`](workbench/?edit=actions) | `/sprites/workbench/?edit=actions` | play any character action |
 | [`?edit=billboards`](workbench/?edit=billboards) | [`/billboards/workbench/`](billboards/workbench/) | the 2.5D posed-model path |

@@ -24,7 +24,7 @@
   // one thing no cache argues with.
   //
   // BUMP THIS WHENEVER THE BENCH CHANGES.
-  var BENCH_VERSION = "18";
+  var BENCH_VERSION = "19";
   if (document.currentScript) document.currentScript.dataset.version = BENCH_VERSION;
   // Where each mode lives. Paths are RELATIVE, so the whole thing keeps working
   // under a subdirectory — the GitHub Pages build serves this at
@@ -36,6 +36,7 @@
     audio: null,
     verification: null,
     cards: null,
+    character: null,
     sprites: "../sprites/workbench/",
     actions: "../sprites/workbench/?edit=actions",
     billboards: "../billboards/workbench/",
@@ -68,6 +69,10 @@
     // The card bench. Every word for "the picture is cropped wrong".
     card: "cards", crop: "cards", cropping: "cards", focus: "cards",
     framing: "cards", art: "cards", portraits: "cards",
+    // The character bench. Every word for "let me drive one and watch them".
+    char: "character", characters: "character", fighter: "character",
+    fighters: "character", roster: "character", moves: "character",
+    animations: "character", anims: "character", drive: "character",
   };
 
   var here = new URL(window.location.href);
@@ -126,13 +131,16 @@
   // workbench.css either way; a bench with more of its own adds a second
   // sheet rather than duplicating that one.
   var bench = document.documentElement.dataset.bench || "audio";
-  var MODULES = { audio: "audio.js", verification: "verification.js", cards: "cards.js" };
-  var EXTRA_CSS = { verification: "verification.css", cards: "cards.css" };
+  var MODULES = { audio: "audio.js", verification: "verification.js", cards: "cards.js",
+                  character: "character.js" };
+  var EXTRA_CSS = { verification: "verification.css", cards: "cards.css",
+                    character: "character.css" };
 
   // The document's <title> is the audio bench's, because that is whose markup
   // index.html holds. A tab that says "Audio Workbench" over the card bench is
   // wrong in the one place a person looks when three of these are open.
-  var TITLES = { verification: "Verification", cards: "Card Workbench" };
+  var TITLES = { verification: "Verification", cards: "Card Workbench",
+                 character: "Character Bench" };
   if (TITLES[bench]) document.title = TITLES[bench] + " — JJK Brawler II";
 
   var sheets = ["workbench.css"];

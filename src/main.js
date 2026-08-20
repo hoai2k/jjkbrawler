@@ -3,8 +3,8 @@ import { loadCoreAssets, startBackgroundLoad, ensureMatchAssets, matchAssetsPend
 import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput, clearHeldKeys, disconnectedSeats, freezePadSeats } from "./input.js";
 import { initAudio, playSfx, setBattleStage, syncMusic, stepAudio, stopDomainLoop, stopShieldLoop, setAudioSuspended, setMatchLive } from "./audio.js";
 import { updateRumble } from "./rumble.js";
-import { makeFighter, updateFighter } from "./fighter.js";
-import { updateHitboxes, updateProjectiles, stepHitCredit } from "./combat.js";
+import { makeFighter } from "./fighter.js";
+import { stepWorld, makeLatch, latchInputs as foldInputs, clearLatchedEdges as spendEdges } from "./sim.js";
 import { updateParticles, banner } from "./particles.js";
 import { updateCamera } from "./camera.js";
 import { draw } from "./render.js";
@@ -390,54 +390,22 @@ function updateSimulation(dt, held) {
       banner("GO!", "#ffd35a", { y: 300, size: 72, life: INTRO_GO });
       playSfx("countdownGo");
     }
-    // fighters frozen during countdown
-    for (const f of state.fighters) updateFighter(f, dt, (f.lastInput = blankInput()));
-  } else {
-    for (const f of state.fighters) {
-      let input;
-      if (f.aiState) input = aiInput(f);
-      else input = held[f.id] || blankInput();
-      if (f.dizzy > 0 || endT > 0) input = blankInput();
-      // Summons update after the fighters and steer off their owner's stick,
-      // so the input a fighter acted on this step is kept where they can read
-      // it rather than threaded through every entity's update().
-      f.lastInput = input;
-      updateFighter(f, dt, input);
-    }
   }
 
-  // Combo windows and KO credit. Stepped out here rather than inside
-  // updateFighter, which returns early during hitlag — a combo window that
-  // froze with its owner would stay open through every freeze frame the combo
-  // itself caused.
-  for (const f of state.fighters) stepHitCredit(f, dt);
-
-  updateHitboxes(dt);
-  updateProjectiles(dt);
-
-  for (let i = state.entities.length - 1; i >= 0; i--) {
-    const e = state.entities[i];
-    // An owned entity — a summon, a trap, a domain — freezes through its
-    // owner's hitlag, the same way hitboxes and projectiles do: the freeze
-    // frames a summon's hit buys must not be frames it keeps moving through.
-    // Stage gimmicks have no owner and never stop.
-    if (e.owner && e.owner.hitPause > 0) continue;
-    e.update(dt);
-    if (e.dead) state.entities.splice(i, 1);
-  }
-
-  if (state.screenFlash) {
-    state.screenFlash.life -= dt;
-    if (state.screenFlash.life <= 0) state.screenFlash = null;
-  }
-  if (state.vignette) {
-    state.vignette.life -= dt;
-    if (state.vignette.life <= 0) state.vignette = null;
-  }
-  if (state.domainOverlay) {
-    state.domainOverlay.life -= dt;
-    if (state.domainOverlay.life <= 0) state.domainOverlay = null;
-  }
+  // The world itself — fighters, hitboxes, projectiles, summons, screen
+  // effects — is `sim.js stepWorld`, shared with the character bench so the two
+  // cannot drift. Everything left in this function is the MATCH: the countdown
+  // above, the clock and the KO below.
+  //
+  // Who is acting on what is decided here, because it is the only part that
+  // differs between a match and a bench: the CPU drives an AI seat, a latched
+  // pad drives a human one, and a fighter who is dizzy or watching the round
+  // end drives nothing.
+  stepWorld(dt, (f) => {
+    if (introT > 0) return blankInput();
+    if (f.dizzy > 0 || endT > 0) return blankInput();
+    return f.aiState ? aiInput(f) : (held[f.id] || blankInput());
+  });
 
   // round end
   if (endT > 0) {
@@ -470,29 +438,11 @@ let lastFrameAt = 0;
 let lastRafAt = 0;
 let rafPending = false;
 
-// Edge presses are latched here until a simulation step consumes them, so
-// inputs are never dropped on stepless frames (high-refresh displays) nor
-// double-consumed when one frame runs several steps.
-const PLAYER_IDS = [1, 2, 3, 4];
-const latched = Object.fromEntries(PLAYER_IDS.map((id) => [id, blankInput()]));
-
-function latchInputs() {
-  for (const id of PLAYER_IDS) {
-    const now = playerInput(id);
-    const l = latched[id];
-    for (const k of Object.keys(now)) {
-      l[k] = k.endsWith("P") ? l[k] || now[k] : now[k];
-    }
-    l.dirX = now.dirX;
-  }
-}
-
-function clearLatchedEdges() {
-  for (const id of PLAYER_IDS) {
-    const l = latched[id];
-    for (const k of Object.keys(l)) if (k.endsWith("P")) l[k] = false;
-  }
-}
+// The latch lives in sim.js with the step that consumes it — see the note
+// there for why an edge has to survive a stepless frame.
+const latched = makeLatch();
+const latchInputs = () => foldInputs(latched);
+const clearLatchedEdges = () => spendEdges(latched);
 
 function rafLoop(time) {
   rafPending = false;
