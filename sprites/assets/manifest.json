@@ -43905,7 +43905,8 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "dodge_roll": {
     "w": 508,
@@ -44126,7 +44127,8 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "land": {
     "w": 844,
@@ -47053,9 +47055,9 @@
     "ox": -11.9,
     "oy": -873,
     "bodyBottom": 247.4,
-    "bodyH": 296.0,
+    "bodyH": 297.4,
     "centroidX": 142.4,
-    "renderScale": 0.25,
+    "renderScale": 0.2512,
     "file": "yaga/idle_a.png",
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -47074,6 +47076,9 @@
       "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "idle_b": {
@@ -47103,7 +47108,8 @@
       "bodyBottom": "foot=0.946 (roster)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    },
    "jump_rise": {
     "w": 677,
@@ -80392,7 +80398,8 @@
   "kirara": 331.57,
   "miwa": 398.3,
   "tengen": 347.65,
-  "naoya": 280.35
+  "naoya": 280.35,
+  "yaga": 280.1
  },
  "otherSprites": {
   "effect:aura_chitin": {

@@ -68,7 +68,7 @@ import {
   openSpritePicker, closeSpritePicker, closePickerPreview, initSpritePicker,
 } from "./bench_picker.js";
 import {
-  clearedUpdates, editedChars, payloadFor, exportAll, dirtyActions,
+  clearedUpdates, editedChars, payloadFor, exportAll, dirtyActions, unexportedWork,
 } from "./bench_export.js";
 import {
   ANCHOR_WORDS, attackBoxOf, attackBoxOnCanvas, canPlaceAttack, drawCanvasSpinner,
@@ -3405,6 +3405,22 @@ async function boot() {
   };
 
   $("exportBtn").onclick = exportAll;
+  // NOTHING ON THIS PAGE IS SAVED, and a reload takes the session with it. That
+  // is the design --- the manifest belongs to the repository and an export is
+  // how an edit reaches it --- but it made losing work silent, and a REVIEW TICK
+  // is the easiest thing to lose: it leaves no mark on the canvas, so eight
+  // poses ticked done and never exported look exactly like eight poses somebody
+  // already landed. Yaga's idle and two of Kashimo's came back a second time
+  // for exactly that reason, and nothing had gone wrong that anybody could see.
+  //
+  // The browser will not show custom text here any more, so the message is for
+  // the record rather than the user; what matters is that the dialog appears at
+  // all, and only when there is something to lose.
+  window.addEventListener("beforeunload", (e) => {
+    if (!unexportedWork()) return;
+    e.preventDefault();
+    e.returnValue = "";
+  });
   $("copyBtn").onclick = async () => {
     if (!$("exportOut").value) exportAll();
     try { await navigator.clipboard.writeText($("exportOut").value); $("copyBtn").textContent = "Copied"; }
