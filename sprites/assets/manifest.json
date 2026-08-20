@@ -602,8 +602,8 @@
     "renderScale": 0.2278,
     "anchors": {
      "com": [
-      360.9,
-      329.3
+      358.2,
+      327.5
      ]
     },
     "bodyTop": 15,
@@ -611,7 +611,14 @@
     "bodyRight": 656,
     "coreLeft": 50.8,
     "coreRight": 609.6,
-    "surfacedReviewed": true
+    "edited": {
+     "anchors": {
+      "com": [
+       360.9,
+       329.3
+      ]
+     }
+    }
    },
    "guard": {
     "file": "gojo/guard.png",
@@ -906,14 +913,20 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      504.1,
-      592.4
+      507.9,
+      588.1
      ]
     },
     "edited": {
      "renderScale": 0.281,
      "bodyBottom": 310.4,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       504.1,
+       592.4
+      ]
+     }
     },
     "rotationDeg": 2,
     "bodyLeft": 0,
@@ -1227,14 +1240,20 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      419.8,
-      530.3
+      505.4,
+      516.2
      ]
     },
     "edited": {
      "renderScale": 0.281,
      "bodyBottom": 310.4,
-     "faceLeft": null
+     "faceLeft": null,
+     "anchors": {
+      "com": [
+       419.8,
+       530.3
+      ]
+     }
     },
     "faceLeft": true,
     "bodyLeft": 0,
@@ -2104,14 +2123,20 @@
     "renderScale": 0.2738,
     "anchors": {
      "com": [
-      347.6,
-      272.5
+      337.6,
+      295.4
      ]
     },
     "bodyTop": 13,
     "edited": {
      "renderScale": 0.232,
-     "bodyBottom": 310
+     "bodyBottom": 310,
+     "anchors": {
+      "com": [
+       347.6,
+       272.5
+      ]
+     }
     },
     "bodyLeft": 13,
     "bodyRight": 561,
@@ -2860,13 +2885,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      435.5,
-      540.5
+      468.8,
+      535.6
      ]
     },
     "edited": {
      "renderScale": 0.289,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       435.5,
+       540.5
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 819,
@@ -2886,13 +2917,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      574.3,
-      546.3
+      410.2,
+      543.1
      ]
     },
     "edited": {
      "ox": -338.8,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       574.3,
+       546.3
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 991,
@@ -3777,8 +3814,8 @@
     "coreRight": 586.4,
     "anchors": {
      "com": [
-      312.6,
-      724.1
+      298.5,
+      724.2
      ]
     },
     "autoTuned": {
@@ -3790,7 +3827,13 @@
     },
     "edited": {
      "renderScale": 0.246,
-     "bodyBottom": 231.1
+     "bodyBottom": 231.1,
+     "anchors": {
+      "com": [
+       312.6,
+       724.1
+      ]
+     }
     }
    },
    "attack_air": {
@@ -4547,8 +4590,8 @@
     "coreRight": 898.7,
     "anchors": {
      "com": [
-      518.1,
-      414.2
+      517.7,
+      416.0
      ]
     },
     "autoTuned": {
@@ -4560,7 +4603,13 @@
     },
     "edited": {
      "renderScale": 0.391,
-     "bodyBottom": 261.2
+     "bodyBottom": 261.2,
+     "anchors": {
+      "com": [
+       518.1,
+       414.2
+      ]
+     }
     }
    },
    "special_down": {
@@ -4810,8 +4859,8 @@
     "coreRight": 710.8,
     "anchors": {
      "com": [
-      410.8,
-      635.8
+      439.6,
+      534.8
      ]
     },
     "autoTuned": {
@@ -4823,7 +4872,13 @@
     },
     "edited": {
      "renderScale": 0.257,
-     "bodyBottom": 185.3
+     "bodyBottom": 185.3,
+     "anchors": {
+      "com": [
+       410.8,
+       635.8
+      ]
+     }
     }
    },
    "attack_dash": {
@@ -4947,8 +5002,8 @@
     "coreRight": 713.7,
     "anchors": {
      "com": [
-      376.6,
-      668.3
+      330.3,
+      590.3
      ],
      "grabChest": [
       414.9,
@@ -4967,7 +5022,11 @@
      "bodyBottom": 183.6,
      "faceLeft": null,
      "anchors": {
-      "grabChest": null
+      "grabChest": null,
+      "com": [
+       376.6,
+       668.3
+      ]
      }
     },
     "faceLeft": true
@@ -5727,8 +5786,8 @@
     "coreRight": 760.6,
     "anchors": {
      "com": [
-      426.5,
-      612.6
+      425.1,
+      614.5
      ]
     },
     "autoTuned": {
@@ -5740,7 +5799,13 @@
     },
     "edited": {
      "renderScale": 0.341,
-     "bodyBottom": 145.6
+     "bodyBottom": 145.6,
+     "anchors": {
+      "com": [
+       426.5,
+       612.6
+      ]
+     }
     }
    },
    "special_neutral": {
@@ -6014,14 +6079,20 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      418.5,
-      468.4
+      420.3,
+      466.3
      ]
     },
     "edited": {
      "renderScale": 0.313,
      "bodyBottom": 310.4,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       418.5,
+       468.4
+      ]
+     }
     },
     "rotationDeg": -5.5,
     "bodyLeft": 0,
@@ -6048,13 +6119,19 @@
      "renderScale": 0.263728,
      "ox": -425.8,
      "bodyBottom": 280.9,
-     "rotationDeg": -4.5
+     "rotationDeg": -4.5,
+     "anchors": {
+      "com": [
+       719.2,
+       344.3
+      ]
+     }
     },
     "bodyTop": 0,
     "anchors": {
      "com": [
-      719.2,
-      344.3
+      663.8,
+      363.9
      ]
     }
    },
@@ -7069,8 +7146,8 @@
     "renderScale": 0.3046,
     "anchors": {
      "com": [
-      446.3,
-      477.2
+      478.3,
+      486.0
      ]
     },
     "bodyTop": 14,
@@ -7078,7 +7155,13 @@
      "renderScale": 0.256,
      "ox": -219.8,
      "bodyBottom": 310,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       446.3,
+       477.2
+      ]
+     }
     },
     "rotationDeg": -2,
     "bodyLeft": 8,
@@ -7363,14 +7446,20 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      557.7,
-      629.3
+      559.8,
+      627.5
      ]
     },
     "edited": {
      "renderScale": 0.291,
      "ox": -322.2,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       557.7,
+       629.3
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 958,
@@ -7600,12 +7689,18 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      593.5,
-      451.8
+      576.4,
+      432.1
      ]
     },
     "edited": {
-     "renderScale": 0.291
+     "renderScale": 0.291,
+     "anchors": {
+      "com": [
+       593.5,
+       451.8
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 991,
@@ -7988,8 +8083,8 @@
     "coreRight": 1403.8,
     "anchors": {
      "com": [
-      540.7,
-      342.1
+      502.0,
+      351.7
      ]
     },
     "autoTuned": {
@@ -8001,7 +8096,13 @@
     },
     "edited": {
      "renderScale": 0.332,
-     "ox": -495.9
+     "ox": -495.9,
+     "anchors": {
+      "com": [
+       540.7,
+       342.1
+      ]
+     }
     }
    },
    "grab_hold": {
@@ -8795,12 +8896,18 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      492.1,
-      418.4
+      490.5,
+      417.0
      ]
     },
     "edited": {
-     "renderScale": 0.173
+     "renderScale": 0.173,
+     "anchors": {
+      "com": [
+       492.1,
+       418.4
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 859,
@@ -9138,12 +9245,18 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      401.1,
-      382.1
+      378.5,
+      445.5
      ]
     },
     "edited": {
-     "ox": -342.8
+     "ox": -342.8,
+     "anchors": {
+      "com": [
+       401.1,
+       382.1
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 999,
@@ -9467,13 +9580,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      466.0,
-      514.1
+      445.0,
+      570.6
      ]
     },
     "edited": {
      "renderScale": 0.226,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       466.0,
+       514.1
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 866,
@@ -10425,13 +10544,19 @@
     "renderScale": 0.352,
     "anchors": {
      "com": [
-      365.8,
-      485.6
+      367.6,
+      483.7
      ]
     },
     "bodyTop": 15,
     "edited": {
-     "bodyBottom": 310
+     "bodyBottom": 310,
+     "anchors": {
+      "com": [
+       365.8,
+       485.6
+      ]
+     }
     },
     "bodyLeft": 15,
     "bodyRight": 719,
@@ -10498,14 +10623,20 @@
     "renderScale": 0.3337,
     "anchors": {
      "com": [
-      157.0,
-      489.2
+      156.9,
+      432.1
      ]
     },
     "bodyTop": 16,
     "edited": {
      "renderScale": 0.284,
-     "bodyBottom": 310
+     "bodyBottom": 310,
+     "anchors": {
+      "com": [
+       157.0,
+       489.2
+      ]
+     }
     },
     "bodyLeft": 17,
     "bodyRight": 336,
@@ -11026,13 +11157,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      531.8,
-      505.3
+      504.0,
+      509.8
      ]
     },
     "edited": {
      "renderScale": 0.29,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       531.8,
+       505.3
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 931,
@@ -12615,13 +12752,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      491.3,
-      502.8
+      492.4,
+      507.9
      ]
     },
     "edited": {
      "renderScale": 0.297,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       491.3,
+       502.8
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 921,
@@ -12641,8 +12784,8 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      475.1,
-      493.0
+      432.9,
+      499.0
      ]
     },
     "autoTuned": {
@@ -12659,7 +12802,13 @@
     "edited": {
      "renderScale": 0.305,
      "bodyBottom": 243.1,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       475.1,
+       493.0
+      ]
+     }
     },
     "rotationDeg": 4
    },
@@ -12735,14 +12884,20 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      421.8,
-      682.8
+      362.5,
+      784.6
      ]
     },
     "edited": {
      "renderScale": 0.297,
      "ox": -249.2,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       421.8,
+       682.8
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 812,
@@ -14431,8 +14586,8 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      458.7,
-      391.9
+      481.7,
+      452.2
      ]
     },
     "autoTuned": {
@@ -14448,7 +14603,13 @@
     "coreRight": 796.4,
     "edited": {
      "renderScale": 0.282,
-     "bodyBottom": 253.5
+     "bodyBottom": 253.5,
+     "anchors": {
+      "com": [
+       458.7,
+       391.9
+      ]
+     }
     },
     "smoothed": {
      "at": "2026-08-20T15:10:00+00:00",
@@ -14472,8 +14633,8 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      486.6,
-      327.2
+      466.6,
+      357.6
      ]
     },
     "autoTuned": {
@@ -14489,7 +14650,13 @@
     "coreRight": 825.7,
     "edited": {
      "renderScale": 0.283,
-     "bodyBottom": 265.3
+     "bodyBottom": 265.3,
+     "anchors": {
+      "com": [
+       486.6,
+       327.2
+      ]
+     }
     },
     "smoothed": {
      "at": "2026-08-20T15:10:00+00:00",
@@ -14513,8 +14680,8 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      529.4,
-      301.9
+      491.7,
+      350.2
      ]
     },
     "autoTuned": {
@@ -14530,7 +14697,13 @@
     "coreRight": 888.4,
     "edited": {
      "renderScale": 0.282,
-     "bodyBottom": 267.5
+     "bodyBottom": 267.5,
+     "anchors": {
+      "com": [
+       529.4,
+       301.9
+      ]
+     }
     },
     "smoothed": {
      "at": "2026-08-20T15:10:00+00:00",
@@ -14983,14 +15156,20 @@
     "renderScale": 0.3216,
     "anchors": {
      "com": [
-      197.2,
-      423.4
+      232.7,
+      348.3
      ]
     },
     "bodyTop": 13,
     "edited": {
      "renderScale": 0.295,
-     "bodyBottom": 310
+     "bodyBottom": 310,
+     "anchors": {
+      "com": [
+       197.2,
+       423.4
+      ]
+     }
     },
     "bodyLeft": 13,
     "bodyRight": 414,
@@ -15009,14 +15188,20 @@
     "renderScale": 0.326,
     "anchors": {
      "com": [
-      162.9,
-      421.5
+      203.5,
+      343.7
      ]
     },
     "bodyTop": 13,
     "edited": {
      "renderScale": 0.295,
-     "bodyBottom": 310
+     "bodyBottom": 310,
+     "anchors": {
+      "com": [
+       162.9,
+       421.5
+      ]
+     }
     },
     "bodyLeft": 13,
     "bodyRight": 332,
@@ -15111,15 +15296,21 @@
     "renderScale": 0.325,
     "anchors": {
      "com": [
-      333.7,
-      426.2
+      321.8,
+      402.3
      ]
     },
     "bodyTop": 69,
     "edited": {
      "renderScale": 0.259,
      "bodyBottom": 310,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       333.7,
+       426.2
+      ]
+     }
     },
     "rotationDeg": 8.5,
     "bodyLeft": 71,
@@ -15139,14 +15330,20 @@
     "renderScale": 0.3963,
     "anchors": {
      "com": [
-      222.1,
-      469.4
+      255.4,
+      453.0
      ]
     },
     "bodyTop": 14,
     "edited": {
      "renderScale": 0.357,
-     "bodyBottom": 310
+     "bodyBottom": 310,
+     "anchors": {
+      "com": [
+       222.1,
+       469.4
+      ]
+     }
     },
     "bodyLeft": 13,
     "bodyRight": 397,
@@ -15190,15 +15387,21 @@
     "renderScale": 0.2991,
     "anchors": {
      "com": [
-      315.9,
-      392.4
+      315.6,
+      374.2
      ]
     },
     "bodyTop": 13,
     "edited": {
      "renderScale": 0.259,
      "bodyBottom": 310,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       315.9,
+       392.4
+      ]
+     }
     },
     "rotationDeg": 9,
     "bodyLeft": 15,
@@ -15218,14 +15421,20 @@
     "renderScale": 0.3038,
     "anchors": {
      "com": [
-      269.2,
-      414.0
+      292.6,
+      324.0
      ]
     },
     "bodyTop": 14,
     "edited": {
      "renderScale": 0.288,
-     "bodyBottom": 310
+     "bodyBottom": 310,
+     "anchors": {
+      "com": [
+       269.2,
+       414.0
+      ]
+     }
     },
     "bodyLeft": 13,
     "bodyRight": 570,
@@ -15481,14 +15690,20 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      552.0,
-      471.4
+      548.5,
+      475.7
      ]
     },
     "edited": {
      "renderScale": 0.322,
      "ox": -311.2,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       552.0,
+       471.4
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 936,
@@ -15799,13 +16014,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      417.4,
-      485.4
+      414.4,
+      484.3
      ]
     },
     "edited": {
      "renderScale": 0.322,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       417.4,
+       485.4
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 847,
@@ -16260,8 +16481,8 @@
     "coreRight": 640.3,
     "anchors": {
      "com": [
-      342.5,
-      604.7
+      368.1,
+      511.9
      ]
     },
     "autoTuned": {
@@ -16273,7 +16494,13 @@
     },
     "edited": {
      "renderScale": 0.322,
-     "bodyBottom": 212.0
+     "bodyBottom": 212.0,
+     "anchors": {
+      "com": [
+       342.5,
+       604.7
+      ]
+     }
     }
    },
    "walk_b": {
@@ -17287,13 +17514,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      502.2,
-      538.5
+      460.2,
+      446.2
      ]
     },
     "edited": {
      "renderScale": 0.285,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       502.2,
+       538.5
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 940,
@@ -18832,13 +19065,19 @@
     "renderScale": 0.356,
     "anchors": {
      "com": [
-      274.7,
-      471.0
+      272.0,
+      471.2
      ]
     },
     "bodyTop": 13,
     "edited": {
-     "bodyBottom": 310
+     "bodyBottom": 310,
+     "anchors": {
+      "com": [
+       274.7,
+       471.0
+      ]
+     }
     },
     "bodyLeft": 14,
     "bodyRight": 531,
@@ -19044,8 +19283,8 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      384.8,
-      434.9
+      380.3,
+      439.1
      ]
     },
     "autoTuned": {
@@ -19060,7 +19299,13 @@
     "coreLeft": 90.9,
     "coreRight": 670.4,
     "edited": {
-     "renderScale": 0.276
+     "renderScale": 0.276,
+     "anchors": {
+      "com": [
+       384.8,
+       434.9
+      ]
+     }
     }
    },
    "dodge_roll": {
@@ -19442,13 +19687,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      470.7,
-      433.0
+      477.0,
+      462.7
      ]
     },
     "edited": {
      "renderScale": 0.295,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       470.7,
+       433.0
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 812,
@@ -19568,13 +19819,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      462.6,
-      597.9
+      408.2,
+      633.0
      ]
     },
     "edited": {
      "renderScale": 0.295,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       462.6,
+       597.9
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 966,
@@ -19594,14 +19851,20 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      425.6,
-      536.3
+      241.3,
+      634.8
      ]
     },
     "edited": {
      "renderScale": 0.295,
      "ox": -340.8,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       425.6,
+       536.3
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 995,
@@ -20422,15 +20685,21 @@
     "renderScale": 0.4347,
     "anchors": {
      "com": [
-      283.0,
-      521.4
+      273.4,
+      570.8
      ]
     },
     "bodyTop": 13,
     "edited": {
      "renderScale": 0.352,
      "ox": -154.2,
-     "bodyBottom": 310
+     "bodyBottom": 310,
+     "anchors": {
+      "com": [
+       283.0,
+       521.4
+      ]
+     }
     },
     "bodyLeft": 13,
     "bodyRight": 609,
@@ -20722,14 +20991,20 @@
     "renderScale": 0.291,
     "anchors": {
      "com": [
-      417.6,
-      373.4
+      416.0,
+      391.4
      ]
     },
     "edited": {
      "ox": -328.8,
      "renderScale": 0.291,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       417.6,
+       373.4
+      ]
+     }
     }
    },
    "attack_air_b": {
@@ -20749,8 +21024,8 @@
     "coreRight": 848.8,
     "anchors": {
      "com": [
-      349.8,
-      327.9
+      310.3,
+      394.8
      ]
     },
     "autoTuned": {
@@ -20761,7 +21036,13 @@
     },
     "edited": {
      "renderScale": 0.366,
-     "ox": -193.0
+     "ox": -193.0,
+     "anchors": {
+      "com": [
+       349.8,
+       327.9
+      ]
+     }
     }
    },
    "attack_down": {
@@ -20777,13 +21058,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      397.2,
-      606.0
+      403.6,
+      649.7
      ]
     },
     "edited": {
      "renderScale": 0.291,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       397.2,
+       606.0
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 769,
@@ -21059,13 +21346,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      521.6,
-      606.9
+      488.7,
+      624.8
      ]
     },
     "edited": {
      "renderScale": 0.291,
-     "ox": -261.8
+     "ox": -261.8,
+     "anchors": {
+      "com": [
+       521.6,
+       606.9
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 837,
@@ -22655,13 +22948,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      500.1,
-      534.7
+      441.0,
+      519.1
      ]
     },
     "edited": {
      "renderScale": 0.254,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       500.1,
+       534.7
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 906,
@@ -22681,14 +22980,20 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      460.0,
-      527.9
+      513.5,
+      456.1
      ]
     },
     "edited": {
      "renderScale": 0.254,
      "bodyBottom": 310.4,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       460.0,
+       527.9
+      ]
+     }
     },
     "rotationDeg": 8,
     "bodyLeft": 0,
@@ -23531,13 +23836,19 @@
     "renderScale": 0.2912,
     "anchors": {
      "com": [
-      327.7,
-      410.0
+      347.5,
+      545.0
      ]
     },
     "bodyTop": 13,
     "edited": {
-     "renderScale": 0.251
+     "renderScale": 0.251,
+     "anchors": {
+      "com": [
+       327.7,
+       410.0
+      ]
+     }
     },
     "bodyLeft": 13,
     "bodyRight": 694,
@@ -23556,13 +23867,19 @@
     "renderScale": 0.2869,
     "anchors": {
      "com": [
-      398.2,
-      385.8
+      410.9,
+      445.4
      ]
     },
     "bodyTop": 14,
     "edited": {
-     "renderScale": 0.262
+     "renderScale": 0.262,
+     "anchors": {
+      "com": [
+       398.2,
+       385.8
+      ]
+     }
     },
     "bodyLeft": 14,
     "bodyRight": 771,
@@ -23973,14 +24290,20 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      356.3,
-      762.9
+      337.4,
+      741.2
      ]
     },
     "edited": {
      "renderScale": 0.278,
      "bodyBottom": 310.4,
-     "faceLeft": null
+     "faceLeft": null,
+     "anchors": {
+      "com": [
+       356.3,
+       762.9
+      ]
+     }
     },
     "faceLeft": true,
     "bodyLeft": 0,
@@ -24307,12 +24630,18 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      464.1,
-      369.1
+      462.3,
+      414.6
      ]
     },
     "edited": {
-     "renderScale": 0.278
+     "renderScale": 0.278,
+     "anchors": {
+      "com": [
+       464.1,
+       369.1
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 954,
@@ -24418,8 +24747,8 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      378.3,
-      456.4
+      371.1,
+      510.1
      ]
     },
     "autoTuned": {
@@ -24435,7 +24764,13 @@
     "coreRight": 778.4,
     "edited": {
      "renderScale": 0.299,
-     "bodyBottom": 228.2
+     "bodyBottom": 228.2,
+     "anchors": {
+      "com": [
+       378.3,
+       456.4
+      ]
+     }
     },
     "smoothed": {
      "at": "2026-08-20T15:10:00+00:00",
@@ -24459,8 +24794,8 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      449.8,
-      418.7
+      442.2,
+      461.2
      ]
     },
     "autoTuned": {
@@ -24476,7 +24811,13 @@
     "coreRight": 859.3,
     "edited": {
      "renderScale": 0.299,
-     "bodyBottom": 234.6
+     "bodyBottom": 234.6,
+     "anchors": {
+      "com": [
+       449.8,
+       418.7
+      ]
+     }
     },
     "smoothed": {
      "at": "2026-08-20T15:10:00+00:00",
@@ -24547,8 +24888,8 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      505.6,
-      408.7
+      490.8,
+      456.2
      ]
     },
     "autoTuned": {
@@ -24564,7 +24905,13 @@
     "coreRight": 899.3,
     "edited": {
      "renderScale": 0.299,
-     "bodyBottom": 239.3
+     "bodyBottom": 239.3,
+     "anchors": {
+      "com": [
+       505.6,
+       408.7
+      ]
+     }
     },
     "smoothed": {
      "at": "2026-08-20T15:10:00+00:00",
@@ -24592,8 +24939,8 @@
     "coreRight": 1045.5,
     "anchors": {
      "com": [
-      534.9,
-      322.9
+      478.5,
+      358.4
      ]
     },
     "autoTuned": {
@@ -24604,7 +24951,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.299
+     "renderScale": 0.299,
+     "anchors": {
+      "com": [
+       534.9,
+       322.9
+      ]
+     }
     }
    },
    "grab_hold": {
@@ -24802,8 +25155,8 @@
     "coreRight": 851.7,
     "anchors": {
      "com": [
-      522.8,
-      464.1
+      527.8,
+      577.5
      ],
      "teeter": [
       443.6,
@@ -24823,6 +25176,10 @@
       "teeter": [
        855.5,
        1202.2
+      ],
+      "com": [
+       522.8,
+       464.1
       ]
      }
     }
@@ -25732,13 +26089,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      527.3,
-      541.2
+      500.0,
+      537.1
      ]
     },
     "edited": {
      "renderScale": 0.302,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       527.3,
+       541.2
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 942,
@@ -25758,13 +26121,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      493.1,
-      671.5
+      529.3,
+      706.8
      ]
     },
     "edited": {
      "renderScale": 0.302,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       493.1,
+       671.5
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 965,
@@ -26557,14 +26926,20 @@
     "renderScale": 0.3169,
     "anchors": {
      "com": [
-      175.2,
-      456.2
+      206.1,
+      361.5
      ]
     },
     "bodyTop": 13,
     "edited": {
      "renderScale": 0.299,
-     "bodyBottom": 310
+     "bodyBottom": 310,
+     "anchors": {
+      "com": [
+       175.2,
+       456.2
+      ]
+     }
     },
     "bodyLeft": 13,
     "bodyRight": 361,
@@ -26659,15 +27034,21 @@
     "renderScale": 0.3024,
     "anchors": {
      "com": [
-      347.8,
-      449.2
+      368.6,
+      380.0
      ]
     },
     "bodyTop": 13,
     "edited": {
      "renderScale": 0.263,
      "bodyBottom": 310,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       347.8,
+       449.2
+      ]
+     }
     },
     "rotationDeg": 5.5,
     "bodyLeft": 13,
@@ -26687,13 +27068,19 @@
     "renderScale": 0.362,
     "anchors": {
      "com": [
-      275.0,
-      479.4
+      281.3,
+      420.2
      ]
     },
     "bodyTop": 13,
     "edited": {
-     "bodyBottom": 310
+     "bodyBottom": 310,
+     "anchors": {
+      "com": [
+       275.0,
+       479.4
+      ]
+     }
     },
     "bodyLeft": 13,
     "bodyRight": 505,
@@ -27002,13 +27389,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      511.4,
-      424.7
+      465.4,
+      381.6
      ]
     },
     "edited": {
      "renderScale": 0.299,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       511.4,
+       424.7
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 850,
@@ -27303,13 +27696,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      532.7,
-      446.4
+      517.3,
+      466.1
      ]
     },
     "edited": {
      "renderScale": 0.299,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       532.7,
+       446.4
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 925,
@@ -27329,8 +27728,8 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      387.6,
-      531.4
+      370.5,
+      459.6
      ]
     },
     "autoTuned": {
@@ -27345,7 +27744,13 @@
     "coreLeft": 66.8,
     "coreRight": 735.1,
     "edited": {
-     "renderScale": 0.215
+     "renderScale": 0.215,
+     "anchors": {
+      "com": [
+       387.6,
+       531.4
+      ]
+     }
     }
    },
    "special_neutral": {
@@ -27775,8 +28180,8 @@
     "coreRight": 776.3,
     "anchors": {
      "com": [
-      384.9,
-      623.0
+      383.2,
+      454.5
      ],
      "grabChest": [
       292.3,
@@ -27793,7 +28198,11 @@
     "edited": {
      "renderScale": 0.313,
      "anchors": {
-      "grabChest": null
+      "grabChest": null,
+      "com": [
+       384.9,
+       623.0
+      ]
      }
     }
    },
@@ -28493,15 +28902,21 @@
     "file": "choso/land.png",
     "anchors": {
      "com": [
-      512.6,
-      473.8
+      466.2,
+      485.4
      ]
     },
     "bodyTop": 0,
     "edited": {
      "renderScale": 0.214,
      "bodyBottom": 310.4,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       512.6,
+       473.8
+      ]
+     }
     },
     "rotationDeg": 3.5,
     "bodyLeft": 0,
@@ -29369,13 +29784,19 @@
     "file": "meimei/attack_down.png",
     "anchors": {
      "com": [
-      669.3,
-      382.2
+      591.4,
+      358.8
      ]
     },
     "bodyTop": 0,
     "edited": {
-     "renderScale": 0.207
+     "renderScale": 0.207,
+     "anchors": {
+      "com": [
+       669.3,
+       382.2
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 1313,
@@ -29489,8 +29910,8 @@
     "file": "meimei/attack_up.png",
     "anchors": {
      "com": [
-      457.1,
-      678.4
+      457.6,
+      692.1
      ]
     },
     "bodyTop": 0,
@@ -29498,7 +29919,13 @@
      "renderScale": 0.2432,
      "ox": -269.8,
      "bodyBottom": 310.4,
-     "faceLeft": null
+     "faceLeft": null,
+     "anchors": {
+      "com": [
+       457.1,
+       678.4
+      ]
+     }
     },
     "faceLeft": true,
     "bodyLeft": 0,
@@ -29571,8 +29998,8 @@
     "coreRight": 1220.1,
     "anchors": {
      "com": [
-      790.0,
-      441.7
+      787.6,
+      438.3
      ]
     },
     "autoTuned": {
@@ -29585,7 +30012,13 @@
     "edited": {
      "renderScale": 0.191,
      "ox": -632.8,
-     "bodyBottom": 270.1
+     "bodyBottom": 270.1,
+     "anchors": {
+      "com": [
+       790.0,
+       441.7
+      ]
+     }
     }
    },
    "crouch_attack_b": {
@@ -29605,8 +30038,8 @@
     "coreRight": 1407.2,
     "anchors": {
      "com": [
-      618.8,
-      434.8
+      489.6,
+      412.2
      ]
     },
     "autoTuned": {
@@ -29618,7 +30051,13 @@
     },
     "edited": {
      "renderScale": 0.197,
-     "ox": -461.4
+     "ox": -461.4,
+     "anchors": {
+      "com": [
+       618.8,
+       434.8
+      ]
+     }
     }
    },
    "crouch_b": {
@@ -29787,14 +30226,20 @@
     "file": "meimei/guard.png",
     "anchors": {
      "com": [
-      405.7,
-      651.0
+      412.2,
+      682.3
      ]
     },
     "bodyTop": 0,
     "edited": {
      "renderScale": 0.1759,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       405.7,
+       651.0
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 864,
@@ -29890,14 +30335,20 @@
     "file": "meimei/land.png",
     "anchors": {
      "com": [
-      553.7,
-      344.0
+      483.1,
+      353.1
      ]
     },
     "bodyTop": 0,
     "edited": {
      "renderScale": 0.207,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       553.7,
+       344.0
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 1336,
@@ -30001,8 +30452,8 @@
     "coreRight": 826.0,
     "anchors": {
      "com": [
-      467.0,
-      519.9
+      500.7,
+      516.7
      ]
     },
     "autoTuned": {
@@ -30014,7 +30465,13 @@
     },
     "edited": {
      "renderScale": 0.247,
-     "bodyBottom": 292.3
+     "bodyBottom": 292.3,
+     "anchors": {
+      "com": [
+       467.0,
+       519.9
+      ]
+     }
     }
    },
    "special_neutral": {
@@ -30054,14 +30511,20 @@
     "file": "meimei/special_side.png",
     "anchors": {
      "com": [
-      487.0,
-      657.3
+      589.2,
+      770.4
      ]
     },
     "bodyTop": 0,
     "edited": {
      "renderScale": 0.207,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       487.0,
+       657.3
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 967,
@@ -30156,14 +30619,20 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      266.8,
-      654.2
+      264.6,
+      651.9
      ]
     },
     "edited": {
      "renderScale": 0.207,
      "ox": -264.8,
-     "faceLeft": null
+     "faceLeft": null,
+     "anchors": {
+      "com": [
+       266.8,
+       654.2
+      ]
+     }
     },
     "faceLeft": true,
     "bodyLeft": 0,
@@ -30210,14 +30679,20 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      446.6,
-      608.0
+      421.8,
+      610.7
      ]
     },
     "edited": {
      "renderScale": 0.207,
      "bodyBottom": 310.4,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       446.6,
+       608.0
+      ]
+     }
     },
     "rotationDeg": 2.5,
     "bodyLeft": 0,
@@ -30627,8 +31102,8 @@
     "coreRight": 793.1,
     "anchors": {
      "com": [
-      442.2,
-      617.8
+      440.3,
+      517.6
      ]
     },
     "autoTuned": {
@@ -30639,7 +31114,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.207
+     "renderScale": 0.207,
+     "anchors": {
+      "com": [
+       442.2,
+       617.8
+      ]
+     }
     }
    },
    "walk_b": {
@@ -30814,13 +31295,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      398.0,
-      786.5
+      400.0,
+      789.6
      ]
     },
     "edited": {
      "renderScale": 0.169,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       398.0,
+       786.5
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 910,
@@ -30883,8 +31370,8 @@
     "coreRight": 798.0,
     "anchors": {
      "com": [
-      440.9,
-      603.0
+      439.6,
+      603.8
      ]
     },
     "autoTuned": {
@@ -30896,7 +31383,13 @@
     },
     "edited": {
      "renderScale": 0.229,
-     "ox": -297.8
+     "ox": -297.8,
+     "anchors": {
+      "com": [
+       440.9,
+       603.0
+      ]
+     }
     }
    },
    "attack_up": {
@@ -31336,13 +31829,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      445.7,
-      585.9
+      407.9,
+      818.6
      ]
     },
     "edited": {
      "renderScale": 0.176,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       445.7,
+       585.9
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 750,
@@ -31618,14 +32117,20 @@
     "renderScale": 0.2585,
     "anchors": {
      "com": [
-      483.8,
-      728.4
+      483.9,
+      729.3
      ]
     },
     "edited": {
      "renderScale": 0.184,
      "ox": -364.1,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       483.8,
+       728.4
+      ]
+     }
     }
    },
    "attack_air_b": {
@@ -31691,14 +32196,20 @@
     "renderScale": 0.2347,
     "anchors": {
      "com": [
-      469.1,
+      470.9,
       735.7
      ]
     },
     "edited": {
      "renderScale": 0.205,
      "ox": -248.9,
-     "bodyBottom": 226.0
+     "bodyBottom": 226.0,
+     "anchors": {
+      "com": [
+       469.1,
+       735.7
+      ]
+     }
     }
    },
    "attack_heavy_b": {
@@ -32550,13 +33061,19 @@
     "file": "yuji/dash.png",
     "anchors": {
      "com": [
-      666.5,
-      226.4
+      666.2,
+      238.2
      ]
     },
     "bodyTop": 0,
     "edited": {
-     "ox": -422.8
+     "ox": -422.8,
+     "anchors": {
+      "com": [
+       666.5,
+       226.4
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 1159,
@@ -32600,13 +33117,19 @@
     "file": "yuji/dodge_air.png",
     "anchors": {
      "com": [
-      242.3,
-      409.9
+      243.0,
+      415.0
      ]
     },
     "bodyTop": 0,
     "edited": {
-     "renderScale": 0.206
+     "renderScale": 0.206,
+     "anchors": {
+      "com": [
+       242.3,
+       409.9
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 566,
@@ -32701,14 +33224,20 @@
     "file": "yuji/hurt.png",
     "anchors": {
      "com": [
-      243.2,
-      426.0
+      208.9,
+      378.9
      ]
     },
     "bodyTop": 0,
     "edited": {
      "renderScale": 0.1768,
-     "faceLeft": null
+     "faceLeft": null,
+     "anchors": {
+      "com": [
+       243.2,
+       426.0
+      ]
+     }
     },
     "faceLeft": true,
     "bodyLeft": 0,
@@ -33104,15 +33633,21 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      460.6,
-      397.1
+      465.7,
+      412.6
      ]
     },
     "edited": {
      "renderScale": 0.206,
      "bodyBottom": 310.4,
      "ox": -275.2,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       460.6,
+       397.1
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 864,
@@ -33133,15 +33668,21 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      423.6,
-      405.0
+      424.6,
+      403.2
      ]
     },
     "edited": {
      "renderScale": 0.206,
      "ox": -323.2,
      "bodyBottom": 310.4,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       423.6,
+       405.0
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 960,
@@ -33667,15 +34208,21 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      533.2,
-      573.9
+      519.6,
+      608.3
      ]
     },
     "edited": {
      "renderScale": 0.14,
      "ox": -296.2,
      "bodyBottom": 310.4,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       533.2,
+       573.9
+      ]
+     }
     },
     "rotationDeg": 4.5,
     "bodyLeft": 0,
@@ -34019,15 +34566,22 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      356.3,
-      442.1
+      407.3,
+      470.8
      ]
     },
     "bodyLeft": 0,
     "bodyRight": 721,
     "coreLeft": 59.5,
     "coreRight": 662.5,
-    "surfacedReviewed": true
+    "edited": {
+     "anchors": {
+      "com": [
+       356.3,
+       442.1
+      ]
+     }
+    }
    },
    "dodge_roll": {
     "w": 951,
@@ -34500,8 +35054,8 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      350.0,
-      323.3
+      342.9,
+      363.0
      ]
     },
     "autoTuned": {
@@ -34516,7 +35070,13 @@
     "coreLeft": 54.5,
     "coreRight": 837.2,
     "edited": {
-     "renderScale": 0.214
+     "renderScale": 0.214,
+     "anchors": {
+      "com": [
+       350.0,
+       323.3
+      ]
+     }
     }
    },
    "attack_heavy_a": {
@@ -34758,8 +35318,8 @@
     "coreRight": 925.0,
     "anchors": {
      "com": [
-      525.3,
-      312.2
+      500.4,
+      336.5
      ]
     },
     "autoTuned": {
@@ -34771,7 +35331,13 @@
     },
     "edited": {
      "renderScale": 0.217,
-     "bodyBottom": 253.7
+     "bodyBottom": 253.7,
+     "anchors": {
+      "com": [
+       525.3,
+       312.2
+      ]
+     }
     },
     "smoothed": {
      "at": "2026-08-20T15:10:00+00:00",
@@ -35162,14 +35728,20 @@
     "renderScale": 0.2353,
     "anchors": {
      "com": [
-      467.2,
-      646.8
+      467.1,
+      644.2
      ]
     },
     "edited": {
      "renderScale": 0.222,
      "ox": -310.3,
-     "bodyBottom": 246.3
+     "bodyBottom": 246.3,
+     "anchors": {
+      "com": [
+       467.2,
+       646.8
+      ]
+     }
     }
    },
    "attack_light_b": {
@@ -35225,12 +35797,18 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      339.1,
-      726.6
+      367.4,
+      704.0
      ]
     },
     "edited": {
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       339.1,
+       726.6
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 644,
@@ -35510,13 +36088,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      401.7,
-      598.0
+      412.0,
+      576.3
      ]
     },
     "edited": {
      "renderScale": 0.203,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       401.7,
+       598.0
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 744,
@@ -35855,13 +36439,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      314.3,
-      706.6
+      308.0,
+      681.6
      ]
     },
     "edited": {
      "renderScale": 0.187,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       314.3,
+       706.6
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 635,
@@ -36318,8 +36908,8 @@
     "coreRight": 788.4,
     "anchors": {
      "com": [
-      420.9,
-      682.1
+      474.3,
+      557.9
      ],
      "grabChest": [
       390.3,
@@ -36336,7 +36926,11 @@
     "edited": {
      "renderScale": 0.209,
      "anchors": {
-      "grabChest": null
+      "grabChest": null,
+      "com": [
+       420.9,
+       682.1
+      ]
      }
     }
    },
@@ -38086,8 +38680,8 @@
     "coreRight": 760.0,
     "anchors": {
      "com": [
-      492.3,
-      682.2
+      493.7,
+      682.5
      ]
     },
     "autoTuned": {
@@ -38100,7 +38694,13 @@
     "edited": {
      "renderScale": 0.25,
      "ox": -289.0,
-     "bodyBottom": 235.5
+     "bodyBottom": 235.5,
+     "anchors": {
+      "com": [
+       492.3,
+       682.2
+      ]
+     }
     }
    },
    "charge": {
@@ -40119,8 +40719,8 @@
     "coreRight": 798.2,
     "anchors": {
      "com": [
-      455.1,
-      457.1
+      453.3,
+      457.8
      ]
     },
     "autoTuned": {
@@ -40131,7 +40731,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.25
+     "renderScale": 0.25,
+     "anchors": {
+      "com": [
+       455.1,
+       457.1
+      ]
+     }
     }
    },
    "ledge_hang": {
@@ -41553,8 +42159,8 @@
     "coreRight": 844.9,
     "anchors": {
      "com": [
-      547.9,
-      444.6
+      549.0,
+      446.1
      ]
     },
     "autoTuned": {
@@ -41566,7 +42172,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 255.1
+     "bodyBottom": 255.1,
+     "anchors": {
+      "com": [
+       547.9,
+       444.6
+      ]
+     }
     }
    },
    "ledge_hang": {
@@ -42266,8 +42878,8 @@
     "coreRight": 660.0,
     "anchors": {
      "com": [
-      489.9,
-      711.5
+      506.2,
+      722.1
      ]
     },
     "autoTuned": {
@@ -42279,7 +42891,13 @@
     "edited": {
      "renderScale": 0.25,
      "ox": -258.5,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       489.9,
+       711.5
+      ]
+     }
     }
    },
    "attack_air_b": {
@@ -42330,8 +42948,8 @@
     "coreRight": 746.3,
     "anchors": {
      "com": [
-      441.0,
-      674.1
+      432.8,
+      685.3
      ]
     },
     "autoTuned": {
@@ -42343,7 +42961,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 241.9
+     "bodyBottom": 241.9,
+     "anchors": {
+      "com": [
+       441.0,
+       674.1
+      ]
+     }
     }
    },
    "attack_heavy_a": {
@@ -42363,8 +42987,8 @@
     "coreRight": 684.0,
     "anchors": {
      "com": [
-      415.7,
-      695.1
+      419.4,
+      706.7
      ]
     },
     "autoTuned": {
@@ -42376,7 +43000,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 237.3
+     "bodyBottom": 237.3,
+     "anchors": {
+      "com": [
+       415.7,
+       695.1
+      ]
+     }
     }
    },
    "attack_heavy_b": {
@@ -42430,8 +43060,8 @@
     "coreRight": 698.6,
     "anchors": {
      "com": [
-      423.8,
-      723.1
+      424.3,
+      694.4
      ]
     },
     "autoTuned": {
@@ -42443,7 +43073,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 233.8
+     "bodyBottom": 233.8,
+     "anchors": {
+      "com": [
+       423.8,
+       723.1
+      ]
+     }
     }
    },
    "attack_light_b": {
@@ -42497,8 +43133,8 @@
     "coreRight": 741.8,
     "anchors": {
      "com": [
-      415.0,
-      714.7
+      394.4,
+      725.5
      ]
     },
     "autoTuned": {
@@ -42510,7 +43146,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 234.9
+     "bodyBottom": 234.9,
+     "anchors": {
+      "com": [
+       415.0,
+       714.7
+      ]
+     }
     }
    },
    "charge": {
@@ -42830,8 +43472,8 @@
     "coreRight": 800.8,
     "anchors": {
      "com": [
-      474.5,
-      748.0
+      451.1,
+      713.2
      ]
     },
     "autoTuned": {
@@ -42842,7 +43484,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       474.5,
+       748.0
+      ]
+     }
     }
    },
    "guard": {
@@ -42862,8 +43510,8 @@
     "coreRight": 742.2,
     "anchors": {
      "com": [
-      450.3,
-      719.5
+      414.4,
+      684.1
      ]
     },
     "autoTuned": {
@@ -42875,7 +43523,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 237.5
+     "bodyBottom": 237.5,
+     "anchors": {
+      "com": [
+       450.3,
+       719.5
+      ]
+     }
     }
    },
    "hurt": {
@@ -42895,8 +43549,8 @@
     "coreRight": 742.3,
     "anchors": {
      "com": [
-      487.3,
-      680.4
+      513.7,
+      650.3
      ]
     },
     "autoTuned": {
@@ -42908,7 +43562,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "faceLeft": null
+     "faceLeft": null,
+     "anchors": {
+      "com": [
+       487.3,
+       680.4
+      ]
+     }
     },
     "faceLeft": true
    },
@@ -42929,8 +43589,8 @@
     "coreRight": 608.4,
     "anchors": {
      "com": [
-      373.3,
-      730.4
+      355.1,
+      684.6
      ]
     },
     "autoTuned": {
@@ -42942,7 +43602,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 231.6
+     "bodyBottom": 231.6,
+     "anchors": {
+      "com": [
+       373.3,
+       730.4
+      ]
+     }
     }
    },
    "idle_b": {
@@ -43029,8 +43695,8 @@
     "coreRight": 582.8,
     "anchors": {
      "com": [
-      371.6,
-      516.9
+      384.1,
+      457.0
      ]
     },
     "autoTuned": {
@@ -43042,7 +43708,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 255.2
+     "bodyBottom": 255.2,
+     "anchors": {
+      "com": [
+       371.6,
+       516.9
+      ]
+     }
     }
    },
    "ledge_hang": {
@@ -43162,8 +43834,8 @@
     "coreRight": 640.1,
     "anchors": {
      "com": [
-      406.8,
-      656.4
+      407.1,
+      653.0
      ]
     },
     "autoTuned": {
@@ -43175,7 +43847,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 240.3
+     "bodyBottom": 240.3,
+     "anchors": {
+      "com": [
+       406.8,
+       656.4
+      ]
+     }
     }
    },
    "run_reach_a": {
@@ -43425,8 +44103,8 @@
     "coreRight": 735.5,
     "anchors": {
      "com": [
-      467.3,
-      783.6
+      426.2,
+      775.9
      ]
     },
     "autoTuned": {
@@ -43438,7 +44116,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 231.8
+     "bodyBottom": 231.8,
+     "anchors": {
+      "com": [
+       467.3,
+       783.6
+      ]
+     }
     }
    },
    "attack_dash": {
@@ -43458,8 +44142,8 @@
     "coreRight": 1280.0,
     "anchors": {
      "com": [
-      551.0,
-      435.4
+      550.3,
+      438.2
      ]
     },
     "autoTuned": {
@@ -43470,7 +44154,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.293
+     "renderScale": 0.293,
+     "anchors": {
+      "com": [
+       551.0,
+       435.4
+      ]
+     }
     }
    },
    "grab_hold": {
@@ -43490,8 +44180,8 @@
     "coreRight": 803.2,
     "anchors": {
      "com": [
-      399.8,
-      761.6
+      398.7,
+      758.5
      ]
     },
     "autoTuned": {
@@ -43502,7 +44192,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.293
+     "renderScale": 0.293,
+     "anchors": {
+      "com": [
+       399.8,
+       761.6
+      ]
+     }
     }
    },
    "grab_reach": {
@@ -43522,8 +44218,8 @@
     "coreRight": 849.2,
     "anchors": {
      "com": [
-      391.3,
-      721.6
+      358.0,
+      671.6
      ],
      "grabHand": [
       890.0,
@@ -43540,7 +44236,11 @@
     "edited": {
      "renderScale": 0.292,
      "anchors": {
-      "grabHand": null
+      "grabHand": null,
+      "com": [
+       391.3,
+       721.6
+      ]
      }
     }
    },
@@ -43561,8 +44261,8 @@
     "coreRight": 847.4,
     "anchors": {
      "com": [
-      528.7,
-      764.2
+      579.5,
+      677.1
      ],
      "grabChest": [
       505.0,
@@ -43579,7 +44279,11 @@
     "edited": {
      "renderScale": 0.292,
      "anchors": {
-      "grabChest": null
+      "grabChest": null,
+      "com": [
+       528.7,
+       764.2
+      ]
      }
     }
    },
@@ -43600,8 +44304,8 @@
     "coreRight": 734.1,
     "anchors": {
      "com": [
-      448.1,
-      697.6
+      487.6,
+      660.3
      ]
     },
     "autoTuned": {
@@ -43612,7 +44316,13 @@
      }
     },
     "edited": {
-     "bodyBottom": 194.7
+     "bodyBottom": 194.7,
+     "anchors": {
+      "com": [
+       448.1,
+       697.6
+      ]
+     }
     }
    },
    "walk_b": {
@@ -43934,8 +44644,8 @@
     "coreRight": 649.3,
     "anchors": {
      "com": [
-      347.1,
-      584.2
+      311.8,
+      627.2
      ]
     },
     "autoTuned": {
@@ -43947,7 +44657,13 @@
     },
     "edited": {
      "renderScale": 0.264,
-     "bodyBottom": 164.9
+     "bodyBottom": 164.9,
+     "anchors": {
+      "com": [
+       347.1,
+       584.2
+      ]
+     }
     }
    },
    "charge": {
@@ -44129,8 +44845,8 @@
     "coreRight": 857.2,
     "anchors": {
      "com": [
-      652.5,
-      510.6
+      626.1,
+      520.5
      ]
     },
     "autoTuned": {
@@ -44142,7 +44858,13 @@
     },
     "edited": {
      "ox": -396.1,
-     "bodyBottom": 256.4
+     "bodyBottom": 256.4,
+     "anchors": {
+      "com": [
+       652.5,
+       510.6
+      ]
+     }
     }
    },
    "dizzy": {
@@ -44255,8 +44977,8 @@
     "coreRight": 1012.9,
     "anchors": {
      "com": [
-      603.5,
-      508.6
+      606.4,
+      509.8
      ]
     },
     "autoTuned": {
@@ -44266,7 +44988,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.25
+     "renderScale": 0.25,
+     "anchors": {
+      "com": [
+       603.5,
+       508.6
+      ]
+     }
     }
    },
    "guard": {
@@ -45246,8 +45974,8 @@
     "coreRight": 725.3,
     "anchors": {
      "com": [
-      419.3,
-      604.9
+      371.2,
+      462.2
      ]
     },
     "autoTuned": {
@@ -45259,7 +45987,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 249.3
+     "bodyBottom": 249.3,
+     "anchors": {
+      "com": [
+       419.3,
+       604.9
+      ]
+     }
     }
    },
    "attack_heavy_a": {
@@ -45422,8 +46156,8 @@
     "coreRight": 628.1,
     "anchors": {
      "com": [
-      353.4,
-      576.3
+      384.7,
+      476.5
      ]
     },
     "autoTuned": {
@@ -45435,7 +46169,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 249.7
+     "bodyBottom": 249.7,
+     "anchors": {
+      "com": [
+       353.4,
+       576.3
+      ]
+     }
     }
    },
    "charge": {
@@ -45777,8 +46517,8 @@
     "coreRight": 630.6,
     "anchors": {
      "com": [
-      343.1,
-      496.2
+      305.5,
+      422.7
      ]
     },
     "autoTuned": {
@@ -45790,7 +46530,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 257.3
+     "bodyBottom": 257.3,
+     "anchors": {
+      "com": [
+       343.1,
+       496.2
+      ]
+     }
     }
    },
    "hurt": {
@@ -45943,8 +46689,8 @@
     "coreRight": 635.5,
     "anchors": {
      "com": [
-      357.0,
-      413.0
+      355.5,
+      413.6
      ]
     },
     "autoTuned": {
@@ -45955,7 +46701,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.25
+     "renderScale": 0.25,
+     "anchors": {
+      "com": [
+       357.0,
+       413.0
+      ]
+     }
     }
    },
    "ledge_hang": {
@@ -46472,8 +47224,8 @@
     "coreRight": 850.1,
     "anchors": {
      "com": [
-      516.0,
-      444.1
+      507.6,
+      395.8
      ],
      "grabHand": [
       981.7,
@@ -46489,10 +47241,13 @@
     },
     "edited": {
      "anchors": {
-      "grabHand": null
+      "grabHand": null,
+      "com": [
+       516.0,
+       444.1
+      ]
      }
-    },
-    "surfacedReviewed": true
+    }
    },
    "grabbed": {
     "w": 523,
@@ -46511,8 +47266,8 @@
     "coreRight": 484.3,
     "anchors": {
      "com": [
-      268.6,
-      574.3
+      310.5,
+      394.2
      ],
      "grabChest": [
       150.6,
@@ -46528,7 +47283,11 @@
     },
     "edited": {
      "anchors": {
-      "grabChest": null
+      "grabChest": null,
+      "com": [
+       268.6,
+       574.3
+      ]
      },
      "renderScale": 0.25,
      "bodyBottom": 269.6
@@ -46597,8 +47356,8 @@
     "coreRight": 417.5,
     "anchors": {
      "com": [
-      225.5,
-      577.7
+      259.1,
+      453.9
      ]
     },
     "autoTuned": {
@@ -46610,7 +47369,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 269.6
+     "bodyBottom": 269.6,
+     "anchors": {
+      "com": [
+       225.5,
+       577.7
+      ]
+     }
     }
    },
    "walk_b": {
@@ -46630,8 +47395,8 @@
     "coreRight": 451.8,
     "anchors": {
      "com": [
-      256.4,
-      580.8
+      287.3,
+      473.1
      ]
     },
     "autoTuned": {
@@ -46643,7 +47408,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 269.8
+     "bodyBottom": 269.8,
+     "anchors": {
+      "com": [
+       256.4,
+       580.8
+      ]
+     }
     }
    }
   },
@@ -47727,8 +48498,8 @@
     "coreRight": 818.0,
     "anchors": {
      "com": [
-      399.2,
-      550.9
+      330.3,
+      515.7
      ]
     },
     "autoTuned": {
@@ -47739,7 +48510,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.25
+     "renderScale": 0.25,
+     "anchors": {
+      "com": [
+       399.2,
+       550.9
+      ]
+     }
     }
    },
    "ult_a": {
@@ -48179,8 +48956,8 @@
     "coreRight": 720.7,
     "anchors": {
      "com": [
-      487.5,
-      359.8
+      488.5,
+      361.5
      ]
     },
     "autoTuned": {
@@ -48192,7 +48969,13 @@
     },
     "edited": {
      "renderScale": 0.339,
-     "bodyBottom": 214.9
+     "bodyBottom": 214.9,
+     "anchors": {
+      "com": [
+       487.5,
+       359.8
+      ]
+     }
     }
    },
    "attack_heavy_a": {
@@ -48884,8 +49667,8 @@
     "coreRight": 663.4,
     "anchors": {
      "com": [
-      412.8,
-      447.6
+      365.5,
+      482.5
      ]
     },
     "autoTuned": {
@@ -48897,7 +49680,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 258.1
+     "bodyBottom": 258.1,
+     "anchors": {
+      "com": [
+       412.8,
+       447.6
+      ]
+     }
     }
    },
    "ledge_hang": {
@@ -49146,8 +49935,8 @@
     "coreRight": 776.5,
     "anchors": {
      "com": [
-      415.0,
-      621.1
+      370.1,
+      766.6
      ]
     },
     "autoTuned": {
@@ -49159,7 +49948,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 239.7
+     "bodyBottom": 239.7,
+     "anchors": {
+      "com": [
+       415.0,
+       621.1
+      ]
+     }
     }
    },
    "special_neutral": {
@@ -49835,7 +50630,7 @@
     "coreRight": 640.0,
     "anchors": {
      "com": [
-      353.6,
+      351.9,
       807.3
      ]
     },
@@ -49847,7 +50642,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.25
+     "renderScale": 0.25,
+     "anchors": {
+      "com": [
+       353.6,
+       807.3
+      ]
+     }
     }
    },
    "charge": {
@@ -50186,8 +50987,8 @@
     "coreRight": 431.2,
     "anchors": {
      "com": [
-      291.5,
-      697.8
+      293.5,
+      680.7
      ]
     },
     "autoTuned": {
@@ -50198,7 +50999,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.25
+     "renderScale": 0.25,
+     "anchors": {
+      "com": [
+       291.5,
+       697.8
+      ]
+     }
     }
    },
    "hurt": {
@@ -50705,8 +51512,8 @@
     "coreRight": 525.9,
     "anchors": {
      "com": [
-      288.7,
-      714.9
+      330.6,
+      636.1
      ]
     },
     "autoTuned": {
@@ -50716,7 +51523,14 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "edited": {
+     "anchors": {
+      "com": [
+       288.7,
+       714.9
+      ]
+     }
+    }
    },
    "ult_b": {
     "w": 843,
@@ -51095,8 +51909,8 @@
     "coreRight": 1216.1,
     "anchors": {
      "com": [
-      570.4,
-      512.7
+      589.2,
+      455.2
      ]
     },
     "autoTuned": {
@@ -51108,7 +51922,13 @@
     "edited": {
      "renderScale": 0.25,
      "ox": -462.8,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       570.4,
+       512.7
+      ]
+     }
     }
    },
    "attack_down": {
@@ -51128,8 +51948,8 @@
     "coreRight": 772.7,
     "anchors": {
      "com": [
-      440.3,
-      564.2
+      439.4,
+      566.4
      ]
     },
     "autoTuned": {
@@ -51140,7 +51960,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.25
+     "renderScale": 0.25,
+     "anchors": {
+      "com": [
+       440.3,
+       564.2
+      ]
+     }
     }
    },
    "attack_heavy_a": {
@@ -51160,8 +51986,8 @@
     "coreRight": 822.6,
     "anchors": {
      "com": [
-      340.6,
-      597.9
+      320.9,
+      603.9
      ]
     },
     "autoTuned": {
@@ -51175,7 +52001,13 @@
      "renderScale": 0.25,
      "bodyBottom": 237.9,
      "rotationDeg": null,
-     "ox": -248.1
+     "ox": -248.1,
+     "anchors": {
+      "com": [
+       340.6,
+       597.9
+      ]
+     }
     },
     "rotationDeg": -4
    },
@@ -51824,8 +52656,8 @@
     "coreRight": 907.6,
     "anchors": {
      "com": [
-      551.7,
-      589.8
+      549.5,
+      587.2
      ]
     },
     "autoTuned": {
@@ -51837,7 +52669,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 251.4
+     "bodyBottom": 251.4,
+     "anchors": {
+      "com": [
+       551.7,
+       589.8
+      ]
+     }
     }
    },
    "ledge_hang": {
@@ -52318,8 +53156,8 @@
     "coreRight": 755.4,
     "anchors": {
      "com": [
-      443.9,
-      607.7
+      462.1,
+      571.2
      ]
     },
     "autoTuned": {
@@ -52331,7 +53169,13 @@
     },
     "edited": {
      "renderScale": 0.244,
-     "bodyBottom": 278.8
+     "bodyBottom": 278.8,
+     "anchors": {
+      "com": [
+       443.9,
+       607.7
+      ]
+     }
     }
    },
    "grab_reach": {
@@ -52506,8 +53350,8 @@
     "coreRight": 625.6,
     "anchors": {
      "com": [
-      365.9,
-      752.8
+      408.5,
+      670.5
      ]
     },
     "autoTuned": {
@@ -52518,7 +53362,13 @@
      }
     },
     "edited": {
-     "bodyBottom": 274.0
+     "bodyBottom": 274.0,
+     "anchors": {
+      "com": [
+       365.9,
+       752.8
+      ]
+     }
     }
    }
   },
@@ -53289,8 +54139,8 @@
     "coreRight": 644.5,
     "anchors": {
      "com": [
-      400.3,
-      467.2
+      400.6,
+      465.2
      ]
     },
     "autoTuned": {
@@ -53301,7 +54151,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.25
+     "renderScale": 0.25,
+     "anchors": {
+      "com": [
+       400.3,
+       467.2
+      ]
+     }
     }
    },
    "ledge_hang": {
@@ -53650,8 +54506,8 @@
     "coreRight": 680.9,
     "anchors": {
      "com": [
-      389.1,
-      704.2
+      410.8,
+      721.6
      ]
     },
     "autoTuned": {
@@ -53663,7 +54519,13 @@
     },
     "edited": {
      "renderScale": 0.207,
-     "bodyBottom": 143.7
+     "bodyBottom": 143.7,
+     "anchors": {
+      "com": [
+       389.1,
+       704.2
+      ]
+     }
     }
    },
    "ult_b": {
