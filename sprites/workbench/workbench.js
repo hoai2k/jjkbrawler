@@ -34,8 +34,12 @@ import {
 import { drawPlatformShape } from "../../src/render.js";
 import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
-import { HURTBOX, GRAB } from "../../src/constants.js";
-import { ledgeBox } from "../../src/hurtbox_art.js";
+import { HURTBOX, GRAB, LEDGE_HANG_X, LEDGE_HANG_Y } from "../../src/constants.js";
+import { caseByKey, fitState } from "../../src/hurtbox_art.js";
+import {
+  boxesFor, casesForFrame, committedFit, fitEdited, fitEditCount, fitExportDoc,
+  fitFromEdges, fitOf, markFitsExported, resetFit, setFit, unexportedFits,
+} from "./bench_hurtbox_fit.js";
 import { grabReachOf, holdGapOf } from "../../src/grab.js";
 import { CHARACTERS } from "../../src/characters.js";
 import {
@@ -70,6 +74,7 @@ import {
 } from "./bench_picker.js";
 import {
   clearedUpdates, editedChars, payloadFor, exportAll, dirtyActions, unexportedWork,
+  downloadJson,
 } from "./bench_export.js";
 import {
   ANCHOR_WORDS, attackBoxOf, attackBoxOnCanvas, canPlaceAttack, drawCanvasSpinner,
@@ -752,63 +757,135 @@ function rangeShape(m) {
  *  a pose can be placed against. That is why the vertical-position control
  *  stays live on airborne poses: line the body up inside this.
  *
- *  Which box, though, depends on the pose. `hurtbox()` has five shapes — ledge,
- *  prone, crouch, hitstun and standing — and this used to draw the standing one
- *  on all of them. On a `prone` pose that is a box more than three times too
- *  tall, and on a `ledge_hang` it is the wrong box in the wrong place. Inviting
- *  someone to line a body up inside a box the game does not test for that pose
- *  is worse than showing no box, so the branches are mirrored from combat.js.
+ *  WHICH box is a question the drawing answers: `HURTBOX_CASES` names the
+ *  animation each of the game's seven boxes belongs to, and a drawing carries
+ *  the case of every animation that resolves to it. That list is combat.js's
+ *  own, so the bench cannot fall behind it — which it had, twice: an airborne
+ *  pose was drawn the standing box, and a tumble the prone one.
+ *
+ *  A COMMITTED FIT IS PART OF THE BOX. The box in play is the derived one with
+ *  the human correction applied (HURTBOX_FIT), and drawing the derived box
+ *  alone told a reviewer their fighter was boxed in a way nothing in the game
+ *  agreed with. Both are on screen now: the fitted box solid, and the derived
+ *  one dashed behind it whenever the two differ, so the correction reads as
+ *  what it is — a move away from the measurement.
  *
  *  Sized from THIS character's own art, the same way the game sizes it, so the
  *  box on screen is the box in play. Re-measured every frame rather than
  *  cached: the workbench is where `ox`, `bodyBottom` and `renderScale` get
- *  dragged around, and all three move what the silhouette measures. The game
- *  never edits the manifest, so it keeps the cache; here, live numbers matter
- *  more than the handful of reads.
+ *  dragged around, and all three move what the silhouette measures.
  */
 function drawHurtbox(cx) {
   if (isOther(state.char) || !CHARACTERS[state.char]) return;
-  const z = state.zoom;
-  const wx = (v) => cx + v * z;
-  const wy = (v) => GROUND_Y + v * z;
   refreshSilhouettes(state.char);
-  const body = bodyMetrics(state.char);
-  const H = body.height, W = body.width;
-  const states = statesUsing(state.char, state.frame);
-  const has = (...names) => states.some((a) => names.includes(a));
-  // `top` is how far the box rises above the foot line and `h` is how tall it
-  // is; the two are the same on every box that stands on the ground. The hang
-  // does not stand on anything and is handled first, on its own terms.
-  let hb;
-  if (has("ledge")) {
-    // A HANG IS NOT PLACED BY ITS FEET, so its box is not drawn from the foot
-    // line either. The game hangs the drawing's `ledge` grip on the platform
-    // corner and hangs the box off that same corner (combat.js, hurtbox_art.js
-    // ledgeBox), so here — where the pose is drawn standing, because there is
-    // no platform to hang it on — the box is placed against the grip anchor
-    // instead. Move the grip handle and the box follows it, which is the
-    // relationship the game actually tests.
-    const g = ledgeBox(state.char);
+  const caseKey = activeFitCase();
+  if (!caseKey) return;
+  const g = fitGeometry(cx, caseKey);
+  if (!g) return;
+  const label = caseByKey(caseKey)?.label || caseKey;
+  const { box, base } = g;
+  if (fitEdited(state.char, caseKey) || hasStoredFit(caseKey)) {
+    ctx.save();
+    ctx.strokeStyle = "rgba(150, 165, 195, 0.35)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 3]);
+    ctx.strokeRect(base.left, base.top, base.right - base.left, base.bottom - base.top);
+    ctx.restore();
+  }
+  drawHurtboxRect(box.left, box.top, box.right - box.left, box.bottom - box.top,
+                  `${label} ${Math.round(g.gameW)}x${Math.round(g.gameH)}`);
+  // The corners are the gesture — one of them can fix a body that overhangs on
+  // one side without touching the other three edges — so they are drawn as
+  // something to grab rather than left to be discovered.
+  ctx.save();
+  ctx.fillStyle = "rgba(120, 200, 255, 0.75)";
+  for (const [px, py] of [[box.left, box.top], [box.right, box.top],
+                          [box.left, box.bottom], [box.right, box.bottom]]) {
+    ctx.beginPath();
+    ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+/** The case being edited on this pose: the one picked in the panel while it
+ *  still applies, else the first this drawing carries. A pose that shows no
+ *  box at all — a special, a victory pose — has none, and everything that
+ *  draws or drags one stops on that. */
+function activeFitCase() {
+  const keys = casesForFrame(state.char, state.frame).map((c) => c.key);
+  if (!keys.length) return null;
+  return keys.includes(state.fitCase) ? state.fitCase : keys[0];
+}
+
+const hasStoredFit = (caseKey) => {
+  const f = committedFit(state.char, caseKey);
+  return f.w !== 1 || f.h !== 1 || f.dx !== 0 || f.dy !== 0;
+};
+
+/**
+ * Where a case's box lands on the canvas — fitted and derived — with the
+ * fighter origin the two are measured from.
+ *
+ * A HANG IS NOT PLACED BY ITS FEET, so its origin is not the foot line. The
+ * game hangs the drawing's `ledge` grip on the platform corner and hangs the
+ * box off that same corner, so here — where the pose is drawn standing,
+ * because there is no platform to hang it on — the origin is derived from the
+ * grip handle instead. Move the grip and the box follows it, which is the
+ * relationship the game actually tests.
+ */
+function fitGeometry(cx, caseKey) {
+  const z = state.zoom;
+  let origin = { x: cx, y: GROUND_Y };
+  if (caseKey === "ledge") {
     const grip = anchorScreenPos(state.char, state.frame, cx, GROUND_Y,
                                  { ...viewOpts(state.char, "ledge"), preview: true });
-    if (!grip) return;
-    drawHurtboxRect(grip.x + g.cx * z - g.w * z / 2, grip.y, g.w * z, g.h * z,
-                    `ledge ${Math.round(g.w)}x${Math.round(g.h)}`);
-    return;
+    if (!grip) return null;
+    origin = { x: grip.x - LEDGE_HANG_X * z, y: grip.y + LEDGE_HANG_Y * z };
   }
-  if (has("prone")) {
-    hb = { w: H * HURTBOX.proneW, top: H * HURTBOX.proneH, h: H * HURTBOX.proneH, label: "prone" };
-  } else if (has("crouch", "crouchAttack")) {
-    hb = { w: W * HURTBOX.crouchW, top: H * body.crouch, h: H * body.crouch, label: "crouch" };
-  } else if (has("hurt")) {
-    // Hitstun only. A shield-break `dizzy` is not hitstun, so combat.js falls
-    // through to the standing box there and so does this.
-    hb = { w: W * HURTBOX.hurtW, top: H * HURTBOX.hurtH, h: H * HURTBOX.hurtH, label: "hitstun" };
-  } else {
-    hb = { w: W, top: H * HURTBOX.standH, h: H * HURTBOX.standH, label: "hurtbox" };
+  const { base, box } = boxesFor(state.char, caseKey);
+  const edges = (b) => ({
+    left: origin.x + (b.cx - b.w / 2) * z,
+    right: origin.x + (b.cx + b.w / 2) * z,
+    top: origin.y - b.top * z,
+    bottom: origin.y - (b.top - b.h) * z,
+  });
+  return {
+    origin, z, caseKey,
+    base: edges(base), box: edges(box),
+    gameW: box.w, gameH: box.h,
+  };
+}
+
+/**
+ * What a pointer press at `p` has taken hold of on the hurtbox, or null.
+ *
+ * A corner always wins — those are 3.5px dots, and missing one by two pixels
+ * and moving the whole box instead is the wrong failure. The BODY of the box
+ * only takes a press when no anchor handle is near it: the box covers most of
+ * the drawing, so the alternative is a hurtbox that swallows every gesture
+ * meant for the centre of mass sitting inside it.
+ */
+function fitGrabAt(p) {
+  if (isOther(state.char) || !CHARACTERS[state.char]) return null;
+  const caseKey = activeFitCase();
+  if (!caseKey) return null;
+  const g = fitGeometry(canvas.width / 2, caseKey);
+  if (!g) return null;
+  const { left, right, top, bottom } = g.box;
+  const shared = { caseKey, origin: g.origin, z: g.z, edges: g.box,
+                   grabX: p.x, grabY: p.y };
+  for (const [mode, x, y] of [["tl", left, top], ["tr", right, top],
+                              ["bl", left, bottom], ["br", right, bottom]]) {
+    if (Math.hypot(p.x - x, p.y - y) <= HANDLE_R * 2.2) return { ...shared, mode };
   }
-  drawHurtboxRect(wx(-hb.w / 2), wy(-hb.top), hb.w * z, hb.h * z,
-                  `${hb.label} ${Math.round(hb.w)}x${Math.round(hb.h)}`);
+  if (p.x < left || p.x > right || p.y < top || p.y > bottom) return null;
+  for (const n of anchorNames(state.char, state.frame)) {
+    if (!isAnchorShown(n)) continue;
+    const h = localToCanvas(state.char, state.frame, n);
+    if (h && Math.hypot(h.x - p.x, h.y - p.y) <= HANDLE_R * 2.6) return null;
+  }
+  return { ...shared, mode: "move" };
 }
 
 /** One box, stroked and labelled. Every branch above ends here so a hang —
@@ -1794,6 +1871,7 @@ function refreshControls() {
     : "as delivered — art is drawn facing right";
 
   refreshAnchorControls();
+  refreshFitControls();
 
   // counted across every character touched this session, since that is what
   // Export now emits
@@ -1888,6 +1966,79 @@ function refreshAnchorControls() {
       + names.map((n) => `<b>${ANCHOR_META[n]?.label ?? n}</b> — ${ANCHOR_META[n]?.hint ?? ""}`)
              .join("<br><br>")
     : "This pose carries no anchors.");
+}
+
+/**
+ * THE HURTBOX PANEL: which case this drawing is answering for, what the fit
+ * says, and the way back to the committed value.
+ *
+ * A readout rather than a set of sliders. The gesture is on the canvas, where
+ * the body is — four numbers typed at a box you cannot see is exactly the tool
+ * this bench exists to replace — so what the panel owes is the numbers those
+ * drags produced, which case they were about, and Reset, which no drag can do.
+ *
+ * Hidden entirely on a pose the game boxes nothing for: a special, an ultimate
+ * or a victory pose is drawn square and hittable as a standing body, and the
+ * standing box belongs to the idle that answers for it.
+ */
+function refreshFitControls() {
+  const group = $("fitGroup");
+  if (!group) return;
+  const cases = isOther(state.char) ? [] : casesForFrame(state.char, state.frame);
+  group.hidden = !cases.length || isPending(state.char, state.frame);
+  if (group.hidden) return;
+  const active = activeFitCase();
+
+  // The case chips only appear where there is a choice — one drawing, two
+  // boxes, which is the hurt pose and only the hurt pose today.
+  const chips = $("fitCases");
+  chips.innerHTML = "";
+  chips.hidden = cases.length < 2;
+  for (const c of cases) {
+    const b = document.createElement("button");
+    b.className = "ghost sm" + (c.key === active ? " on" : "");
+    b.textContent = c.label;
+    b.title = c.key === "tumble"
+      ? "The same drawing spun on its side — the box a launched fighter carries"
+      : `The box the game tests while this fighter is ${c.label}`;
+    b.onclick = () => { state.fitCase = c.key; refreshFitControls(); render(); };
+    chips.appendChild(b);
+  }
+
+  const fit = fitOf(state.char, active);
+  const { box } = boxesFor(state.char, active);
+  const edited = fitEdited(state.char, active);
+  const stale = fitState(state.char, active).stale;
+  $("fitNote").textContent = caseByKey(active)?.label || active;
+  const rows = $("fitRows");
+  rows.innerHTML = "";
+  const line = (text, cls) => {
+    const p = document.createElement("div");
+    p.className = cls || "note";
+    p.innerHTML = text;
+    rows.appendChild(p);
+  };
+  line(`<b>${Math.round(box.w)}×${Math.round(box.h)}px</b> — `
+    + `×${fit.w.toFixed(2)}, ×${fit.h.toFixed(2)}`
+    + (fit.dx || fit.dy ? `, moved ${fit.dx.toFixed(2)} forward, ${fit.dy.toFixed(2)} up` : "")
+    + (edited ? " · <b>edited here</b>" : hasStoredFit(active) ? " · committed" : " · as derived"));
+  if (stale && !edited) {
+    // The fit is still applied — a decision about a slightly different picture
+    // beats no decision — but somebody should look at it again, and this is
+    // the moment they are looking at the picture.
+    line("The drawing has changed since this fit was judged. It still applies; "
+      + "check it covers what is drawn now.", "note warn");
+  }
+  if (caseByKey(active)?.grounded) {
+    line("Standing on the floor: the game extends this box back down to the "
+      + "foot line whatever the fit says, so the TOP edge is the decision.");
+  }
+  $("resetFit").disabled = !edited;
+  const n = fitEditCount();
+  $("exportFitBtn").disabled = !n;
+  $("exportFitBtn").textContent = n
+    ? `Export ${n} hurtbox fit${n === 1 ? "" : "s"} (downloads a file)`
+    : "Export hurtbox fits (downloads a file)";
 }
 
 /** The intake marker on the selected pose, and the way off the list for a pose
@@ -3168,6 +3319,22 @@ async function boot() {
       }
       return;
     }
+    // THE HURTBOX IS DRAGGED LIKE THE BOX IT IS: a corner resizes about the
+    // opposite one, so a single edge can be brought in over a body that
+    // overhangs on one side without touching the other three; a grab anywhere
+    // inside moves the whole box. Tried BEFORE the anchor handles only where
+    // the pointer is on a corner — an anchor sitting inside the box has to
+    // stay reachable, and the box covers most of the drawing.
+    if ($("showHurtbox")?.checked && !isPending(state.char, state.frame)) {
+      const grab = fitGrabAt(p);
+      if (grab) {
+        state.dragFit = grab;
+        canvas.setPointerCapture(e.pointerId);
+        e.preventDefault();
+        if (state.fitCase !== grab.caseKey) { state.fitCase = grab.caseKey; refreshFitControls(); }
+        return;
+      }
+    }
     let name = null, bestD = Infinity;
     for (const n of anchorNames(state.char, state.frame)) {
       if (!isAnchorShown(n)) continue;
@@ -3186,6 +3353,29 @@ async function boot() {
     e.preventDefault();
   });
   canvas.addEventListener("pointermove", (e) => {
+    if (state.dragFit) {
+      const p = eventToCanvas(e);
+      const d = state.dragFit;
+      let edges;
+      if (d.mode === "move") {
+        const dx = p.x - d.grabX, dy = p.y - d.grabY;
+        edges = { left: d.edges.left + dx, right: d.edges.right + dx,
+                  top: d.edges.top + dy, bottom: d.edges.bottom + dy };
+      } else {
+        // The opposite corner is the fixed point, so one gesture sets one
+        // vertical and one horizontal edge and leaves the others alone.
+        edges = { ...d.edges };
+        edges[d.mode.includes("l") ? "left" : "right"] = p.x;
+        edges[d.mode.includes("t") ? "top" : "bottom"] = p.y;
+        if (edges.right - edges.left < 8) edges.right = edges.left + 8;
+        if (edges.bottom - edges.top < 8) edges.bottom = edges.top + 8;
+      }
+      setFit(state.char, d.caseKey,
+             fitFromEdges(state.char, d.caseKey, edges, d.origin, d.z));
+      refreshFitControls();
+      render();
+      return;
+    }
     if (state.dragAttack) {
       const p = eventToCanvas(e);
       const d = state.dragAttack;
@@ -3266,6 +3456,13 @@ async function boot() {
     applyAnchor(state.anchor, lx, ly, false);
   });
   const endDrag = (e) => {
+    if (state.dragFit) {
+      state.dragFit = null;
+      try { canvas.releasePointerCapture(e.pointerId); } catch { /* already gone */ }
+      refreshFitControls();
+      render();
+      return;
+    }
     if (state.dragAttack) {
       state.dragAttack = null;
       try { canvas.releasePointerCapture(e.pointerId); } catch { /* already gone */ }
@@ -3428,6 +3625,23 @@ async function boot() {
   };
 
   $("exportBtn").onclick = exportAll;
+  $("resetFit").onclick = () => {
+    const active = activeFitCase();
+    if (!active) return;
+    resetFit(state.char, active);
+    refreshFitControls();
+    render();
+  };
+  // Its own file and its own apply step, because a fit is not sprite data: it
+  // is per fighter and per case, and it belongs in a game config the sprite
+  // manifest knows nothing about.
+  $("exportFitBtn").onclick = () => {
+    const doc = fitExportDoc();
+    if (!doc) return;
+    downloadJson(JSON.stringify(doc, null, 2), "hurtbox-fits.json");
+    markFitsExported();
+    refreshFitControls();
+  };
   // NOTHING ON THIS PAGE IS SAVED, and a reload takes the session with it. That
   // is the design --- the manifest belongs to the repository and an export is
   // how an edit reaches it --- but it made losing work silent, and a REVIEW TICK
@@ -3440,7 +3654,7 @@ async function boot() {
   // the record rather than the user; what matters is that the dialog appears at
   // all, and only when there is something to lose.
   window.addEventListener("beforeunload", (e) => {
-    if (!unexportedWork()) return;
+    if (!unexportedWork() && !unexportedFits()) return;
     e.preventDefault();
     e.returnValue = "";
   });

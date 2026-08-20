@@ -27,10 +27,11 @@
 // `anchorTo` render.js already applied. They are points ON A DRAWING, so they
 // are anchors: `teeter` always was one, and `grabHand`/`grabChest` are now
 // (EXTRA_ANCHORS in sprites/src/sprites.js), dragged in the sprite workbench
-// and read by src/grab.js. They still have review queues — "Grabbing hand",
-// "Held chest" and "Teeter foot" in the picker — but those live in
-// verify_anchors.js and write the anchor, not a copy of it. One store, two
-// editors, one value.
+// and read by src/grab.js. They had review queues here for a while, writing
+// the anchor rather than a copy of it — one store, two editors. The queues
+// have since gone: the bench that shows the drawing is the one that should
+// ask where a point on it belongs, and two doors into one value is a place
+// for them to disagree about which is the door.
 //
 // THERE IS NO LEDGE-GRIP SET, and there should not be. Where the hand meets
 // the lip is already a per-frame `ledge` anchor in the sprite manifest —
