@@ -43938,8 +43938,8 @@
     "coreRight": 823.0,
     "anchors": {
      "com": [
-      441.9,
-      766.0
+      403.0,
+      721.2
      ]
     },
     "autoTuned": {
@@ -43951,7 +43951,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 233.1
+     "bodyBottom": 233.1,
+     "anchors": {
+      "com": [
+       441.9,
+       766.0
+      ]
+     }
     }
    },
    "special_neutral": {
