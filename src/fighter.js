@@ -13,7 +13,7 @@ import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop, noteFir
 import { rumbleEvent } from "./rumble.js";
 import { counterShimmerFx, healMotesFx } from "./fx.js";
 import {
-  GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME,
+  GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME, CROUCH_GRACE,
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
   DASH_MULT, ACTION_BUFFER, AERIAL_LAND_LAG_MULT, AERIAL_LAND_LAG_MIN, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
   SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
@@ -52,6 +52,9 @@ export function makeFighter(id, charKey, x, facing) {
     shield: SHIELD_MAX, shielding: false, shieldRaisedAt: -10, shieldStun: 0,
     prevShield: false,
     grounded: false, crouching: false, fastFalling: false,
+    // Coyote time for the crouch: counts down from CROUCH_GRACE once down is
+    // released, and while it runs an attack still comes out crouching.
+    crouchGrace: 0,
     airJumpsLeft: char.stats.airJumps, airDodged: false,
     jumpBuffer: 0, coyote: 0, jumpHeldT: 0, jumpCut: false,
     dashT: 0, dashDir: 0, lastTap: { dir: 0, t: -10 },
@@ -252,7 +255,7 @@ function beginLight(f, input) {
   }
   if (!f.grounded) {
     variant = input.down ? "downAir" : input.up ? "upAir" : "air";
-  } else if (f.crouching || input.down) {
+  } else if (crouched(f, input)) {
     variant = "down";
   } else if (input.up) {
     variant = "up";
@@ -305,6 +308,14 @@ function isRunning(f) {
   return f.grounded && (f.dashT > 0 || Math.abs(f.vx) > stats(f).speed * 0.7);
 }
 
+/** Is this fighter attacking OUT OF A CROUCH? Down held, crouching, or inside
+ *  the grace window that just-released crouches keep. The one reading, so the
+ *  light attack, the smash and the special can never disagree about whether a
+ *  fighter is low. */
+function crouched(f, input) {
+  return f.crouching || input.down || f.crouchGrace > 0;
+}
+
 function beginHeavy(f, input) {
   if (!f.grounded) {
     executeMove(f, heavyMove(f.char, "air"));
@@ -319,7 +330,7 @@ function beginHeavy(f, input) {
     executeMove(f, heavyMove(f.char, "dash"), { grunt: true });
     return;
   }
-  const variant = input.down || f.crouching ? "down" : input.up ? "up" : "side";
+  const variant = crouched(f, input) ? "down" : input.up ? "up" : "side";
   f.charging = { variant, t: 0 };
   setAnim(f, "charge");
 }
@@ -805,6 +816,9 @@ function resolvePlatforms(f, prevY) {
 function startDash(f, dir) {
   f.dashT = DASH_TIME;
   f.dashDir = dir;
+  // Dashing is a decision to be standing and moving: it ends the crouch's
+  // grace outright, so a dash attack is never swallowed by a stale crouch.
+  f.crouchGrace = 0;
   // The dash is a BURST, so it starts at burst speed instead of accelerating
   // into it. `DASH_MULT` is a cap on the movement code's usual acceleration,
   // and a fighter walking from a standstill spends the whole window climbing
@@ -1327,7 +1341,16 @@ export function updateFighter(f, dt, input) {
   }
 
   // ---- crouch
+  // A crouch does not end the frame down is let go. For CROUCH_GRACE after
+  // that it is still, as far as attacks are concerned, a crouch — the window
+  // that makes "crouch, flick forward, press attack" the low poke the hands
+  // asked for instead of a fighter snapping upright into a jab. Only ATTACK
+  // SELECTION reads it (crouched below): movement, jumps, dashes and the
+  // shield all key off f.crouching and stay as responsive as they were.
   f.crouching = f.grounded && canAct && input.down && !f.shielding;
+  if (f.crouching) f.crouchGrace = CROUCH_GRACE;
+  else if (f.grounded) f.crouchGrace = Math.max(0, f.crouchGrace - dt);
+  else f.crouchGrace = 0;
 
   // ---- shield grab (on by default; `?throw=false` drops it)
   // Light or the grab button while the shield is up drops the shield into a
@@ -1392,7 +1415,7 @@ export function updateFighter(f, dt, input) {
       } else if (act === "tilt") {
         beginTilt(f, input.tiltDir || f.bufferedAction?.dir);
       } else if (act === "special") {
-        const slot = input.down || f.crouching ? "down" : (input.dirX !== 0 ? "side" : "neutral");
+        const slot = crouched(f, input) ? "down" : (input.dirX !== 0 ? "side" : "neutral");
         performSpecial(f, slot);
       } else if (act === "heavy") {
         beginHeavy(f, input);

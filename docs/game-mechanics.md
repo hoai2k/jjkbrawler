@@ -69,6 +69,7 @@ the moment you get hit. It dims and then blinks as its time runs out.
 | Jump buffer / coyote time | 0.15 s buffer, 0.10 s coyote window |
 | **Fast fall** | Press down while airborne: fall cap rises 1.62× |
 | Crouch | Shrinks the hurtbox; ducks under high projectiles |
+| Crouch grace | Letting go of down leaves 0.12 s in which an attack still comes out crouching — coyote time for the crouch, so "crouch, flick forward, attack" is a low poke |
 | Platform drop | Down + jump drops through side/top platforms (not the main stage) |
 
 **The dash is a stick input, not a button.** How *fast* the stick leaves centre
@@ -256,7 +257,14 @@ per-character (from their `light`/`heavy` profiles in `src/characters.js`).
   the right stick (the tilt stick), because a light press at a run now has its
   own attack.
 - **Up tilt** — light + up: anti-air arc.
-- **Down tilt** — light while crouching: low poke, slight launch.
+- **Down tilt** — light while crouching: low poke, slight launch. The crouch
+  it reads is a *window*, not a switch: for 0.12 s after down is released the
+  attack still comes out low, so rolling the stick from down to forward and
+  pressing attack throws the low poke rather than snapping the fighter upright
+  into a jab. Smash gets the same feel out of its squat-exit animation — an
+  attack out of the stand-up frames is still the down tilt. Holding down AND
+  forward together is a different input and keeps its own meaning: the side
+  attack angled 45° at the legs.
 - **Aerials** — neutral / up / **down air** in midair; down airs are
   **spikes** that launch downward — the edge-guard finisher.
 

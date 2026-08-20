@@ -22,6 +22,14 @@ export const JUMP_BUFFER = 0.15;
 // yet, then fire the moment control returns (see fighter.js).
 export const ACTION_BUFFER = 0.12;
 export const COYOTE_TIME = 0.1;
+// Coyote time for the CROUCH. Letting go of down does not end a crouch the
+// frame it happens: for this long afterwards an attack press still comes out
+// as the crouching one, so "crouch, flick forward, attack" is a low poke and
+// not a fighter standing bolt upright to jab. Smash gets the same feel from
+// its squat exit animation — an attack out of the stand-up frames is still
+// the down tilt (SmashWiki, Down tilt: "pressing the attack button while
+// crouching"). 0.12 s is about seven frames, the length of that transition.
+export const CROUCH_GRACE = 0.12;
 export const SHORT_HOP_WINDOW = 0.09;
 export const SHORT_HOP_CUT = 0.52;
 export const AIR_JUMP_MULT = 0.92;
