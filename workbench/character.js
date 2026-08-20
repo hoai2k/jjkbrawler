@@ -14,19 +14,25 @@
 //
 // WHY THE SWITCHES ARE HERE
 //
-// Three smoothing mechanisms sit between the animation data and the screen
-// (src/flags.js): the shipped cross-fade, `com` alignment, and `holds`. Judging
-// any of them means seeing the same fighter do the same thing with the thing on
-// and off, and until now that meant editing a URL and reloading — which loses
-// the pose, the position and your place in the comparison. The flags are live
-// bindings, so these toggles change the next frame while you hold the stick.
+// Two smoothing mechanisms sit between the animation data and the screen
+// (src/flags.js): the shipped cross-fade and `com` alignment. Judging either
+// means seeing the same fighter do the same thing with the thing on and off,
+// and until this bench existed that meant editing a URL and reloading — which
+// loses the pose, the position and your place in the comparison. The flags are
+// live bindings, so these toggles change the next frame while you hold the
+// stick.
+//
+// There were four. `?smooth=holds` faded the frame steps inside slow held
+// loops and the facing sweep squashed a sprite through side-on; both were
+// removed rather than defaulted off, and this bench is where each of them was
+// looked at and found wanting.
 import { state } from "../src/state.js";
 import { loadCoreAssets, ensureMatchAssets, startBackgroundLoad,
          sharedArtSettled } from "../src/assets.js";
 import { initInput, readGamepads, endInputFrame, playerInput, blankInput,
          connectedPadCount } from "../src/input.js";
 import { stepWorld, makeLatch, advanceWorld, resetFrameClock } from "../src/sim.js";
-import { makeFighter, turnSweeps } from "../src/fighter.js";
+import { makeFighter } from "../src/fighter.js";
 import { draw, smoothingActivity } from "../src/render.js";
 import { getStage } from "../src/stages.js";
 import { initStageFx } from "../src/stage_fx.js";
@@ -59,6 +65,8 @@ const bench = {
   // watched. The renderer is untouched and the step is still FIXED_DT, so
   // nothing plays out in a different order than it does at full speed.
   speed: Number(url.searchParams.get("speed")) || 1,
+  // The ledge drill, when one is running: see runDrill.
+  drill: null,
   // How many simulation steps have run. The bench has no clock of its own and
   // the game has no global one, so this is what "how much game happened" means
   // here — and it is the only honest way to show that the speed control slows
@@ -98,16 +106,11 @@ root.innerHTML = `
         <button class="light" data-mode="com" type="button" title="?smooth=com — a fade lines its two drawings up by their centre of mass and slides it between them">
           <span class="light__dot"></span><span class="light__name">com align</span>
         </button>
-        <button class="light" data-mode="holds" type="button" title="?smooth=holds — the slow held loops (idle, crouch, charge) cross-fade their own frame steps">
-          <span class="light__dot"></span><span class="light__name">hold fade</span>
-        </button>
-        <button class="light" data-mode="turn" type="button" title="The facing sweep (TURN_TIME, fighter.js). It follows the BACKEND by default: a rig has a back and turns through side-on, a drawing has none and flips whole — so this is off on sprites and on in 3D. Forced here either way, because seeing the sprite sweep is the only way to see why it went.">
-          <span class="light__dot"></span><span class="light__name">turn sweep</span>
-        </button>
         <span class="lights__state" id="lightsState"></span>
       </div>
       <div class="viewer__foot">
         <label class="toggle"><input type="checkbox" id="dummyToggle"> training dummy</label>
+        <button class="drill" id="ledgeDrill" type="button" title="Walks off the edge, hangs, and climbs back — the real grab, the real transition, no state poked in by hand. Getting there on a pad takes a dozen tries and the interesting part is four frames long; turn the speed down and watch it.">ledge drill</button>
         <label class="toggle zoom">zoom
           <input type="range" id="zoomRange" min="0.6" max="3" step="0.05">
           <span id="zoomValue"></span>
@@ -134,6 +137,7 @@ const zoomEl = document.getElementById("zoomRange");
 const zoomValueEl = document.getElementById("zoomValue");
 const speedEl = document.getElementById("speedRange");
 const speedValueEl = document.getElementById("speedValue");
+const drillEl = document.getElementById("ledgeDrill");
 const padEl = document.getElementById("padState");
 const fpsEl = document.getElementById("fpsState");
 
@@ -256,22 +260,16 @@ async function select(charKey) {
 //   yellow  on, and doing nothing this frame
 //   green   doing something RIGHT NOW
 //
-// The difference is the whole reason to have lights rather than checkboxes. A
-// cross-fade runs for 0.08 seconds at a state change; a hold fade for 0.07,
-// twice a second; a turn only while a fighter is coming about. A lamp that is
-// lit whenever the switch is on says nothing about the frame in front of you,
-// which is the frame you are trying to judge. Green is rare and brief on
-// purpose — turn the speed down to hold it long enough to read.
-//
+// The difference is the whole reason to have lights rather than checkboxes: a
+// cross-fade runs for 0.08 seconds at a state change and nothing at all in
+// between, so a lamp that is lit whenever the switch is on says nothing about
+// the frame in front of you, which is the frame you are trying to judge. Green
+// is rare and brief on purpose — turn the speed down to hold it long enough to
+// read.
 const lightEls = [...lightsEl.querySelectorAll(".light")];
 
-/** What is armed right now. `turn` is the odd one: its flag is an OVERRIDE
- *  that is null by default, meaning "ask the backend", so the lamp has to show
- *  the answer the simulation acted on rather than the null. */
-const armedNow = () => ({ ...smoothingState(), turn: turnSweeps() });
-
 function paintLights() {
-  const on = armedNow();
+  const on = smoothingState();
   for (const el of lightEls) {
     const mode = el.dataset.mode;
     el.classList.toggle("is-on", !!on[mode]);
@@ -287,7 +285,7 @@ function paintLights() {
  *  readout rather than re-deriving it is the point — the lamp cannot claim
  *  something the picture did not do. */
 function paintActivity() {
-  const on = armedNow();
+  const on = smoothingState();
   let working = false;
   for (const el of lightEls) {
     const mode = el.dataset.mode;
@@ -304,7 +302,7 @@ function paintActivity() {
 lightsEl.addEventListener("click", (e) => {
   const btn = e.target.closest(".light");
   if (!btn) return;
-  const now = armedNow();
+  const now = smoothingState();
   setSmoothing({ [btn.dataset.mode]: !now[btn.dataset.mode] });
   paintLights();
 });
@@ -391,9 +389,19 @@ function loop(now) {
       scale: bench.speed,
       read: (id) => (id === 1 ? playerInput(1) : blankInput()),
       step: (d) => {
+        // The drill's stick, pressed into the latch after `advanceWorld` has
+        // filled it from the real pad and before the world reads it — which is
+        // exactly where a second player's input would go. It holds a direction
+        // rather than setting a flag, because `updateLedge` triggers the climb
+        // off a held stick and nothing else would.
+        const hold = runDrill(d);
+        if (hold) latch[1][hold] = true;
         stepWorld(d, (f) => (f.id === 1 ? latch[1] : blankInput()));
         bench.steps += 1;
-        keepOnStage();
+        // The drill parks the fighter off the edge on purpose; letting the
+        // out-of-world reset fire mid-reach would snatch them back to the
+        // middle before they ever touched the ledge.
+        if (!bench.drill) keepOnStage();
       },
     });
     camZoom = state.camera.zoom;
@@ -443,6 +451,97 @@ function frameForBench() {
   // and the feet are not on the bottom edge.
   state.camera.y = clamp(me.y - 90, halfH, WORLD.h - halfH);
 }
+
+
+// ------------------------------------------------------------ the ledge drill
+//
+// A ledge grab is four interesting frames at the end of a fall you have to set
+// up by hand, off a platform edge you have to find, at a height with a 260px
+// window — and if you miss you fall to your death and respawn in the middle.
+// On a pad it takes a dozen tries to see once. That is a bad way to look at
+// something, so this does the setup.
+//
+// IT DOES NOT FAKE THE STATE. Nothing here sets `f.ledge`, or an anim, or a
+// transition. It puts the fighter in the air beside the edge, falling, with the
+// gates `tryGrabLedge` actually checks satisfied — off the stage, out of
+// hitstun, airborne long enough — and then holds a direction at the right
+// moment. Every frame after that is the game's: the catch, the hang, the climb,
+// and whatever the renderer does with them. A drill that assigned the hang pose
+// directly would be a drill that could never show this pose being assigned
+// wrongly, which is the entire reason to have it.
+const DRILL = {
+  // Long enough to see the hang settle and the timers arm, short of the 2.8s
+  // auto-drop that would end the drill by dropping them.
+  hang: 0.9,
+  // If the catch never happens the drill has failed rather than hung: say so
+  // and stop, instead of leaving the button lit forever.
+  patience: 3,
+};
+
+function startDrill() {
+  const f = state.fighters[0];
+  const plat = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+  if (!f || !plat) return;
+  // Beside the edge they are facing, a little below the lip and falling: the
+  // shape of every real ledge grab, and inside LEDGE_GRAB_X of the corner so
+  // the next step catches it.
+  const side = f.x < plat.x + plat.w / 2 ? -1 : 1;
+  const edgeX = side === -1 ? plat.x : plat.x + plat.w;
+  Object.assign(f, {
+    x: edgeX + side * 24,
+    y: plat.y + 40,
+    vx: 0, vy: 60,
+    grounded: false,
+    // The gates tryGrabLedge reads. `airT` past its 0.18 threshold is the one
+    // that would otherwise make the first attempt silently do nothing.
+    airT: 0.5,
+    ledge: null, ledgeMove: null, ledgeCooldown: 0, ledgeGrabs: 0,
+    hitstun: 0, action: null, charging: false, shielding: false,
+  });
+  f.facing = -side;                   // looking back at the stage they fell off
+  bench.drill = { phase: "reach", t: 0, side };
+  paintDrill();
+}
+
+/** One frame of the drill. Returns the direction it wants HELD this step, or
+ *  null — the input goes in through the latch like a pad would, because the
+ *  climb is triggered by `updateLedge` reading a held stick and nothing else. */
+function runDrill(dt) {
+  const d = bench.drill;
+  if (!d) return null;
+  const f = state.fighters[0];
+  if (!f) { bench.drill = null; return null; }
+  d.t += dt;
+
+  if (d.phase === "reach") {
+    if (f.ledge) { d.phase = "hang"; d.t = 0; paintDrill(); }
+    else if (d.t > DRILL.patience) { d.phase = "missed"; paintDrill(); bench.drill = null; }
+    return null;
+  }
+  if (d.phase === "hang") {
+    if (d.t < DRILL.hang) return null;
+    d.phase = "climb"; d.t = 0;
+    paintDrill();
+    return null;
+  }
+  if (d.phase === "climb") {
+    // Held INWARD — toward the stage — which is what a player holds to climb.
+    // Released the moment they are standing, so the drill does not walk them
+    // off the far side afterwards.
+    if (f.grounded && !f.ledgeMove) { bench.drill = null; paintDrill(); return null; }
+    if (d.t > DRILL.patience) { bench.drill = null; paintDrill(); return null; }
+    return d.side === -1 ? "right" : "left";
+  }
+  return null;
+}
+
+function paintDrill() {
+  const d = bench.drill;
+  drillEl.classList.toggle("is-on", !!d);
+  drillEl.textContent = d ? `ledge drill · ${d.phase}` : "ledge drill";
+}
+
+drillEl.addEventListener("click", startDrill);
 
 /** A fighter who leaves the world comes back, rather than dying.
  *

@@ -2,7 +2,7 @@ import { state } from "./state.js";
 import { getImage } from "./assets.js";
 import { sharedAdjust, sharedFadeIn, paintedHeight, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "./shared_sprites.js";
 import { getStage } from "./stages.js";
-import { drawCharFrame, currentFrame, frameStep, anchorOffset } from "./render_backend.js";
+import { drawCharFrame, currentFrame, anchorOffset } from "./render_backend.js";
 import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
 import { bodyMetrics } from "./silhouette.js";
@@ -26,7 +26,7 @@ import { strikeArcs, visibleArtReach, swingExtent } from "./moves.js";
 import { bodyWidth } from "./silhouette.js";
 import { strikePoint, STRIKE_STATES } from "./strike_points.js";
 import { respawnX } from "./fighter.js";
-import { SMOOTH_COM_FADE, SMOOTH_HOLD_FADE, SPRITE_XFADE_ON } from "./flags.js";
+import { SMOOTH_COM_FADE, SPRITE_XFADE_ON } from "./flags.js";
 
 // The cross-fade window on a sprite state change, and the states a change INTO
 // stays a cut. Both mirror the 3D backend's contract (pose.js DIALS.blendTime
@@ -37,27 +37,6 @@ const SPRITE_NO_XFADE = new Set(["hurt", "land"]);
 
 import { isFoe } from "./teams.js";
 
-// ---- the two smoothing experiments (src/flags.js, `?smooth=`) -------------
-//
-// Both ship dark and both live entirely in the fade block below. Neither is
-// read by anything outside this file, and neither reads or writes simulation
-// state, so turning them off is the URL and deleting them is this block plus
-// their flag.
-
-/** `?smooth=holds` — the fade window on a FRAME STEP inside a state, and the
- *  frame rate below which a state is slow enough to want one.
- *
- *  A within-state step is a cut by design: `animTime` does not reset inside a
- *  loop and the snap of limited animation is the style. But "the style" was
- *  decided for animation that steps at 8-13 fps, and the slow held loops are
- *  not that: `idle` is two drawings at 2.2 fps, which is a 0.45s hold, and
- *  `charge` and `grabHold` are 2 fps. At that rate the eye has settled on the
- *  first drawing long before the second arrives, so the step reads as the
- *  picture glitching rather than as the body moving. 4 fps is the line — it
- *  takes idle, charge, crouch and the held grab, and leaves every rate that
- *  was authored to snap (`ult` at 7, the attacks at 6-12) snapping. */
-const SPRITE_STEP_XFADE = 0.07;
-const SPRITE_STEP_SLOW_FPS = 4;
 
 export function draw(ctx) {
   // Cleared here and filled by whatever actually runs this frame — see
@@ -65,8 +44,6 @@ export function draw(ctx) {
   // backends does not go on showing the last flat frame's answer.
   smoothingActivity.xfade = 0;
   smoothingActivity.com = 0;
-  smoothingActivity.holds = 0;
-  smoothingActivity.turn = 0;
   if (cameraMode === "3d" && camera3d) {
     draw3d(ctx);
     return;
@@ -695,21 +672,6 @@ function drawFighters(ctx, { bodies = true } = {}) {
     // A transformed fighter (Megumi as Mahoraga) draws from another actor's
     // sprite set for the duration of the install; everything else about them —
     // kit, controls, hurtbox — is unchanged.
-    // MID-TURN: the mirror sweeps through zero over TURN_TIME rather than
-    // flipping in one frame (fighter.js). It is not one of the flagged
-    // experiments — it ships, and always has — but it is the same KIND of
-    // thing and the hardest of the four to catch in the act, so it reports
-    // alongside them.
-    //
-    // How far there is still to go, on the same scale the fades report: the
-    // mirror starts a full 2 away from where it is heading (+1 to -1) and
-    // arrives at 0, so this is 1 the frame the turn begins and 0 when it is
-    // done — 0.5 as the body passes side-on.
-    if (f.facingVis !== undefined && f.facingVis !== f.facing) {
-      smoothingActivity.turn = Math.max(smoothingActivity.turn,
-        Math.abs(f.facingVis - f.facing) / 2);
-    }
-
     const spriteKey = f.spriteChar || f.charKey;
     const spriteActor = getActor(spriteKey) || f.char;
     const frameKey = currentFrame(spriteKey, f.animKey, f.animTime);
@@ -903,12 +865,10 @@ function drawFighters(ctx, { bodies = true } = {}) {
         drawOpts.offsetX = base - shift.x * (1 - ghost.k);
         drawOpts.alpha = (drawOpts.alpha ?? 1) * dissolve;
 
-        // What a bench light reads. `xfade` and `holds` report how far through
-        // the fade this frame is, `com` how hard the alignment is working.
+        // What a bench light reads. `xfade` reports how far through the fade
+        // this frame is, `com` how hard the alignment is working.
         const A = smoothingActivity;
-        const strength = 1 - ghost.k;
-        if (ghost.kind === "holds") A.holds = Math.max(A.holds, strength);
-        else A.xfade = Math.max(A.xfade, strength);
+        A.xfade = Math.max(A.xfade, 1 - ghost.k);
         if (shift.depth > 0) A.com = Math.max(A.com, shift.depth);
       }
       const drew = drawCharFrame(ctx, spriteKey, frameKey, f.x + shakeX, f.y, drawOpts);
@@ -934,18 +894,16 @@ function drawFighters(ctx, { bodies = true } = {}) {
 // we are — 0 at the cut, 1 at the end of the fade. Null when there is nothing
 // to fade out of, which is the ordinary case.
 //
-// Two seams can want a ghost and they cannot both be answering at once:
+// The seam is a STATE CHANGE, and only that: fighter.js records where the pose
+// came from as `prevAnim` before zeroing animTime.
 //
-//   a STATE CHANGE  the pose came from another state (fighter.js setAnim
-//                   records it as `prevAnim` and zeroes animTime). Shipped,
-//                   and unflagged.
-//   a FRAME STEP    the state's own loop flicked to its next drawing.
-//                   `?smooth=holds`, and only for the slow held loops — see
-//                   SPRITE_STEP_SLOW_FPS.
-//
-// The state change wins where both could answer: it is the bigger move, and at
-// the rates the step branch accepts the two windows do not overlap anyway (the
-// first step of a 2.2 fps loop is 0.45s after the change, the fade is 0.08s).
+// Within-state frame steps are NOT softened, and that is the style rather than
+// an omission — animTime does not reset inside a loop, and the snap of limited
+// animation is the point of it. `?smooth=holds` used to extend the fade to the
+// slow held loops and has been removed: on two drawings of one stance a fade
+// buys a dissolve nobody asked for and costs an opacity dip that reads as a
+// flicker. tools/audit_frame_jitter.mjs measures those steps if the question is
+// ever reopened, and the answer there is another drawing, not more fading.
 //
 // Skipped for the states whose cut IS the read (SPRITE_NO_XFADE, mirroring
 // pose.js NO_BLEND_IN) — an impact that eases in looks absorbed rather than
@@ -962,17 +920,11 @@ function spriteGhost(f, spriteKey, frameKey) {
   if (prev && f.animTime < SPRITE_XFADE) {
     const prevFrame = currentFrame(spriteKey, prev.key, prev.t);
     if (prevFrame && !String(prevFrame).includes(":")) {
-      return { frame: prevFrame, k: f.animTime / SPRITE_XFADE, kind: "xfade" };
+      return { frame: prevFrame, k: f.animTime / SPRITE_XFADE };
     }
   }
 
-  if (!SMOOTH_HOLD_FADE) return null;
-  // `frameStep` is optional on a backend and null from the ones that pose a
-  // rig per draw — they have no previous DRAWING and are already inbetweening.
-  const step = frameStep(spriteKey, f.animKey, f.animTime);
-  if (!step?.prev || step.fps > SPRITE_STEP_SLOW_FPS) return null;
-  if (step.since >= SPRITE_STEP_XFADE || String(step.prev).includes(":")) return null;
-  return { frame: step.prev, k: step.since / SPRITE_STEP_XFADE, kind: "holds" };
+  return null;
 }
 
 /** WHAT THE SMOOTHING ACTUALLY DID ON THE FRAME JUST DRAWN, 0..1 per
@@ -992,7 +944,7 @@ function spriteGhost(f, spriteKey, frameKey) {
  *
  *  Written every frame and read the same frame. Nothing in the simulation
  *  looks at it. */
-export const smoothingActivity = { xfade: 0, com: 0, holds: 0, turn: 0 };
+export const smoothingActivity = { xfade: 0, com: 0 };
 
 /** How far the body's mass moves across a cut, on the x axis, in world px —
  *  what a COM-aligned fade slides the two drawings by. See the long note at

@@ -270,18 +270,18 @@ check(fade.hurt === fade.hurtBare,
 
 // ---------------------------------------- 4. the fade does not blink the body
 //
-// A fourth flicker, and the newest: `?smooth=com` ramps the incoming drawing
-// up as the outgoing one ramps down, because an opaque body cannot be lined up
-// with a ghost nobody can see past. Two drawings that OVERLAP cost opacity
-// that way — the ghost at 1-k under the body at k covers (1-k) + k² of the
-// background, bottoming out at 0.75 — and on `idle`, which steps between two
-// drawings of one stance twice a second and overlaps almost exactly, the dip
-// lands on the whole body every 0.45 s. A quarter of the fighter, gone and
-// back, twice a second. It was reported as a flicker because it is one.
+// `?smooth=com` ramps the incoming drawing up as the outgoing one ramps down,
+// because an opaque body cannot be lined up with a ghost nobody can see past.
+// Two drawings that OVERLAP cost opacity that way — the ghost at 1-k under the
+// body at k covers (1-k) + k² of the background, bottoming out at 0.75. A
+// quarter of the fighter, gone and back, for a fade that had nothing to align.
 //
-// The fade now goes only as deep as the alignment needs (render.js `dissolve`),
-// so a step with nothing to align keeps an opaque body. This measures the
-// thing that flickered: how many pixels of fighter survive the fade.
+// It was reported on the slow held loops, where two drawings of one stance
+// overlap almost exactly and the dip landed twice a second. Those no longer
+// fade at all — `?smooth=holds` is gone — but the rule that fixed them is what
+// keeps every remaining cut honest: the fade goes only as deep as the
+// alignment needs (render.js `dissolve`). This measures a cut with nothing to
+// align, which is the case that must stay opaque.
 const blink = await page.evaluate(async () => {
   const { state } = await import("/src/state.js");
   const { draw } = await import("/src/render.js");
@@ -327,159 +327,68 @@ const blink = await page.evaluate(async () => {
     }
     return n;
   };
-  // Straddling the idle step at 1/2.2 s, sampled at 120 Hz so the 0.07 s fade
-  // is crossed eight or nine times rather than stepped over.
+  // A CUT WITH NOTHING TO ALIGN: idle cut from idle. Two identical drawings
+  // carry their mass in identical places, so the alignment has no work to do
+  // and the body has to stay whole the entire way through. Sampled at 120 Hz
+  // so the 0.08 s fade is crossed rather than stepped over.
   const worstDip = () => {
     const px = [];
-    for (let i = 0; i < 40; i++) {
-      a.animKey = "idle"; a.prevAnim = null; a.animTime = 0.40 + i * (1 / 120);
+    for (let i = 0; i < 12; i++) {
+      a.animKey = "idle"; a.animTime = i * (1 / 120);
+      a.prevAnim = { key: "idle", t: 0.3 };
       px.push(cover());
     }
+    a.prevAnim = null;
     return +(100 * (1 - Math.min(...px) / px[0])).toFixed(1);
   };
 
-  const before = setSmoothing({ com: true, holds: true, xfade: true }) && worstDip();
-  setSmoothing({ com: false, holds: true });
-  const holdsOnly = worstDip();
-  setSmoothing({ com: false, holds: false, xfade: true });
-  return { both: before, holdsOnly };
+  setSmoothing({ com: true, xfade: true });
+  const on = worstDip();
+  setSmoothing({ com: false, xfade: true });
+  const off = worstDip();
+  setSmoothing({ com: true, xfade: true });
+  return { on, off };
 });
 
-// The ghost's own extremities fade out at the edges of the silhouette whatever
-// happens, so the floor is not zero — `holds` alone is the honest baseline and
-// the aligned fade has to stay near it rather than near 25%.
-check(blink.both < blink.holdsOnly + 4,
-  "an idle step does not blink the body when com and holds are both on",
-  `${blink.both}% of the fighter dips out at the worst frame, against `
-  + `${blink.holdsOnly}% with holds alone. Undo the depth scaling in render.js `
-  + "and this reads about 47% against the same baseline, which is the bug.");
+// The ghost's own edges fade whatever happens, so the floor is not zero — the
+// fade with `com` OFF is the honest baseline, and with it on the body has to
+// stay near that rather than near 25%.
+check(blink.on < blink.off + 4,
+  "a fade with nothing to align does not blink the body",
+  `${blink.on}% of the fighter dips out at the worst frame with com on, against `
+  + `${blink.off}% with it off. Make render.js's \`dissolve\` a flat \`ghost.k\` `
+  + "again and this is the flicker that was reported.");
 
-// ------------------------------------- 5. the facing sweep, and what it costs
+// ---------------------------------- 5. a drawing flips, and a rig still turns
 //
 // `facingVis` slides from +1 to -1 over TURN_TIME instead of snapping. On a RIG
-// that is a real yaw and a body turns round; the sprite backend hands the same
-// number to `ctx.scale(facing, 1)`, so the drawing is squashed to nothing and
-// pulled out the other side — a flat card turning over, with a frame in the
-// middle where the fighter is a vertical line.
+// that is a real yaw and a body turns round; a DRAWING has no side-on, and the
+// sprite backend hands the same number to `ctx.scale(facing, 1)` — so a sweep
+// squashed the art to two pixels and out the other way, a page turning rather
+// than a person. It was never a look anybody chose for sprites: a rig idea
+// reached them through a shared number.
 //
-// So the sweep follows the BACKEND now (`render_backend.js sweepsTurns`) and
-// sprites snap. This measures both halves: forced on, a sprite really does go
-// edge-on, which is why it went; left alone on the sprite backend, it flips
-// whole. Whoever moves that default should be moving a number they can see.
-const turn = await page.evaluate(async () => {
-  const { state } = await import("/src/state.js");
-  const { draw } = await import("/src/render.js");
-  const { WORLD } = await import("/src/constants.js");
-  const { setSmoothing } = await import("/src/flags.js");
-  const { updateFighter } = await import("/src/fighter.js");
-  const { blankInput } = await import("/src/input.js");
-  const { bodyMetrics } = await import("/src/silhouette.js");
-  const { sweepsTurns } = await import("/src/render_backend.js");
-
-  const cv = new OffscreenCanvas(WORLD.w, WORLD.h);
-  const ctx = cv.getContext("2d", { willReadFrequently: true });
-  const a = state.fighters[0];
-  const main = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
-  const settle = () => Object.assign(a, {
-    x: main.x + main.w / 2, y: main.y, vx: 0, vy: 0, grounded: true,
-    hitstun: 0, action: null, dead: false, respawnTimer: 0, ledge: null,
-    ledgeMove: null, shakeMag: 0, teeterT: 0, teeterDir: 0,
-    animKey: "idle", animTime: 0.1, prevAnim: null,
-  });
-  settle();
-  state.camera.x = WORLD.w / 2; state.camera.y = WORLD.h / 2;
-  state.camera.zoom = 1; state.camera.shake = 0;
-
-  const shot = () => {
-    state.particles = [];
-    ctx.clearRect(0, 0, WORLD.w, WORLD.h);
-    draw(ctx);
-    return ctx.getImageData(0, 0, WORLD.w, WORLD.h).data;
-  };
-  // A fresh plate per sample: the backdrop breathes, so a plate from a second
-  // ago differs across the whole frame and the measurement becomes the weather.
-  const h = bodyMetrics(a.spriteChar || a.charKey).height;
-  const top = Math.max(0, Math.round(a.y - h * 0.9));
-  const bottom = Math.min(WORLD.h, Math.round(a.y - h * 0.25));
-  // Measured across the TORSO, clear of the cast shadow — the shadow is an
-  // ellipse on the deck that nothing mirrors, so it sits at full width whatever
-  // the sprite does and hides the whole effect.
-  const width = () => {
-    a.dead = true; const plate = shot();
-    a.dead = false; const live = shot();
-    const cols = new Int32Array(WORLD.w);
-    for (let y = top; y < bottom; y++) {
-      let i = y * WORLD.w * 4;
-      for (let x = 0; x < WORLD.w; x++, i += 4) {
-        const d = Math.abs(live[i] - plate[i]) + Math.abs(live[i + 1] - plate[i + 1])
-          + Math.abs(live[i + 2] - plate[i + 2]);
-        if (d > 40) cols[x]++;
-      }
-    }
-    let lo = -1, hi = -1;
-    for (let x = 0; x < WORLD.w; x++) {
-      if (cols[x] < 3) continue;
-      if (lo < 0) lo = x;
-      hi = x;
-    }
-    return hi < lo ? 0 : hi - lo + 1;
-  };
-
-  const run = (sweep) => {
-    setSmoothing({ turn: sweep });
-    settle();
-    a.facing = 1; a.facingVis = 1;
-    const rest = width();
-    const widths = [];
-    for (let i = 0; i < 10; i++) {
-      // Re-asserted every step: a fighter with nobody to fight turns back
-      // toward the dummy, which would undo the flip after one frame.
-      a.facing = -1;
-      updateFighter(a, 1 / 60, blankInput());
-      settle();
-      widths.push(width());
-    }
-    return { rest, narrowest: Math.min(...widths) };
-  };
-  const on = run(true);            // forced, as the bench forces it
-  const off = run(null);           // the backend's own answer — sprites snap
-  setSmoothing({ turn: null });
-  return { on, off, backend: sweepsTurns() };
-});
-
-check(turn.on.narrowest < turn.on.rest * 0.2,
-  "the facing SWEEP passes the sprite through side-on, which for a drawing is edge-on",
-  `${turn.on.rest}px torso down to ${turn.on.narrowest}px — a card turning over`);
-check(turn.off.narrowest > turn.off.rest * 0.8,
-  "...and left to the backend a sprite flips whole, the way 2D fighters do",
-  `never narrower than ${turn.off.narrowest}px of ${turn.off.rest}px`);
-check(turn.backend === false,
-  "the sprite backend does not claim to turn a body",
-  "so nothing has to remember to switch this off per fighter or per stage");
-
-// ...and the other half of the same fact, which is the half that would break
-// silently: the sweep was right for a rig all along, and turning it off for
-// drawings must not take it away from the models. Asked of the registry rather
-// than of a picture, because rendering a rig here would mean loading one.
-// LAST, and put back, so nothing below is drawn through another backend.
+// So the sweep belongs to the backend (`render_backend.js sweepsTurns`) and
+// there is no switch — which of the two a flip should be is a fact about what
+// is being drawn. Both halves are asserted, because the half that would break
+// in silence is the models keeping the yaw the sweep was written for.
 const backends = await page.evaluate(async () => {
   const b = await import("/src/render_backend.js");
-  const { turnSweeps } = await import("/src/fighter.js");
   const was = b.renderBackendName();
   const out = {};
   for (const name of ["sprite", "billboard", "3d"]) {
     b.selectRenderBackend(name);
-    out[name] = { backend: b.sweepsTurns(), effective: turnSweeps() };
+    out[name] = b.sweepsTurns();
   }
-  b.selectRenderBackend(was);
+  b.selectRenderBackend(was);   // put it back before anything else draws
   return out;
 });
-check(backends["3d"].effective === true && backends.billboard.effective === true,
-  "a rig still turns — the models keep the yaw the sweep was written for",
-  `3d ${backends["3d"].effective}, billboard ${backends.billboard.effective}`);
-check(backends.sprite.effective === false,
-  "...and a drawing flips, with no flag set either way",
-  "the backend answers it, so the two cannot drift apart");
+check(backends.sprite === false,
+  "a drawing flips whole — the sprite backend does not claim to turn a body",
+  "so nothing has to remember to switch it off per fighter or per stage");
+check(backends["3d"] === true && backends.billboard === true,
+  "...and a rig still turns, keeping the yaw the sweep was written for",
+  `3d ${backends["3d"]}, billboard ${backends.billboard}`);
 
 await browser.close();
 console.log(failed ? `\n${failed} check(s) failed` : "\nall smoothness checks passed");

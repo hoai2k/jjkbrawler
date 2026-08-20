@@ -59,7 +59,7 @@
 
 import {
   drawCharFrame as spriteDraw, currentFrame as spriteFrame, cyclePhase as spriteCycle,
-  frameStep as spriteStep, anchorOffset as spriteAnchorOffset,
+  anchorOffset as spriteAnchorOffset,
 } from "../sprites/src/sprites.js";
 import * as billboard from "../billboards/src/billboard.js";
 import * as render3d from "../render3d/src/backend.js";
@@ -71,11 +71,8 @@ const BACKENDS = {
     drawCharFrame: spriteDraw,
     currentFrame: spriteFrame,
     cyclePhase: spriteCycle,
-    // The two OPTIONAL hooks (see frameStep/anchorOffset below). Only a
-    // backend whose frames are drawings has answers here: a backend that
-    // poses a rig per draw inbetweens on the bone and has no "previous
-    // drawing" to fade out of.
-    frameStep: spriteStep,
+    // An OPTIONAL hook (see anchorOffset below). Only a backend whose frames
+    // are drawings has per-frame anchors to answer with.
     anchorOffset: spriteAnchorOffset,
     // ...and it does NOT turn. See `sweepsTurns` below.
   },
@@ -236,15 +233,6 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts) {
  *  character bench, which exists to put the two side by side. */
 export function sweepsTurns() {
   return !!active.sweepsTurns;
-}
-
-/** OPTIONAL — where the playhead sits relative to the last frame step, for a
- *  backend whose animation is a list of DRAWINGS: what is showing, what it cut
- *  from, and how long ago. Null from a backend that inbetweens a rig instead,
- *  which has no cut to soften and is already doing the smoothing this would be
- *  standing in for. See sprites.js for the shape. */
-export function frameStep(charKey, animKey, animTime) {
-  return active.frameStep?.(charKey, animKey, animTime) || null;
 }
 
 /** OPTIONAL — a named anchor as a world offset from the point a frame would be

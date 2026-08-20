@@ -786,43 +786,6 @@ export function currentFrame(charKey, animKey, animTime) {
   return anim.frames[i];
 }
 
-/** WHERE THE PLAYHEAD SITS RELATIVE TO THE LAST FRAME STEP, for a caller that
- *  wants to soften the step rather than take it whole.
- *
- *  `currentFrame` answers "what is showing". This also answers "what did it
- *  just cut from, and how long ago" — the two facts a within-state cross-fade
- *  needs, and the two `currentFrame` throws away. Nothing here decides whether
- *  a step SHOULD be softened; that is a look decision and it lives with the
- *  other ones in src/render.js.
- *
- *    frame   the drawing now, identical to currentFrame
- *    prev    the drawing before it, or null when there was no step to come out
- *            of — a one-frame state, the first frame of any state (the state
- *            change owns that seam, not this), or a one-shot that has run out
- *            and is holding its last pose
- *    since   seconds since that step
- *    fps     the rate this state resolved to, which is what says whether a
- *            step is a beat of animation or a slow hold flicking over
- */
-export function frameStep(charKey, animKey, animTime) {
-  const anim = resolvedAnim(charKey, animKey);
-  const n = anim.frames.length;
-  const idx = Math.floor(animTime * anim.fps);
-  const wrap = (i) => ((i % n) + n) % n;
-  const i = anim.loop ? wrap(idx) : Math.min(idx, n - 1);
-  // Past the end of a one-shot the playhead has STOPPED: the pose is held, not
-  // freshly cut to, and fading a ghost under a held pose would put a second
-  // body under every finished attack.
-  const held = !anim.loop && idx >= n;
-  return {
-    frame: anim.frames[i],
-    prev: n < 2 || idx < 1 || held ? null : anim.frames[anim.loop ? wrap(idx - 1) : idx - 1],
-    since: held ? Infinity : animTime - idx / anim.fps,
-    fps: anim.fps,
-    frames: n,
-  };
-}
-
 /** Where the playhead sits inside the whole looped cycle, 0..1, plus how many
  *  frames the cycle resolved to. Run motion sways once per cycle and bobs once
  *  per footfall, which only works measured against the cycle the fighter is

@@ -49,16 +49,18 @@
 //
 // WHAT THIS MEASURES THAT THE FADES CANNOT
 //
-// `src/render.js` softens a cut three ways, and none of them is this:
+// `src/render.js` softens a cut two ways, and neither of them is this:
 //
 //   the shipped cross-fade   ghosts the outgoing drawing for 0.08s on a STATE
 //                            change. Within-state steps are left alone on
 //                            purpose — the snap of limited animation is the
 //                            style.
-//   `?smooth=holds`          extends that fade to frame steps inside states
-//                            slower than 4fps (idle, charge, crouch, the held
-//                            grab). Everything authored to snap still snaps,
-//                            so the 13fps run is deliberately out of scope.
+//                            `?smooth=holds` briefly extended that fade to
+//                            within-state steps and was removed: on two
+//                            drawings of one stance it bought a dissolve
+//                            nobody wanted and cost an opacity dip that read
+//                            as a flicker. Which leaves this measurement as
+//                            the only thing watching those steps.
 //   `?smooth=com`            lines the two drawings of a fade up by their
 //                            centre of mass and slides it between them, capped
 //                            at XFADE_COM_MAX_FRAC. It works on the X AXIS.
@@ -113,10 +115,11 @@ const AIRBORNE = new Set(["jump", "fall", "airLight", "dodge_air"]);
 // idle already sits at 0.5px across the roster, which is what "breathing" costs.
 const HELD_TOLERANCE = 0.015;
 
-// The rate below which `?smooth=holds` cross-fades a within-state frame step.
-// Mirrors SPRITE_STEP_SLOW_FPS in src/render.js, which is not exported — it is
-// a private detail of the fade block, and this only reports what it covers.
-const HOLD_FADE_FPS = 4;
+// The rate below which a held loop is slow enough that its step is a flick
+// rather than a beat of animation. Nothing in the renderer reads this any more
+// — the fade that used to is gone — so it is a reporting threshold only: the
+// column marks the states where a step is worth a second drawing.
+const SLOW_HOLD_FPS = 4;
 
 const args = process.argv.slice(2);
 const flag = (name) => args.includes(name);
@@ -216,14 +219,14 @@ const median = (v) => {
 if (!flag("--check")) {
   console.log("Step between consecutive frames, as the renderer places them.");
   console.log("Percentages are of the fighter's own body height.\n");
-  console.log("state           n   fps  kind  fade    head step   worst    sideways    limp");
+  console.log("state           n   fps  kind  hold    head step   worst    sideways    limp");
   const order = [...byState.entries()]
     .sort((a, b) => median(b[1].map((r) => r.headStep)) - median(a[1].map((r) => r.headStep)));
   for (const [state, v] of order) {
     const kind = v[0].held ? "held" : v[0].airborne ? "air " : "act ";
-    // `?smooth=holds` reaches a state slower than SPRITE_STEP_SLOW_FPS; every
-    // faster one was authored to snap and is left snapping.
-    const fade = v[0].fps <= HOLD_FADE_FPS ? "holds" : "—    ";
+    // Slow enough that the step reads as a flick. Every faster one was
+    // authored to snap and does.
+    const fade = v[0].fps <= SLOW_HOLD_FPS ? "slow " : "—    ";
     const h = median(v.map((r) => r.headStep));
     const worst = Math.max(...v.map((r) => r.headStep));
     const x = median(v.map((r) => r.xStep));
