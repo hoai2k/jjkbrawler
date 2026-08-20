@@ -411,7 +411,11 @@ export function sharedTodoNote(frameKey) {
 }
 
 /** Fields on a shared entry that are not somebody's decision about the art. */
-export const BOOKKEEPING = new Set(["edited", "src", "autoTuned", "surfacedReviewed"]);
+export const BOOKKEEPING = new Set(["edited", "src", "autoTuned", "surfacedReviewed",
+                                    // What smooth_cycles.py changed and from what.
+                                    // A tool's record of its own work, like
+                                    // `autoTuned` — not somebody's decision.
+                                    "smoothed"]);
 
 // A second way onto the list, and the same job: poses that need a look now and
 // would otherwise have to be hunted for.

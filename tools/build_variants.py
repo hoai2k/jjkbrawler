@@ -50,7 +50,9 @@ PLACEMENT = [
 REVIEW = ["needsReplacement", "wantsImprovement", "edited", "surfacedReviewed"]
 # A fact about the drawing, not the pose — see VARIANT_ORIGIN in sprites.js.
 ORIGIN = ["borrowedFrom"]
-BANKED = PLACEMENT + REVIEW + ORIGIN
+# What a tool placed — see VARIANT_PROVENANCE in sprites.js.
+PROVENANCE = ["smoothed"]
+BANKED = PLACEMENT + REVIEW + ORIGIN + PROVENANCE
 
 
 def option_from_meta(meta, label):

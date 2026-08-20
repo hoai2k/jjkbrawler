@@ -85,7 +85,8 @@ def variant_banked():
     """
     src = open(SPRITES_JS).read()
     out = []
-    for const in ("VARIANT_PLACEMENT", "VARIANT_REVIEW", "VARIANT_ORIGIN"):
+    for const in ("VARIANT_PLACEMENT", "VARIANT_REVIEW", "VARIANT_ORIGIN",
+                  "VARIANT_PROVENANCE"):
         block = src[src.index(f"export const {const}"):]
         block = block[:block.index("];")]
         out += re.findall(r'"(\w+)"', block)

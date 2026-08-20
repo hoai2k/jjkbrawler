@@ -240,6 +240,66 @@ where states and `grounded` churn fastest. Guarded by `tools/smoke_smooth.mjs`.
   (`SPRITE_NO_XFADE`, mirroring the 3D backend's `NO_BLEND_IN`): an impact
   that eases in looks absorbed rather than taken.
 
+## What a fade cannot fix: the drawings disagreeing
+
+Everything above softens a CUT. None of it can do anything about two drawings
+that disagree about how big the fighter is, because a dissolve between a body
+7% taller and a body 7% shorter is a smooth dissolve between two differently
+sized men — and `?smooth=com`, which does move a body to align a fade, moves it
+on the **x axis**. The vertical step is left where it was.
+
+That step is real and it is measurable, because every frame carries its own
+`renderScale` and `bodyBottom`: the instant the drawing changes, the head can
+move even though the pose did not ask it to.
+
+    node tools/audit_frame_jitter.mjs           # every cycle, worst first
+    node tools/audit_frame_jitter.mjs --check   # held cycles only, exit 1 on a pop
+
+It measures the step the way the renderer applies it, which matters: a grounded
+pose hangs from its foot line, an airborne one is re-anchored to its centre of
+mass by `holdComY` and only leaks what the cap refuses to absorb. Reporting the
+raw foot-line difference for a `jump` would be reporting a pop the renderer has
+already dealt with.
+
+### The limp, and why it was the one thing safe to fix by arithmetic
+
+A four-frame run is two identical strides on opposite legs. The bob is real —
+the body drops onto the reaching foot and rises over the passing one, phased
+correctly on 32 of 34 fighters — but the two halves disagreed about how far it
+drops, by a median 5% of body height and up to 25%. That is a limp at 6.5
+footfalls a second, and it is the highest-frequency thing in the game that
+moves when it should not.
+
+It is also the only step here that can be corrected without an opinion, because
+**the animation says the same thing twice**: whatever `run_reach_a` means,
+`run_reach_b` means it too, so a difference between them carries no intent to
+preserve. `tools/smooth_cycles.py` brings each pair to its mean by moving
+`renderScale` — which the renderer applies about the frame's own foot anchor,
+so the head moves and the feet stay planted. Median step 9.9% → 5.7%, limp
+5.1% → 0.0%, and `tools/audit_hitboxes.mjs` reports identical boxes either side
+of it: `silhouette.js` takes a banded aggregate over the whole pose set, so a
+few percent on four frames cannot move a matchup.
+
+Three fighters are refused rather than averaged — hanami, kurourushi and
+mechamaru, whose halves are 20–27% apart. Sorted, the roster's limps run
+smoothly from 0.6% to 11.1% and then jump to those three: a gap that big is one
+frame being the wrong size, not two halves disagreeing, and splitting the
+difference would take the good frame with it. They are printed for an eye
+instead, which is the same shape as `XFADE_COM_MAX_FRAC` doubling as
+`com_review.js`'s review threshold — cap what a rule may do, queue the rest.
+
+### What is left, and who owns it
+
+| Step | Where | Who can help |
+|---|---|---|
+| `crouch`, 6.9% of body height at 3fps | the held pair disagreeing about depth — the brief's "not a descent sampled twice" | `?smooth=holds` dissolves the cut; the stature change needs the placement fixing |
+| attack pairs, 4–7% (worst 37%) | wind-up to strike | judgement — some of it is the drawing |
+| `airLight` and the airborne set, 4.6% | after `holdComY` absorbs what it can | the com anchor, via `com_review.js` |
+
+`--check` fails on held cycles alone and is not in `npm run check` yet, because
+34 of them would fail it today — 33 crouch pairs and one idle. It goes in when
+they are placed.
+
 ## Tuning
 
 All of it is in `src/config_tuning.js`:
