@@ -158,7 +158,9 @@ VARIANT_REVIEW = ["needsReplacement", "wantsImprovement",
 # same reason as the rest: it describes the IMAGE, so a pose that switches back
 # to its own art must not keep claiming to have borrowed one.
 VARIANT_ORIGIN = ["borrowedFrom"]
-VARIANT_BANKED = VARIANT_PLACEMENT + VARIANT_REVIEW + VARIANT_ORIGIN
+# What a tool changed, and from what — see VARIANT_PROVENANCE in sprites.js.
+VARIANT_PROVENANCE = ["smoothed"]
+VARIANT_BANKED = VARIANT_PLACEMENT + VARIANT_REVIEW + VARIANT_ORIGIN + VARIANT_PROVENANCE
 
 # Kinds that only mean something about an option, never about the pose.
 # Mirrors VARIANT_ONLY_KINDS in sprites/src/sprites.js.

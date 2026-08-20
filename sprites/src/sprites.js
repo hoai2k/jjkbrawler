@@ -292,9 +292,20 @@ export const VARIANT_REVIEW = ["needsReplacement", "wantsImprovement",
  *  name the pose the drawing belongs to. */
 export const VARIANT_ORIGIN = ["borrowedFrom"];
 
+/** Provenance for a number a tool placed rather than a person.
+ *
+ *  Banked for the same reason as everything else here: `smoothed` records what
+ *  `tools/smooth_cycles.py` changed a frame's `renderScale` FROM, which is a
+ *  fact about that drawing's placement and means nothing once the pose is
+ *  showing a different one. `autoTuned` is not in this list because nothing
+ *  writes it per option — auto_tune runs over poses, not variants — and adding
+ *  it would bank a key that is never there. */
+export const VARIANT_PROVENANCE = ["smoothed"];
+
 /** Everything banked onto the option a pose is leaving, and restored from the
  *  one it arrives at. */
-export const VARIANT_BANKED = [...VARIANT_PLACEMENT, ...VARIANT_REVIEW, ...VARIANT_ORIGIN];
+export const VARIANT_BANKED = [...VARIANT_PLACEMENT, ...VARIANT_REVIEW,
+                               ...VARIANT_ORIGIN, ...VARIANT_PROVENANCE];
 
 // Fallback centre of mass, derived from the extraction data the manifest
 // already carries. Cached per frame on FIRST use — before the workbench can
