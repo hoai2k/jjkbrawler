@@ -21,7 +21,7 @@ import {
   ULT_METER_COST, DOMAIN_METER_COST,
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
   LEDGE_CLIMB_TIME, LEDGE_ROLL_TIME, LEDGE_ATTACK_TIME,
-  LEDGE_CATCH_SPEED, LEDGE_CATCH_MIN, LEDGE_CATCH_MAX,
+  LEDGE_CATCH_SPEED, LEDGE_CATCH_MIN, LEDGE_CATCH_MAX, LEDGE_GRIP_RELEASE,
   LEDGE_INVULN_TRAVEL, LEDGE_REGRAB_SCALE, LEDGE_HANG_INVULN, LEDGE_JUMP_INVULN,
   TEETER_EDGE, TEETER_DELAY,
   RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE, ATTACK_DIAG_DEG,
@@ -79,6 +79,11 @@ export function makeFighter(id, charKey, x, facing) {
     throatStrain: 0, throatLock: 0,
     statuses: freshStatuses(),
     ledge: null, ledgeCooldown: 0, ledgeTimer: 0, ledgeMove: null, ledgeGrabs: 0,
+    // The platform corner the hang drawing is hung from, and how much of
+    // that hold is still in force (render.js hangGripShift). Outlives
+    // `ledge` on purpose: the grip has to be handed back over time, not
+    // dropped the frame somebody presses a direction.
+    hangGrip: null, hangGripW: 0,
     respawnTimer: 0, dead: false,
     // The revival platform this fighter is currently standing on, or null.
     // {x, y, t} — see stepRespawnPlatform.
@@ -460,6 +465,43 @@ function ledgeMovePos(m) {
   return { x: m.fromX + (m.toX - m.fromX) * kx, y: m.fromY + (m.toY - m.fromY) * ky };
 }
 
+/**
+ * HOW MUCH OF THE HANG GRIP IS STILL HOLDING THE DRAWING, 0..1.
+ *
+ * The hang pose is placed by its gripping hand on the platform corner rather
+ * than by the fighter's feet, which carries the body ~130 px below where the
+ * same drawing would otherwise stand. Presentation only — the hurtbox is hung
+ * off the corner in its own right (combat.js) — but it is 130 px of body, and
+ * it used to appear and vanish in single frames: pinned from the first frame of
+ * the catch, by a grip point the fall pose does not really have, and released
+ * the instant an exit cleared `f.ledge`, while the hang pose was still what was
+ * being drawn.
+ *
+ * So the weight EASES: in across the catch, held at 1 on the hang, and handed
+ * back over LEDGE_GRIP_RELEASE on the way out — every exit, including the ones
+ * with no transition of their own to hide it (the jump, the drop).
+ */
+function updateHangGrip(f, dt) {
+  if (!f.hangGrip) { f.hangGripW = 0; return; }
+  // ON only while they are actually hanging. The CATCH is deliberately not
+  // gripped: it is a fall that ends at the ledge, and a fall is drawn like any
+  // other — travelling, held by its mass. Gripping it from the first frame is
+  // what used to nail the drawing to the corner for the whole reach, so the
+  // body did not move at all while the fighter crossed up to 200 px, and then
+  // jumped when the hang pose brought the real grip with it.
+  const to = f.ledge && !f.ledgeMove ? 1 : 0;
+  // LINEAR, in both directions and at one rate: a constant weight per frame is
+  // a constant number of pixels per frame, which is the quantity being kept
+  // under the step bar. An eased ramp would spend its middle frames over it.
+  const step = dt / LEDGE_GRIP_RELEASE;
+  f.hangGripW = clamp((f.hangGripW || 0) + (to ? step : -step), 0, 1);
+  // Forgotten only once the ledge is behind them AND the body is back on its
+  // own feet. Dropping it on weight alone would throw the corner away during
+  // the catch, which starts at zero weight and is the one trip that ends ON
+  // the ledge rather than off it.
+  if (f.hangGripW <= 0 && !f.ledge && !f.ledgeMove) f.hangGrip = null;
+}
+
 /** The pose a transition is drawing this frame. Reuses the poses the roster
  *  already has — a catch is the fall it came in on, a climb is a rise and a
  *  landing, a roll is the roll — so none of this waits on new art. */
@@ -570,6 +612,11 @@ function tryGrabLedge(f) {
       f.ledgeGrabs += 1;
       f.invuln = Math.max(f.invuln,
         (catchTime + LEDGE_HANG_INVULN) * ledgeInvulnScale(f));
+      // The corner the drawing will be hung from once they are on it. Weight
+      // zero for now: the reach is drawn as the fall it is, and the grip takes
+      // the body over its own ramp when the hang lands (updateHangGrip).
+      f.hangGrip = { x: edgeX, y: plat.y };
+      f.hangGripW = 0;
       beginLedgeMove(f, "catch", catchTime, hangX, hangY, { rising: f.vy < -20 });
       playSfx("landing", 0.3);
       dust(f.x, f.y, 8);
@@ -1207,6 +1254,15 @@ export function updateFighter(f, dt, input) {
     return;
   }
 
+  // THE HANG GRIP, STEPPED ON EVERY PATH — including the two below, which own
+  // the fighter and return before the rest of this function runs. The grip has
+  // to keep letting go while a climb is climbing, and it has to keep holding
+  // while a hang is hanging; a ramp that only advances on the ordinary path
+  // would sit frozen through exactly the frames it exists for. Below the
+  // freeze and hitlag returns above, so a frozen fighter's drawing is frozen
+  // too.
+  updateHangGrip(f, dt);
+
   // hanging on ledge
   if (f.ledge) {
     updateLedge(f, dt, input);
@@ -1617,7 +1673,10 @@ export function updateFighter(f, dt, input) {
   // vertical jump of 14 px on the roster median the instant `grounded`
   // flipped — and near ledges grounded flips constantly, which is where the
   // game read as flickery. A ledge hang counts as grounded here: the drawing
-  // is anchored by the gripping hand there, not by either of these.
+  // is anchored by the gripping hand there. The trip OUT of one is the handover
+  // between the two holds: the grip lets go over its own ramp while this one
+  // eases in, and render.js takes each off the other's total so the body is
+  // carried once rather than twice.
   const holdOn = !f.grounded && !f.ledge && !f.ledgeMove;
   f.comHoldW = clamp((f.comHoldW ?? 0) + (holdOn ? dt : -dt) / COM_HOLD_EASE, 0, 1);
   // ONLY THE GROUND clears the regrab penalty (constants.js

@@ -603,6 +603,67 @@ export function teeterLip(f) {
   };
 }
 
+/**
+ * HOW FAR THE HANG GRIP CARRIES THE BODY, in world px, at this instant.
+ *
+ * A hang is placed by the gripping hand: the `ledge` anchor on the hang drawing
+ * goes on the platform corner, which puts the body a good 130 px below where
+ * the same drawing standing on its feet would be. That was an `anchorTo` — a
+ * pin, on or off — and being on or off is what made it a pop. `f.ledge` is
+ * cleared the frame an exit begins, and the hang pose is still what is drawn
+ * for the next few frames, so the body jumped 110-139 px in one frame and then
+ * settled back down. The catch had the mirror problem: the pin was applied to
+ * the FALL pose, by a grip point that pose does not carry (`anchorPoint` falls
+ * back to a guess), so the drawing was nailed to the corner for the whole reach
+ * — not travelling at all — and then jumped again when the real grip arrived.
+ *
+ * As an OFFSET it can be weighed, and fighter.js weighs it (`hangGripW`): eased
+ * in across the catch, 1 on the hang, handed back over LEDGE_GRIP_RELEASE on
+ * the way out. And it is measured from the HANG frame's own grip whatever pose
+ * is on screen, so a rise or a roll mid-release carries the same displacement
+ * the hang had — the body keeps moving instead of the anchor changing meaning
+ * under it.
+ *
+ * Zero for everyone not on or leaving a ledge, and zero on a backend with no
+ * anchors to read (the 3D rigs pose the hand themselves).
+ */
+export function hangGripShift(f, scale) {
+  const w = f.hangGripW || 0;
+  if (!f.hangGrip || w <= 0) return { x: 0, y: 0 };
+  const key = f.spriteChar || f.charKey;
+  const frame = currentFrame(key, "ledge", 0);
+  const opts = { scale: scale ?? getActor(key)?.scale, facing: f.facingVis ?? f.facing };
+  const grip = frame && anchorOffset(key, frame, "ledge", opts);
+  if (!grip) return { x: 0, y: 0 };
+  // WHAT THE COM HOLD IS ALREADY DOING, taken off the top. The two holds run
+  // together on the way out — the mass hold ramping in as the grip lets go —
+  // and if the grip did not account for it, both would carry the same pixels
+  // and the body would travel twice as far as it has to. Measured this way the
+  // grip only carries what is genuinely the LEDGE's: the drop from where the
+  // pose's mass would hang in the air to where its hand is on the corner,
+  // about 90 px rather than 130, which is what keeps a getup inside the step
+  // budget the transitions are timed to (tools/smoke_ledge.mjs).
+  const held = comHoldShift(f, key, frame, opts);
+  return {
+    x: (f.hangGrip.x - (f.x + grip.x)) * w,
+    y: (f.hangGrip.y - (f.y + grip.y + held)) * w,
+  };
+}
+
+/** The vertical offset the airborne mass-hold applies to this frame right now,
+ *  computed exactly as sprites.js applies it — same cap, same weight. Shared so
+ *  the grip above can subtract it rather than guess at it. */
+function comHoldShift(f, key, frame, opts) {
+  const holdW = f.comHoldW ?? 0;
+  if (!(holdW > 0) || !frame) return 0;
+  const com = anchorOffset(key, frame, "com", opts);
+  if (!com) return 0;
+  const H = bodyMetrics(key).height;
+  const want = -H * comFrac(key) - com.y;
+  const cap = H * COM_HOLD_MAX_FRAC;
+  return Math.max(-cap, Math.min(cap, want)) * holdW;
+}
+
 function drawFighters(ctx, { bodies = true } = {}) {
   const sorted = [...state.fighters].sort((a, b) => a.y - b.y);
   for (const f of sorted) {
@@ -661,6 +722,9 @@ function drawFighters(ctx, { bodies = true } = {}) {
     if (bodies && !(transformed && !behind)) {
       drawTrail(ctx, f);
       const m = fighterTransform(f);
+      // The hang, as a displacement that arrives and leaves rather than a pin
+      // that is either on or off. See hangGripShift.
+      const grip = hangGripShift(f, spriteActor.scale);
       const drawOpts = {
         scale: spriteActor.scale,
         facing: f.facingVis,
@@ -682,8 +746,8 @@ function drawFighters(ctx, { bodies = true } = {}) {
         rotation: m.rotation,
         scaleX: m.scaleX,
         scaleY: m.scaleY,
-        offsetX: m.offsetX,
-        offsetY: m.offsetY,
+        offsetX: m.offsetX + grip.x,
+        offsetY: m.offsetY + grip.y,
         // Airborne, the drawing hangs from its CENTRE OF MASS rather than
         // standing on its foot line — there is nothing under the feet to stand
         // on, and every airborne pose puts the foot line somewhere different,
@@ -694,16 +758,16 @@ function drawFighters(ctx, { bodies = true } = {}) {
         // Gated on the WEIGHT rather than on `grounded`, because the weight
         // outlives the flip: it eases 0->1 after leaving the ground and back
         // down after landing (fighter.js comHoldW), which is what turned the
-        // hold's one-frame 14 px arrival into a slide. A ledge hang is the
-        // exception either way — the drawing is anchored by the hand there.
-        holdComY: !f.ledge && (f.comHoldW ?? 0) > 0
+        // hold's one-frame 14 px arrival into a slide. A hang holds the body
+        // by the gripping hand instead, and fighter.js keeps this weight at
+        // zero for as long as that grip does (comHoldW): two holds pulling on
+        // one body would each undo half of the other.
+        holdComY: (f.comHoldW ?? 0) > 0
           ? -bodyMetrics(spriteKey).height * comFrac(spriteKey) : null,
         holdComW: f.comHoldW ?? 1,
         // …and no further than this, so a mis-baked frame anchor is a nudge
         // rather than a fighter teleporting. See the note at holdComY.
         holdComMax: bodyMetrics(spriteKey).height * COM_HOLD_MAX_FRAC,
-        // A frame with a ledge-grip anchor is hung from that hand on the real
-        // platform corner, instead of standing its feet in mid-air beside it.
         // A TEETER puts its leading foot on the lip, on the x axis only: the
         // brake stops every fighter's centre the same fixed distance past the
         // edge (standMargin, fighter.js), and each drawing carries its front
@@ -713,9 +777,7 @@ function drawFighters(ctx, { bodies = true } = {}) {
         // construction — the fighter's x, hurtbox and brake are untouched —
         // and eased in on the teeter's own ramp so the drawing slides rather
         // than jumps.
-        anchorTo: f.ledge
-          ? { name: "ledge", x: f.ledge.edgeX, y: f.ledge.plat.y }
-          : teeterLip(f),
+        anchorTo: teeterLip(f),
         glow: glowing ? (f.installs ? f.installs.color : f.char.shadow) : f.char.shadow,
         glowBlur: glowing ? 26 : 12,
       };
