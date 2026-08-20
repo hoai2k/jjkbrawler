@@ -1250,3 +1250,13 @@ button.ghost:disabled { opacity: 0.35; cursor: default; border-color: var(--line
 }
 .deploy-stamp:hover { opacity: 1; color: #62dcff; }
 .deploy-stamp--local { color: #ffb95f; }
+
+/* The hurtbox case chips: one drawing can answer for two boxes (a hurt pose is
+   both the reeling box and, spun, the tumbling one), and which one is being
+   edited has to be visible at a glance rather than inferred from the canvas. */
+#fitCases button.on {
+  background: #1d3550;
+  border-color: var(--accent);
+  color: #fff;
+}
+#fitRows .note + .note { margin-top: 4px; }

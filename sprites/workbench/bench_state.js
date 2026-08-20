@@ -174,6 +174,12 @@ export const state = {
   anchorForced: new Set(),
   dragging: false,
   dragAttack: null,
+  // Which hurtbox case the panel is editing on this pose, when the drawing
+  // carries more than one (a hurt pose is both "reeling" and "tumbling").
+  // Session-only, and it changes what is drawn and dragged, not the art.
+  fitCase: null,
+  // Dragging the hurtbox: "move" on its body, or the corner being pulled.
+  dragFit: null,
   // Dragging the hit circle: "move" on its centre, "size" on its rim.
   dragHit: null,
   // RECENT_KEY while the cross-character updated list is open. `char` stays a

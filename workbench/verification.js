@@ -46,6 +46,16 @@ const withKey = (path) => (CACHE_KEY ? `${path}?v=${encodeURIComponent(CACHE_KEY
 //
 // Loaded lazily: a set that nobody opened costs nothing, and a set that fails
 // to load says so in its own place instead of taking the bench down with it.
+//
+// A QUEUE IS FOR A QUESTION WITH NOWHERE ELSE TO BE ASKED. Four sets have left
+// this table for that reason rather than because they were wrong: the grabbing
+// hand, the held chest, the teeter foot and the per-frame centre of mass are
+// all `meta.anchors` on one drawing, and the sprite workbench drags every one
+// of them ON the drawing, with the sprite under the handle and the same export
+// the rest of its edits ride in. A second place to answer the same question is
+// two places to look for the answer, and the bench that shows the picture wins.
+// (`tools/audit_sprite_com.mjs` still names the frames worth a look; it points
+// at the sprite workbench now.)
 
 const SETS = {
   // FIRST, so it is what opens: this is the queue with somebody waiting on it.
@@ -61,31 +71,6 @@ const SETS = {
       + "for all of them — so each one is shown moving right, drawn as the game will "
       + "draw it, and the question is whether it leads with its head.",
     load: () => import(withKey("./verify_creature_facing.js")).then((m) => m.provider()),
-  },
-  // The three anchor queues. Each edits `meta.anchors[<name>]` in the sprite
-  // manifest — the same field the SPRITE workbench's handles drag and the game
-  // already reads. Not a parallel store: a value moved in either tool is the
-  // same number, and the export is an ordinary sprite-adjustments block.
-  "grab-hand": {
-    label: "Grabbing hand",
-    blurb: "The open hand that closes on the collar, on each fighter's grab_reach. "
-      + "The grab reaches exactly this far instead of a formula off measured art reach. "
-      + "Same anchor the sprite workbench drags; src/grab.js reads it.",
-    load: () => import(withKey("./verify_anchors.js")).then((m) => m.anchorProvider("grabHand")()),
-  },
-  "grab-chest": {
-    label: "Held chest",
-    blurb: "Where the prying hands sit on each fighter's grabbed pose — the point the "
-      + "holder's fist lands on. It only means anything ACROSS fighters: a fist high on "
-      + "one and low on another makes every pairing read as a different argument.",
-    load: () => import(withKey("./verify_anchors.js")).then((m) => m.anchorProvider("grabChest")()),
-  },
-  "teeter-foot": {
-    label: "Teeter foot",
-    blurb: "The foot at the lip. The brake stops everyone with their CENTRE a fixed "
-      + "distance past the edge, and each teeter drawing puts its leading foot somewhere "
-      + "different inside its own plate. Moves the drawing only — no hurtbox, no spacing.",
-    load: () => import(withKey("./verify_anchors.js")).then((m) => m.anchorProvider("teeter")()),
   },
   "strike-points": {
     label: "Strike points",
@@ -105,25 +90,10 @@ const SETS = {
     blurb: "Where each fighter's weight sits — ONE number per fighter, as a fraction "
       + "of height. The tumble pivot, the airborne hurtbox centre, the aim chest line, "
       + "and the height an airborne drawing hangs from, so being wrong moves the whole "
-      + "fighter rather than tilting them. 7 of 34 are still on the assumed 0.55, and "
-      + "every frame of theirs in \"Frame centre of mass\" is being judged against that "
-      + "guess until this is answered.",
+      + "fighter rather than tilting them. The per-DRAWING sibling of this — "
+      + "`meta.anchors.com`, an x and a y on one picture — is a handle in the sprite "
+      + "workbench, and is judged against this number.",
     load: () => import(withKey("./verify_body_points.js")).then((m) => m.comProvider()),
-  },
-  // The per-FRAME sibling of the set above — a different store answering a
-  // different question, not a replacement for it. That one is `com` in
-  // config_body_points.js, one fraction per fighter, and it is what the
-  // `height` reason here compares against; this one is `meta.anchors.com` in
-  // the sprite manifest, an x and a y on one drawing. A queue rather than a
-  // roster walk, because there are thousands of these anchors: it lists only
-  // the ones sprites/src/com_review.js has reason to doubt.
-  "frame-com": {
-    label: "Frame centre of mass",
-    blurb: "Where each suspect DRAWING carries its weight — `meta.anchors.com`, the "
-      + "handle the sprite workbench drags. It was a pivot when it was baked and is a "
-      + "placement now: an airborne drawing hangs from it, and a cross-fade lines its "
-      + "two drawings up on it. Listed worst first, with why each one is here.",
-    load: () => import(withKey("./verify_frame_com.js")).then((m) => m.provider()),
   },
   "muzzle-points": {
     label: "Muzzle points",
@@ -134,7 +104,10 @@ const SETS = {
   "hurtbox-fit": {
     label: "Hurtbox fit",
     blurb: "Does the box you can be hit on cover the body that is drawn — standing, "
-      + "ducking, airborne, reeling and flat out.",
+      + "ducking, airborne, reeling and flat out. A queue because it is a roster-wide "
+      + "sweep with a place to lose your place in; the same box can also be dragged on "
+      + "any one pose in the sprite workbench, which is where you fix the one you just "
+      + "noticed.",
     load: () => import(withKey("./verify_hurtbox_fit.js")).then((m) => m.provider()),
   },
   "model-facing": {

@@ -2,15 +2,15 @@
 //
 // THE TEST ITSELF LIVES IN sprites/src/com_review.js, which carries the
 // reasoning for each of its four reasons. This is the terminal view of it. The
-// other view is the verification bench's queue, where the same list can be
-// answered rather than only read:
+// answers are given in the sprite workbench, where the anchor is a handle on
+// the drawing it belongs to:
 //
-//     /workbench/?edit=verification&set=frame-com
+//     /sprites/workbench/  — pick the fighter and the pose, drag "Centre of mass"
 //
-// They used to be able to disagree — the audit held the only copy of the test,
-// and nothing in the repo could record that a person had looked at one of these
-// numbers and approved it. Now the rule is shared and the queue is where the
-// answer goes.
+// The verification bench used to carry a queue for these as well. It was the
+// same field written from a second place, so it went: this list says which
+// drawings to open, and the bench that shows the drawing is where the number
+// moves.
 //
 // WHY IT MATTERS. The per-frame `anchors.com` used to matter only as a pivot —
 // a tumble turned about it, a squash widened about it — where being a few
@@ -103,5 +103,5 @@ if (!shown.length) {
   if (!showAll && shown.length > 25) console.log(`\n… and ${shown.length - 25} more (--all)`);
 }
 
-console.log("\nAnswer these in /workbench/?edit=verification&set=frame-com , or drag one "
-  + "anchor at a time in /sprites/workbench/ . Both write the same field.");
+console.log("\nAnswer these in /sprites/workbench/ — pick the fighter and the pose, then "
+  + "drag the \"Centre of mass\" handle on the drawing.");

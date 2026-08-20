@@ -36,6 +36,9 @@ const BENCH = join(ROOT, "sprites", "workbench");
 /** Bottom to top. A module may import anything EARLIER in this list. */
 const LAYERS = [
   "bench_state.js",
+  // Reads the game's own hurtbox configuration and nothing of the bench's, so
+  // it sits near the bottom: everything above may use it, it uses none of them.
+  "bench_hurtbox_fit.js",
   "bench_model.js",
   "bench_picker.js",
   "bench_shared_art.js",

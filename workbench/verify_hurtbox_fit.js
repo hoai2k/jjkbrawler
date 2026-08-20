@@ -41,10 +41,11 @@
 import { resolvedAnim } from "../sprites/src/sprites.js";
 import { CHARACTER_KEYS } from "../src/characters.js";
 import { HURTBOX_FIT } from "../src/config_body_points.js";
-import { HURTBOX_CASES, hurtboxArtToken, fitState, ledgeBox } from "../src/hurtbox_art.js";
+import {
+  HURTBOX_CASES, hurtboxArtToken, fitState, derivedBox,
+} from "../src/hurtbox_art.js";
 import { bodyMetrics } from "../src/silhouette.js";
-import { comFrac } from "../src/body_points.js";
-import { HURTBOX, LEDGE_HANG_X, LEDGE_HANG_Y } from "../src/constants.js";
+import { HURTBOX } from "../src/constants.js";
 import {
   ZOOM, groundY, CENTRE_X, drawStage, caption, slider, frameStepper,
   ensureTaskArt,
@@ -101,7 +102,7 @@ export async function provider() {
       };
     },
     describe(task, value) {
-      const base = baseBox(task);
+      const base = derivedBox(task.charKey, task.caseKey);
       const px = `<b>${Math.round(base.w * value.w)}×${Math.round(base.h * value.h)}px</b>`;
       const moved = value.dx || value.dy;
       const sized = value.w !== 1 || value.h !== 1;
@@ -199,36 +200,6 @@ function describeSource(key, b) {
  *  { w, h, top, cx } — `top` px above the fighter's own y, `cx` px forward of
  *  the centre line. `cx` is zero for every case but the hang, which is not
  *  built about the fighter at all (see the `ledge` branch). */
-function baseBox(task) {
-  const b = bodyMetrics(task.charKey);
-  const H = b.height, W = b.width;
-  switch (task.caseKey) {
-    case "crouch": return { w: W * HURTBOX.crouchW, h: H * b.crouch, top: H * b.crouch };
-    case "air": {
-      const h = H * (b.air ?? HURTBOX.airH);
-      return { w: W, h, top: h };
-    }
-    case "hurt": return { w: W * HURTBOX.hurtW, h: H * HURTBOX.hurtH, top: H * HURTBOX.hurtH };
-    case "prone": return { w: H * HURTBOX.proneW, h: H * HURTBOX.proneH, top: H * HURTBOX.proneH };
-    case "tumble": {
-      // Same long low shape as prone, but hung about the centre of mass rather
-      // than resting on the floor — that is the point the spin pivots on.
-      const h = H * HURTBOX.proneH;
-      return { w: H * HURTBOX.proneW, h, top: H * comFrac(task.charKey) + h / 2 };
-    }
-    case "ledge": {
-      // HUNG FROM THE CORNER, exactly as combat.js hangs it and exactly as the
-      // stage hangs the drawing: the box's top edge is the lip, and the lip is
-      // LEDGE_HANG_Y above the fighter's own y and LEDGE_HANG_X forward of it.
-      // Everything else here is measured up from the feet; a hang is the one
-      // pose whose feet are not on anything.
-      const g = ledgeBox(task.charKey);
-      return { w: g.w, h: g.h, top: LEDGE_HANG_Y, cx: LEDGE_HANG_X + g.cx };
-    }
-    default: return { w: W, h: H * HURTBOX.standH, top: H * HURTBOX.standH };
-  }
-}
-
 // ------------------------------------------------------------ box geometry
 //
 // One place that knows how a value becomes four canvas edges, and one that
@@ -238,7 +209,7 @@ function baseBox(task) {
 
 /** Value -> canvas edges, plus the derived box the value is relative to. */
 function geom(task, value) {
-  const base = baseBox(task);
+  const base = derivedBox(task.charKey, task.caseKey);
   const bw = base.w * ZOOM;
   const bh = base.h * ZOOM;
   // The derived box is anchored on its own BOTTOM edge, which is where

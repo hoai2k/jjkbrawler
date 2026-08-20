@@ -30,7 +30,8 @@
 import { resolvedAnim } from "../sprites/src/sprites.js";
 import { frameMeta } from "./assets.js";
 import { bodyMetrics } from "./silhouette.js";
-import { HURTBOX } from "./constants.js";
+import { HURTBOX, LEDGE_HANG_X, LEDGE_HANG_Y } from "./constants.js";
+import { comFrac } from "./body_points.js";
 import { HURTBOX_FIT, HURTBOX_FIT_ART } from "./config_body_points.js";
 
 /**
@@ -78,6 +79,73 @@ export function ledgeBox(charKey) {
     cx: b.width * HURTBOX.ledgeX,
     w: b.width * HURTBOX.ledgeW,
     h: b.height * HURTBOX.ledgeH,
+  };
+}
+
+/**
+ * THE BOX THE GAME DERIVES FOR ONE CASE, before any fit is applied, quoted
+ * RELATIVE TO THE FIGHTER: `w` and `h` in game px, `top` how far the box's top
+ * edge rises above the fighter's own y, `cx` how far its centre sits forward
+ * of the centre line.
+ *
+ * combat.js builds these same seven boxes around a live fighter, which a bench
+ * does not have — so this is the shape without the fighter, and the two must
+ * not be allowed to drift. Both benches that draw a hurtbox read it from here
+ * (the verification queue and the sprite workbench), which is what stopped the
+ * sprite workbench drawing a standing box on an airborne pose.
+ *
+ * A HANG IS QUOTED FROM THE LIP. Every other case stands on the foot line; the
+ * hang is hung from the platform corner, LEDGE_HANG_Y above the fighter's own
+ * y and LEDGE_HANG_X forward of it, because that is the point render.js hangs
+ * the DRAWING from. It is the only point a box and a body can be compared at.
+ */
+export function derivedBox(charKey, caseKey) {
+  const b = bodyMetrics(charKey);
+  const H = b.height, W = b.width;
+  switch (caseKey) {
+    case "crouch": return { w: W * HURTBOX.crouchW, h: H * b.crouch, top: H * b.crouch, cx: 0 };
+    case "air": {
+      const h = H * (b.air ?? HURTBOX.airH);
+      return { w: W, h, top: h, cx: 0 };
+    }
+    case "hurt":
+      return { w: W * HURTBOX.hurtW, h: H * HURTBOX.hurtH, top: H * HURTBOX.hurtH, cx: 0 };
+    case "prone":
+      return { w: H * HURTBOX.proneW, h: H * HURTBOX.proneH, top: H * HURTBOX.proneH, cx: 0 };
+    case "tumble": {
+      // The same long low shape as prone, but hung about the centre of mass
+      // rather than resting on the floor — that is the point the spin pivots on.
+      const h = H * HURTBOX.proneH;
+      return { w: H * HURTBOX.proneW, h, top: H * comFrac(charKey) + h / 2, cx: 0 };
+    }
+    case "ledge": {
+      const g = ledgeBox(charKey);
+      return { w: g.w, h: g.h, top: LEDGE_HANG_Y, cx: LEDGE_HANG_X + g.cx };
+    }
+    default: return { w: W, h: H * HURTBOX.standH, top: H * HURTBOX.standH, cx: 0 };
+  }
+}
+
+/**
+ * The fit applied to a derived box, as combat.js applies it: resized about the
+ * bottom edge, then shifted by fractions of the DERIVED size — `dx` forward,
+ * `dy` up. Quoted the same way `derivedBox` is, so a caller that has one has
+ * the other in the same frame of reference.
+ *
+ * The floor and lip clamps combat.js also applies are NOT here: both need a
+ * live fighter (are they standing on something, is their hand on a corner),
+ * and a bench drawing the clamped box would show a bottom edge the reviewer
+ * cannot move. What is drawn is the decision; the clamp is the game being
+ * kind about it afterwards.
+ */
+export function fittedBox(charKey, caseKey, fit) {
+  const base = derivedBox(charKey, caseKey);
+  const m = { w: 1, h: 1, dx: 0, dy: 0, ...(fit || {}) };
+  const w = base.w * m.w, h = base.h * m.h;
+  return {
+    w, h,
+    cx: base.cx + m.dx * base.w,
+    top: base.top - (base.h - h) + m.dy * base.h,
   };
 }
 

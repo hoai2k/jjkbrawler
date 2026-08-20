@@ -1,10 +1,10 @@
 // WHICH FRAMES' CENTRE OF MASS IS WORTH A HUMAN LOOK.
 //
-// ONE RULE, TWO CONSUMERS. `tools/audit_sprite_com.mjs` prints the list at a
-// terminal and the verification bench's "frame centre of mass" set walks it one
-// drawing at a time (`/workbench/?edit=verification&set=frame-com`). They used
-// to be able to disagree, because the audit carried the only copy of the test;
-// now the audit is a printer for this and the bench is an editor for it.
+// ONE RULE, ONE PRINTER. `tools/audit_sprite_com.mjs` prints the list at a
+// terminal; the answers are dragged on the drawing itself in the sprite
+// workbench. The audit used to carry its own copy of the test, and the
+// verification bench a queue that walked the same list — one rule, one place to
+// read it, and one place to answer it is what is left of that.
 //
 // WHY IT MATTERS MORE THAN IT USED TO. `anchors.com` began as a PIVOT — a
 // tumble turned about it, a squash widened about it — where being a few pixels

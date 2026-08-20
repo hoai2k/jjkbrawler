@@ -268,6 +268,14 @@
           </div>
         </div>
 
+        <div class="group" id="fitGroup" hidden>
+          <label id="fitLabel" data-help="The box &lt;code&gt;combat.js&lt;/code&gt; tests when this fighter is hit. It is DERIVED from their measured body, and this is the human correction on top of it: two multipliers and two shifts, all fractions of the derived box, so the decision survives the art being re-measured.&lt;br&gt;&lt;br&gt;&lt;b&gt;Drag the box on the canvas&lt;/b&gt; — a corner resizes about the opposite one, a grab inside moves the whole thing. The dashed box behind it is what the game would derive with no correction at all.&lt;br&gt;&lt;br&gt;Two failures matter and they are different: a box bigger than the body is a fighter hit out of thin air, smaller is attacks passing visibly through them. On a pose the fighter is standing in, the bottom edge is advisory — the game extends the box back down to the floor whatever the fit says, so a leg sweep cannot whiff on somebody in front of it.&lt;br&gt;&lt;br&gt;This is not sprite data, so it is not in the ordinary export: it downloads on its own and is applied with &lt;code&gt;node tools/apply_verification.mjs&lt;/code&gt;.">Hurtbox fit <span class="sub" id="fitNote"></span></label>
+          <div class="chips" id="fitCases"></div>
+          <div id="fitRows"></div>
+          <button id="resetFit" class="ghost">Reset this box</button>
+          <button id="exportFitBtn" class="ghost">Export hurtbox fits (downloads a file)</button>
+        </div>
+
         <div class="group" id="heightGroup">
           <label data-help="The fighter&apos;s &lt;em&gt;global&lt;/em&gt; size: every pose is drawn at a scale solved from this, so moving it resizes the whole sprite set at once. The bar on the canvas is where the top of the head lands.&lt;br&gt;&lt;br&gt;Defaults to the character&apos;s canon height (&lt;code&gt;heightCm&lt;/code&gt; in characters.js), compressed toward Gojo so the roster keeps its real ordering without outgrowing the shared hurtbox. Fighters with no published height sit at Gojo&apos;s. Reset returns to the canon-derived value.&lt;br&gt;&lt;br&gt;The scale is solved against the idle&apos;s span. Once the idle has been adjusted by hand that span is pinned, so the idle becomes an ordinary pose and can be sized and grounded freely — the bar on the canvas is then the character&apos;s target rather than a line the idle is glued to.">Character height <span class="sub" id="headVal"></span></label>
           <input type="range" id="headRange" min="110" max="240" step="0.5" value="175">
