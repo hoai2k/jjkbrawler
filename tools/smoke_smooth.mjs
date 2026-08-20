@@ -15,6 +15,9 @@
 //      hysteresis now (enter under 24 px/s, drop only over 48) and teeterT
 //      decays instead of zeroing, with motion.js riding the timer rather than
 //      the pose.
+//   4. THE ALIGNED FADE DOES NOT BLINK THE BODY. Dissolving two drawings that
+//      overlap costs opacity, and on a slow held loop that dip repeats twice a
+//      second — see the check itself, which carries the arithmetic.
 //   3. SPRITE STATE CHANGES CROSS-FADE. The 3D backend blends a state change
 //      over 0.1 s off the `prevAnim` record; the sprite renderer ignored the
 //      same record and cut. It now draws the outgoing frame under the new one
@@ -264,6 +267,92 @@ check(fade.late === fade.base1,
 check(fade.hurt === fade.hurtBare,
   "a hit still CUTS — no ghost into hurt, matching the 3D backend's rule",
   `${fade.hurt} vs ${fade.hurtBare} draw calls`);
+
+// ---------------------------------------- 4. the fade does not blink the body
+//
+// A fourth flicker, and the newest: `?smooth=com` ramps the incoming drawing
+// up as the outgoing one ramps down, because an opaque body cannot be lined up
+// with a ghost nobody can see past. Two drawings that OVERLAP cost opacity
+// that way — the ghost at 1-k under the body at k covers (1-k) + k² of the
+// background, bottoming out at 0.75 — and on `idle`, which steps between two
+// drawings of one stance twice a second and overlaps almost exactly, the dip
+// lands on the whole body every 0.45 s. A quarter of the fighter, gone and
+// back, twice a second. It was reported as a flicker because it is one.
+//
+// The fade now goes only as deep as the alignment needs (render.js `dissolve`),
+// so a step with nothing to align keeps an opaque body. This measures the
+// thing that flickered: how many pixels of fighter survive the fade.
+const blink = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { draw } = await import("/src/render.js");
+  const { WORLD } = await import("/src/constants.js");
+  const { setSmoothing } = await import("/src/flags.js");
+
+  const cv = new OffscreenCanvas(WORLD.w, WORLD.h);
+  const ctx = cv.getContext("2d", { willReadFrequently: true });
+  const a = state.fighters[0];
+
+  // PUT THEM BACK ON THE FLOOR FIRST. The checks above leave this fighter
+  // wherever their case needed them — hanging off a ledge, mid-fall, teetering
+  // — and a body half off the canvas makes "how much of them is on screen"
+  // measure the edge of the frame instead of the fade. Also parks the camera,
+  // because a camera still easing toward somewhere moves the body between the
+  // plate and the samples and every pixel of that lands in the diff.
+  const main = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+  Object.assign(a, {
+    x: main.x + main.w / 2, y: main.y, vx: 0, vy: 0, grounded: true,
+    hitstun: 0, action: null, dead: false, respawnTimer: 0, ledge: null,
+    ledgeMove: null, shakeMag: 0, teeterT: 0, teeterDir: 0, invuln: 0,
+    comHoldW: 0, spin: 0, spinAngle: 0, facingVis: a.facing,
+  });
+  state.camera.x = WORLD.w / 2;
+  state.camera.y = WORLD.h / 2;
+  state.camera.zoom = 1;
+  state.camera.shake = 0;
+
+  const shot = () => {
+    state.particles = [];
+    ctx.clearRect(0, 0, WORLD.w, WORLD.h);
+    draw(ctx);
+    return ctx.getImageData(0, 0, WORLD.w, WORLD.h).data;
+  };
+  a.dead = true; const plate = shot(); a.dead = false;
+  const cover = () => {
+    const px = shot();
+    let n = 0;
+    for (let i = 0; i < px.length; i += 4) {
+      const d = Math.abs(px[i] - plate[i]) + Math.abs(px[i + 1] - plate[i + 1])
+        + Math.abs(px[i + 2] - plate[i + 2]);
+      if (d > 24) n++;
+    }
+    return n;
+  };
+  // Straddling the idle step at 1/2.2 s, sampled at 120 Hz so the 0.07 s fade
+  // is crossed eight or nine times rather than stepped over.
+  const worstDip = () => {
+    const px = [];
+    for (let i = 0; i < 40; i++) {
+      a.animKey = "idle"; a.prevAnim = null; a.animTime = 0.40 + i * (1 / 120);
+      px.push(cover());
+    }
+    return +(100 * (1 - Math.min(...px) / px[0])).toFixed(1);
+  };
+
+  const before = setSmoothing({ com: true, holds: true, xfade: true }) && worstDip();
+  setSmoothing({ com: false, holds: true });
+  const holdsOnly = worstDip();
+  setSmoothing({ com: false, holds: false, xfade: true });
+  return { both: before, holdsOnly };
+});
+
+// The ghost's own extremities fade out at the edges of the silhouette whatever
+// happens, so the floor is not zero — `holds` alone is the honest baseline and
+// the aligned fade has to stay near it rather than near 25%.
+check(blink.both < blink.holdsOnly + 4,
+  "an idle step does not blink the body when com and holds are both on",
+  `${blink.both}% of the fighter dips out at the worst frame, against `
+  + `${blink.holdsOnly}% with holds alone. Undo the depth scaling in render.js `
+  + "and this reads about 47% against the same baseline, which is the bug.");
 
 await browser.close();
 console.log(failed ? `\n${failed} check(s) failed` : "\nall smoothness checks passed");

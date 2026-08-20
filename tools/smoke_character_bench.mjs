@@ -129,6 +129,56 @@ for (const mode of ["com", "holds", "xfade"]) {
 const anyOn = await page.evaluate(() => document.getElementById("lights").classList.contains("is-live"));
 ok(anyOn, "the indicator reads as live while anything is on");
 
+// --- the lights say WORKING, not just armed
+//
+// Three states, and the third is the one worth having: dark off, yellow armed,
+// green doing something to the frame in front of you. A fade lasts 0.08s and a
+// turn only while somebody is coming about, so a lamp that is lit whenever the
+// switch is on describes nothing. Green is painted off render.js's own
+// `smoothingActivity` — what the renderer just did — so it cannot claim
+// something the picture did not do.
+await page.evaluate(() => window.__bench.setSpeed(0.1));
+const green = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { setSmoothing } = await import("/src/flags.js");
+  // The loop above left the switches wherever its last toggle put them, and a
+  // fade that is switched off cannot light anything. Arm all three.
+  setSmoothing({ com: true, holds: true, xfade: true });
+  const seen = {};
+  const a = state.fighters[0];
+  a.facing = -a.facing;                       // start a turn
+  for (let i = 0; i < 240; i++) {
+    if (i === 40) { a.animKey = "specialNeutral"; a.animTime = 0; a.prevAnim = { key: "idle", t: 0.3 }; }
+    await new Promise((r) => requestAnimationFrame(r));
+    for (const el of document.querySelectorAll(".light.is-working")) seen[el.dataset.mode] = true;
+  }
+  return seen;
+});
+ok(green.turn, "the turn lamp goes green while a fighter is coming about",
+   "and it has no switch — the mirror sweep ships, so it is a readout");
+ok(green.xfade || green.com || green.holds,
+   "a fade lights its own lamp while it is running", Object.keys(green).join(", "));
+
+// --- the speed control slows the SIMULATION
+//
+// Not the frame rate, and not the step: scaling FIXED_DT would change what the
+// game computes — every timer, every ramp, the fade windows themselves — and a
+// bench that shows a different game at 0.1x is worse than no bench. So the
+// measure is steps per real second, which should fall with the slider.
+const rate = async (v) => await page.evaluate(async (speed) => {
+  window.__bench.setSpeed(speed);
+  await new Promise((r) => setTimeout(r, 250));
+  const s0 = window.__bench.state().steps, w0 = performance.now();
+  await new Promise((r) => setTimeout(r, 1000));
+  return (window.__bench.state().steps - s0) / ((performance.now() - w0) / 1000);
+}, v);
+const fullRate = await rate(1);
+const slowRate = await rate(0.1);
+ok(slowRate < fullRate * 0.35,
+   "the speed slider slows the simulation rather than the frame rate",
+   `${fullRate.toFixed(0)} steps/s at 1x against ${slowRate.toFixed(1)} at 0.1x`);
+await page.evaluate(() => window.__bench.setSpeed(1));
+
 ok(errors.length === 0, "no page errors", errors.slice(0, 3).join(" | "));
 
 await browser.close();

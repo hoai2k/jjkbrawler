@@ -27,7 +27,7 @@ import { initInput, readGamepads, endInputFrame, playerInput, blankInput,
 import { stepWorld, makeLatch, latchInputs, clearLatchedEdges } from "../src/sim.js";
 import { makeFighter } from "../src/fighter.js";
 import { updateCamera } from "../src/camera.js";
-import { draw } from "../src/render.js";
+import { draw, smoothingActivity } from "../src/render.js";
 import { getStage } from "../src/stages.js";
 import { initStageFx } from "../src/stage_fx.js";
 import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
@@ -52,6 +52,18 @@ const bench = {
   // The camera's own zoom is what a match uses, and a match is framed for two
   // people fighting. A bench is one person LOOKING, so this multiplies it.
   zoom: Number(url.searchParams.get("zoom")) || 1,
+  // SLOW MOTION. A fade is 0.08s and a hold fade 0.07s — four or five frames,
+  // which is not long enough to see what a mechanism is doing, only long
+  // enough to know something happened. This scales how much simulated time a
+  // real second buys, so those five frames can be spread over a second and
+  // watched. The renderer is untouched and the step is still FIXED_DT, so
+  // nothing plays out in a different order than it does at full speed.
+  speed: Number(url.searchParams.get("speed")) || 1,
+  // How many simulation steps have run. The bench has no clock of its own and
+  // the game has no global one, so this is what "how much game happened" means
+  // here — and it is the only honest way to show that the speed control slows
+  // the SIMULATION rather than the frame rate.
+  steps: 0,
 };
 
 // ------------------------------------------------------------------- the shell
@@ -89,6 +101,9 @@ root.innerHTML = `
         <button class="light" data-mode="holds" type="button" title="?smooth=holds — the slow held loops (idle, crouch, charge) cross-fade their own frame steps">
           <span class="light__dot"></span><span class="light__name">hold fade</span>
         </button>
+        <span class="light is-fixed" data-mode="turn" title="Not a flag — the game has always swept the mirror through zero over TURN_TIME instead of flipping it in a frame (fighter.js). Shown because it is the same kind of thing and the hardest to catch happening.">
+          <span class="light__dot"></span><span class="light__name">turn</span>
+        </span>
         <span class="lights__state" id="lightsState"></span>
       </div>
       <div class="viewer__foot">
@@ -96,6 +111,10 @@ root.innerHTML = `
         <label class="toggle zoom">zoom
           <input type="range" id="zoomRange" min="0.6" max="3" step="0.05">
           <span id="zoomValue"></span>
+        </label>
+        <label class="toggle zoom" title="Slows the SIMULATION, not the frame rate — the game keeps stepping at its fixed step, just fewer of them per second, so every mechanism here plays out in the same order at 1/10th speed.">speed
+          <input type="range" id="speedRange" min="0.05" max="1" step="0.05">
+          <span id="speedValue"></span>
         </label>
         <span class="viewer__pads" id="padState"></span>
         <span class="viewer__fps" id="fpsState"></span>
@@ -113,6 +132,8 @@ const lightsStateEl = document.getElementById("lightsState");
 const dummyEl = document.getElementById("dummyToggle");
 const zoomEl = document.getElementById("zoomRange");
 const zoomValueEl = document.getElementById("zoomValue");
+const speedEl = document.getElementById("speedRange");
+const speedValueEl = document.getElementById("speedValue");
 const padEl = document.getElementById("padState");
 const fpsEl = document.getElementById("fpsState");
 
@@ -226,15 +247,54 @@ async function select(charKey) {
 }
 
 // --------------------------------------------------------------- the switches
+// ARMED IS NOT THE SAME AS WORKING, and the dots say which.
+//
+//   dark    off
+//   yellow  on, and doing nothing this frame
+//   green   doing something RIGHT NOW
+//
+// The difference is the whole reason to have lights rather than checkboxes. A
+// cross-fade runs for 0.08 seconds at a state change; a hold fade for 0.07,
+// twice a second; a turn only while a fighter is coming about. A lamp that is
+// lit whenever the switch is on says nothing about the frame in front of you,
+// which is the frame you are trying to judge. Green is rare and brief on
+// purpose — turn the speed down to hold it long enough to read.
+//
+// `turn` has no switch: the mirror sweep ships and cannot be turned off, so it
+// is a lamp only, and never yellow.
+const lightEls = [...lightsEl.querySelectorAll(".light")];
+
 function paintLights() {
   const on = smoothingState();
-  for (const btn of lightsEl.querySelectorAll(".light")) {
-    btn.classList.toggle("is-on", !!on[btn.dataset.mode]);
-    btn.setAttribute("aria-pressed", String(!!on[btn.dataset.mode]));
+  for (const el of lightEls) {
+    const mode = el.dataset.mode;
+    const armed = mode === "turn" || !!on[mode];
+    el.classList.toggle("is-on", armed);
+    if (mode !== "turn") el.setAttribute("aria-pressed", String(armed));
   }
   const live = Object.entries(on).filter(([, v]) => v).map(([k]) => k);
   lightsEl.classList.toggle("is-live", live.length > 0);
-  lightsStateEl.textContent = live.length ? `smoothing: ${live.join(" + ")}` : "no smoothing";
+  lightsStateEl.textContent = live.length ? `armed: ${live.join(" + ")}` : "no smoothing";
+}
+
+/** The half that changes every frame: which of the armed lamps is actually
+ *  doing something, straight off what the renderer just did. Reading a live
+ *  readout rather than re-deriving it is the point — the lamp cannot claim
+ *  something the picture did not do. */
+function paintActivity() {
+  const on = smoothingState();
+  let working = false;
+  for (const el of lightEls) {
+    const mode = el.dataset.mode;
+    const armed = mode === "turn" || !!on[mode];
+    const active = armed && smoothingActivity[mode] > 0.001;
+    el.classList.toggle("is-working", active);
+    // The dot brightens with how hard the mechanism is working, so a fade that
+    // found nothing to align reads differently from one sliding a whole body.
+    el.style.setProperty("--work", active ? smoothingActivity[mode].toFixed(3) : "0");
+    if (active && mode !== "turn") working = true;
+  }
+  lightsEl.classList.toggle("is-working", working);
 }
 
 lightsEl.addEventListener("click", (e) => {
@@ -243,6 +303,13 @@ lightsEl.addEventListener("click", (e) => {
   const now = smoothingState();
   setSmoothing({ [btn.dataset.mode]: !now[btn.dataset.mode] });
   paintLights();
+});
+
+speedEl.addEventListener("input", () => {
+  bench.speed = Number(speedEl.value);
+  speedValueEl.textContent = bench.speed === 1 ? "1x" : `${bench.speed.toFixed(2)}x`;
+  url.searchParams.set("speed", String(bench.speed));
+  history.replaceState(null, "", url);
 });
 
 zoomEl.addEventListener("input", () => {
@@ -292,19 +359,31 @@ function loop(now) {
   latchInputs(latch, (id) => (id === 1 ? playerInput(1) : blankInput()));
 
   if (!bench.loading && state.fighters.length) {
-    accumulator = Math.min(accumulator + dt, FIXED_DT * 5);
+    // SLOW MOTION IS LESS SIMULATED TIME PER REAL SECOND, not a smaller step.
+    // Scaling FIXED_DT instead would change what the simulation computes —
+    // every timer, every ramp, the fade windows themselves — and a bench that
+    // shows you a different game at 0.1x is worse than no bench. This only
+    // decides how OFTEN the same step runs.
+    accumulator = Math.min(accumulator + dt * bench.speed, FIXED_DT * 5);
     while (accumulator >= FIXED_DT) {
       stepWorld(FIXED_DT, (f) => (f.id === 1 ? latch[1] : blankInput()));
+      bench.steps += 1;
       clearLatchedEdges(latch);
       accumulator -= FIXED_DT;
       keepOnStage();
     }
     state.camera.zoom = camZoom;
+    // The camera eases on REAL time deliberately: it is the bench's framing,
+    // not part of what is being judged, and a camera that crawls at 0.1x makes
+    // a slowed fighter harder to look at rather than easier.
     updateCamera(dt);
     camZoom = state.camera.zoom;
     frameForBench();
   }
   draw(ctx);
+  // Straight after the draw, because that is what it describes: which of the
+  // armed mechanisms actually did something to the frame now on screen.
+  paintActivity();
   endInputFrame();
 
   frames += 1;
@@ -388,6 +467,8 @@ async function boot() {
   dummyEl.checked = bench.dummy;
   zoomEl.value = String(bench.zoom);
   zoomValueEl.textContent = `${bench.zoom.toFixed(2)}x`;
+  speedEl.value = String(bench.speed);
+  speedValueEl.textContent = bench.speed === 1 ? "1x" : `${bench.speed.toFixed(2)}x`;
   camZoom = state.camera.zoom;
   paintLights();
   await select(bench.char);
@@ -406,7 +487,13 @@ boot().catch((err) => {
 // check reaches in here instead. Nothing in the page reads these.
 window.__bench = {
   state: () => ({ char: bench.char, fighters: state.fighters.length,
-                  anim: state.fighters[0]?.animKey, smoothing: smoothingState() }),
+                  anim: state.fighters[0]?.animKey, smoothing: smoothingState(),
+                  steps: bench.steps, speed: bench.speed,
+                  activity: { ...smoothingActivity } }),
+  setSpeed: (v) => {
+    speedEl.value = String(v);
+    speedEl.dispatchEvent(new Event("input"));
+  },
   select,
   step,
   press: (key) => { latch[1][key] = true; },
