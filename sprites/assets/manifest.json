@@ -7014,15 +7014,21 @@
     "renderScale": 0.4224,
     "anchors": {
      "com": [
-      213.4,
-      535.3
+      214.6,
+      535.6
      ]
     },
     "bodyTop": 13,
     "edited": {
      "renderScale": 0.352,
      "ox": -130.8,
-     "bodyBottom": 310
+     "bodyBottom": 310,
+     "anchors": {
+      "com": [
+       213.4,
+       535.3
+      ]
+     }
     },
     "bodyLeft": 14,
     "bodyRight": 561,
@@ -7619,13 +7625,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      555.5,
-      502.7
+      523.2,
+      501.5
      ]
     },
     "edited": {
      "renderScale": 0.291,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       555.5,
+       502.7
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 945,
@@ -7645,13 +7657,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      380.1,
-      632.3
+      341.7,
+      502.0
      ]
     },
     "edited": {
      "renderScale": 0.291,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       380.1,
+       632.3
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 767,
@@ -7724,12 +7742,18 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      401.5,
-      672.3
+      413.0,
+      620.0
      ]
     },
     "edited": {
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       401.5,
+       672.3
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 826,
@@ -7749,13 +7773,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      582.3,
-      538.5
+      336.6,
+      704.6
      ]
     },
     "edited": {
      "ox": -344.8,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       582.3,
+       538.5
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 1003,
@@ -10701,13 +10731,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      416.9,
-      750.9
+      367.6,
+      768.2
      ]
     },
     "edited": {
      "renderScale": 0.29,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       416.9,
+       750.9
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 907,
@@ -16540,15 +16576,23 @@
     "centroidX": 120.8,
     "anchors": {
      "com": [
-      121.3,
-      101.4
+      110.5,
+      72.1
      ]
     },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 313,
     "coreLeft": 11.7,
-    "coreRight": 236.7
+    "coreRight": 236.7,
+    "edited": {
+     "anchors": {
+      "com": [
+       121.3,
+       101.4
+      ]
+     }
+    }
    },
    "r2c3": {
     "file": "yuta/r2c3.png",
@@ -16929,14 +16973,20 @@
     "renderScale": 0.3812,
     "anchors": {
      "com": [
-      338.1,
-      550.2
+      391.9,
+      558.2
      ]
     },
     "bodyTop": 13,
     "edited": {
      "renderScale": 0.345,
-     "bodyBottom": 310
+     "bodyBottom": 310,
+     "anchors": {
+      "com": [
+       338.1,
+       550.2
+      ]
+     }
     },
     "bodyLeft": 13,
     "bodyRight": 631,
@@ -21035,13 +21085,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      466.2,
-      817.6
+      463.5,
+      815.7
      ]
     },
     "edited": {
      "renderScale": 0.291,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       466.2,
+       817.6
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 857,
@@ -22709,13 +22765,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      341.0,
-      634.8
+      335.7,
+      639.2
      ]
     },
     "edited": {
      "renderScale": 0.254,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       341.0,
+       634.8
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 735,
@@ -22735,14 +22797,20 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      526.9,
-      549.3
+      340.6,
+      728.9
      ]
     },
     "edited": {
      "renderScale": 0.254,
      "ox": -351.2,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       526.9,
+       549.3
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 1016,
@@ -23771,13 +23839,19 @@
     "file": "panda/dodge_air.png",
     "anchors": {
      "com": [
-      312.3,
-      334.2
+      259.8,
+      362.0
      ]
     },
     "bodyTop": 0,
     "edited": {
-     "renderScale": 0.278
+     "renderScale": 0.278,
+     "anchors": {
+      "com": [
+       312.3,
+       334.2
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 663,
@@ -24123,12 +24197,18 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      503.0,
-      318.9
+      499.0,
+      355.4
      ]
     },
     "edited": {
-     "renderScale": 0.278
+     "renderScale": 0.278,
+     "anchors": {
+      "com": [
+       503.0,
+       318.9
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 998,
@@ -24420,8 +24500,8 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      464.3,
-      358.2
+      455.4,
+      407.2
      ]
     },
     "autoTuned": {
@@ -24437,7 +24517,13 @@
     "coreRight": 868.7,
     "edited": {
      "renderScale": 0.299,
-     "bodyBottom": 240.2
+     "bodyBottom": 240.2,
+     "anchors": {
+      "com": [
+       464.3,
+       358.2
+      ]
+     }
     },
     "smoothed": {
      "at": "2026-08-20T15:10:00+00:00",
@@ -30696,13 +30782,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      495.3,
-      891.8
+      496.7,
+      893.1
      ]
     },
     "edited": {
      "renderScale": 0.139,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       495.3,
+       891.8
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 865,
@@ -30900,13 +30992,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      254.2,
-      821.0
+      256.2,
+      818.3
      ]
     },
     "edited": {
      "renderScale": 0.162,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       254.2,
+       821.0
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 865,
@@ -30938,8 +31036,8 @@
     "rotationDeg": 14,
     "anchors": {
      "com": [
-      508.3,
-      667.0
+      488.1,
+      651.9
      ]
     },
     "needsReplacement": "pose",
@@ -30948,7 +31046,13 @@
      "renderScale": 0.249,
      "bodyBottom": 242.9,
      "ox": -276,
-     "rotationDeg": 14
+     "rotationDeg": 14,
+     "anchors": {
+      "com": [
+       508.3,
+       667.0
+      ]
+     }
     }
    },
    "crouch_b": {
@@ -31201,12 +31305,18 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      419.3,
-      718.7
+      406.9,
+      716.6
      ]
     },
     "edited": {
-     "renderScale": 0.233
+     "renderScale": 0.233,
+     "anchors": {
+      "com": [
+       419.3,
+       718.7
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 746,
@@ -31306,12 +31416,18 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      559.5,
-      679.0
+      560.0,
+      677.4
      ]
     },
     "edited": {
-     "renderScale": 0.206
+     "renderScale": 0.206,
+     "anchors": {
+      "com": [
+       559.5,
+       679.0
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 845,
@@ -31525,8 +31641,8 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      354.0,
-      719.4
+      356.3,
+      722.8
      ]
     },
     "autoTuned": {
@@ -31542,7 +31658,13 @@
     "coreRight": 932.2,
     "edited": {
      "renderScale": 0.156,
-     "ox": -259.9
+     "ox": -259.9,
+     "anchors": {
+      "com": [
+       354.0,
+       719.4
+      ]
+     }
     }
    },
    "attack_heavy_a": {
@@ -32342,14 +32464,20 @@
     "renderScale": 0.1875,
     "anchors": {
      "com": [
-      583.0,
-      412.2
+      587.1,
+      408.5
      ]
     },
     "edited": {
      "renderScale": 0.206,
      "bodyBottom": 310.4,
-     "ox": -526.2
+     "ox": -526.2,
+     "anchors": {
+      "com": [
+       583.0,
+       412.2
+      ]
+     }
     }
    },
    "crouch_attack_b": {
@@ -32364,14 +32492,20 @@
     "file": "yuji/crouch_attack_b.png",
     "anchors": {
      "com": [
-      841.5,
-      290.4
+      841.3,
+      291.1
      ]
     },
     "bodyTop": 0,
     "edited": {
      "bodyBottom": 310.4,
-     "ox": -568.8
+     "ox": -568.8,
+     "anchors": {
+      "com": [
+       841.5,
+       290.4
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 1451,
@@ -37010,13 +37144,19 @@
     "bodyTop": 0,
     "anchors": {
      "com": [
-      480.4,
-      613.7
+      420.8,
+      654.7
      ]
     },
     "edited": {
      "renderScale": 0.282,
-     "bodyBottom": 310.4
+     "bodyBottom": 310.4,
+     "anchors": {
+      "com": [
+       480.4,
+       613.7
+      ]
+     }
     },
     "bodyLeft": 0,
     "bodyRight": 1004,
@@ -38771,8 +38911,8 @@
     "coreRight": 1098.8,
     "anchors": {
      "com": [
-      645.0,
-      408.2
+      644.8,
+      348.9
      ]
     },
     "autoTuned": {
@@ -38785,7 +38925,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 263.2,
-     "rotationDeg": null
+     "rotationDeg": null,
+     "anchors": {
+      "com": [
+       645.0,
+       408.2
+      ]
+     }
     },
     "rotationDeg": 4.5
    },
@@ -38840,8 +38986,8 @@
     "coreRight": 1161.3,
     "anchors": {
      "com": [
-      555.3,
-      361.9
+      548.6,
+      426.6
      ]
     },
     "autoTuned": {
@@ -38853,7 +38999,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "ox": -418.4
+     "ox": -418.4,
+     "anchors": {
+      "com": [
+       555.3,
+       361.9
+      ]
+     }
     }
    },
    "ult_b": {
@@ -38873,8 +39025,8 @@
     "coreRight": 1345.7,
     "anchors": {
      "com": [
-      606.0,
-      315.5
+      472.0,
+      418.4
      ]
     },
     "autoTuned": {
@@ -38886,7 +39038,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "ox": -448.8
+     "ox": -448.8,
+     "anchors": {
+      "com": [
+       606.0,
+       315.5
+      ]
+     }
     }
    },
    "victory": {
@@ -39431,8 +39589,8 @@
     "coreRight": 650.7,
     "anchors": {
      "com": [
-      386.7,
-      856.6
+      384.1,
+      859.0
      ]
     },
     "autoTuned": {
@@ -39442,7 +39600,13 @@
      }
     },
     "edited": {
-     "renderScale": 0.25
+     "renderScale": 0.25,
+     "anchors": {
+      "com": [
+       386.7,
+       856.6
+      ]
+     }
     }
    },
    "charge": {
@@ -42366,8 +42530,8 @@
     "coreRight": 875.8,
     "anchors": {
      "com": [
-      468.4,
-      687.6
+      444.8,
+      676.6
      ]
     },
     "autoTuned": {
@@ -42379,7 +42543,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 246.0
+     "bodyBottom": 246.0,
+     "anchors": {
+      "com": [
+       468.4,
+       687.6
+      ]
+     }
     }
    },
    "crouch_a": {
@@ -44275,8 +44445,8 @@
     "coreRight": 782.5,
     "anchors": {
      "com": [
-      547.2,
-      682.1
+      543.5,
+      684.0
      ]
     },
     "autoTuned": {
@@ -44288,7 +44458,13 @@
     },
     "edited": {
      "renderScale": 0.25,
-     "bodyBottom": 254.0
+     "bodyBottom": 254.0,
+     "anchors": {
+      "com": [
+       547.2,
+       682.1
+      ]
+     }
     }
    },
    "ledge_hang": {

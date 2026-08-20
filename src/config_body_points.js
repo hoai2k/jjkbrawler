@@ -96,9 +96,18 @@ export const BODY_POINTS = {
   "yuji": { com: 0.582 },
   "yuki": { com: 0.623 },
   "yuta": { com: 0.618, muzzle: { x: 49, y: -81 } },
-  // Round 23's and 24's staged fighters, verified as their art landed.
-  "kashimo": { muzzle: { x: 78, y: -109 } },
-  "kirara": { muzzle: { x: 36, y: -105 } },
+  // Round 23's and 24's staged fighters, verified as their art landed. Their
+  // `com` closed the last gap in this column: seven fighters were still on the
+  // roster default, which the per-FRAME queue was then judging their drawings
+  // against and reporting as "off their fighter's verified value" — a value
+  // nobody had placed. Every fighter now carries their own.
+  "haruta": { com: 0.6 },
+  "kashimo": { com: 0.593, muzzle: { x: 78, y: -109 } },
+  "kirara": { com: 0.608, muzzle: { x: 36, y: -105 } },
+  "miwa": { com: 0.598 },
+  "naoya": { com: 0.592 },
+  "tengen": { com: 0.576 },
+  "yaga": { com: 0.59 },
 };
 
 /**
@@ -254,6 +263,11 @@ export const BODY_POINT_META = {
   "yuji": { com: { at: "2026-08-15" } },
   "yuki": { com: { at: "2026-08-15" } },
   "yuta": { com: { at: "2026-08-15" }, muzzle: { at: "2026-08-15" } },
-  "kashimo": { muzzle: { at: "2026-08-19" } },
-  "kirara": { muzzle: { at: "2026-08-19" } },
+  "haruta": { com: { at: "2026-08-20" } },
+  "kashimo": { com: { at: "2026-08-20" }, muzzle: { at: "2026-08-19" } },
+  "kirara": { com: { at: "2026-08-20" }, muzzle: { at: "2026-08-19" } },
+  "miwa": { com: { at: "2026-08-20" } },
+  "naoya": { com: { at: "2026-08-20" } },
+  "tengen": { com: { at: "2026-08-20" } },
+  "yaga": { com: { at: "2026-08-20" } },
 };

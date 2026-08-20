@@ -24,7 +24,7 @@
 // Provider contract: see verification.js and verify_strike_points.js.
 
 import { suspectFrames } from "../sprites/src/com_review.js";
-import { anchorLocal, statesUsingFrame } from "../sprites/src/sprites.js";
+import { anchorLocal } from "../sprites/src/sprites.js";
 import { spriteManifest } from "../src/assets.js";
 import { imageToGame, gameToImage } from "../src/strike_points.js";
 import { bodyMetrics } from "../src/silhouette.js";
@@ -54,13 +54,15 @@ function placed(charKey, frameKey) {
   return spriteManifest?.characters?.[charKey]?.[frameKey]?.edited?.anchors?.com !== undefined;
 }
 
-/** A state that actually draws this frame, for the stage's own context (the
- *  ledge hang is placed differently, and drawStage needs to know). Falls back
- *  to `idle`, which only affects furniture — the drawing is named outright. */
-function stateOf(charKey, frameKey) {
-  const states = statesUsingFrame(charKey, frameKey) || [];
-  return states.includes("ledge") ? "ledge" : (states[0] || "idle");
-}
+/** A state that actually draws this frame, for the stage's own context — a
+ *  ledge hang is placed by its hand on the corner rather than by its feet, and
+ *  drawStage needs to know which it is looking at.
+ *
+ *  The list comes from the row itself; `com_review.js` has already resolved it
+ *  and drops any frame no state draws, so there is no "or idle" case left to
+ *  handle. There used to be, and it was a lie worth removing: it dressed a
+ *  legacy sheet cell nothing plays as an idle and put it in the queue. */
+const stateOf = (row) => (row.states.includes("ledge") ? "ledge" : row.states[0]);
 
 export async function provider() {
   const rows = suspectFrames(spriteManifest);
@@ -70,9 +72,10 @@ export async function provider() {
     title: `${r.charKey} · ${r.frameKey}`,
     subtitle: r.reasons.map((x) => REASON[x.kind] || x.kind).join(" · ")
       + (placed(r.charKey, r.frameKey) ? " — already placed" : ""),
+    states: r.states,
     charKey: r.charKey,
     frameKey: r.frameKey,
-    state: stateOf(r.charKey, r.frameKey),
+    state: stateOf(r),
     reasons: r.reasons,
     partners: r.partners,
     exportKeys: { char: r.charKey, kind: "com" },

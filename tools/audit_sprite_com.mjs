@@ -25,6 +25,7 @@
 // question and a different set ("centre-of-mass").
 //
 // Usage: node tools/audit_sprite_com.mjs [--all] [--char <key>] [--swings]
+//   --all also puts back the frames somebody has already answered.
 import { readFile } from "node:fs/promises";
 
 const args = process.argv.slice(2);
@@ -49,6 +50,11 @@ const { XFADE_COM_MAX_FRAC } = await import("../src/config_tuning.js");
 
 const manifest = JSON.parse(await readFile(new URL("sprites/assets/manifest.json", ROOT), "utf8"));
 const rows = suspectFrames(manifest, { chars: only ? [only] : null });
+// Said out loud rather than quietly dropped: the list is deliberately only the
+// drawings the game draws, and how many it left out is the sort of number that
+// should not have to be rediscovered.
+const undrawn = suspectFrames(manifest, { chars: only ? [only] : null, includeUndrawn: true })
+  .filter((r) => !r.states.length);
 
 let scanned = 0;
 for (const frames of Object.values(manifest.characters || {})) {
@@ -60,13 +66,28 @@ for (const frames of Object.values(manifest.characters || {})) {
 const counted = {};
 for (const r of rows) for (const x of r.reasons) counted[x.kind] = (counted[x.kind] || 0) + 1;
 
+// Answered frames drop out, the way they do in the bench. A tool that goes on
+// naming what somebody has already looked at and settled trains people to stop
+// reading it. `--all` puts them back.
+const settled = rows.filter((r) => r.placed);
+const open = showAll ? rows : rows.filter((r) => !r.placed);
 const shown = swingsOnly
-  ? rows.filter((r) => r.reasons.some((x) => x.kind === "swing"))
-  : rows;
+  ? open.filter((r) => r.reasons.some((x) => x.kind === "swing"))
+  : open;
 
 console.log(`${scanned} frame(s) with a baked centre of mass; `
   + `${shown.length} worth a look`
-  + (swingsOnly ? " (swings only)" : "") + ".\n");
+  + (swingsOnly ? " (swings only)" : "") + ".");
+if (settled.length && !showAll) {
+  console.log(`(${settled.length} more are still off the mark but have been ANSWERED — `
+    + "a hand placed the anchor there on purpose. --all lists them.)");
+}
+if (undrawn.length) {
+  console.log(`(${undrawn.length} more would have been flagged, but no animation state `
+    + "draws them — legacy sheet cells, superseded fallbacks, shared effect plates. "
+    + "Nothing reads their anchor.)");
+}
+console.log("");
 console.log(`  height   ${counted.height || 0}\tmore than ${COM_HEIGHT_FLAG} off their fighter's verified centre`);
 console.log(`  swing    ${counted.swing || 0}\tjump more than ${XFADE_COM_MAX_FRAC} of body height between two drawings of one animation`);
 console.log(`  outside  ${counted.outside || 0}\tsit off the body's own core span`);

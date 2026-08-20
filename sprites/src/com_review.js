@@ -44,8 +44,24 @@
 //
 // Only `outside` is an outright claim of error. The other three are questions,
 // which is why the answer to them is a queue and not a fix.
+//
+// AND ONLY FOR DRAWINGS THE GAME ACTUALLY DRAWS. A sprite set is not the same
+// thing as a sprite set in use: the manifest still carries the legacy sheet
+// cells (`r2c2` and friends) that semantic art has since replaced, the single
+// `attack_air` and two-frame `run_a`/`run_b` that later pairs and cycles
+// superseded, and the shared effect plates, which are not fighter poses at all
+// and are painted by shared_paint.js without ever consulting an anchor. Their
+// centre of mass cannot be wrong, because nothing reads it. Asking a person to
+// place 35 of those was 17% of the first queue's length spent on drawings that
+// do not appear.
+//
+// `statesUsingFrame` is the test, and it is the right one rather than merely a
+// convenient one: it resolves what a state PLAYS, so a pose reached only
+// through another state's `fallback` still counts as drawn. Asking the
+// declared tables instead would throw out exactly the frames that are in every
+// match and have historically been missed (see that function's own note).
 
-import { animsOf, anchorLocal, frameFootY, hasAnchor } from "./sprites.js";
+import { animsOf, anchorLocal, frameFootY, hasAnchor, statesUsingFrame } from "./sprites.js";
 import { imageToGame } from "../../src/strike_points.js";
 import { bodyMetrics } from "../../src/silhouette.js";
 import { comFrac, comVerified } from "../../src/body_points.js";
@@ -101,15 +117,31 @@ export function comMetrics(charKey, frameKey, meta) {
  *  out of assets.js without either having to care which it is.
  *
  *  Returns `{ charKey, frameKey, reasons: [{ kind, detail, excess }], severity,
- *  states }`, where `severity` is the largest normalised excess across the
- *  frame's reasons — how far past its threshold the worst of them is — so the
- *  queue puts the frames most likely to be wrong in front of a person first. */
-export function suspectFrames(manifest, { chars = null } = {}) {
+ *  states, partners }`, where `severity` is the largest normalised excess
+ *  across the frame's reasons — how far past its threshold the worst of them
+ *  is — so the queue puts the frames most likely to be wrong in front of a
+ *  person first, and `states` is every animation state that draws the frame.
+ *
+ *  `includeUndrawn` puts back the frames no state draws, which the list leaves
+ *  out. For a tool reporting on the manifest rather than queuing work for a
+ *  person — nothing reads those anchors, so nobody should be asked about
+ *  them. */
+export function suspectFrames(manifest, { chars = null, includeUndrawn = false } = {}) {
   const out = new Map();
+  const drawnBy = new Map();
   const add = (charKey, frameKey, reason) => {
     const id = `${charKey}/${frameKey}`;
-    const row = out.get(id)
-      || { charKey, frameKey, reasons: [], severity: 0, states: [], partners: [] };
+    const row = out.get(id) || {
+      charKey, frameKey, reasons: [], severity: 0, partners: [],
+      states: drawnBy.get(id) || statesUsingFrame(charKey, frameKey),
+      // Has a person already answered for this one? `edited.anchors.com`
+      // records what the bake said before a hand moved it, so its presence is
+      // the mark of a human decision — approving writes it too, which is the
+      // whole point of an approval. Consumers decide whether to keep asking;
+      // the bench stops (its `committed`), and so should anything else, or a
+      // queue never shrinks as it is worked.
+      placed: manifest?.characters?.[charKey]?.[frameKey]?.edited?.anchors?.com !== undefined,
+    };
     row.reasons.push(reason);
     row.severity = Math.max(row.severity, reason.excess);
     out.set(id, row);
@@ -123,6 +155,11 @@ export function suspectFrames(manifest, { chars = null } = {}) {
 
     for (const [frameKey, meta] of Object.entries(frames)) {
       if (!meta || typeof meta !== "object") continue;
+      // Nothing draws it, so nothing reads its anchor — see the note above.
+      // Cached because the swing pass asks for the same answer again.
+      const states = statesUsingFrame(charKey, frameKey);
+      drawnBy.set(`${charKey}/${frameKey}`, states);
+      if (!states.length && !includeUndrawn) continue;
       const m = comMetrics(charKey, frameKey, meta);
       if (!m) continue;
 
@@ -191,7 +228,6 @@ export function suspectFrames(manifest, { chars = null } = {}) {
           // only be judged with both of them on screen, and which one is wrong
           // is the whole question.
           const row = add(charKey, k, { kind: "swing", excess, detail });
-          if (!row.states.includes(state)) row.states.push(state);
           for (const other of pair) {
             if (other !== k && !row.partners.includes(other)) row.partners.push(other);
           }
