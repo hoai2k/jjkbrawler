@@ -28,6 +28,7 @@ import {
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
 import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE } from "./config_tuning.js";
+import { SPRITE_TURN_SWEEP } from "./flags.js";
 import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame } from "./render_backend.js";
@@ -1746,9 +1747,22 @@ function updatePresentation(f, dt) {
   }
 
   // Facing flips used to snap the mirror in a single frame, which reads as a
-  // teleport. Sweeping the mirror through zero reads as a turn.
+  // teleport. Sweeping the mirror through zero reads as a turn — on a RIG,
+  // which is where the idea comes from: render3d turns this number into a real
+  // yaw and a body rotates in space.
+  //
+  // The sprite backend has no such luxury. It hands the number to
+  // `ctx.scale(facing, 1)`, so a sweep squashes the drawing to nothing and
+  // pulls it out the other side: a flat card turning over, with a frame in the
+  // middle where the fighter is a vertical line. `SPRITE_TURN_SWEEP` is the
+  // switch, ON because it is the game, and the character bench is where the
+  // two are meant to be compared.
+  //
+  // Cosmetic either way. `facingVis` is read by the renderer and the afterimage
+  // trail and by nothing else; `facing` — the one combat, movement and every
+  // hitbox use — is what flipped, and it flipped whole.
   if (f.facingVis !== f.facing) {
-    const step = dt / TURN_TIME * 2;
+    const step = SPRITE_TURN_SWEEP ? dt / TURN_TIME * 2 : Infinity;
     f.facingVis = Math.abs(f.facing - f.facingVis) <= step
       ? f.facing
       : f.facingVis + Math.sign(f.facing - f.facingVis) * step;

@@ -101,9 +101,9 @@ root.innerHTML = `
         <button class="light" data-mode="holds" type="button" title="?smooth=holds — the slow held loops (idle, crouch, charge) cross-fade their own frame steps">
           <span class="light__dot"></span><span class="light__name">hold fade</span>
         </button>
-        <span class="light is-fixed" data-mode="turn" title="Not a flag — the game has always swept the mirror through zero over TURN_TIME instead of flipping it in a frame (fighter.js). Shown because it is the same kind of thing and the hardest to catch happening.">
-          <span class="light__dot"></span><span class="light__name">turn</span>
-        </span>
+        <button class="light" data-mode="turn" type="button" title="The facing sweep (TURN_TIME, fighter.js): a flip slides the mirror through zero over 0.07s instead of snapping. On a rig that is a real yaw; on a SPRITE it is ctx.scale(facing,1), so the drawing squashes to a vertical line and comes back — a card turning over. Off, the sprite flips in one frame, the way 2D fighters always have.">
+          <span class="light__dot"></span><span class="light__name">turn sweep</span>
+        </button>
         <span class="lights__state" id="lightsState"></span>
       </div>
       <div class="viewer__foot">
@@ -263,17 +263,14 @@ async function select(charKey) {
 // which is the frame you are trying to judge. Green is rare and brief on
 // purpose — turn the speed down to hold it long enough to read.
 //
-// `turn` has no switch: the mirror sweep ships and cannot be turned off, so it
-// is a lamp only, and never yellow.
 const lightEls = [...lightsEl.querySelectorAll(".light")];
 
 function paintLights() {
   const on = smoothingState();
   for (const el of lightEls) {
     const mode = el.dataset.mode;
-    const armed = mode === "turn" || !!on[mode];
-    el.classList.toggle("is-on", armed);
-    if (mode !== "turn") el.setAttribute("aria-pressed", String(armed));
+    el.classList.toggle("is-on", !!on[mode]);
+    el.setAttribute("aria-pressed", String(!!on[mode]));
   }
   const live = Object.entries(on).filter(([, v]) => v).map(([k]) => k);
   lightsEl.classList.toggle("is-live", live.length > 0);
@@ -289,13 +286,12 @@ function paintActivity() {
   let working = false;
   for (const el of lightEls) {
     const mode = el.dataset.mode;
-    const armed = mode === "turn" || !!on[mode];
-    const active = armed && smoothingActivity[mode] > 0.001;
+    const active = !!on[mode] && smoothingActivity[mode] > 0.001;
     el.classList.toggle("is-working", active);
     // The dot brightens with how hard the mechanism is working, so a fade that
     // found nothing to align reads differently from one sliding a whole body.
     el.style.setProperty("--work", active ? smoothingActivity[mode].toFixed(3) : "0");
-    if (active && mode !== "turn") working = true;
+    if (active) working = true;
   }
   lightsEl.classList.toggle("is-working", working);
 }

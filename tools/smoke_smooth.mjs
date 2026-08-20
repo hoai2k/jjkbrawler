@@ -354,6 +354,106 @@ check(blink.both < blink.holdsOnly + 4,
   + `${blink.holdsOnly}% with holds alone. Undo the depth scaling in render.js `
   + "and this reads about 47% against the same baseline, which is the bug.");
 
+// ------------------------------------- 5. the facing sweep, and what it costs
+//
+// `facingVis` slides from +1 to -1 over TURN_TIME instead of snapping. On a RIG
+// that is a real yaw and a body turns round; the sprite backend hands the same
+// number to `ctx.scale(facing, 1)`, so the drawing is squashed to nothing and
+// pulled out the other side — a flat card turning over, with a frame in the
+// middle where the fighter is a vertical line.
+//
+// Not asserted as a fault, because it is the game's own look and there is a
+// switch for it. Asserted as a FACT, so that turning `SPRITE_TURN_SWEEP` off
+// is known to produce an instant flip and leaving it on is known to cost the
+// frame it costs. Whoever changes the default should be changing a number they
+// can see here.
+const turn = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { draw } = await import("/src/render.js");
+  const { WORLD } = await import("/src/constants.js");
+  const { setSmoothing } = await import("/src/flags.js");
+  const { updateFighter } = await import("/src/fighter.js");
+  const { blankInput } = await import("/src/input.js");
+  const { bodyMetrics } = await import("/src/silhouette.js");
+
+  const cv = new OffscreenCanvas(WORLD.w, WORLD.h);
+  const ctx = cv.getContext("2d", { willReadFrequently: true });
+  const a = state.fighters[0];
+  const main = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+  const settle = () => Object.assign(a, {
+    x: main.x + main.w / 2, y: main.y, vx: 0, vy: 0, grounded: true,
+    hitstun: 0, action: null, dead: false, respawnTimer: 0, ledge: null,
+    ledgeMove: null, shakeMag: 0, teeterT: 0, teeterDir: 0,
+    animKey: "idle", animTime: 0.1, prevAnim: null,
+  });
+  settle();
+  state.camera.x = WORLD.w / 2; state.camera.y = WORLD.h / 2;
+  state.camera.zoom = 1; state.camera.shake = 0;
+
+  const shot = () => {
+    state.particles = [];
+    ctx.clearRect(0, 0, WORLD.w, WORLD.h);
+    draw(ctx);
+    return ctx.getImageData(0, 0, WORLD.w, WORLD.h).data;
+  };
+  // A fresh plate per sample: the backdrop breathes, so a plate from a second
+  // ago differs across the whole frame and the measurement becomes the weather.
+  const h = bodyMetrics(a.spriteChar || a.charKey).height;
+  const top = Math.max(0, Math.round(a.y - h * 0.9));
+  const bottom = Math.min(WORLD.h, Math.round(a.y - h * 0.25));
+  // Measured across the TORSO, clear of the cast shadow — the shadow is an
+  // ellipse on the deck that nothing mirrors, so it sits at full width whatever
+  // the sprite does and hides the whole effect.
+  const width = () => {
+    a.dead = true; const plate = shot();
+    a.dead = false; const live = shot();
+    const cols = new Int32Array(WORLD.w);
+    for (let y = top; y < bottom; y++) {
+      let i = y * WORLD.w * 4;
+      for (let x = 0; x < WORLD.w; x++, i += 4) {
+        const d = Math.abs(live[i] - plate[i]) + Math.abs(live[i + 1] - plate[i + 1])
+          + Math.abs(live[i + 2] - plate[i + 2]);
+        if (d > 40) cols[x]++;
+      }
+    }
+    let lo = -1, hi = -1;
+    for (let x = 0; x < WORLD.w; x++) {
+      if (cols[x] < 3) continue;
+      if (lo < 0) lo = x;
+      hi = x;
+    }
+    return hi < lo ? 0 : hi - lo + 1;
+  };
+
+  const run = (sweep) => {
+    setSmoothing({ turn: sweep });
+    settle();
+    a.facing = 1; a.facingVis = 1;
+    const rest = width();
+    const widths = [];
+    for (let i = 0; i < 10; i++) {
+      // Re-asserted every step: a fighter with nobody to fight turns back
+      // toward the dummy, which would undo the flip after one frame.
+      a.facing = -1;
+      updateFighter(a, 1 / 60, blankInput());
+      settle();
+      widths.push(width());
+    }
+    return { rest, narrowest: Math.min(...widths) };
+  };
+  const on = run(true);
+  const off = run(false);
+  setSmoothing({ turn: true });
+  return { on, off };
+});
+
+check(turn.on.narrowest < turn.on.rest * 0.2,
+  "the facing SWEEP passes the sprite through side-on, which for a drawing is edge-on",
+  `${turn.on.rest}px torso down to ${turn.on.narrowest}px — a card turning over`);
+check(turn.off.narrowest > turn.off.rest * 0.8,
+  "...and with the sweep off a sprite flips whole, the way 2D fighters do",
+  `never narrower than ${turn.off.narrowest}px of ${turn.off.rest}px`);
+
 await browser.close();
 console.log(failed ? `\n${failed} check(s) failed` : "\nall smoothness checks passed");
 process.exit(failed ? 1 : 0);
