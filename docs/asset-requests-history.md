@@ -41,6 +41,7 @@ why the numbering is not strictly chronological.
 | 23 | Round 24's four staged fighters — four 36-pose sets, seven effects, Tengen's barrier, four hero cards (156 assets) + 16 DI references, plus three of 22I's redraws | Delivered; `miwa/attack_heavy_b` re-requested as 23H, and Tengen's barrier colour needs a decision |
 | 22I, 22J | The redraw round: the wind-up fault across Yaga's, Naoya's, Dagon's and Haruta's attack pairs, Nanami's re-framed teeter, both `dizzy` contact sheets, Miwa's cropped blades and everything else the workbench had flagged (30 sprites) | Delivered whole; `kirara/attack_down` needed a `FACING_OVERRIDE`, and every frame is in the workbench's approval queue |
 | 22K | The seven poses each of the seven newly promoted fighters — teeter, both walk contacts, the dash attack and the three grab poses (49 sprites) | Delivered whole; all 49 are new pose keys, so nothing was replaced and nothing waited for an approval. `check_pose_coverage` now reports 0 undrawn poses across the roster |
+| 22L | The twenty-nine sprites the workbench had flagged — eighteen `pose` notes, ten `quality`, one `character` (29 sprites) | Delivered whole; seventeen of the twenty-nine were poses drawing another pose's file, so the roster's substitutions drop from 52 to 35. Every frame is in the approval queue; `hakari/attack_light` and `mahoraga/attack_light` measure inverted and thin respectively and want a look before they are said yes to |
 
 ---
 
@@ -4538,3 +4539,61 @@ minimum, and the median is under 310 px. Even setting resolution aside, none of
 the figures on either sheet is a dizzy pose — they are idles, draws, crouches
 and slashes. Both are re-requests, and both draw the fighter's `hurt` frame
 meanwhile, which is the closest read the set has.
+
+---
+
+## 22L. The twenty-nine the workbench had flagged — 29 sprites
+
+Not written as a request in advance. `docs/image-requests.md` reports workbench
+flags in *Outstanding by manifest, not by request* — art that exists and is
+wrong, raised one sprite at a time by whoever was placing it — and the count
+had reached 29. This delivery is those 29, and the notes each flag carried are
+what the drawings were made against.
+
+| Fighter | Poses | What the flags asked for |
+|---|---|---|
+| Gakuganji | `attack_light_b` | quality |
+| Geto | `attack_heavy_b` | the blow straight DOWN, not down and to the right |
+| Hakari | `attack_heavy_b`, `attack_light_a`, `attack_light_b` | a strong kick; the punch thrown with the NEAR arm |
+| Haruta | `special_down` | winding up for the attack, not already in it |
+| Kirara | `attack_heavy_b`, `attack_light_a`, `attack_light_b`, `crouch_attack_a`, `crouch_attack_b` | a kick at full extension; the near-arm punch; a leg sweep, coiled and then extended |
+| Mahoraga | `attack_light_a`, `attack_light_b`, `crouch_attack_a` | the blade held across the body, tip down and back, for the wind-up |
+| Maki | `attack_air_b`, `crouch_attack_b` | quality; `crouch_attack_b` re-drawn at a usable resolution |
+| Mei Mei | `attack_heavy_b`, `crouch_attack_a`, `crouch_attack_b` | the axe out at full extension; the crouch winding it up first |
+| Naoya | `crouch_a`, `crouch_b`, `crouch_attack_a`, `idle_b` | deeper crouches, and a second idle that reads as a pair with the first |
+| Toji | `attack_light_a`, `attack_light_b` | the sword fully extended in the strike |
+| Uro | `attack_heavy_b`, `attack_light_a`, `crouch_attack_b` | costume; the crouch leaning out into its reach |
+| Yuji | `crouch_a` | a low neutral crouch |
+
+**Seventeen of the twenty-nine were poses drawing another pose's file** — the
+[18G](#18g-seven-a-pose-is-drawing-somebody-elses-art--7-sprites) fault, where
+a pose rejected at approval is pointed at a neighbour so the game keeps drawing
+something and no flag is raised for it. Hakari's `attack_light_a` was drawing
+his `attack_heavy_a` and his `attack_light_b` his `attack_dash`; Mei Mei's
+`crouch_attack_b` was drawing her own `crouch_attack_a`. The roster's
+substitutions drop from 52 to 35 with this round.
+
+Every one of the 29 is a `pose`, `quality` or `character` flag, so all of them
+are wholesale replacements: the placement was rebuilt from scratch rather than
+carried across, which is what those kinds mean in `intake_import.py`.
+
+### Two the boards passed and the measurements did not
+
+`tools/audit_windup.py` reads a pose's own drawing, so it measures a delivery
+while it is still awaiting approval. Two pairs come back short:
+
+- **`hakari/attack_light` measures inverted at −0.116.** Both frames are
+  measured on the lead FOOT — the forward-most pixel is 73% down the figure in
+  the wind-up and 98% down in the strike — so what the number says is that his
+  stance is wider than his punch is long, not that the pair is the wrong way
+  round. The strike is a near-arm punch at chest height, which is what the flag
+  asked for. Worth a look at approval; not obviously a redraw.
+- **`mahoraga/attack_light` measures thin at +0.044.** The flag asked for the
+  blade held across the body, tip down and back, and the delivered wind-up
+  still reaches 174px against the strike's 192px.
+
+Everything else the round touched improved or held: `gakuganji/attack_light`
+opens from −0.008 to +0.159, `kirara/attack_light` from +0.002 to +0.163,
+`maki/attack_air` from +0.036 to +0.265.
+
+The originals are archived at `assets/reference/round22d/<char>/`.
