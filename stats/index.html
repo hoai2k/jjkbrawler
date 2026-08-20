@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>JJK Brawler II — visitor stats</title>
+    <!-- Not indexed: this is the game's back office, not part of the game. -->
+    <meta name="robots" content="noindex">
+    <link rel="icon" href="../favicon.ico" sizes="any">
+
+    <!-- Deliberately not styles.css. That file is 80-odd kilobytes of game
+         chrome for a page that is a heading, a note and a frame, and every
+         rule in it is one more thing that can reflow this layout by accident.
+         The palette below is copied from its tokens so the two still match. -->
+    <style>
+      :root {
+        --bg: #05060d;
+        --panel: #0d1120;
+        --line: #1e2740;
+        --gold: #ffd97a;
+        --text: #e8ecf8;
+        --text-dim: #9aa4c0;
+        --accent: #62dcff;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 2rem 1.25rem 3rem;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.6 "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+      main { max-width: 62rem; margin: 0 auto; }
+      h1 { margin: 0 0 .25rem; font-size: 1.7rem; letter-spacing: .01em; }
+      h2 { margin: 2rem 0 .5rem; font-size: 1.1rem; color: var(--gold); }
+      p { margin: .5rem 0; }
+      a { color: var(--accent); }
+      .sub { color: var(--text-dim); margin: 0 0 1.5rem; }
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        margin: 1rem 0;
+      }
+      .panel.quiet { color: var(--text-dim); font-size: .93rem; }
+      ol, ul { margin: .5rem 0; padding-left: 1.3rem; }
+      li { margin: .35rem 0; }
+      code {
+        background: #161c30;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: .08em .35em;
+        font-size: .9em;
+      }
+      .frame-wrap {
+        margin-top: 1rem;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fff;
+      }
+      iframe { display: block; width: 100%; height: 78vh; min-height: 34rem; border: 0; }
+      .cols { display: flex; flex-wrap: wrap; gap: 1rem; }
+      .cols > * { flex: 1 1 16rem; }
+      .back { display: inline-block; margin-top: 2rem; color: var(--text-dim); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Visitor stats</h1>
+      <p class="sub">Who is finding <a href="../">JJK Brawler II</a>, and from where.</p>
+
+      <div id="mount"></div>
+
+      <h2>What this records</h2>
+      <div class="cols">
+        <div class="panel quiet">
+          <strong>Kept, per visit</strong>
+          <ul>
+            <li>Country, derived from the IP address</li>
+            <li>Referrer — the page that linked here</li>
+            <li>Browser and operating system</li>
+            <li>Screen width and language</li>
+            <li>Which page, and when</li>
+          </ul>
+        </div>
+        <div class="panel quiet">
+          <strong>Never kept</strong>
+          <ul>
+            <li>IP addresses</li>
+            <li>The full User-Agent string</li>
+            <li>Any tracker or advertising ID</li>
+            <li>Cookies — none are set, by us or by the counter</li>
+            <li>Anything about how the game itself was played</li>
+          </ul>
+        </div>
+      </div>
+      <p class="sub" style="margin-top:.75rem">
+        Counting is done by <a href="https://www.goatcounter.com/">GoatCounter</a>, whose
+        <a href="https://www.goatcounter.com/help/privacy">privacy page</a> is the authority
+        on the two lists above. Local play is not counted: its script skips
+        <code>localhost</code>, private addresses and <code>file://</code>, so the numbers
+        here are other people, not you testing a stage forty times.
+      </p>
+
+      <a class="back" href="../">← back to the game</a>
+    </main>
+
+    <script type="module">
+      import { GOATCOUNTER_SITE, dashboardUrl } from "../src/config_stats.js";
+
+      // Two pages in one, because the honest answer differs before and after
+      // setup. Unconfigured, a blank dashboard would read as "nobody has ever
+      // played it" — the single most misleading thing this page could say —
+      // so it shows the four steps instead and claims no numbers at all.
+      const url = dashboardUrl(GOATCOUNTER_SITE);
+      const mount = document.getElementById("mount");
+
+      if (!url) {
+        mount.innerHTML = `
+          <div class="panel">
+            <p><strong>Not switched on yet.</strong> Nothing is being counted, and nothing
+            has been counted in the past — this page cannot show history that was never
+            recorded. Four steps, about five minutes:</p>
+            <ol>
+              <li>Register a site at
+                <a href="https://www.goatcounter.com/signup">goatcounter.com/signup</a>.
+                The <em>code</em> you choose becomes the dashboard subdomain.</li>
+              <li>Put that code in <code>src/config_stats.js</code> —
+                <code>export const GOATCOUNTER_SITE = "yourcode";</code></li>
+              <li>In GoatCounter, <em>Settings → Sites that can embed GoatCounter</em>,
+                add <code>hoai2k.github.io</code>, so the dashboard can appear on this
+                page rather than only on theirs.</li>
+              <li>Push to <code>main</code>. The next deploy starts counting.</li>
+            </ol>
+            <p>Counting starts from the moment it is switched on. Visits before that are
+            gone — Pages keeps no log to backfill from.</p>
+          </div>`;
+      } else {
+        mount.innerHTML = `
+          <div class="panel">
+            <p><a href="${url}" target="_blank" rel="noopener"><strong>Open the full
+            dashboard ↗</strong></a> — country breakdown, referrers, browsers, and any
+            date range you like.</p>
+            <p class="quiet" style="margin-bottom:0">Frame below blank or asking you to
+            sign in? Browsers withhold the GoatCounter session cookie inside a frame on
+            another domain. Either mark the dashboard public in its settings, or use the
+            link above — the frame is a convenience, not the record.</p>
+          </div>
+          <div class="frame-wrap">
+            <iframe src="${url}?hideui=1" title="GoatCounter dashboard"
+                    loading="lazy" referrerpolicy="no-referrer"></iframe>
+          </div>`;
+      }
+    </script>
+  </body>
+</html>

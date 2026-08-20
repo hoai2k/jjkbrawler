@@ -31,12 +31,16 @@ the file for you rather than only complaining:
 `python3 tools/check_doc_links.py` walks every markdown file for broken
 relative links. It is not in `npm run check`; run it after moving a doc.
 
+`node tools/smoke_stats.mjs` covers /stats/ and the visitor counter. Also
+outside `npm run check`, for a different reason: it needs `node server.mjs`
+running, and the gate is meant to pass on a bare checkout.
+
 ## The families
 
 | Prefix | What it is | Count |
 |---|---|---|
 | `check_*` | invariants — a non-zero exit means something drifted | 15 |
-| `smoke_*` | play the real game (mostly headless via Playwright) and measure the result | 33 |
+| `smoke_*` | play the real game (mostly headless via Playwright) and measure the result | 34 |
 | `audit_*` | report on the data rather than pass/fail it — reach, hitboxes, frame sizes, model health | 12 |
 | `build_*` | generate a checked-in file from the source of truth | 6 |
 | `intake_*`, `*_intake` | take a delivery from `assets/intake/` or `render3d/intake/` into the game | |
