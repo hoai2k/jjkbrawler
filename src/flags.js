@@ -30,6 +30,26 @@ const DEBUG_MODES = new Set(
 );
 export const DEBUG_HITBOXES = DEBUG_MODES.has("hitbox") || DEBUG_MODES.has("hitboxes");
 
+/** CONTACT QUALITY (src/contact.js) — **on by default**; `?contact=false`
+ *  turns it off.
+ *
+ *  It reads the verified strike point to place the impact and to judge how
+ *  centred it was, then scales the FX, the sound, the shake and the hitstun by
+ *  that. A fighter whose strike point nobody has verified is not judged at all,
+ *  so the switch matters most for the ones who ARE: it is how you put a trade
+ *  side by side with the same trade under the old flat presentation, which is
+ *  the only way to tell whether the tier reads as feel or as noise.
+ *
+ *  `let`, for the same reason the smoothing flags are: a tool that wants to
+ *  measure the game with it off can move it without a reload. */
+export let CONTACT_TIER = params.get("contact") !== "false";
+
+/** Turn the contact tier on or off at runtime. Returns the resulting state. */
+export function setContactTier(on) {
+  CONTACT_TIER = !!on;
+  return CONTACT_TIER;
+}
+
 /** SPRITE SMOOTHING EXPERIMENTS — `?smooth=com,holds`, or `?smooth=all`.
  *
  *  Both ship dark, which is the point of them being here: the game draws

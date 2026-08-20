@@ -483,3 +483,52 @@ export const DI_SPEED = 0.08;
 export const STALE_QUEUE = 9;
 export const STALE_DMG_STEP = 0.09;   // ~0.28x damage at 8 repeats
 export const STALE_KB_STEP = 0.06;
+
+// ------------------------------------------------------------ contact quality
+//
+// How cleanly a blow connects (src/contact.js), from the verified strike point
+// to the victim's centre of mass. One block, because every one of these is a
+// knob somebody will want to turn after ten minutes of playing with it, and
+// because what the tier is allowed to touch should be readable in one place:
+// the FX and the sound and the shake, and hitstun. Not damage, not knockback,
+// not shield damage.
+export const CONTACT = {
+  // How far INTO the victim a blow has to reach to count as fully connected,
+  // as a fraction of their DRAWN width, measured from the edge of their
+  // hurtbox facing the attacker. Just over half a body: a swing thrown at
+  // maximum range leaves its tip on the front of them and scores near zero,
+  // the same swing thrown from inside buries it and scores one.
+  deep: 0.55,
+  // And how far above or below the box a blow may pass before it scores
+  // nothing, as a fraction of the box height. A margin rather than a cliff —
+  // the box is a measurement with a fit on it, not the exact edge of a body.
+  vMargin: 0.22,
+  // Where the three words start. Only labels — the FX and the stun ride the
+  // continuous number, so moving these changes what the overlay SAYS and
+  // nothing about what a hit does.
+  cleanAt: 0.66,
+  grazeAt: 0.28,
+
+  // HITSTUN, the one thing here that is not presentation. Multipliers on the
+  // stun a hit already computed, which stays clamped to its own 0.12–1.35
+  // range afterwards. Deliberately modest at the top and generous at the
+  // bottom: a clean hit should combo a little further than it used to, a
+  // graze should feel like it nearly missed, and neither should rewrite a
+  // matchup on its own.
+  stunClean: 1.18,
+  stunGraze: 0.62,
+
+  // Particle counts, camera shake and rumble, same shape.
+  fxClean: 1.25,
+  fxGraze: 0.55,
+
+  // A graze's element sound: quieter, and pitched up so it reads as a scrape
+  // rather than a thud at low volume.
+  grazeGain: 0.6,
+  grazePitch: 1.18,
+
+  // A Black Flash is cursed energy landing within a millionth of a second of
+  // the fist. It may not roll on a blow that barely touched: quality has to be
+  // at least this to be eligible at all, and the odds are unchanged above it.
+  blackFlashMin: 0.5,
+};

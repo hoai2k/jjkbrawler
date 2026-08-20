@@ -18,6 +18,8 @@ import {
 } from "./constants.js";
 import { bodyMetrics } from "./silhouette.js";
 import { comFrac, hurtboxFit } from "./body_points.js";
+import { contactOf, contactBand, stunScale, fxScale } from "./contact.js";
+import { CONTACT } from "./config_tuning.js";
 import { ledgeBox } from "./hurtbox_art.js";
 import { spawnOffset } from "./muzzle.js";
 import { sharedHit } from "./shared_sprites.js";
@@ -1036,6 +1038,16 @@ export function applyHit(owner, target, hit, source) {
   // armor: damage but no launch
   const armored = (target.installs && target.installs.armor) || target.armorT > 0;
 
+  // HOW CLEANLY THIS CONNECTED. Computed here — past the shield and the
+  // counter, before anything that reads it — from the attacker's verified
+  // strike point and the victim's body (src/contact.js). `quality` is null for
+  // every hit the tier has no business judging (a projectile, a set piece, a
+  // fighter nobody has verified, the flag off), and every consumer below
+  // treats that as "behave exactly as before".
+  const contact = contactOf(owner, target, hit, source, hurtbox(target),
+                            contactPoint(owner, target, hit, source, dir));
+  const quality = contact.quality;
+
   // Sweetspot / sourspot. A `critBand` is a distance band: land inside it and
   // the hit is stronger, land outside it and — if the band says so — weaker.
   //
@@ -1083,7 +1095,12 @@ export function applyHit(owner, target, hit, source) {
 
   // Black Flash (Yuji): cursed energy lands within a millionth of a second of
   // the fist. Rolled before the other multipliers so installs scale it too.
-  if (owner.char.passive.id === "blackFlash" && source === "melee" && Math.random() < 0.12) {
+  // A graze does not roll for it: cursed energy landing within a millionth of a
+  // second of the fist is a description of a blow that CONNECTED. Unverified
+  // fighters (quality null) keep the plain 12% they always had.
+  const flashEligible = quality === null || quality >= CONTACT.blackFlashMin;
+  if (owner.char.passive.id === "blackFlash" && source === "melee"
+      && flashEligible && Math.random() < 0.12) {
     dmg *= 1.35; baseKb *= 1.15; growth *= 1.1;
     owner.meter = clamp(owner.meter + 10, 0, METER_MAX);
     popup(target.x, target.y - 178, "BLACK FLASH!", "#ff3b30", 26);
@@ -1214,7 +1231,12 @@ export function applyHit(owner, target, hit, source) {
       const rate = Math.min((kb - TUMBLE_KB_MIN) * TUMBLE_SPIN_PER_KB, TUMBLE_SPIN_MAX);
       target.spin = dir * rate;
     }
-    let stun = clamp(0.12 + kb * 0.00048 + stunBonus, 0.12, 1.35);
+    // The stun a hit is worth, bent by how well it landed and then clamped to
+    // the same range it always had: a clean blow holds the victim toward the
+    // top of what this knockback was ever going to buy, a graze toward the
+    // bottom. Damage and knockback are untouched by quality, so what a spacing
+    // read wins here is TIME, not a bigger hit.
+    let stun = clamp((0.12 + kb * 0.00048 + stunBonus) * stunScale(quality), 0.12, 1.35);
     if (target.char.passive.id === "oldGuard") stun *= 0.75; // barely flinches
     target.hitstun = stun;
     // A fresh launch overrides a knockdown: getting hit off the floor is being
@@ -1240,7 +1262,7 @@ export function applyHit(owner, target, hit, source) {
   target.shakeMag = 3 + Math.min(6, dmg * 0.4);
   // Rumble scales off the same magnitudes hitlag does: the victim's pad
   // thumps with the damage, the attacker's carries a weaker echo of it.
-  const rStrong = Math.min(1, dmg * RUMBLE.hitScale);
+  const rStrong = Math.min(1, dmg * RUMBLE.hitScale * fxScale(quality));
   rumbleFighter(target, rStrong, rStrong * 0.5, RUMBLE.hitTime + lag);
   rumbleFighter(owner, rStrong * RUMBLE.attackerEcho, rStrong * 0.4, RUMBLE.hitTime);
 
@@ -1249,18 +1271,31 @@ export function applyHit(owner, target, hit, source) {
   // the CONTACT POINT — where what hit overlaps what was hit — rather than a
   // fixed offset from the victim's centre, which parked every spark at the
   // same spot on the body regardless of where the fist visibly was.
-  const cp = contactPoint(owner, target, hit, source, dir);
-  const hx = cp.x;
-  const hy = cp.y;
+  // Where the blow IS, once somebody has verified it: the fist, the foot or
+  // the blade, clamped onto the body. Failing that, the seam estimate.
+  const hx = contact.point.x;
+  const hy = contact.point.y;
+  const cleanliness = contactBand(quality);
+  const fx = fxScale(quality);
+  // For the overlay only — see state.js. Written for every judged hit whether
+  // or not anybody is looking at it, so turning the overlay on mid-fight shows
+  // the trade that is already happening rather than the next one.
+  if (quality !== null) {
+    state.lastContact = { x: hx, y: hy, quality, band: cleanliness, at: state.matchTime };
+  }
   const fxEl = elementOf(hit, owner);
-  hitFx(fxEl, hx, hy, dir, dmg, owner.char.theme);
+  hitFx(fxEl, hx, hy, dir, dmg, owner.char.theme, fx);
   // The element's own sound, layered quietly under the hit sound, louder with
   // the damage behind it. All seven elements have a file; an element with no
-  // registry entry would simply be silent here.
-  if (ELEMENT_HIT_SFX[fxEl]) playSfx(ELEMENT_HIT_SFX[fxEl], Math.min(0.9, 0.45 + dmg / 34));
+  // registry entry would simply be silent here. A graze takes the same sound
+  // quieter and pitched up, which is what makes it read as a scrape.
+  if (ELEMENT_HIT_SFX[fxEl]) {
+    const vol = Math.min(0.9, 0.45 + dmg / 34) * (cleanliness === "graze" ? CONTACT.grazeGain : 1);
+    playSfx(ELEMENT_HIT_SFX[fxEl], vol, cleanliness === "graze" ? CONTACT.grazePitch : 1);
+  }
   popup(target.x, target.y - 132, `${dmg}%`, "#ffffff", 20 + Math.min(16, dmg));
   if (label) popup(target.x - dir * 26, target.y - 160, label, owner.char.theme, 17);
-  state.camera.shake = Math.max(state.camera.shake, clamp(4 + dmg * 0.5, 4, 15));
+  state.camera.shake = Math.max(state.camera.shake, clamp((4 + dmg * 0.5) * fx, 4, 15));
   if (kb > 880) {
     rumbleEvent(target, "launch");
     state.slowMo = Math.max(state.slowMo, 0.1);

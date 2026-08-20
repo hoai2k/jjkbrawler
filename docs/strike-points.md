@@ -1,4 +1,4 @@
-# Strike points — what they are, and the two features waiting on them
+# Strike points — what they are, and what is built on them
 
 A hitbox says what a swing *threatens*. It has never said where the swing
 **is**. The box is deliberately generous — a jab's runs from chest to floor so
@@ -40,7 +40,20 @@ derived.
 **Reviewable.** `/workbench/?edit=verification`, task set `strike-points`,
 walks the roster move by move over the real sprite and exports decisions.
 
-## Why the two features below are not built yet
+**Spent.** Follow-up A below is built (`src/contact.js`): the impact FX, the
+element sound, the shake, the rumble, the Black Flash roll and the hitstun all
+read how cleanly the blow connected. Follow-up B is not.
+
+## The gate, and where it stands
+
+Both features below change what the player feels, and both are only as good as
+the point they measure from. The gate was two passes through the verification
+bench — every fighter's strike points, and the per-fighter centre of mass — and
+**both are through**: 204 of 204 strike points and 34 of 34 centres of mass are
+committed. What follows is the original reasoning, kept because it is still the
+reason the tier refuses to judge a fighter nobody has verified.
+
+## Why the two features below were not built yet
 
 Both change what the player feels, and both are only as good as the point they
 measure from. A radial tipper built on a strike point that sits at a fighter's
@@ -61,7 +74,40 @@ file.
 
 ---
 
-## Follow-up A — the FX tier (contact quality as presentation)
+## Follow-up A — the FX tier — **BUILT**
+
+Lives in `src/contact.js`, tuned by the `CONTACT` block in
+`src/config_tuning.js`, switched by `?contact=false` (`CONTACT_TIER` in
+`src/flags.js`), checked by `node tools/smoke_contact.mjs`.
+
+**How quality is measured**, which is the one thing that changed from the plan
+below. The first cut normalised the strike point's distance to the victim's
+centre of mass by their half-width — and a hurtbox is around 25px wide against
+a 52px silhouette, so every blow landed at arm's length scored zero and the
+whole roster grazed. What ships instead asks the two questions separately:
+
+* **depth** — how far past the near edge of the victim's box the strike point
+  reached, over `CONTACT.deep` of their drawn width. A swing thrown at maximum
+  range leaves its tip on the front of them and scores nothing; the same swing
+  from inside buries it and scores one. This is the spacing read.
+* **containment** — whether the blow was on the body's height at all, falling
+  off over `CONTACT.vMargin` past the box. A jab that passes over a croucher's
+  head is caught by the generous hitbox and scores near zero.
+
+Quality is their product, and the overlay (backquote) rings the last judged
+contact with the number so it can be read rather than guessed at.
+
+**Hitstun is in scope, by decision.** The plan below ruled it out; it is in,
+deliberately, because the range was already there and unused — the stun a hit
+computes is `0.12 + kb * 0.00048`, clamped to 0.12–1.35 — and a spacing reward
+paid in TIME is the one that does not disturb a single balance number.
+`CONTACT.stunClean` / `stunGraze` bend where a hit sits inside that range and
+the clamp still holds the ends. Damage, knockback, growth and shield damage
+remain untouched at both ends of the scale, which `tools/smoke_contact.mjs`
+asserts to the last decimal — that is Follow-up B's decision to make
+deliberately, and it has not been made.
+
+The original plan follows, for the reasoning rather than the state.
 
 **What.** How cleanly a blow connects drives how it *reads*: a centre-mass
 connection gets the heavy thud and the big spark, a graze gets a lighter
@@ -97,12 +143,14 @@ deliberately, not this one's to leak. Skip the whole path when
 `strikePoint().source === "derived"`, so a fighter nobody has verified keeps
 today's presentation exactly.
 
-**Test.** `tools/smoke_combat.mjs` asserts damage totals are unchanged for a
-scripted fight with the tier on and off.
+**Test.** `tools/smoke_contact.mjs` lands the same scripted blow from inside,
+at the end of its range, and over the victim's head, with the tier on and off:
+stun has to move with the quality, and damage and knockback have to be
+identical to the last decimal in every case.
 
 ---
 
-## Follow-up B — the radial tipper
+## Follow-up B — the radial tipper — not built
 
 **What.** Replace the sweetspot's one-dimensional horizontal band with the
 real distance from the strike point to the victim's body.

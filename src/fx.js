@@ -162,9 +162,13 @@ export function crackle(x, y, colors, count, reach = 60) {
 // ----------------------------------------------------------------- hit sparks
 
 /** What lands where a hit connects. `power` scales with damage; `theme` is the
- *  attacker's colour, used by the default "energy" look. */
-export function hitFx(element, x, y, dir, dmg, theme) {
-  const power = 1 + dmg / 24;
+ *  attacker's colour, used by the default "energy" look.
+ *
+ *  `scale` is how cleanly the blow connected (src/contact.js): a clean hit
+ *  throws more of everything, a graze throws less. 1 — the default every other
+ *  caller gets — is the presentation exactly as it was before the tier. */
+export function hitFx(element, x, y, dir, dmg, theme, scale = 1) {
+  const power = (1 + dmg / 24) * scale;
   const r = HIT_RECIPES[element] || HIT_RECIPES.energy;
   switch (element) {
     case "fire":
