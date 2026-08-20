@@ -166,9 +166,22 @@ The stamp is written by the workflow's "Stamp the build" step and read by
 [`src/deploystamp.js`](src/deploystamp.js). It is fetched with a cache-buster,
 so the stamp itself is never the stale thing.
 
+## Visitor stats
+
+[/stats/](https://hoai2k.github.io/jjkbrawler/stats/) — who is finding the game
+and from where: country, referrer, browser. Off until a GoatCounter code is set
+in [`src/config_stats.js`](src/config_stats.js); until then the page shows the
+four setup steps rather than an empty dashboard, which would read as "nobody has
+played it" when it means "we were not counting". No cookies, no IP addresses
+stored, nothing recorded from inside the game itself.
+See [Visitor stats](docs/stats.md) for why it is a third-party counter rather
+than a server log — Pages runs no code and keeps no log we can read.
+
 ## Docs
 
 - [Game mechanics](docs/game-mechanics.md)
+- [Visitor stats](docs/stats.md) — how /stats/ counts visitors on a host that
+  runs no code, what it records, and how far to trust the numbers
 - [Gameplay TODO](docs/gameplay-todo.md) — the grab/throw brief and the three
   fairness patches, all shipped; what is left is two shield tweaks
 - [2.5D camera](docs/2.5d-camera-plan.md) — the default camera: plan,
