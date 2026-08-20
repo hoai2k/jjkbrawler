@@ -78,10 +78,14 @@ def improvement_kinds():
 
 
 def variant_banked():
-    """Fields a variant option carries, from VARIANT_PLACEMENT + VARIANT_REVIEW."""
+    """Fields a variant option carries — every list VARIANT_BANKED is built from.
+
+    Read out of sprites.js rather than copied, so adding one there (as
+    `borrowedFrom` was) reaches the importer without a second edit here.
+    """
     src = open(SPRITES_JS).read()
     out = []
-    for const in ("VARIANT_PLACEMENT", "VARIANT_REVIEW"):
+    for const in ("VARIANT_PLACEMENT", "VARIANT_REVIEW", "VARIANT_ORIGIN"):
         block = src[src.index(f"export const {const}"):]
         block = block[:block.index("];")]
         out += re.findall(r'"(\w+)"', block)

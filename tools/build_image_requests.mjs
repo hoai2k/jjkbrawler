@@ -172,8 +172,23 @@ function spriteWork() {
   for (const [char, poses] of Object.entries(man.characters || {})) {
     for (const [key, meta] of Object.entries(poses)) {
       if (!meta || typeof meta !== "object" || !meta.file) continue;
-      const own = path.basename(meta.file, path.extname(meta.file));
-      if (own !== key && !meta.awaitingApproval) standIns.push({ char, key, drawing: own });
+      // THE FILE DECIDES, `borrowedFrom` ONLY NAMES.
+      //
+      // Which pose a drawing belongs to is a question about the drawing, and
+      // the drawing's name is the answer. `borrowedFrom` records where a
+      // borrowed one came from, which is better prose — but it is written when
+      // a pose is pointed AT another pose's art and was not cleared when it was
+      // pointed back, so nineteen poses claim a source while drawing their own
+      // file. It is now banked with the rest of a drawing's fields, and until
+      // every one of those has been through a switch it stays the label rather
+      // than the test.
+      //
+      // The delivery suffix comes off first: `incoming/idle_a-2.png` is
+      // idle_a's own second delivery, not somebody else's drawing.
+      const own = path.basename(meta.file, path.extname(meta.file)).replace(/-\d+$/, "");
+      if (own !== key && !meta.awaitingApproval) {
+        standIns.push({ char, key, drawing: meta.borrowedFrom || own, file: meta.file });
+      }
     }
   }
   return { ...flagged, standIns };
@@ -403,6 +418,14 @@ function blocksSection(keys) {
   return out.join("\n");
 }
 
+/** A fighter's name as a reader knows them, falling back to their key. Both
+ *  halves of the manifest table print a fighter, and one of them used to print
+ *  the raw key while the other printed the name, which reads as two different
+ *  fighters in one table. */
+function nameOf(charKey) {
+  return roster.get(charKey)?.name || charKey;
+}
+
 /** The fighter's approved idle, as something the reader can fetch. Every table
  *  that asks for a drawing carries one: the rule at the top of the file says
  *  the canon reference is the subject, and a rule you cannot act on is a
@@ -430,7 +453,21 @@ function manifestSection(work) {
     out.push("**Nothing outstanding.** No pose carries a replacement flag, and no pose is",
       "drawing a file that is not its own.");
   } else {
-    out.push(`**${flagged.length} flagged, ${work.standIns.length} drawing somebody else's art.**`, "",
+    // A POSE IS ONE ROW, AND THE ROW IS ABOUT THE POSE.
+    //
+    // A flag is raised on the pose being edited — `attack_light_a` — and says
+    // nothing about the FILE that pose happens to be drawing, which may belong
+    // to another pose entirely. Both facts used to be in this table as two
+    // separate rows thirty lines apart: a flagged row showing
+    // `attack_heavy_a.png` as "the drawing now" with nothing to say it was a
+    // stand-in, and a stand-in row that said so but did not carry the flag's
+    // note. Read on its own — which is how a table gets read — the first row
+    // shows an artist a heavy attack and asks them to fix a light one.
+    const borrowed = new Map(work.standIns.map((s) => [`${s.char}/${s.key}`, s]));
+    const seen = new Set();
+    out.push(`**${flagged.length} flagged, ${work.standIns.length} drawing somebody else's art**`
+      + `${[...borrowed.keys()].filter((k) => flagged.some((r) => `${r.char || r.character}/${r.key || r.frame}` === k)).length
+          ? ` (they overlap: a flagged pose can also be one)` : ""}.`, "",
       // The drawing that is wrong, and the fighter it has to look like. Naming
       // a pose is enough for somebody standing in the repo and no use at all to
       // the reader this file is written for, who cannot open
@@ -441,13 +478,22 @@ function manifestSection(work) {
     for (const r of flagged) {
       const char = r.char || r.character;
       const key = r.key || r.frame;
-      out.push(`| ${r.name || char} | \`${key}\` | ${r.kind || r.reason || "flagged"} `
-        + `| ${r.note || "—"} | ${r.file ? `[${path.basename(r.file)}](${rawUrl(`sprites/assets/${r.file}`)})` : "—"} `
-        + `| ${canonLink(char)} |`);
+      seen.add(`${char}/${key}`);
+      const stand = borrowed.get(`${char}/${key}`);
+      // The drawing shown is another pose's, so say whose. Without this the
+      // column reads as "here is the art for this pose", which is the one
+      // thing it is not.
+      const shown = r.file
+        ? `[${path.basename(r.file)}](${rawUrl(`sprites/assets/${r.file}`)})`
+          + (stand ? ` — \`${stand.drawing}\`'s drawing, not \`${key}\`'s` : "")
+        : "—";
+      out.push(`| ${r.name || nameOf(char)} | \`${key}\` | ${r.kind || r.reason || "flagged"} `
+        + `| ${r.note || "—"} | ${shown} | ${canonLink(char)} |`);
     }
     for (const s of work.standIns) {
-      out.push(`| ${s.char} | \`${s.key}\` | drawing another pose's file | it is \`${s.drawing}\`, not \`${s.key}\` `
-        + `| [${s.drawing}.png](${rawUrl(`sprites/assets/${s.char}/${s.drawing}.png`)}) | ${canonLink(s.char)} |`);
+      if (seen.has(`${s.char}/${s.key}`)) continue;
+      out.push(`| ${nameOf(s.char)} | \`${s.key}\` | drawing another pose's file | it is \`${s.drawing}\`, not \`${s.key}\` `
+        + `| [${path.basename(s.file || `${s.drawing}.png`)}](${rawUrl(`sprites/assets/${s.file || `${s.char}/${s.drawing}.png`}`)}) | ${canonLink(s.char)} |`);
     }
   }
   out.push("");

@@ -34,6 +34,11 @@ def load(path):
     return Image.open(path).convert("RGBA") if os.path.exists(path) else None
 
 
+def stem(path):
+    """`hakari/incoming/attack_light_a-2.png` -> `attack_light_a-2`."""
+    return os.path.splitext(os.path.basename(path))[0]
+
+
 def pane(img, box, bg):
     """Fit `img` into a pane, on `bg` so alpha problems are visible."""
     out = Image.new("RGB", box, bg)
@@ -61,10 +66,16 @@ def sheet(char, items, man, anims, out_dir, bg):
         key = it["key"]
         befores = intake.current_frames_for(anims, man, char, key)
         before = None
+        shown_file = None
         for b in befores:
             meta = man["characters"].get(char, {}).get(b)
             if meta:
-                before = load(os.path.join(SPRITES, meta["file"]))
+                # What the GAME draws, not what the pose is called. On a pose
+                # awaiting approval those are two different images, and the
+                # left pane is the one still in play.
+                live = (meta.get("awaitingApproval") or {}).get("live") or meta
+                shown_file = live.get("file") or meta["file"]
+                before = load(os.path.join(SPRITES, shown_file))
                 break
         after = load(os.path.join(PROCESSED, char, f"{key}.png"))
 
@@ -88,8 +99,19 @@ def sheet(char, items, man, anims, out_dir, bg):
             states = ["(unused frame — nothing plays it)"] if known else ["(NEW state)"]
         d.text((cx + 12, cy + 8), ", ".join(states), fill=(120, 215, 255))
         d.text((cx + 12, cy + 22), f"{char}/{key}", fill=(226, 232, 250))
-        shown = befores[0] if befores else "nothing"
-        d.text((cx + 12, cy + 36), f"now: {shown}", fill=(150, 165, 200))
+        # NAME THE DRAWING, NOT THE POSE.
+        #
+        # A pose can be drawing another pose's file — a stand-in picked in the
+        # workbench, or art that was never delivered for it. Printing the pose
+        # key here said `now: attack_light_a` under a pane showing
+        # `attack_heavy_a.png`, which tells a reviewer they are comparing a
+        # redraw against its predecessor when they are comparing new art
+        # against a substitute. The two are judged differently: one asks "is
+        # this better", the other "is this the pose at all".
+        shown = stem(shown_file) if shown_file else (befores[0] if befores else "nothing")
+        stand_in = bool(befores) and shown not in (befores[0], "nothing")
+        d.text((cx + 12, cy + 36), f"now: {shown}" + ("  <- stand-in" if stand_in else ""),
+               fill=(240, 180, 80) if stand_in else (150, 165, 200))
         d.text((cx + CW // 2 + 6, cy + 36),
                f"new: {it['w']}x{it['h']}" + ("  MIRRORED" if it.get("mirrored") else ""),
                fill=(150, 240, 170))

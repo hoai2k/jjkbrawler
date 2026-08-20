@@ -137,6 +137,44 @@ Renaming a delivered file is still fine — that is what `tools/apply_sprite_adj
 and the intake tools do — but it is worth knowing that the old path dies with
 the rename, and anybody mid-session is one reload away from it.
 
+## A flag belongs to the pose, a drawing belongs to itself
+
+Flag `attack_light_a` and you are asking for **`attack_light_a`** to be drawn.
+That sounds too obvious to write down until you notice that the pose may not be
+drawing its own file: a pose with no art of its own is pointed at a neighbour's
+so the game draws something (the 18G fault), and the workbench can borrow a
+drawing deliberately — a prone body made out of a standing one. So `attack_light_a`
+can be showing `attack_heavy_a.png`, and a request raised on it has three
+possible subjects: the pose, the file, or the pose that file belongs to. Only
+the first is ever what was meant.
+
+The manifest gets this right — `needsReplacement` is written on the pose,
+`intake_import.py` lands the answer on the pose (`incoming/<pose>.png`), and
+`canonicalise_sprites.py` knows one file can serve several poses and leaves the
+name with the pose that owns it. What went wrong twice was in what a **person
+reads**:
+
+- `tools/intake_sheets.py` printed `now: attack_light_a` under a pane showing
+  `attack_heavy_a.png`. The board is where a delivery is judged, and the
+  judgement changes completely: against a predecessor the question is "is this
+  better", against a stand-in it is "is this the pose at all". It now names the
+  drawing it is actually showing and marks it `<- stand-in`.
+- `docs/image-requests.md` gave such a pose two rows — a flagged one showing
+  another pose's drawing with nothing to say so, and a stand-in row thirty
+  lines away that said so but carried no note. One row now, and the flagged row
+  says whose drawing it is showing.
+
+**The file decides, `borrowedFrom` only names.** The workbench records where a
+borrowed drawing came from, which reads better than a filename — but it is
+written when a pose is pointed AT another pose's art and was not cleared when
+it was pointed back, so nineteen poses claimed a source while drawing their own
+file. It is banked with the drawing's other fields now (`VARIANT_ORIGIN` in
+`sprites/src/sprites.js`), so switching away clears it; and every reader asks
+the file first and uses `borrowedFrom` only to name the pose the drawing
+belongs to. A delivery suffix comes off before that comparison —
+`incoming/idle_a-2.png` is `idle_a`'s own second delivery, not somebody else's
+drawing.
+
 ## Other Sprites: what the workbench can actually change
 
 `effect:*`, `summon:*` and `stagefx:*` art belongs to no fighter, so it has no

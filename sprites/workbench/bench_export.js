@@ -152,6 +152,13 @@ export function payloadFor(charKey) {
           file: o.file,
           // Provenance, for an option this session created: which pose the
           // drawing was borrowed from, and the name the chevron shows.
+          //
+          // `borrowedFrom` is banked now (VARIANT_ORIGIN), so `takeBanked`
+          // below carries it for every other option. It stays spelled out here
+          // because the SHOWING option takes the pose's fields last, and a
+          // pose pointed back at its own drawing correctly has no
+          // `borrowedFrom` — the option's own record of where its drawing came
+          // from should not be erased by that.
           ...(o.label ? { label: o.label } : {}),
           ...(o.borrowedFrom ? { borrowedFrom: o.borrowedFrom } : {}),
           ...takeBanked(o),
