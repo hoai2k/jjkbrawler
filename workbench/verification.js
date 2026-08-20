@@ -52,7 +52,7 @@ const SETS = {
   // Changing summon art to a face-right default inverted the correct `faceLeft`
   // for every creature at once, and which way a drawing points is not something
   // the code can re-derive — it is a fact about a picture.
-  // ---- answered: kept because a re-bake or a redraw reopens them -----------
+  // ---- archived: kept because a re-bake or a redraw reopens them -----------
   "creature-facing": {
     archived: true,
     label: "Creature facing",
@@ -150,6 +150,61 @@ const SETS = {
   },
 };
 
+// ---------------------------------------------------------- archived sets
+//
+// Which drawer a queue is filed in used to be a fact about the table above: a
+// set sat under the picker's "archived" rule because `archived: true` said so,
+// and moving one took an edit and a commit. But finishing a pass is something
+// that happens at the bench, not in the source — so the button next to the
+// queue heading files the open set away, or fetches it back, and the choice
+// is remembered per browser.
+//
+// Decisions are deliberately NOT persisted (see setWork below). This is not a
+// decision: it records nothing about any item, claims nothing about the tree,
+// and cannot make old work look like new. It is where you keep your tools —
+// and one that forgot itself on reload would not be worth the click.
+
+const ARCHIVE_KEY = "jjk.verification.archived.v1";
+
+/** setId -> boolean, and ONLY for sets somebody moved by hand. Absent means
+ *  "whatever the table says", so a new set arrives in the group its author
+ *  filed it under, and an entry for a set that no longer exists costs
+ *  nothing. */
+const archiveOverrides = loadArchiveOverrides();
+
+function loadArchiveOverrides() {
+  const map = new Map();
+  try {
+    const raw = JSON.parse(localStorage.getItem(ARCHIVE_KEY) || "{}");
+    for (const [id, on] of Object.entries(raw)) map.set(id, !!on);
+  } catch (err) {
+    // A junk value is not worth a broken bench: fall back to the table.
+    console.warn("verification: stored archive list unreadable — ignoring it", err);
+  }
+  return map;
+}
+
+function saveArchiveOverrides() {
+  try {
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(Object.fromEntries(archiveOverrides)));
+  } catch (err) {
+    console.warn("verification: could not store the archive list", err);
+  }
+}
+
+const isArchived = (id) => (
+  archiveOverrides.has(id) ? archiveOverrides.get(id) : !!SETS[id]?.archived
+);
+
+function setArchived(id, on) {
+  if (!SETS[id]) return;
+  // Agreeing with the table is stored as nothing rather than as agreement, so
+  // a set the table later reopens (or closes) still follows it.
+  if (!!SETS[id].archived === on) archiveOverrides.delete(id);
+  else archiveOverrides.set(id, on);
+  saveArchiveOverrides();
+}
+
 const params = new URL(location.href).searchParams;
 const root = document.getElementById("verificationRoot");
 
@@ -174,7 +229,10 @@ root.innerHTML = `
 
   <main class="layout layout--verify">
     <aside class="col">
-      <h2>Queue</h2>
+      <div class="v-head">
+        <h2>Queue</h2>
+        <button id="vArchive" class="ghost sm" type="button"></button>
+      </div>
       <p class="sub" id="vProgress">—</p>
       <div class="v-bar"><div class="v-bar-fill" id="vBarFill"></div></div>
       <div class="v-filters">
@@ -241,7 +299,8 @@ const el = (id) => document.getElementById(id);
 const els = {
   blurb: el("vBlurb"), set: el("vSet"), exportBtn: el("vExport"), refresh: el("vRefresh"),
   state: el("vState"), progress: el("vProgress"), barFill: el("vBarFill"), list: el("vList"),
-  stage: el("vStage"), title: el("vTitle"), subtitle: el("vSubtitle"), source: el("vSource"),
+  archive: el("vArchive"), stage: el("vStage"), title: el("vTitle"),
+  subtitle: el("vSubtitle"), source: el("vSource"),
   editor: el("vEditor"), note: el("vNote"), resume: el("vResume"),
   prev: el("vPrev"), next: el("vNext"), approve: el("vApprove"), skip: el("vSkip"),
   reset: el("vReset"), reject: el("vReject"), clear: el("vClear"),
@@ -411,11 +470,65 @@ function snapToVisible() {
 }
 
 function renderAll() {
+  renderArchiveButton();
   renderList();
   renderCurrent();
   renderProgress();
   refreshSetCounts();
   renderResume();
+}
+
+/** The archive button says what it will DO, and shows what is true now: a
+ *  set already filed away offers to fetch it back. */
+function renderArchiveButton() {
+  const id = bench.setId;
+  els.archive.hidden = !SETS[id];
+  if (!SETS[id]) return;
+  const on = isArchived(id);
+  els.archive.textContent = on ? "⇡ Unarchive" : "⇣ Archive";
+  els.archive.classList.toggle("is-on", on);
+  els.archive.setAttribute("aria-pressed", String(on));
+  els.archive.title = on
+    ? `Archived — put “${SETS[id].label}” back with the open queues in the picker`
+    : `Archive “${SETS[id].label}” — it drops below the rule in the picker, and stays there`;
+}
+
+/**
+ * OPEN SETS FIRST, THEN A RULE, THEN THE ARCHIVED ONES. The list only grows,
+ * and a set whose questions have all been answered is not one anybody is
+ * going to the picker for — but it is worth keeping, because a re-bake or a
+ * redraw reopens it. The rule between the two groups is a disabled option,
+ * which is the separator every browser renders and which cannot be landed on
+ * by keyboard.
+ *
+ * Rebuilt rather than reordered in place, because archiving is the one thing
+ * that moves a set between the groups and the option list is a dozen nodes.
+ * The set that is open stays selected even when it is the one just archived:
+ * filing your work away should not close it.
+ */
+function renderSetPicker(preferred) {
+  els.set.textContent = "";
+  const ids = Object.keys(SETS);
+  const open = ids.filter((id) => !isArchived(id));
+  const done = ids.filter((id) => isArchived(id));
+  const add = (id) => {
+    const opt = document.createElement("option");
+    opt.value = id;
+    opt.textContent = SETS[id].label;
+    els.set.appendChild(opt);
+  };
+  open.forEach(add);
+  if (open.length && done.length) {
+    const rule = document.createElement("option");
+    rule.disabled = true;
+    rule.textContent = "────── archived ──────";
+    els.set.appendChild(rule);
+  }
+  done.forEach(add);
+  // The first OPEN set, not the first entry: the default has to be somewhere
+  // there is work, or the bench opens on a queue with nothing in it.
+  els.set.value = SETS[preferred] ? preferred : (open[0] || done[0]);
+  refreshSetCounts();
 }
 
 /** Decision counts on the set picker's options. */
@@ -856,37 +969,21 @@ async function openSet(id) {
 }
 
 function wire() {
-  // OPEN SETS FIRST, THEN A RULE, THEN THE SETTLED ONES. The list only grows,
-  // and a set whose questions have all been answered is not a set anybody is
-  // going to the picker for — but it is worth keeping, because a re-bake or a
-  // redraw reopens it. `archived: true` in the table above is that distinction,
-  // and the rule between the two groups is a disabled option, which is the
-  // separator every browser renders and cannot be landed on by keyboard.
-  const open = Object.entries(SETS).filter(([, d]) => !d.archived);
-  const done = Object.entries(SETS).filter(([, d]) => d.archived);
-  const add = ([id, def]) => {
-    const opt = document.createElement("option");
-    opt.value = id;
-    opt.textContent = def.label;
-    els.set.appendChild(opt);
-  };
-  open.forEach(add);
-  if (open.length && done.length) {
-    const rule = document.createElement("option");
-    rule.disabled = true;
-    rule.textContent = "────── answered ──────";
-    els.set.appendChild(rule);
-  }
-  done.forEach(add);
-  const asked = params.get("set");
-  // The first OPEN set, not the first entry: the default has to be somewhere
-  // there is work, or the bench opens on a queue with nothing in it.
-  els.set.value = SETS[asked] ? asked : (open[0] || done[0] || [])[0];
+  renderSetPicker(params.get("set"));
   els.set.addEventListener("change", () => openSet(els.set.value));
-  // How much work each set is holding, in the picker itself — so switching
+  // The picker itself carries how much work each set is holding — so switching
   // sets is an informed move rather than a guess, and a pass left half-done
   // somewhere else is visible from here.
-  refreshSetCounts();
+
+  // Archiving is a picker move, not a queue move: the set stays open and the
+  // items stay exactly where they were — only which group it is listed under
+  // changes, and it survives the reload.
+  els.archive.addEventListener("click", () => {
+    if (!SETS[bench.setId]) return;
+    setArchived(bench.setId, !isArchived(bench.setId));
+    renderSetPicker(bench.setId);
+    renderArchiveButton();
+  });
 
   // Only the sets that can be turned offer a way back, and it is always
   // visible while they are open — an orbited stage that cannot be un-orbited

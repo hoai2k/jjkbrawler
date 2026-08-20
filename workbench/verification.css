@@ -18,6 +18,17 @@
   grid-template-columns: 280px minmax(360px, 1fr) minmax(320px, 0.9fr);
 }
 
+/* The queue heading and its archive button share a line: the button belongs
+   to the queue you are looking at, not to the header bar's set picker, even
+   though what it moves is an entry in that picker. */
+.v-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.v-head h2 { margin-bottom: 0; }
+
 /* ------------------------------------------------------------- progress */
 
 .v-bar {
