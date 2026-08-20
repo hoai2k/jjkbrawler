@@ -154,7 +154,11 @@ VARIANT_PLACEMENT = [
 VARIANT_REVIEW = ["needsReplacement", "wantsImprovement",
                   "replacementNote", "improvementNote",
                   "edited", "surfacedReviewed"]
-VARIANT_BANKED = VARIANT_PLACEMENT + VARIANT_REVIEW
+# Where the drawing came from, if it came from another pose. Banked for the
+# same reason as the rest: it describes the IMAGE, so a pose that switches back
+# to its own art must not keep claiming to have borrowed one.
+VARIANT_ORIGIN = ["borrowedFrom"]
+VARIANT_BANKED = VARIANT_PLACEMENT + VARIANT_REVIEW + VARIANT_ORIGIN
 
 # Kinds that only mean something about an option, never about the pose.
 # Mirrors VARIANT_ONLY_KINDS in sprites/src/sprites.js.

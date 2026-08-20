@@ -282,9 +282,19 @@ export const VARIANT_REVIEW = ["needsReplacement", "wantsImprovement",
                                "replacementNote", "improvementNote",
                                "edited", "surfacedReviewed"];
 
+/** Where a drawing came from, when a pose is pointed at another pose's art.
+ *
+ *  Banked because it is a fact about the DRAWING and not about the pose. A pose
+ *  that borrows `attack_dash` and is later pointed back at its own delivered
+ *  art has not borrowed anything, and a `borrowedFrom` left behind says it has
+ *  — which is how nineteen poses came to claim a source while drawing their own
+ *  file. Every reader of it therefore asks the FILE first and uses this only to
+ *  name the pose the drawing belongs to. */
+export const VARIANT_ORIGIN = ["borrowedFrom"];
+
 /** Everything banked onto the option a pose is leaving, and restored from the
  *  one it arrives at. */
-export const VARIANT_BANKED = [...VARIANT_PLACEMENT, ...VARIANT_REVIEW];
+export const VARIANT_BANKED = [...VARIANT_PLACEMENT, ...VARIANT_REVIEW, ...VARIANT_ORIGIN];
 
 // Fallback centre of mass, derived from the extraction data the manifest
 // already carries. Cached per frame on FIRST use — before the workbench can

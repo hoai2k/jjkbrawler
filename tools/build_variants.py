@@ -48,7 +48,9 @@ PLACEMENT = [
     "centroidX", "renderScale", "rotationDeg", "anchors", "faceLeft",
 ]
 REVIEW = ["needsReplacement", "wantsImprovement", "edited", "surfacedReviewed"]
-BANKED = PLACEMENT + REVIEW
+# A fact about the drawing, not the pose — see VARIANT_ORIGIN in sprites.js.
+ORIGIN = ["borrowedFrom"]
+BANKED = PLACEMENT + REVIEW + ORIGIN
 
 
 def option_from_meta(meta, label):
