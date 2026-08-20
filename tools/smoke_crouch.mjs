@@ -76,14 +76,19 @@ async function play(script) {
     let out = null;
     for (const [frames, patch] of script) {
       for (let i = 0; i < frames; i++) {
-        const input = Object.assign(blankInput(), patch);
+        const { airborne, ...rest } = patch;
+        if (airborne) { f.grounded = false; f.y -= 220; f.vy = -40; }
+        const input = Object.assign(blankInput(), rest);
         if (patch.right) input.dirX = 1;
         if (patch.left) input.dirX = -1;
         input.moveX = input.dirX;
         f.lastInput = input;
         updateFighter(f, DT, input);
         if (!out && f.action?.kind === "attack") {
-          out = { anim: f.action.anim, label: f.action.move?.label || "", crouching: f.crouching };
+          out = {
+            anim: f.action.anim, label: f.action.move?.label || "",
+            crouching: f.crouching, aimed: !!f.aimPoint,
+          };
         }
       }
     }
@@ -112,11 +117,29 @@ const standing = await play([HOLD_DOWN, [20, {}], [1, { lightP: true }], [4, {}]
 check(standing?.anim === "light", "and standing up hands the jab back",
   `got ${standing?.anim} (${standing?.label})`);
 
-// 4. The diagonal keeps its own meaning: down AND forward held together is the
-//    side attack angled at the legs, not the crouch move (fighter.js attackTilt).
+// 4. The stick at five o'clock — down AND forward, the angle a pad reports
+//    mid-roll. The attack keeps the diagonal's 45° reach (it is the SIDE move,
+//    swung at the legs, not the down move), but it is drawn out of the crouch:
+//    the fighter is crouched there, and a standing swing out of a crouching
+//    body was the game disagreeing with itself on screen.
 const diag = await play([HOLD_DOWN, [1, { down: true, right: true, lightP: true }], [4, {}]]);
-check(diag?.anim !== "crouchAttack", "down + forward held is still the angled side attack",
+check(diag?.anim === "crouchAttack", "down + forward is posed out of the crouch",
   `got ${diag?.anim} (${diag?.label})`);
+check(diag?.aimed && !/^Low /.test(diag?.label || ""),
+  "…and still the angled side attack, not the plain down move",
+  `got ${diag?.label} aimed=${diag?.aimed}`);
+
+// 4b. The AIR has no crouch to win, so the down diagonal still angles the
+//     aerial at the legs there — `aimPoint` is the tell (fighter.js aimAlong).
+const air = await play([[1, { airborne: true }], [1, { down: true, right: true, lightP: true }], [4, {}]]);
+check(air?.anim === "airLight" && air?.aimed, "in the air, down + forward still angles the aerial",
+  `got ${air?.anim} aimed=${air?.aimed}`);
+
+// 4c. Up + forward is untouched: still the side attack angled up, not the up
+//     attack and not a crouch.
+const upDiag = await play([[1, { up: true, right: true, lightP: true }], [4, {}]]);
+check(upDiag?.aimed && upDiag?.anim !== "upHeavy", "up + forward still angles the side attack",
+  `got ${upDiag?.anim} (${upDiag?.label}) aimed=${upDiag?.aimed}`);
 
 // 5. A dash out of a crouch is a decision to stand: the dash attack must not
 //    be swallowed by a stale crouch.
@@ -124,6 +147,35 @@ const dashed = await play([HOLD_DOWN, [1, { right: true, dashP: true }], [2, { r
   [1, { right: true, lightP: true }], [4, {}]]);
 check(dashed?.anim !== "crouchAttack", "a dash clears the crouch grace",
   `got ${dashed?.anim} (${dashed?.label})`);
+
+// 6. The BOX agrees with the pose. `f.crouching` is false for the whole of an
+//    attack — a fighter cannot act and crouch at once — so the hurtbox used to
+//    stand up the instant the low swing started, while the art stayed folded
+//    in half (combat.js isDucking).
+const boxes = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { updateFighter } = await import("/src/fighter.js");
+  const { blankInput } = await import("/src/input.js");
+  const { hurtbox } = await import("/src/combat.js");
+  const f = state.fighters[0];
+  const plat = state.platforms.find((p) => p.kind === "main");
+  Object.assign(f, {
+    x: plat.x + plat.w / 2, y: plat.y, vx: 0, vy: 0, grounded: true,
+    action: null, crouching: false, crouchGrace: 0, hitstun: 0, invuln: 99,
+  });
+  const DT = 1 / 60;
+  const step = (patch = {}) => updateFighter(f, DT, Object.assign(blankInput(), patch));
+  for (let i = 0; i < 6; i++) step();
+  const standing = hurtbox(f).h;
+  for (let i = 0; i < 12; i++) step({ down: true });
+  const crouching = hurtbox(f).h;
+  step({ down: true, lightP: true });
+  for (let i = 0; i < 3; i++) step({ down: true });
+  return { standing, crouching, attacking: hurtbox(f).h, anim: f.animKey };
+});
+check(boxes.anim === "crouchAttack" && Math.abs(boxes.attacking - boxes.crouching) < 1,
+  "the hurtbox stays ducked through the crouch attack",
+  `standing=${Math.round(boxes.standing)} crouch=${Math.round(boxes.crouching)} attacking=${Math.round(boxes.attacking)}`);
 
 check(errors.length === 0, "no page errors", errors.join(" | "));
 
