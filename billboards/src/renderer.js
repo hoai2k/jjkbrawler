@@ -244,7 +244,11 @@ export function renderPose(charKey, animKey, animTime, resolveClip, aim = null, 
   });
   // Secondary motion — braids, tendrils — driven by the same quantised clock
   // as the pose, so the cache stays honest (props.js explains the trade).
-  swayChains(rig.root, clipTime(animKey, animTime), charKey);
+  // THREE first — `swayChains(THREE, root, time, charKey)`. Called with three
+  // arguments this passed the ROOT where the module expects THREE and the time
+  // where it expects the root, and died on `root.traverse is not a function`
+  // the first time a card carried a chain.
+  swayChains(THREE, rig.root, clipTime(animKey, animTime), charKey);
   // ...except where a chain asked to be simulated, which is driven by REAL
   // elapsed time instead, so it can lag the body rather than move with it.
   if (live) simulateChains(THREE, rig.root, frameDelta(), charKey);

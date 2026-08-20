@@ -1019,14 +1019,28 @@ export function applyKneeTurn(THREE, root3d, deg, tmp) {
   return turned > 0;
 }
 
-/** The bind (rest) world matrix of every bone, cached on the root.
+/** The bind (rest) world matrix of every bone, cached per root.
  *
  *  `boneInverses[i]` is the inverse of bone i's world matrix at bind, so its
  *  inverse is that matrix — the pose the MODEL was built in, before any clip
  *  touched it. That is the only place a bone's neutral ROLL is recorded, and
- *  roll is the half of an arm that aiming does not set. */
+ *  roll is the half of an arm that aiming does not set.
+ *
+ *  KEYED OFF THE ROOT, NOT STORED ON IT. This cache used to live in
+ *  `root.userData`, which three.js DEEP-COPIES THROUGH JSON on clone
+ *  (`Object3D.copy`: `userData = JSON.parse(JSON.stringify(source.userData))`).
+ *  A Map does not survive that — it arrives as `{}`, which is truthy and has
+ *  no `.has` — and every in-match rig is a clone of the loaded one
+ *  (loader.js acquireInstance). So the first fighter posed fine, and the
+ *  moment a clone whose base had already been posed reached the idle arms it
+ *  threw `bind.has is not a function` and nothing was drawn. A WeakMap holds
+ *  the same per-rig cache without putting anything in the object three.js
+ *  copies. */
+const BIND_FRAMES = new WeakMap();
+
 function bindFrames(THREE, root3d) {
-  if (root3d.userData.__bind) return root3d.userData.__bind;
+  const held = BIND_FRAMES.get(root3d);
+  if (held) return held;
   let out = null;
   root3d.traverse((o) => {
     if (out || !o.isSkinnedMesh || !o.skeleton) return;
@@ -1040,8 +1054,9 @@ function bindFrames(THREE, root3d) {
     });
     out = map;
   });
-  root3d.userData.__bind = out || new Map();
-  return root3d.userData.__bind;
+  const map = out || new Map();
+  BIND_FRAMES.set(root3d, map);
+  return map;
 }
 
 /**
