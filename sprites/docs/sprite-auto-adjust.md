@@ -1,13 +1,16 @@
 # Can the placement pass be automated?
 
-> **Re-measured, over twice the data.** This document's numbers are the 1,605
-> corrections that existed when the rules were written. The manifest now holds
-> 3,170, and three of the answers below have moved — the foot line is one
-> fraction *per state* rather than one for the roster, the size rule has
-> switched itself off over six fighters' idle frames, and the horizontal centre
-> has a better source sitting beside it. See
-> [sprite-import-defaults.md](sprite-import-defaults.md); the reasoning here is
-> the reasoning it builds on.
+> **Re-measured, over twice the data, and two of the rules have changed.** The
+> numbers on this page are the 1,605 corrections that existed when the rules
+> were written; the manifest now holds 3,170. The foot line is no longer one
+> fraction for the roster — it is one *per animation state*, because a running
+> contact sits at 0.990 and a prone one at 0.626 — and the size rule, which had
+> quietly stopped applying to anything, is measured against each character's
+> own level so that six fighters' re-placed idles cannot switch it off. Both
+> are in `tools/auto_tune.py` today. See
+> [sprite-import-defaults.md](sprite-import-defaults.md) for the measurement
+> and for what has not been done yet; the reasoning here is the reasoning it
+> builds on.
 
 Every intake round lands art at numbers the pipeline derives, and then somebody
 opens the workbench and moves them. That pass is the most expensive thing about
