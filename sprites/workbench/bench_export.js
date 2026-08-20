@@ -210,15 +210,39 @@ export function payloadFor(charKey) {
  *  already accepts an array, so a multi-character export needs nothing new on
  *  the other end. A lone character still exports as a bare object. */
 export function exportAll() {
-  const payloads = editedChars()
-    .sort()
-    .map(payloadFor)
-    .filter(Boolean);
-  const json = payloads.length
-    ? JSON.stringify(payloads.length === 1 ? payloads[0] : payloads, null, 2)
-    : "";
+  const json = pendingJson();
+  const payloads = editedChars().sort().map(payloadFor).filter(Boolean);
   $("exportOut").value = json || "// no changes yet";
   if (json) downloadJson(json, exportFileName(payloads));
+  lastExported = json;
+}
+
+/** Everything that would be exported right now, as the export's own JSON. */
+function pendingJson() {
+  const payloads = editedChars().sort().map(payloadFor).filter(Boolean);
+  return payloads.length
+    ? JSON.stringify(payloads.length === 1 ? payloads[0] : payloads, null, 2)
+    : "";
+}
+
+// What the last export contained, so "is there work that has not left the
+// bench" can be answered exactly rather than guessed at from a dirty flag.
+let lastExported = "";
+
+/** Work done since the last export, or "" if the two agree.
+ *
+ *  NOTHING HERE IS SAVED. Every nudge and every review tick lives in memory on
+ *  this page, by design --- the manifest is the repository's and an export is
+ *  how a change reaches it. The cost is that a reload throws the lot away
+ *  without a word, and a REVIEW TICK is the easiest thing to lose that way,
+ *  because it leaves no mark on the canvas: you tick "done" on eight poses,
+ *  the grid dims them, and nothing on screen distinguishes that from eight
+ *  poses somebody already exported. Yaga's idle and two of Kashimo's came back
+ *  a second time for exactly this reason.
+ */
+export function unexportedWork() {
+  const json = pendingJson();
+  return json === lastExported ? "" : json;
 }
 
 /** Named after what is in it, so a folder of exports is readable months later:
