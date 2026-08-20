@@ -43,7 +43,7 @@ running, and the gate is meant to pass on a bare checkout.
 | `smoke_*` | play the real game (mostly headless via Playwright) and measure the result | 34 |
 | `audit_*` | report on the data rather than pass/fail it — reach, hitboxes, frame sizes, model health | 12 |
 | `build_*` | generate a checked-in file from the source of truth | 6 |
-| `debug_*` | probe one mechanism and print what it did — no pass/fail, for judging a look change | 3 |
+| `debug_*` | probe one mechanism and print what it did — no pass/fail, for judging a look change | 4 |
 | `intake_*`, `*_intake` | take a delivery from `assets/intake/` or `render3d/intake/` into the game | |
 | `pose_*` | the sprite pose reads and the sheets that review them | |
 | `blender_*` | run inside Blender against a rig; see `render3d/docs/blender-requests.md` | |
