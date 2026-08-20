@@ -156,6 +156,16 @@ MIN_STATE_FOOT_CHARS = 3
 # where the two answers agree — which is the argument for it being weak rather
 # than for it being absent.
 STATE_FOOT_MARGIN = 0.3
+# A state named in NO_STANDING_FOOT has to clear a much higher bar, because for
+# those the claim is not "this contact sits a little differently" but "this pose
+# has a contact at all". `prone` makes it easily — 0.626 against the roster's
+# 0.950 is 2.8 of its own standard deviations, and 35 fighters agree that a body
+# on its side stands a third of its height above its lowest pixel. `airLight`
+# does not: its median is 0.024 from the roster and its corrections scatter by
+# 0.102, so what it has is noise with a state name on it. At 0.3 it slipped
+# through on one round's worth of new samples and proposed a foot line BELOW the
+# drawing, which is the failure the list was written to prevent.
+NO_STANDING_FOOT_MARGIN = 1.5
 # Hand-tuned poses a character needs before their own foot level is used
 # instead of the roster's. Below this the median is noise.
 MIN_CHAR_FOOT_SAMPLES = 8
@@ -304,7 +314,9 @@ def learn_foot(man, anims):
         fracs = [f for _, f in vals]
         entry = {"frac": statistics.median(fracs), "n": len(fracs),
                  "chars": len(chars), "sd": statistics.pstdev(fracs)}
-        if glob and abs(entry["frac"] - glob) < STATE_FOOT_MARGIN * entry["sd"]:
+        margin = (NO_STANDING_FOOT_MARGIN if state in NO_STANDING_FOOT
+                  else STATE_FOOT_MARGIN)
+        if glob and abs(entry["frac"] - glob) < margin * entry["sd"]:
             near_roster[state] = entry
         else:
             per_state[state] = entry
@@ -669,7 +681,9 @@ def backtest(man, foot, sizes, levels, anims, args):
                 continue
             fracs = [f for _, f in vals]
             frac, sd = statistics.median(fracs), statistics.pstdev(fracs)
-            if abs(frac - g_keep) >= STATE_FOOT_MARGIN * sd:
+            margin = (NO_STANDING_FOOT_MARGIN if state in NO_STANDING_FOOT
+                      else STATE_FOOT_MARGIN)
+            if abs(frac - g_keep) >= margin * sd:
                 per_state[state] = {"frac": frac}
         # The character being scored keeps their own level — it is measured from
         # their other poses, not from them, and dropping it would score a rule
