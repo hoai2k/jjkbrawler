@@ -179,20 +179,6 @@
 }
 .light.is-working { color: #cfeed8; border-color: #3f7d55; background: #16301f; }
 
-/* The turn lamp is a readout, not a switch — the mirror sweep ships and
-   cannot be turned off, so it never sits in the armed-but-idle state and
-   never invites a click. */
-.light.is-fixed { cursor: default; opacity: 0.9; }
-.light.is-fixed:hover { background: transparent; color: #7a839c; }
-.light.is-fixed.is-working:hover { background: #16301f; color: #cfeed8; }
-.light.is-fixed .light__dot { background: #2f3646; box-shadow: inset 0 0 0 1px #454d61; }
-.light.is-fixed.is-working .light__dot {
-  background: #67d17e;
-  box-shadow:
-    0 0 calc(5px + 9px * var(--work, 0)) rgba(103, 209, 126, calc(0.45 + 0.55 * var(--work, 0))),
-    inset 0 0 0 1px #8fe3a1;
-}
-
 .lights__state {
   padding-left: 4px;
   font-size: 10px;

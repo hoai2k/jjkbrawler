@@ -132,6 +132,114 @@ const slow = await page.evaluate(async () => {
   return { full: +full.toFixed(1), tenth: +tenth.toFixed(1) };
 });
 console.log(`\nsimulation steps per real second — 1x: ${slow.full}   0.1x: ${slow.tenth}`);
+// THE FACING SWEEP, measured as the thing it actually does to a drawing.
+//
+// `facingVis` slides from +1 to -1 over TURN_TIME and the sprite backend hands
+// it to `ctx.scale(facing, 1)`. So the drawing is squashed horizontally toward
+// zero and pulled out the other side — which is a card turning over, not a
+// body turning round, and there is a frame near the middle where the fighter
+// is a vertical line. This measures how narrow they get and for how long.
+const turn = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { draw } = await import("/src/render.js");
+  const { WORLD } = await import("/src/constants.js");
+  const { setSmoothing } = await import("/src/flags.js");
+  const { updateFighter } = await import("/src/fighter.js");
+  const { blankInput } = await import("/src/input.js");
+
+  const cv = new OffscreenCanvas(WORLD.w, WORLD.h);
+  const ctx = cv.getContext("2d", { willReadFrequently: true });
+  const a = state.fighters[0];
+  const main = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+  const settle = () => Object.assign(a, {
+    x: main.x + main.w / 2, y: main.y, vx: 0, vy: 0, grounded: true,
+    hitstun: 0, action: null, dead: false, respawnTimer: 0, ledge: null,
+    ledgeMove: null, shakeMag: 0, teeterT: 0, teeterDir: 0, animKey: "idle",
+    animTime: 0.1, prevAnim: null,
+  });
+  settle();
+  state.camera.x = WORLD.w / 2; state.camera.y = WORLD.h / 2;
+  state.camera.zoom = 1; state.camera.shake = 0;
+
+  const shot = () => { state.particles = []; ctx.clearRect(0,0,WORLD.w,WORLD.h); draw(ctx); return ctx.getImageData(0,0,WORLD.w,WORLD.h).data; };
+
+  // A FRESH PLATE PER SAMPLE. The backdrop breathes — fog drifts, the vignette
+  // pulses — so a plate taken once at the top and diffed against a shot taken
+  // a second later differs across the whole frame, and the measurement becomes
+  // the weather rather than the fighter. Taking the two a millisecond apart
+  // leaves only the body between them.
+  const pair = () => {
+    a.dead = true; const plate = shot();
+    a.dead = false; const live = shot();
+    return { plate, live };
+  };
+  // ABOVE THE SHADOW. The cast shadow is an ellipse on the deck and it is not
+  // mirrored by anything, so it sits at full width whatever the sprite is
+  // doing — measuring the whole figure just measures the shadow, which is how
+  // the first version of this reported a body that never changed width. The
+  // band is the torso: clear of the shadow at the bottom and of nothing at the
+  // top. The camera is parked and unzoomed above, so world y is canvas y.
+  const { bodyMetrics } = await import("/src/silhouette.js");
+  const h = bodyMetrics(a.spriteChar || a.charKey).height;
+  const BAND = { top: Math.round(a.y - h * 0.9), bottom: Math.round(a.y - h * 0.25) };
+
+  /** How wide the drawn body is across the torso, in world px. A column counts
+   *  only if several of its pixels changed, so a stray one does not stretch
+   *  the answer to the width of the canvas. */
+  const width = () => {
+    const { plate, live } = pair();
+    const cols = new Int32Array(WORLD.w);
+    for (let y = Math.max(0, BAND.top); y < Math.min(WORLD.h, BAND.bottom); y++) {
+      let i = y * WORLD.w * 4;
+      for (let x = 0; x < WORLD.w; x++, i += 4) {
+        const d = Math.abs(live[i] - plate[i]) + Math.abs(live[i + 1] - plate[i + 1])
+          + Math.abs(live[i + 2] - plate[i + 2]);
+        if (d > 40) cols[x]++;
+      }
+    }
+    let lo = -1, hi = -1;
+    for (let x = 0; x < WORLD.w; x++) {
+      if (cols[x] < 3) continue;
+      if (lo < 0) lo = x;
+      hi = x;
+    }
+    return hi < lo ? 0 : hi - lo + 1;
+  };
+
+  const run = (sweep) => {
+    setSmoothing({ turn: sweep });
+    settle();
+    a.facing = 1; a.facingVis = 1;
+    const rest = width();
+    const widths = [], vis = [];
+    for (let i = 0; i < 12; i++) {
+      // Re-asserted every step: a fighter with nobody to fight turns back
+      // toward the dummy, which undoes the flip after one frame and was why
+      // the first version of this measured a body that never moved.
+      a.facing = -1;
+      updateFighter(a, 1 / 60, blankInput());
+      settle();                          // keep them still; only the mirror moves
+      widths.push(width());
+      vis.push(+a.facingVis.toFixed(2));
+    }
+    return { rest, widths, vis, narrowest: Math.min(...widths),
+             frames: widths.filter((w) => w < rest * 0.35).length };
+  };
+
+  const on = run(true);
+  const off = run(false);
+  setSmoothing({ turn: true });
+  return { on, off };
+});
+console.log("\nfacing flip — how wide the drawn body is, world px");
+for (const [k, v] of Object.entries(turn)) {
+  console.log(`  sweep ${k.padEnd(4)} rest ${String(v.rest).padStart(3)}px`
+    + `  narrowest ${String(v.narrowest).padStart(3)}px`
+    + `  frames under 35% width: ${v.frames}`);
+  console.log(`             widths    ${v.widths.join(" ")}`);
+  console.log(`             facingVis ${v.vis.join(" ")}`);
+}
+
 if (errs.length) console.log("\nERRORS:", errs.slice(0, 4));
 
 await page.screenshot({ path: process.env.SHOT || "/tmp/bench-lights.png" });
