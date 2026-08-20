@@ -30,25 +30,22 @@ const DEBUG_MODES = new Set(
 );
 export const DEBUG_HITBOXES = DEBUG_MODES.has("hitbox") || DEBUG_MODES.has("hitboxes");
 
-/** SPRITE SMOOTHING EXPERIMENTS — `?smooth=com,holds`, or `?smooth=all`.
+/** THE COM-ALIGNED CROSS-FADE — ON, because it is the game now.
  *
- *  Both ship dark, which is the point of them being here: the game draws
- *  exactly as it did until the URL asks otherwise, so judging either one is
- *  loading the same fight twice rather than reading a diff. A comma list
- *  because they are meant to be compared apart AND together — the second is
- *  the first's hardest case, since a hold that flicks over between two
- *  drawings of the same stance is where an unaligned fade shows worst.
+ *  It shipped dark while it was being judged, which is what a dark flag is
+ *  for: the same fight, twice, one URL apart. It has been judged. `?smooth=`
+ *  still reads, so `?smooth=` on its own turns it off for a comparison, but
+ *  the default is on and the character bench is where it gets switched.
  *
- *    com     cross-fades line the two drawings up by their CENTRE OF MASS and
- *            slide it between them, instead of fading one body out where it
- *            stood and another in where it stands
- *    holds   the slow held loops (idle, charge, a held grab) cross-fade their
- *            own frame steps, which today are a cut like every other
+ *  It had a companion, `?smooth=holds`, which extended the fade to frame steps
+ *  inside the slow held loops. That is gone rather than defaulted off: on two
+ *  drawings of one stance a fade buys a dissolve nobody wanted and costs an
+ *  opacity dip that reads as a flicker, and the honest answer for a 2.2fps
+ *  idle is another drawing, not more fading.
  *
- *  Everything either flag reaches is in the fade block in src/render.js, and
- *  neither can touch the simulation: no hitbox, hurtbox, position or timer is
- *  read or written by any of it. If they graduate the flags come out; if they
- *  do not, the block goes with them. */
+ *  Everything this reaches is the fade block in src/render.js, and it cannot
+ *  touch the simulation: no hitbox, hurtbox, position or timer is read or
+ *  written by any of it. */
 const SMOOTH_MODES = new Set(
   (params.get("smooth") || "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
 );
@@ -65,45 +62,26 @@ const SMOOTH_MODES = new Set(
 //
 // The URL still decides where they START, so every other entry point behaves
 // exactly as before, and `setSmoothing` is the only way to move them.
-export let SMOOTH_COM_FADE = SMOOTH_MODES.has("com") || SMOOTH_MODES.has("all");
-export let SMOOTH_HOLD_FADE = SMOOTH_MODES.has("holds") || SMOOTH_MODES.has("all");
+export let SMOOTH_COM_FADE = params.has("smooth")
+  ? (SMOOTH_MODES.has("com") || SMOOTH_MODES.has("all"))
+  : true;
 
-/** The cross-fade a state change already ships with (`SPRITE_XFADE` in
- *  render.js). ON, because it is the game — it is a switch so the bench can
- *  turn it OFF and show what the other two are being compared against. */
+/** The cross-fade a state change ships with (`SPRITE_XFADE` in render.js). ON,
+ *  because it is the game — it is a switch so the bench can turn it OFF and
+ *  show the bare cut the alignment is an improvement on. */
 export let SPRITE_XFADE_ON = true;
 
-/** THE FACING SWEEP (`TURN_TIME`, fighter.js), FORCED. `null` — the default —
- *  means "ask the backend", which is the right answer rather than a fudge:
- *  whether a flip should sweep is a fact about who is drawing, not a
- *  preference. A rig has a back and turns through side-on; a drawing has no
- *  side-on and flips whole. `render_backend.js sweepsTurns` is where that
- *  lives.
- *
- *  true or false forces it, and only the character bench does — the bench
- *  exists to put a mechanism side by side with its absence, which needs a way
- *  to say "sweep anyway" on a backend that would not.
- *
- *  Cosmetic either way: `facingVis` is read by the renderer and the afterimage
- *  trail and by nothing else. `facing` — the one combat, movement and every
- *  hitbox use — flips whole regardless. */
-export let TURN_SWEEP_OVERRIDE = null;
 
 /** Move any of the three. Absent keys are left alone, so a caller can flip one
  *  switch without stating the others. Returns the resulting state, which is
  *  what an indicator light wants to render. */
-export function setSmoothing({ com, holds, xfade, turn } = {}) {
+export function setSmoothing({ com, xfade } = {}) {
   if (com !== undefined) SMOOTH_COM_FADE = !!com;
-  if (holds !== undefined) SMOOTH_HOLD_FADE = !!holds;
   if (xfade !== undefined) SPRITE_XFADE_ON = !!xfade;
-  if (turn !== undefined) TURN_SWEEP_OVERRIDE = turn === null ? null : !!turn;
   return smoothingState();
 }
 
 /** What is on right now. */
 export function smoothingState() {
-  return {
-    com: SMOOTH_COM_FADE, holds: SMOOTH_HOLD_FADE,
-    xfade: SPRITE_XFADE_ON, turn: TURN_SWEEP_OVERRIDE,
-  };
+  return { com: SMOOTH_COM_FADE, xfade: SPRITE_XFADE_ON };
 }

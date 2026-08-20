@@ -179,6 +179,23 @@
 }
 .light.is-working { color: #cfeed8; border-color: #3f7d55; background: #16301f; }
 
+/* The ledge drill. A button among the toggles rather than a light, because it
+   DOES something rather than reporting: it walks the fighter off the edge and
+   climbs them back, and says which part it is on while it runs. */
+.drill {
+  padding: 3px 10px;
+  background: #1c2231;
+  border: 1px solid #2a2f3e;
+  border-radius: 999px;
+  color: #9fb0d6;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.drill:hover { background: #232a3c; color: #cbd5ef; }
+.drill.is-on { border-color: #3c6ea8; background: #1b2a41; color: #e8ecf8; }
+
 .lights__state {
   padding-left: 4px;
   font-size: 10px;
@@ -186,8 +203,42 @@
   font-family: ui-monospace, monospace;
   white-space: nowrap;
 }
-.lights.is-live .lights__state { color: #d8b34a; }
-.lights.is-working .lights__state { color: #9fd7ad; }
+.lights.is-live /* The ledge drill. A button among the toggles rather than a light, because it
+   DOES something rather than reporting: it walks the fighter off the edge and
+   climbs them back, and says which part it is on while it runs. */
+.drill {
+  padding: 3px 10px;
+  background: #1c2231;
+  border: 1px solid #2a2f3e;
+  border-radius: 999px;
+  color: #9fb0d6;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.drill:hover { background: #232a3c; color: #cbd5ef; }
+.drill.is-on { border-color: #3c6ea8; background: #1b2a41; color: #e8ecf8; }
+
+.lights__state { color: #d8b34a; }
+.lights.is-working /* The ledge drill. A button among the toggles rather than a light, because it
+   DOES something rather than reporting: it walks the fighter off the edge and
+   climbs them back, and says which part it is on while it runs. */
+.drill {
+  padding: 3px 10px;
+  background: #1c2231;
+  border: 1px solid #2a2f3e;
+  border-radius: 999px;
+  color: #9fb0d6;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.drill:hover { background: #232a3c; color: #cbd5ef; }
+.drill.is-on { border-color: #3c6ea8; background: #1b2a41; color: #e8ecf8; }
+
+.lights__state { color: #9fd7ad; }
 .lights.is-working { border-color: #3f7d55; }
 
 @media (max-width: 820px) {
