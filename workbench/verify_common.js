@@ -19,7 +19,7 @@ import { getActor } from "../src/characters.js";
 import { bodyMetrics } from "../src/silhouette.js";
 import { HURTBOX, LEDGE_HANG_X, LEDGE_HANG_Y } from "../src/constants.js";
 import { COM_BODY_FRAC } from "../src/config_tuning.js";
-import { comFrac } from "../src/body_points.js";
+import { comFrac, comVerified } from "../src/body_points.js";
 import { STATES, clipNameFor } from "../render3d/src/states.js";
 
 export const ZOOM = 1.7;
@@ -208,6 +208,11 @@ export function drawStage(task, { ctx, canvas, guides = {}, redraw, spin = 0, fr
     // value — which is the one a per-frame anchor is actually judged against
     // (`guides.com: "verified"`).
     const frac = guides.com === "verified" ? comFrac(charKey) : COM_BODY_FRAC;
+    // …and say when that "own value" is really the roster default standing in.
+    // A line labelled with a number a reviewer takes for a verified answer is
+    // worse than no line: it invites them to move a frame's anchor to match a
+    // figure nobody placed.
+    const assumed = guides.com === "verified" && !comVerified(charKey);
     const y = GROUND_Y - b.height * frac * ZOOM;
     ctx.strokeStyle = "rgba(160, 170, 190, 0.55)";
     ctx.beginPath();
@@ -215,7 +220,7 @@ export function drawStage(task, { ctx, canvas, guides = {}, redraw, spin = 0, fr
     ctx.stroke();
     ctx.fillStyle = "rgba(160, 170, 190, 0.75)";
     ctx.font = "10px system-ui";
-    ctx.fillText(`COM ${frac.toFixed(2)}`, CENTRE_X + 13, y + 3);
+    ctx.fillText(`COM ${frac.toFixed(2)}${assumed ? " assumed" : ""}`, CENTRE_X + 13, y + 3);
   }
   if (guides.reach) {
     const x = CENTRE_X + b.reach * ZOOM;

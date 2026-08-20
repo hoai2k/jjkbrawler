@@ -93,18 +93,30 @@ const SETS = {
       + "checked against the fighter's own drawing.",
     load: () => import(withKey("./verify_strike_points.js")).then((m) => m.provider()),
   },
+  // THE PER-CHARACTER VALUE, and the reference the per-FRAME set below is
+  // judged against — answer this one first for a fighter who appears in both.
+  // One number per fighter, so the editor is a height and nothing else: where
+  // a body balances ALONG its own centre line is the only part of this that
+  // varies per character, since the fighter's x is wherever the simulation
+  // says they are. Asked on the idle because a per-character answer needs one
+  // neutral upright drawing, and a lunge would bake the lunge into every pose.
   "center-of-mass": {
     label: "Centre of mass",
-    blurb: "Where each fighter's weight sits. It is the tumble pivot, the airborne "
-      + "hurtbox centre, the aim chest line — and now the point an AIRBORNE drawing "
-      + "hangs from, so being wrong moves the whole fighter rather than tilting them. "
-      + "Per-frame anchors are dragged in the sprite workbench; "
-      + "`node tools/audit_sprite_com.mjs` lists the frames worth a look.",
+    blurb: "Where each fighter's weight sits — ONE number per fighter, as a fraction "
+      + "of height. The tumble pivot, the airborne hurtbox centre, the aim chest line, "
+      + "and the height an airborne drawing hangs from, so being wrong moves the whole "
+      + "fighter rather than tilting them. 7 of 34 are still on the assumed 0.55, and "
+      + "every frame of theirs in \"Frame centre of mass\" is being judged against that "
+      + "guess until this is answered.",
     load: () => import(withKey("./verify_body_points.js")).then((m) => m.comProvider()),
   },
-  // The per-FRAME sibling of the set above, and a queue rather than a roster
-  // walk: there are thousands of these anchors, so it lists only the ones
-  // sprites/src/com_review.js has reason to doubt.
+  // The per-FRAME sibling of the set above — a different store answering a
+  // different question, not a replacement for it. That one is `com` in
+  // config_body_points.js, one fraction per fighter, and it is what the
+  // `height` reason here compares against; this one is `meta.anchors.com` in
+  // the sprite manifest, an x and a y on one drawing. A queue rather than a
+  // roster walk, because there are thousands of these anchors: it lists only
+  // the ones sprites/src/com_review.js has reason to doubt.
   "frame-com": {
     label: "Frame centre of mass",
     blurb: "Where each suspect DRAWING carries its weight — `meta.anchors.com`, the "

@@ -26,6 +26,14 @@
 //             placed in the bench's "centre-of-mass" set). The audit's
 //             original and only test. Skipped for poses that are genuinely
 //             not upright, where disagreeing is the drawing being right.
+//
+//             THE TWO SETS ARE NOT THE SAME QUESTION and this is where they
+//             meet: the per-CHARACTER value is the reference, and this is the
+//             per-FRAME anchor judged against it. Seven fighters have no
+//             per-character value yet, so their frames are compared to the
+//             roster default instead — the reason says so rather than calling
+//             0.55 a verified answer, and the honest first move for one of
+//             those is to answer the other set, not to drag this anchor.
 //   outside   the mass sits outside the drawing's own core span — off the
 //             body. A pose cannot carry its weight beside itself, so this one
 //             is a bake fault rather than a question.
@@ -40,7 +48,7 @@
 import { animsOf, anchorLocal, frameFootY, hasAnchor } from "./sprites.js";
 import { imageToGame } from "../../src/strike_points.js";
 import { bodyMetrics } from "../../src/silhouette.js";
-import { comFrac } from "../../src/body_points.js";
+import { comFrac, comVerified } from "../../src/body_points.js";
 import { XFADE_COM_MAX_FRAC } from "../../src/config_tuning.js";
 
 /** How far from the fighter's own verified height fraction is worth asking
@@ -111,6 +119,7 @@ export function suspectFrames(manifest, { chars = null } = {}) {
   for (const [charKey, frames] of Object.entries(manifest?.characters || {})) {
     if (chars && !chars.includes(charKey)) continue;
     const ref = comFrac(charKey);
+    const refVerified = comVerified(charKey);
 
     for (const [frameKey, meta] of Object.entries(frames)) {
       if (!meta || typeof meta !== "object") continue;
@@ -130,9 +139,15 @@ export function suspectFrames(manifest, { chars = null } = {}) {
       const off = m.frac - ref;
       if (!OFF_AXIS.test(frameKey) && Math.abs(off) > COM_HEIGHT_FLAG) {
         add(charKey, frameKey, {
-          kind: "height", excess: Math.abs(off) - COM_HEIGHT_FLAG,
-          detail: `mass at ${m.frac.toFixed(3)} of height, this fighter's verified `
-            + `value is ${ref.toFixed(3)} (${off > 0 ? "+" : ""}${off.toFixed(3)})`,
+          kind: "height",
+          excess: Math.abs(off) - COM_HEIGHT_FLAG,
+          refVerified,
+          detail: `mass at ${m.frac.toFixed(3)} of height, `
+            + (refVerified
+              ? `this fighter's verified value is ${ref.toFixed(3)}`
+              : `against the roster default ${ref.toFixed(3)} — nobody has placed `
+                + "this fighter's own value yet (bench set \"centre-of-mass\")")
+            + ` (${off > 0 ? "+" : ""}${off.toFixed(3)})`,
         });
       }
 
