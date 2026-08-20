@@ -28,10 +28,10 @@ import {
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
 import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE } from "./config_tuning.js";
-import { SPRITE_TURN_SWEEP } from "./flags.js";
+import { TURN_SWEEP_OVERRIDE } from "./flags.js";
 import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
-import { currentFrame } from "./render_backend.js";
+import { currentFrame, sweepsTurns } from "./render_backend.js";
 import { trailStrength } from "./motion.js";
 import { THROW_ENABLED } from "./flags.js";
 import { beginGrab, updateGrabReach, updateGrabHold, updateGrabbedFighter, clearGrabLinks } from "./grab.js";
@@ -1718,6 +1718,13 @@ export function updateFighter(f, dt, input) {
 // Draw-time state that still has to advance on the fixed clock: tumble spin,
 // the facing sweep, the squash timers and the trail history. Runs after the
 // hitlag early-return, so a frozen fighter is frozen here too.
+/** Should a facing flip sweep? The backend's answer unless the bench forces
+ *  one. Exported because the bench's lamp has to show the same answer the
+ *  simulation acted on rather than re-deriving it and drifting. */
+export function turnSweeps() {
+  return TURN_SWEEP_OVERRIDE ?? sweepsTurns();
+}
+
 function updatePresentation(f, dt) {
   f.landT = Math.max(0, f.landT - dt);
   f.takeoffT = Math.max(0, f.takeoffT - dt);
@@ -1746,23 +1753,29 @@ function updatePresentation(f, dt) {
     if (Math.abs(f.spinAngle - target) < 0.01) f.spinAngle = 0;
   }
 
-  // Facing flips used to snap the mirror in a single frame, which reads as a
-  // teleport. Sweeping the mirror through zero reads as a turn — on a RIG,
-  // which is where the idea comes from: render3d turns this number into a real
-  // yaw and a body rotates in space.
+  // A FACING FLIP SWEEPS OR SNAPS, AND THE BACKEND DECIDES WHICH.
   //
-  // The sprite backend has no such luxury. It hands the number to
-  // `ctx.scale(facing, 1)`, so a sweep squashes the drawing to nothing and
-  // pulls it out the other side: a flat card turning over, with a frame in the
-  // middle where the fighter is a vertical line. `SPRITE_TURN_SWEEP` is the
-  // switch, ON because it is the game, and the character bench is where the
-  // two are meant to be compared.
+  // Sweeping `facingVis` from +1 to -1 over TURN_TIME reads as a turn on a
+  // RIG, which is where the idea came from: render3d makes it a real yaw, the
+  // body rotates through side-on, and that is what turning round looks like.
+  //
+  // A DRAWING has no side-on. The sprite backend hands the same number to
+  // `ctx.scale(facing, 1)`, so a sweep squashes the art to nothing and pulls
+  // it out the other way — a page turning rather than a person, with a frame
+  // in the middle where the fighter is two pixels wide. It was never a look
+  // anybody chose for sprites; it is a rig idea that reached them through a
+  // shared number. They snap, the way 2D fighters always have and the way art
+  // drawn in two facings is meant to be shown.
+  //
+  // `sweepsTurns` is that question, asked of whoever is drawing.
+  // `TURN_SWEEP_OVERRIDE` forces it for the character bench, which exists to
+  // put the two side by side.
   //
   // Cosmetic either way. `facingVis` is read by the renderer and the afterimage
   // trail and by nothing else; `facing` — the one combat, movement and every
   // hitbox use — is what flipped, and it flipped whole.
   if (f.facingVis !== f.facing) {
-    const step = SPRITE_TURN_SWEEP ? dt / TURN_TIME * 2 : Infinity;
+    const step = turnSweeps() ? dt / TURN_TIME * 2 : Infinity;
     f.facingVis = Math.abs(f.facing - f.facingVis) <= step
       ? f.facing
       : f.facingVis + Math.sign(f.facing - f.facingVis) * step;

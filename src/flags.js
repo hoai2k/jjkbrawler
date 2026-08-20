@@ -73,23 +73,21 @@ export let SMOOTH_HOLD_FADE = SMOOTH_MODES.has("holds") || SMOOTH_MODES.has("all
  *  turn it OFF and show what the other two are being compared against. */
 export let SPRITE_XFADE_ON = true;
 
-/** THE FACING SWEEP (`TURN_TIME`, fighter.js). ON, because it is the game.
+/** THE FACING SWEEP (`TURN_TIME`, fighter.js), FORCED. `null` — the default —
+ *  means "ask the backend", which is the right answer rather than a fudge:
+ *  whether a flip should sweep is a fact about who is drawing, not a
+ *  preference. A rig has a back and turns through side-on; a drawing has no
+ *  side-on and flips whole. `render_backend.js sweepsTurns` is where that
+ *  lives.
  *
- *  A flip slides `facingVis` from +1 to -1 over 0.07s instead of snapping it,
- *  and what that MEANS depends entirely on who is drawing. The 3D backend
- *  turns the number into a real yaw — a body rotating in space, which is what
- *  a turn is. The sprite backend feeds the same number to `ctx.scale(facing,
- *  1)`, so the drawing is squashed horizontally to nothing and pulled back out
- *  the other side: a flat card turning over, with a frame in the middle where
- *  the fighter is a vertical line.
+ *  true or false forces it, and only the character bench does — the bench
+ *  exists to put a mechanism side by side with its absence, which needs a way
+ *  to say "sweep anyway" on a backend that would not.
  *
- *  Off, a sprite flips between its two facings in one frame, which is what
- *  2D fighters have always done and what the art is drawn for.
- *
- *  Cosmetic in both directions: `facingVis` is read by the renderer and by the
- *  afterimage trail and by nothing else. `facing` — the one combat, movement
- *  and every hitbox use — is untouched either way. */
-export let SPRITE_TURN_SWEEP = true;
+ *  Cosmetic either way: `facingVis` is read by the renderer and the afterimage
+ *  trail and by nothing else. `facing` — the one combat, movement and every
+ *  hitbox use — flips whole regardless. */
+export let TURN_SWEEP_OVERRIDE = null;
 
 /** Move any of the three. Absent keys are left alone, so a caller can flip one
  *  switch without stating the others. Returns the resulting state, which is
@@ -98,7 +96,7 @@ export function setSmoothing({ com, holds, xfade, turn } = {}) {
   if (com !== undefined) SMOOTH_COM_FADE = !!com;
   if (holds !== undefined) SMOOTH_HOLD_FADE = !!holds;
   if (xfade !== undefined) SPRITE_XFADE_ON = !!xfade;
-  if (turn !== undefined) SPRITE_TURN_SWEEP = !!turn;
+  if (turn !== undefined) TURN_SWEEP_OVERRIDE = turn === null ? null : !!turn;
   return smoothingState();
 }
 
@@ -106,6 +104,6 @@ export function setSmoothing({ com, holds, xfade, turn } = {}) {
 export function smoothingState() {
   return {
     com: SMOOTH_COM_FADE, holds: SMOOTH_HOLD_FADE,
-    xfade: SPRITE_XFADE_ON, turn: SPRITE_TURN_SWEEP,
+    xfade: SPRITE_XFADE_ON, turn: TURN_SWEEP_OVERRIDE,
   };
 }

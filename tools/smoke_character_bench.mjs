@@ -117,6 +117,11 @@ ok(after.fighters > 0, "and the new fighter loads and stands up", after.char);
 const start = (await read()).smoothing;
 ok(start.xfade === true && start.com === false && start.holds === false,
    "the switches start where the game ships", JSON.stringify(start));
+// `turn` is the odd one out and deliberately so: it is an OVERRIDE, null by
+// default, and null means "ask the backend". A bench that started it at a
+// boolean would be answering a question that belongs to whoever is drawing.
+ok(start.turn === null, "...and the turn sweep starts with no opinion of its own",
+   "null — the backend decides, and a sprite backend says no");
 for (const mode of ["com", "holds", "xfade"]) {
   await page.click(`.light[data-mode="${mode}"]`);
   const now = (await read()).smoothing;
@@ -170,8 +175,11 @@ const green = await page.evaluate(async () => {
   const { state } = await import("/src/state.js");
   const { setSmoothing } = await import("/src/flags.js");
   // The loop above left the switches wherever its last toggle put them, and a
-  // fade that is switched off cannot light anything. Arm all three.
-  setSmoothing({ com: true, holds: true, xfade: true });
+  // fade that is switched off cannot light anything. Arm all three — and force
+  // the turn sweep, which a sprite does NOT do on its own any more: the sweep
+  // follows the backend and a drawing flips whole. Forcing it is exactly what
+  // the bench's switch is for, and the only way to see the thing it replaced.
+  setSmoothing({ com: true, holds: true, xfade: true, turn: true });
   const seen = {};
   const a = state.fighters[0];
   a.facing = -a.facing;                       // start a turn
@@ -182,10 +190,24 @@ const green = await page.evaluate(async () => {
   }
   return seen;
 });
-ok(green.turn, "the turn lamp goes green while a fighter is coming about",
-   "and it has no switch — the mirror sweep ships, so it is a readout");
+ok(green.turn, "the turn lamp goes green while a forced sweep is running",
+   "which is the only way to see what sprites used to do on every flip");
 ok(green.xfade || green.com || green.holds,
    "a fade lights its own lamp while it is running", Object.keys(green).join(", "));
+
+// --- and the sweep is off again the moment the override is cleared
+//
+// The lamp has to follow what the SIMULATION does, not the flag: the flag is
+// an override that is null by default, and null means "ask the backend". A
+// lamp reading the null would sit dark on the 3D backend while a rig turned.
+const cleared = await page.evaluate(async () => {
+  const { setSmoothing } = await import("/src/flags.js");
+  setSmoothing({ turn: null });
+  await new Promise((r) => requestAnimationFrame(r));
+  return document.querySelector('.light[data-mode="turn"]').classList.contains("is-on");
+});
+ok(cleared === false, "and dark again on sprites once the override is cleared",
+   "a drawing has no side-on, so the backend says no and the lamp agrees");
 
 // --- the speed control slows the SIMULATION
 //

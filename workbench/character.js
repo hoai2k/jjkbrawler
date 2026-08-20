@@ -26,7 +26,7 @@ import { loadCoreAssets, ensureMatchAssets, startBackgroundLoad,
 import { initInput, readGamepads, endInputFrame, playerInput, blankInput,
          connectedPadCount } from "../src/input.js";
 import { stepWorld, makeLatch, advanceWorld, resetFrameClock } from "../src/sim.js";
-import { makeFighter } from "../src/fighter.js";
+import { makeFighter, turnSweeps } from "../src/fighter.js";
 import { draw, smoothingActivity } from "../src/render.js";
 import { getStage } from "../src/stages.js";
 import { initStageFx } from "../src/stage_fx.js";
@@ -101,7 +101,7 @@ root.innerHTML = `
         <button class="light" data-mode="holds" type="button" title="?smooth=holds — the slow held loops (idle, crouch, charge) cross-fade their own frame steps">
           <span class="light__dot"></span><span class="light__name">hold fade</span>
         </button>
-        <button class="light" data-mode="turn" type="button" title="The facing sweep (TURN_TIME, fighter.js): a flip slides the mirror through zero over 0.07s instead of snapping. On a rig that is a real yaw; on a SPRITE it is ctx.scale(facing,1), so the drawing squashes to a vertical line and comes back — a card turning over. Off, the sprite flips in one frame, the way 2D fighters always have.">
+        <button class="light" data-mode="turn" type="button" title="The facing sweep (TURN_TIME, fighter.js). It follows the BACKEND by default: a rig has a back and turns through side-on, a drawing has none and flips whole — so this is off on sprites and on in 3D. Forced here either way, because seeing the sprite sweep is the only way to see why it went.">
           <span class="light__dot"></span><span class="light__name">turn sweep</span>
         </button>
         <span class="lights__state" id="lightsState"></span>
@@ -265,8 +265,13 @@ async function select(charKey) {
 //
 const lightEls = [...lightsEl.querySelectorAll(".light")];
 
+/** What is armed right now. `turn` is the odd one: its flag is an OVERRIDE
+ *  that is null by default, meaning "ask the backend", so the lamp has to show
+ *  the answer the simulation acted on rather than the null. */
+const armedNow = () => ({ ...smoothingState(), turn: turnSweeps() });
+
 function paintLights() {
-  const on = smoothingState();
+  const on = armedNow();
   for (const el of lightEls) {
     const mode = el.dataset.mode;
     el.classList.toggle("is-on", !!on[mode]);
@@ -282,7 +287,7 @@ function paintLights() {
  *  readout rather than re-deriving it is the point — the lamp cannot claim
  *  something the picture did not do. */
 function paintActivity() {
-  const on = smoothingState();
+  const on = armedNow();
   let working = false;
   for (const el of lightEls) {
     const mode = el.dataset.mode;
@@ -299,7 +304,7 @@ function paintActivity() {
 lightsEl.addEventListener("click", (e) => {
   const btn = e.target.closest(".light");
   if (!btn) return;
-  const now = smoothingState();
+  const now = armedNow();
   setSmoothing({ [btn.dataset.mode]: !now[btn.dataset.mode] });
   paintLights();
 });
