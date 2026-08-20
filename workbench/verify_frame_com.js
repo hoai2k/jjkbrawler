@@ -32,7 +32,7 @@ import { comFrac } from "../src/body_points.js";
 import { XFADE_COM_MAX_FRAC } from "../src/config_tuning.js";
 import {
   toCanvas, toGame, drawStage, marker, heightLine, caption, pointEditor,
-  ensureTaskArt, artScaleFor, ZOOM, CENTRE_X, GROUND_Y,
+  ensureTaskArt, artScaleFor, ZOOM, CENTRE_X, groundY,
 } from "./verify_common.js";
 import { drawCharFrame } from "../src/render_backend.js";
 
@@ -122,7 +122,7 @@ export async function provider() {
       pointEditor(container, task.charKey, value, onChange, bindSync);
     },
 
-    onCanvasDrag: (task, pt) => toGame(pt),
+    onCanvasDrag: (task, pt) => toGame(pt, task),
 
     draw(task, { ctx, canvas, value, redraw }) {
       drawStage(task, {
@@ -138,20 +138,20 @@ export async function provider() {
       for (const partner of task.partners || []) {
         ctx.save();
         ctx.globalAlpha = 0.28;
-        drawCharFrame(ctx, task.charKey, partner, CENTRE_X, GROUND_Y,
+        drawCharFrame(ctx, task.charKey, partner, CENTRE_X, groundY(task),
           { scale: artScaleFor(task.charKey), facing: 1 });
         ctx.restore();
         const local = anchorLocal(task.charKey, partner);
         const g = local && imageToGame(task.charKey, partner, local[0], local[1]);
         if (!g) continue;
-        const p = toCanvas(g);
+        const p = toCanvas(g, task);
         marker(ctx, p.x, p.y, "rgba(255, 170, 90, 0.55)", 6);
         ctx.fillStyle = "rgba(255, 170, 90, 0.8)";
         ctx.font = "10px system-ui";
         ctx.fillText(partner, p.x + 10, p.y - 8);
       }
 
-      const p = toCanvas(value);
+      const p = toCanvas(value, task);
 
       // How far a cross-fade is allowed to slide this body to meet its
       // partner. A jump wider than this band is one the fade will clamp, which

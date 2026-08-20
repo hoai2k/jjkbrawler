@@ -26,13 +26,42 @@ export const ZOOM = 1.7;
 export const GROUND_Y = 430;
 export const CENTRE_X = 180;
 
+/**
+ * WHERE THE PLATFORM LIP SITS ON THE CANVAS, for a task about a hang.
+ *
+ * A hang is the one pose that is not placed by its feet: the drawing is hung
+ * from its `ledge` grip on the platform corner, and the body then dangles as
+ * much as 1.7 heights below it — nearly 300 canvas px past the foot line,
+ * which on a 520 px stage put everything from the hips down off the bottom
+ * edge. A reviewer was being asked where a box should cover a body they could
+ * only see half of, and the boxes that came back stopped, to the pixel, at
+ * where the picture did.
+ *
+ * So a hang is framed from the LIP instead — the point the pose is actually
+ * hung from — high enough that the longest drawing on the roster clears the
+ * bottom. One number for every fighter rather than a per-drawing fit, so
+ * stepping through the queue does not slide the stage about underneath the
+ * reviewer.
+ */
+export const LEDGE_LIP_Y = 90;
+
+/** Where the fighter's own y — the foot line everywhere else, the sim's hang
+ *  point on a ledge — lands on the canvas for this task. Everything that puts
+ *  a game-space number on the stage goes through this, so the drawing, the
+ *  overlays and the pointer cannot disagree about which frame they are in. */
+export function groundY(task) {
+  return task?.state === "ledge" ? LEDGE_LIP_Y + LEDGE_HANG_Y * ZOOM : GROUND_Y;
+}
+
 export const artScaleFor = (charKey) => (getActor(charKey)?.scale || 1) * ZOOM;
 
-/** Game-space point -> canvas point, and back. The only conversion in play. */
-export const toCanvas = (p) => ({ x: CENTRE_X + p.x * ZOOM, y: GROUND_Y + p.y * ZOOM });
-export const toGame = (p) => ({
+/** Game-space point -> canvas point, and back. The only conversion in play.
+ *  `task` says which stage framing to use — pass it always; omitting it is
+ *  only correct for a set that can never draw a hang. */
+export const toCanvas = (p, task) => ({ x: CENTRE_X + p.x * ZOOM, y: groundY(task) + p.y * ZOOM });
+export const toGame = (p, task) => ({
   x: Math.round((p.x - CENTRE_X) / ZOOM),
-  y: Math.round((p.y - GROUND_Y) / ZOOM),
+  y: Math.round((p.y - groundY(task)) / ZOOM),
 });
 
 // ------------------------------------------------------------------ frames
@@ -138,13 +167,16 @@ export function ensureFrames(charKey) {
 export function drawStage(task, { ctx, canvas, guides = {}, redraw, spin = 0, frame: only = null }) {
   const { charKey, state } = task;
   const b = bodyMetrics(charKey);
+  // The stage's own frame of reference — the foot line for every pose but a
+  // hang, which is framed from the lip so the whole body is on screen.
+  const gy = groundY(task);
 
   ctx.fillStyle = "#0d1018";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = "rgba(130, 150, 205, 0.35)";
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(0, GROUND_Y); ctx.lineTo(canvas.width, GROUND_Y);
+  ctx.moveTo(0, gy); ctx.lineTo(canvas.width, gy);
   ctx.moveTo(CENTRE_X, 0); ctx.lineTo(CENTRE_X, canvas.height);
   ctx.stroke();
 
@@ -166,7 +198,7 @@ export function drawStage(task, { ctx, canvas, guides = {}, redraw, spin = 0, fr
   // picture the game never draws — the body sits at a different height, and
   // every judgement about the box's top edge inherits the difference.
   const ledge = state === "ledge"
-    ? { name: "ledge", x: CENTRE_X + LEDGE_HANG_X * ZOOM, y: GROUND_Y - LEDGE_HANG_Y * ZOOM }
+    ? { name: "ledge", x: CENTRE_X + LEDGE_HANG_X * ZOOM, y: gy - LEDGE_HANG_Y * ZOOM }
     : null;
   if (ledge) {
     // The corner itself, so the relationship is visible rather than implied.
@@ -179,14 +211,19 @@ export function drawStage(task, { ctx, canvas, guides = {}, redraw, spin = 0, fr
     ctx.fillStyle = "rgba(150, 170, 220, 0.8)";
     ctx.font = "10px system-ui";
     ctx.fillText("platform", ledge.x + 6, ledge.y - 6);
+    // ...and say what the horizontal rule is, since on a hang it is NOT a
+    // floor. It is the fighter's own y — the point the simulation tracks and
+    // the one every number on this stage is quoted from — which on a hang sits
+    // under the lip, around chest height, with the body hanging past it.
+    ctx.fillText("fighter y (not the floor)", 8, gy - 5);
   }
   // `spin` turns the BODY and nothing else — the ground line and the centre
   // line stay put, because they are the frame the numbers are quoted in. Used
   // by the tumble case, which reviews a box against a body the game draws
   // rotated about its centre of mass (motion.js fighterTransform).
-  const pivotY = GROUND_Y - b.height * comFrac(charKey) * ZOOM;
+  const pivotY = gy - b.height * comFrac(charKey) * ZOOM;
   if (spin) { ctx.save(); ctx.translate(CENTRE_X, pivotY); ctx.rotate(spin); ctx.translate(-CENTRE_X, -pivotY); }
-  const drew = drawCharFrame(ctx, charKey, frame, CENTRE_X, GROUND_Y,
+  const drew = drawCharFrame(ctx, charKey, frame, CENTRE_X, gy,
     { scale: artScaleFor(charKey), facing: 1, anchorTo: ledge });
   if (spin) ctx.restore();
   if (!drew) {
@@ -194,14 +231,14 @@ export function drawStage(task, { ctx, canvas, guides = {}, redraw, spin = 0, fr
     // lands (verification.js renderCurrent) — this only says so meanwhile.
     ctx.fillStyle = "#9aa4c0";
     ctx.font = "13px system-ui";
-    ctx.fillText("loading art…", CENTRE_X - 34, GROUND_Y - 60);
+    ctx.fillText("loading art…", CENTRE_X - 34, gy - 60);
   }
 
   if (guides.hurtbox) {
     const boxH = b.height * HURTBOX.standH * ZOOM;
     const boxW = b.width * ZOOM;
     ctx.strokeStyle = "rgba(255,255,255,0.30)";
-    ctx.strokeRect(CENTRE_X - boxW / 2, GROUND_Y - boxH, boxW, boxH);
+    ctx.strokeRect(CENTRE_X - boxW / 2, gy - boxH, boxW, boxH);
   }
   if (guides.com) {
     // The roster default, unless the set asks for this fighter's OWN verified
@@ -213,7 +250,7 @@ export function drawStage(task, { ctx, canvas, guides = {}, redraw, spin = 0, fr
     // worse than no line: it invites them to move a frame's anchor to match a
     // figure nobody placed.
     const assumed = guides.com === "verified" && !comVerified(charKey);
-    const y = GROUND_Y - b.height * frac * ZOOM;
+    const y = gy - b.height * frac * ZOOM;
     ctx.strokeStyle = "rgba(160, 170, 190, 0.55)";
     ctx.beginPath();
     ctx.moveTo(CENTRE_X - 9, y); ctx.lineTo(CENTRE_X + 9, y);
@@ -227,7 +264,7 @@ export function drawStage(task, { ctx, canvas, guides = {}, redraw, spin = 0, fr
     ctx.strokeStyle = "rgba(255, 190, 90, 0.5)";
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
-    ctx.moveTo(x, GROUND_Y - b.height * ZOOM); ctx.lineTo(x, GROUND_Y);
+    ctx.moveTo(x, gy - b.height * ZOOM); ctx.lineTo(x, gy);
     ctx.stroke();
     ctx.setLineDash([]);
   }

@@ -254,9 +254,32 @@ export const HURTBOX = {
   airH: 0.78,
   airMin: 0.55,
   airMax: 0.92,
-  ledgeH: 0.78,
+  // A HANG IS MEASURED FROM THE LIP THE HANDS ARE ON, NOT FROM THE FEET.
+  //
+  // Every other box here is a fraction of a body standing on its foot line,
+  // because that is where the drawing is placed. A hang is not: the renderer
+  // hangs the frame's `ledge` grip on the platform corner (render.js
+  // `anchorTo`), so the body dangles BELOW the lip, and the fighter's own y —
+  // the point the sim tracks — sits LEDGE_HANG_Y under it, around their chest
+  // rather than at their feet. Built up from that y, as this used to be, the
+  // box covered the stage ABOVE the ledge and missed the body under it: the
+  // top edge landed 48 px over the lip and the bottom stopped a third of the
+  // way down a fighter who reaches 1.3 heights below it.
+  //
+  // Measured across all 34 hang drawings, relative to the corner and printed
+  // by tools/audit_hitboxes.mjs: the raised hand tops out 0.05 of height above
+  // the lip, the feet dangle 1.31 below it (1.20-1.70), and the body straddles
+  // the corner from 0.33 of width behind to 0.46 ahead of it.
+  //
+  //   ledgeH  how far the box hangs BELOW the lip, x height. 1.15 takes the
+  //           torso and the legs and stops short of the trailing feet — the
+  //           same bargain `standH` makes with hair.
+  //   ledgeW  x width, as everywhere else.
+  //   ledgeX  where the box is centred, x width ahead of the corner along the
+  //           facing.
+  ledgeH: 1.15,
   ledgeW: 0.94,
-  ledgeTop: 0.76,
+  ledgeX: 0.06,
   // A fighter doubled over by a hit is lower and wider than one standing.
   hurtH: 0.80,
   hurtW: 1.10,

@@ -104,7 +104,7 @@ export async function comProvider() {
       }, (v) => onChange({ y: v }));
       bindSync((v) => y.set(v.y));
     },
-    onCanvasDrag: (task, pt) => ({ y: Math.min(0, toGame(pt).y) }),
+    onCanvasDrag: (task, pt) => ({ y: Math.min(0, toGame(pt, task).y) }),
     draw(task, { ctx, canvas, value, redraw }) {
       drawStage(task, { ctx, canvas, redraw, guides: { hurtbox: true } });
       const b = bodyMetrics(task.charKey);
@@ -177,10 +177,10 @@ export async function muzzleProvider() {
       frameStepper(container, task, redraw);
       pointEditor(container, task.charKey, value, onChange, bindSync);
     },
-    onCanvasDrag: (task, pt) => toGame(pt),
+    onCanvasDrag: (task, pt) => toGame(pt, task),
     draw(task, { ctx, canvas, value, redraw }) {
       drawStage(task, { ctx, canvas, redraw, guides: { hurtbox: true } });
-      const p = toCanvas(value);
+      const p = toCanvas(value, task);
       marker(ctx, p.x, p.y, "rgba(120, 240, 255, 0.95)");
       // The shot's path, so a muzzle inside the body is obvious.
       ctx.strokeStyle = "rgba(120, 240, 255, 0.35)";

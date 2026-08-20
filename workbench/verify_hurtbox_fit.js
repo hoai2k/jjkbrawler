@@ -25,6 +25,13 @@
 // fighter whose sprites are redrawn keeps a correct fit. A pixel offset would
 // freeze the decision at whatever the drawing was on the day somebody looked.
 //
+// A HANG IS QUOTED FROM THE LIP, not from the feet. Every other case here is
+// a box standing on the fighter's own y; the hang is hung from the platform
+// corner, because that is where the DRAWING is hung (render.js `anchorTo`) and
+// a box and a body can only be compared at the point they are both placed by.
+// The stage frames a hang from that corner too, so the dangling half of the
+// body — everything from the hips down — is on screen to be judged.
+//
 // DRAG THE BOX, don't reach for the sliders. Any corner resizes about the
 // opposite one — so a single corner can fix a body that overhangs on one side
 // without touching the other three edges — and a grab anywhere inside moves
@@ -34,12 +41,12 @@
 import { resolvedAnim } from "../sprites/src/sprites.js";
 import { CHARACTER_KEYS } from "../src/characters.js";
 import { HURTBOX_FIT } from "../src/config_body_points.js";
-import { HURTBOX_CASES, hurtboxArtToken, fitState } from "../src/hurtbox_art.js";
+import { HURTBOX_CASES, hurtboxArtToken, fitState, ledgeBox } from "../src/hurtbox_art.js";
 import { bodyMetrics } from "../src/silhouette.js";
 import { comFrac } from "../src/body_points.js";
-import { HURTBOX } from "../src/constants.js";
+import { HURTBOX, LEDGE_HANG_X, LEDGE_HANG_Y } from "../src/constants.js";
 import {
-  ZOOM, GROUND_Y, CENTRE_X, drawStage, caption, slider, frameStepper,
+  ZOOM, groundY, CENTRE_X, drawStage, caption, slider, frameStepper,
   ensureTaskArt,
 } from "./verify_common.js";
 
@@ -139,7 +146,7 @@ export async function provider() {
       drawStage(task, { ctx, canvas, redraw, guides: {}, spin: SPIN[task.caseKey] });
       const g = geom(task, value);
       // The derived box, ghosted, and the adjusted one over it.
-      strokeBox(ctx, { left: CENTRE_X - g.bw / 2, right: CENTRE_X + g.bw / 2,
+      strokeBox(ctx, { left: g.baseCx - g.bw / 2, right: g.baseCx + g.bw / 2,
                        top: g.baseBottom - g.bh, bottom: g.baseBottom },
         "rgba(255,255,255,0.22)");
       strokeBox(ctx, g, "rgba(120, 240, 255, 0.9)");
@@ -148,18 +155,19 @@ export async function provider() {
         `${task.caseKey} box · white = derived · cyan = what would ship`);
       // The floor line a grounded box is extended back down to, so the reviewer
       // can see that the bottom edge is not theirs to worry about.
-      if (GROUNDED.has(task.caseKey) && g.bottom < GROUND_Y) {
+      const floorY = groundY(task);
+      if (GROUNDED.has(task.caseKey) && g.bottom < floorY) {
         ctx.strokeStyle = "rgba(120, 240, 255, 0.35)";
         ctx.setLineDash([3, 4]);
         ctx.beginPath();
-        ctx.moveTo(g.left, g.bottom); ctx.lineTo(g.left, GROUND_Y);
-        ctx.moveTo(g.right, g.bottom); ctx.lineTo(g.right, GROUND_Y);
-        ctx.moveTo(g.left, GROUND_Y); ctx.lineTo(g.right, GROUND_Y);
+        ctx.moveTo(g.left, g.bottom); ctx.lineTo(g.left, floorY);
+        ctx.moveTo(g.right, g.bottom); ctx.lineTo(g.right, floorY);
+        ctx.moveTo(g.left, floorY); ctx.lineTo(g.right, floorY);
         ctx.stroke();
         ctx.setLineDash([]);
         ctx.fillStyle = "rgba(120, 240, 255, 0.55)";
         ctx.fillText("extended to the floor in game — sweeps still connect",
-          g.right + 8, GROUND_Y - 4);
+          g.right + 8, floorY - 4);
         ctx.fillStyle = "#9aa4c0";
       }
       ctx.fillText("drag a corner to resize, the middle to move — "
@@ -183,11 +191,14 @@ function describeSource(key, b) {
   if (key === "crouch") return `measured crouch ${(b.crouch).toFixed(2)} of height`;
   if (key === "air") return `measured air ${(b.air ?? 0.78).toFixed(2)} of height`;
   if (key === "tumble") return "the hurt pose, spun — hung about the centre of mass";
+  if (key === "ledge") return "hung from the lip, where the hands are";
   return "derived from the fractions";
 }
 
 /** The box combat.js would build for this case, in game px, as
- *  { w, h, top } where `top` is px above the foot line. */
+ *  { w, h, top, cx } — `top` px above the fighter's own y, `cx` px forward of
+ *  the centre line. `cx` is zero for every case but the hang, which is not
+ *  built about the fighter at all (see the `ledge` branch). */
 function baseBox(task) {
   const b = bodyMetrics(task.charKey);
   const H = b.height, W = b.width;
@@ -205,7 +216,15 @@ function baseBox(task) {
       const h = H * HURTBOX.proneH;
       return { w: H * HURTBOX.proneW, h, top: H * comFrac(task.charKey) + h / 2 };
     }
-    case "ledge": return { w: W * HURTBOX.ledgeW, h: H * HURTBOX.ledgeH, top: H * HURTBOX.ledgeTop };
+    case "ledge": {
+      // HUNG FROM THE CORNER, exactly as combat.js hangs it and exactly as the
+      // stage hangs the drawing: the box's top edge is the lip, and the lip is
+      // LEDGE_HANG_Y above the fighter's own y and LEDGE_HANG_X forward of it.
+      // Everything else here is measured up from the feet; a hang is the one
+      // pose whose feet are not on anything.
+      const g = ledgeBox(task.charKey);
+      return { w: g.w, h: g.h, top: LEDGE_HANG_Y, cx: LEDGE_HANG_X + g.cx };
+    }
     default: return { w: W, h: H * HURTBOX.standH, top: H * HURTBOX.standH };
   }
 }
@@ -223,14 +242,19 @@ function geom(task, value) {
   const bw = base.w * ZOOM;
   const bh = base.h * ZOOM;
   // The derived box is anchored on its own BOTTOM edge, which is where
-  // combat.js hangs it: `top` px above the foot line, `h` px tall.
-  const baseBottom = GROUND_Y - (base.top - base.h) * ZOOM;
+  // combat.js hangs it: `top` px above the fighter's y, `h` px tall.
+  const baseBottom = groundY(task) - (base.top - base.h) * ZOOM;
+  // ...and on its own CENTRE in x, which is the centre line for every case but
+  // the hang. A fit's `dx` is a shift from wherever the derived box is, not
+  // from the fighter — so a hang whose box already sits out at the corner
+  // reads as an unshifted fit, which is what it is.
+  const baseCx = CENTRE_X + (base.cx || 0) * ZOOM;
   const w = bw * (value.w ?? 1);
   const h = bh * (value.h ?? 1);
-  const cx = CENTRE_X + (value.dx || 0) * bw;
+  const cx = baseCx + (value.dx || 0) * bw;
   const bottom = baseBottom - (value.dy || 0) * bh;
   return {
-    base, bw, bh, baseBottom,
+    base, bw, bh, baseBottom, baseCx,
     left: cx - w / 2, right: cx + w / 2, top: bottom - h, bottom,
   };
 }
@@ -243,7 +267,7 @@ function toValue(g, { left, right, top, bottom }) {
   return {
     w: clamp(r3(w / g.bw), 0.2, 3),
     h: clamp(r3(h / g.bh), 0.2, 3),
-    dx: clamp(r3(((left + right) / 2 - CENTRE_X) / g.bw), -1.5, 1.5),
+    dx: clamp(r3(((left + right) / 2 - g.baseCx) / g.bw), -1.5, 1.5),
     dy: clamp(r3((g.baseBottom - bottom) / g.bh), -1.5, 1.5),
   };
 }

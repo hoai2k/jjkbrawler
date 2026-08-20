@@ -61,11 +61,18 @@ const rows = await page.evaluate(async () => {
   const actors = { ...CHARACTERS, ...SPRITE_ACTORS };
 
   // Mirrors hurtbox() in combat.js. Returns how far the box rises above the
-  // foot line and how tall it is — the two differ only for a ledge hang.
+  // foot line and how tall it is.
+  //
+  // A HANG HAS NO ANSWER HERE, and that is the point of the branch rather than
+  // an omission: its box is hung off the platform corner and its drawing off
+  // the matching grip anchor (combat.js, hurtbox_art.js `ledgeBox`), so
+  // neither is placed by the foot line this whole audit measures from. The
+  // rows are marked and skipped below instead of being quoted against a foot
+  // line that does not hold them.
   const boxFor = (states, bm) => {
     const has = (...n) => states.some((s) => n.includes(s));
     const H = bm.height, W = bm.width;
-    if (has("ledge")) return { top: H * HURTBOX.ledgeTop, h: H * HURTBOX.ledgeH, kind: "ledge" };
+    if (has("ledge")) return { top: 0, h: 0, kind: "ledge" };
     if (has("prone")) return { top: H * HURTBOX.proneH, h: H * HURTBOX.proneH, kind: "prone" };
     if (has("crouch", "crouchAttack")) return { top: H * bm.crouch, h: H * bm.crouch, kind: "crouch" };
     if (has("hurt")) return { top: H * HURTBOX.hurtH, h: H * HURTBOX.hurtH, kind: "hitstun" };
@@ -90,7 +97,8 @@ const rows = await page.evaluate(async () => {
       const box = boxFor(states, bm);
       out.push({
         char, key, states: states.join("+"), kind: box.kind,
-        airborne: isAirborneOnly(char, key), anchored: isAnchorPlaced(char, key),
+        airborne: isAirborneOnly(char, key),
+        anchored: isAnchorPlaced(char, key) || box.kind === "ledge",
         over: +Math.max(0, -box.top - -top).toFixed(1),
         under: +Math.max(0, bot - 0).toFixed(1),
         slack: +Math.max(0, top - -box.top).toFixed(1),
