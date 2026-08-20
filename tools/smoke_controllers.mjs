@@ -61,9 +61,19 @@ const seats = (page) => page.evaluate(async () => {
   return {
     players: state.playerCount,
     mode: state.mode,
-    cursors: [...document.querySelectorAll(".char-card")]
-      .filter((c) => c.className.includes("pad-focus-p"))
-      .map((c) => `p${c.className.match(/pad-focus-p(\d)/)[1]}=${c.dataset.character}`)
+    // WHERE EACH PLAYER'S MARKER IS, read off the marker the roster actually
+    // draws. This used to look for a `pad-focus-p<N>` class on the card, which
+    // the select screen stopped emitting when the cursor and the commit became
+    // one marker (ui.js renderRosterMarkers): every card matched nothing, every
+    // cursor read `undefined`, and three checks failed on markup rather than on
+    // behaviour. The marker is a `pick-tag--p<N>` tag inside the card now.
+    cursors: [...document.querySelectorAll(".char-card .pick-tag")]
+      .map((tag) => {
+        const id = tag.className.match(/pick-tag--p(\d)/)?.[1];
+        const card = tag.closest(".char-card");
+        return id && card ? `p${id}=${card.dataset.character}` : null;
+      })
+      .filter(Boolean)
       .sort().join(" "),
   };
 });
