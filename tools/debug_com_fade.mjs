@@ -189,6 +189,176 @@ async function trace(query, char, from, to, film) {
   return out;
 }
 
+// ---------------------------------------------------------------- the sweep
+//
+// `--sweep` asks the other question: not "how much does this help on a
+// transition I chose", but "where does it HURT". One case is not an answer to
+// that — a flag you are thinking of turning on by default has to be judged on
+// its worst frame, not its best — and 34 fighters times 30-odd transitions is
+// too many browser boots to do one at a time.
+//
+// So it boots ONCE PER FLAG and swaps sprite sets in place. `f.spriteChar` is
+// the renderer's own override — how Megumi wears Mahoraga — so setting it makes
+// the fighter draw another roster member's art through the identical path,
+// scale, metrics and anchors included. The art has to be pulled in first, which
+// is the only reason this is slower than a loop.
+async function sweep(query, chars, pairs) {
+  const page = await browser.newPage();
+  page.on("pageerror", (e) => console.log("page error:", String(e).slice(0, 200)));
+  await page.goto(`${BASE}/?camera=flat${query}`);
+  await pressStart(page);
+  await page.click('[data-character="gojo"]');
+  await page.waitForTimeout(300);
+  await page.click("#startButton");
+  await page.waitForSelector(".stage-card", { timeout: 20000 });
+  await page.locator(".stage-card").nth(0).click();
+  for (let w = 0; ; w += 200) {
+    const ok = await page.evaluate(async () => {
+      const { state } = await import("/src/state.js");
+      return state.phase === "playing" && state.fighters.length > 1;
+    });
+    if (ok) break;
+    if (w > 120000) throw new Error("match never started");
+    await page.waitForTimeout(200);
+  }
+
+  const out = await page.evaluate(async ({ CHARS, PAIRS }) => {
+    const { state } = await import("/src/state.js");
+    const { draw } = await import("/src/render.js");
+    const { WORLD } = await import("/src/constants.js");
+    const { loadFrame, frameKeys } = await import("/src/assets.js");
+    const { resolvedAnim } = await import("/sprites/src/sprites.js");
+
+    const cv = new OffscreenCanvas(WORLD.w, WORLD.h);
+    const ctx = cv.getContext("2d", { willReadFrequently: true });
+    const a = state.fighters[0];
+    const main = state.platforms.find((p) => p.kind === "main");
+    for (const f of state.fighters) { f.aiState = null; f.stocks = 99; f.invuln = 0; }
+    state.fighters[1].dead = true;
+
+    const settle = () => Object.assign(a, {
+      x: main.x + main.w / 2, y: main.y, vx: 0, vy: 0, grounded: true,
+      hitstun: 0, action: null, dead: false, respawnTimer: 0, ledge: null,
+      ledgeMove: null, shakeMag: 0, teeterT: 0, teeterDir: 0,
+    });
+
+    const shot = () => {
+      state.particles = [];
+      ctx.clearRect(0, 0, WORLD.w, WORLD.h);
+      draw(ctx);
+      return ctx.getImageData(0, 0, WORLD.w, WORLD.h).data;
+    };
+    let plate = null;
+    // Scanned over a box around the fighter rather than the whole canvas. The
+    // single-case trace can afford the full frame; a sweep is ~28,000 of these
+    // and the other 90% of the pixels are stage that cancels in the diff
+    // anyway. The box is wider than any drawing and taller than the tallest.
+    const BOX = { x0: (WORLD.w >> 1) - 260, x1: (WORLD.w >> 1) + 260,
+                  y0: WORLD.h - 460, y1: WORLD.h - 20 };
+    const centroid = () => {
+      const px = shot();
+      let sum = 0, wx = 0;
+      for (let y = BOX.y0; y < BOX.y1; y++) {
+        let i = (y * WORLD.w + BOX.x0) * 4;
+        for (let x = BOX.x0; x < BOX.x1; x++, i += 4) {
+          const d = Math.abs(px[i] - plate[i]) + Math.abs(px[i + 1] - plate[i + 1])
+            + Math.abs(px[i + 2] - plate[i + 2]);
+          if (d < 24) continue;
+          sum += d; wx += d * x;
+        }
+      }
+      return sum > 0 ? wx / sum : null;
+    };
+
+    const dt = 1 / 60;
+    const span = Math.ceil(0.08 / dt) + 1;
+    const rows = [];
+
+    for (const charKey of CHARS) {
+      await Promise.all(frameKeys(charKey).map((k) => loadFrame(charKey, k).catch(() => {})));
+      settle();
+      a.spriteChar = charKey;
+      // One plate per character: the shadow is sized off the body, so a
+      // fighter-shaped hole cut with somebody else's art leaves a rim behind.
+      a.dead = true; plate = shot(); a.dead = false;
+
+      for (const [from, to] of PAIRS) {
+        if (!resolvedAnim(charKey, from)?.frames?.length) continue;
+        if (!resolvedAnim(charKey, to)?.frames?.length) continue;
+        settle(); a.animKey = from; a.prevAnim = null; a.animTime = 0.3;
+        const trace = [centroid()];
+        for (let i = 0; i < span; i++) {
+          settle();
+          a.animKey = to; a.animTime = i * dt; a.prevAnim = { key: from, t: 0.3 + i * dt };
+          trace.push(centroid());
+        }
+        let worst = 0;
+        for (let i = 1; i < trace.length; i++) {
+          if (trace[i] == null || trace[i - 1] == null) continue;
+          worst = Math.max(worst, Math.abs(trace[i] - trace[i - 1]));
+        }
+        rows.push({ charKey, from, to, worst: +worst.toFixed(2) });
+      }
+    }
+    return rows;
+  }, { CHARS: chars, PAIRS: pairs });
+
+  await page.close();
+  return out;
+}
+
+if (argv.includes("--sweep")) {
+  const { CHARACTER_KEYS } = await import("../src/characters.js");
+  const FROM = ["idle", "fall", "dash"];
+  // Every state a fade actually reaches. `hurt` and `land` are left out
+  // because SPRITE_NO_XFADE means they never fade at all — including them
+  // would pad the table with rows both columns agree on.
+  const TO = ["specialNeutral", "specialSide", "specialDown", "ult", "dodge_roll",
+    "dodge_air", "sideHeavy", "light", "upHeavy", "downHeavy", "grabReach",
+    "shield", "crouch", "charge", "jump", "airLight", "dashAttack"];
+  const pairs = FROM.flatMap((f) => TO.map((t) => [f, t]));
+  const chars = CHARACTER_KEYS;
+
+  const off = await sweep("", chars, pairs);
+  const on = await sweep("&smooth=com", chars, pairs);
+  const key = (r) => `${r.charKey}|${r.from}|${r.to}`;
+  const byKey = new Map(on.map((r) => [key(r), r]));
+  const joined = off.map((r) => {
+    const b = byKey.get(key(r));
+    return b ? { ...r, off: r.worst, on: b.worst, delta: b.worst - r.worst } : null;
+  }).filter(Boolean);
+
+  const line = (r) => `  ${r.charKey.padEnd(12)}${(`${r.from} -> ${r.to}`).padEnd(26)}`
+    + `${r.off.toFixed(1).padStart(7)}${r.on.toFixed(1).padStart(8)}`
+    + `${(r.delta > 0 ? "+" : "") + r.delta.toFixed(1)}`.padStart(9);
+
+  console.log(`${joined.length} transitions measured across ${chars.length} fighters.`);
+  console.log(`  ${"fighter".padEnd(12)}${"transition".padEnd(26)}`
+    + `${"off".padStart(7)}${"com".padStart(8)}${"delta".padStart(9)}`);
+  console.log("\nWORST — where the alignment makes the seam bigger:");
+  joined.slice().sort((x, y) => y.delta - x.delta).slice(0, 15).forEach((r) => console.log(line(r)));
+  console.log("\nBEST — where it helps most:");
+  joined.slice().sort((x, y) => x.delta - y.delta).slice(0, 10).forEach((r) => console.log(line(r)));
+
+  const worse = joined.filter((r) => r.delta > 1);
+  const better = joined.filter((r) => r.delta < -1);
+  console.log(`\n${better.length} transitions improved by >1px, ${worse.length} made worse by >1px, `
+    + `${joined.length - better.length - worse.length} unchanged.`);
+  const byChar = new Map();
+  for (const r of joined) {
+    const c = byChar.get(r.charKey) || { n: 0, sum: 0, worst: null };
+    c.n++; c.sum += r.delta;
+    if (!c.worst || r.delta > c.worst.delta) c.worst = r;
+    byChar.set(r.charKey, c);
+  }
+  console.log("\nPER FIGHTER — mean delta (negative is better), and their worst single transition:");
+  [...byChar].sort((x, y) => (y[1].sum / y[1].n) - (x[1].sum / x[1].n)).slice(0, 12)
+    .forEach(([c, v]) => console.log(`  ${c.padEnd(12)}mean ${(v.sum / v.n).toFixed(2).padStart(6)}`
+      + `   worst: ${v.worst.from} -> ${v.worst.to} (${v.worst.delta > 0 ? "+" : ""}${v.worst.delta.toFixed(1)})`));
+  await browser.close();
+  process.exit(0);
+}
+
 // Pick a transition whose two poses really do carry their weight in different
 // places — `node tools/audit_sprite_com.mjs --swings` lists them. Most
 // transitions move it by a pixel or two, and measuring one of those says
