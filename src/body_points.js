@@ -25,6 +25,24 @@ export function comFrac(charKey) {
   return typeof v === "number" && v > 0.2 && v < 0.9 ? v : COM_BODY_FRAC;
 }
 
+/** Did a PERSON place that number, or is it the roster default standing in?
+ *
+ *  `comFrac` deliberately does not say — every consumer that just needs a
+ *  pivot or a chest line is right not to care, and giving them a null to
+ *  handle would be noise. But a consumer that JUDGES another measurement
+ *  against this one has to know: comparing a frame's baked anchor to 0.55 and
+ *  reporting the gap as a disagreement with "this fighter's verified value"
+ *  claims a verification that never happened. Seven of the roster are still on
+ *  the default (the bench's "centre-of-mass" set is where that is answered),
+ *  and their frames were being described exactly that way.
+ *
+ *  Same distinction `anchorOffset` carries as `measured`, for the same reason
+ *  and at the other end of the same comparison. */
+export function comVerified(charKey) {
+  const v = BODY_POINTS[charKey]?.com;
+  return typeof v === "number" && v > 0.2 && v < 0.9;
+}
+
 // The muzzle used to be resolved here, as one verified point per character
 // beating a height-scaled default. It now has three sources rather than two —
 // the rig's measured hand sits between them — and a per-pose entry above the
