@@ -20,6 +20,9 @@ import { state } from "./state.js";
 import { updateFighter } from "./fighter.js";
 import { updateHitboxes, updateProjectiles, stepHitCredit } from "./combat.js";
 import { blankInput, playerInput } from "./input.js";
+import { updateParticles } from "./particles.js";
+import { updateCamera } from "./camera.js";
+import { FIXED_DT, MAX_FIXED_STEPS } from "./constants.js";
 
 /** One fixed step of the world: fighters, then everything they spawned.
  *
@@ -104,4 +107,82 @@ export function clearLatchedEdges(latch) {
     const l = latch[id];
     for (const k of Object.keys(l)) if (k.endsWith("P")) l[k] = false;
   }
+}
+
+// ------------------------------------------------------------------ one frame
+//
+// THE WHOLE LIVE-WORLD FRAME, so a caller cannot assemble a partial one.
+//
+// This exists because a caller DID. The character bench started life driving
+// `stepWorld` out of its own loop, which is the same simulation the game runs
+// — and it still came out wrong, because a frame is not only the simulation.
+// It forgot `updateParticles`, so nothing the fight threw off ever expired:
+// every spark from every hit and every "KO!" banner stayed exactly where it was
+// drawn, and the screen filled with frozen white dots and stuck text. The
+// simulation was perfect and the picture was garbage.
+//
+// The lesson is not "remember the other call". It is that "advance a live world
+// by one frame" is a THING, with an order and a clock, and a second caller
+// should be given it rather than trusted to rebuild it. So this owns the lot:
+// the latch, the fixed-step accumulator, the slow-motion scale, the
+// presentation, and the camera. What a caller supplies is the step itself —
+// which is the only part that legitimately differs.
+
+// The accumulator is module state because it is a CLOCK: it carries the
+// leftover time between frames, and a caller keeping its own would drift from
+// the fixed rate the simulation is written against.
+let accumulator = 0;
+
+// How far time is slowed for a KO's beat. The presentation layer lives in the
+// same time as the fight it presents — during that beat the sparks, the damage
+// numbers and the camera slow with the bodies. Feeding them the raw frame dt
+// played the game's most dramatic moment at two speeds at once, half on the
+// fighters and full on everything around them.
+const SLOW_MO_SCALE = 0.45;
+
+/** Advance the live world one frame and return the dt it actually used.
+ *
+ *    dt      the frame's own delta, in seconds, already clamped by the caller
+ *    latch   the input latch this world reads (`makeLatch`)
+ *    read    where a seat's input comes from; defaults to the real pads
+ *    step    one FIXED step of the world. `main.js` passes the match — which is
+ *            `stepWorld` plus the countdown, the clock and the KO — and the
+ *            bench passes `stepWorld` and its own respawn.
+ *
+ *  Drawing is NOT here, and that is deliberate: the two callers draw to
+ *  different canvases at different times, and a frame that drew itself would
+ *  take that choice away. Everything before the draw is here precisely because
+ *  none of it is a choice.
+ */
+export function advanceWorld(dt, { latch, read, step, scale = 1 }) {
+  latchInputs(latch, read);
+  // `scale` is a caller's own slow motion — the character bench's speed
+  // slider, and nothing in a match. It multiplies the DRAMATIC slow-mo rather
+  // than replacing it, so a KO still reads as a KO while the bench is dialled
+  // down, and it scales simulated TIME rather than the step: a smaller step
+  // would change what the game computes, and a bench showing a different game
+  // at 0.1x would be worse than no bench.
+  //
+  // `state.slowMo` still drains on real time, so a hit-stop lasts as long as
+  // it should on the clock rather than being stretched by the slider too.
+  const simDt = (state.slowMo > 0 ? dt * SLOW_MO_SCALE : dt) * scale;
+  state.slowMo = Math.max(0, state.slowMo - dt);
+
+  accumulator = Math.min(accumulator + simDt, FIXED_DT * MAX_FIXED_STEPS);
+  while (accumulator >= FIXED_DT) {
+    step(FIXED_DT);
+    clearLatchedEdges(latch);
+    accumulator -= FIXED_DT;
+  }
+
+  updateParticles(simDt);
+  updateCamera(simDt);
+  return simDt;
+}
+
+/** Throw away the leftover time. For a gap that is not elapsed play — a tab
+ *  coming back from hidden, a match starting — where the accumulated dt would
+ *  otherwise arrive as one enormous catch-up. */
+export function resetFrameClock() {
+  accumulator = 0;
 }

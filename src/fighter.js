@@ -215,6 +215,11 @@ function executeMove(f, move, opts = {}) {
 //              down + forward crouching, angled 45° DOWN — at the legs
 //   airborne   the same four, off the aerial, which kicks rather than punches
 //
+// The pose follows the FIGHTER, not the aim: a grounded fighter angling down
+// is by definition crouching, so that one is drawn out of the crouch (see
+// beginLight). Everything else about it — the hitbox, the reach, the 45° —
+// is the diagonal's.
+//
 // A diagonal is both directions being held at once, which is what a stick
 // pushed into a corner already reports (input.js) and what Up+Right already is
 // on a keyboard. Nothing new to press.
@@ -254,6 +259,14 @@ function beginLight(f, input) {
   if (tilt) {
     const move = lightMove(f.char, f.grounded ? "side" : "air");
     swingMove(move, tilt);
+    // THE AIM IS THE INPUT'S; THE POSTURE IS THE FIGHTER'S. A stick at five
+    // o'clock is a crouch — the body is down and the hurtbox is down — so the
+    // down diagonal is thrown out of the CROUCH pose rather than a standing
+    // one. Only the drawing changes: the hitbox keeps the 45° the stick asked
+    // for, which is what makes this a poke at the legs and not simply the
+    // down attack again. Without it the game disagreed with itself on screen —
+    // a fighter visibly crouched, swinging bolt upright.
+    if (f.grounded && crouched(f, input)) move.anim = "crouchAttack";
     aimAlong(f, tilt);
     executeMove(f, move);
     return;

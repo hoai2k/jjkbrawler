@@ -56,6 +56,17 @@ export function ownerStick(f) {
  * `standH` stops short of the full drawn height on purpose: the top of an anime
  * silhouette is hair, and hair is not a target.
  */
+/** Is this fighter DRAWN ducking? `f.crouching` is the input's answer and it
+ *  goes false the moment an attack starts — a fighter cannot act and crouch at
+ *  once — so a crouch attack was boxed at full standing height for its whole
+ *  duration while the art showed a body folded in half. The pose is the honest
+ *  reading: `crouchAttack` is drawn out of the crouch, and `b.crouch` is
+ *  measured across both poses (silhouette.js CROUCH_STATES) so the box it
+ *  gives already fits either one. */
+function isDucking(f) {
+  return f.crouching || f.animKey === "crouchAttack";
+}
+
 export function hurtbox(f) {
   const key = f.spriteChar || f.charKey;
   const b = bodyMetrics(key);
@@ -146,7 +157,7 @@ export function hurtbox(f) {
     return fit({ x: f.x - H * HURTBOX.proneW / 2, y: f.y - H * HURTBOX.proneH,
                  w: H * HURTBOX.proneW, h: H * HURTBOX.proneH }, "prone");
   }
-  if (f.crouching) {
+  if (isDucking(f)) {
     // `b.crouch` is measured from this fighter's own crouch pose, not assumed:
     // most of the roster's crouch art does not actually duck yet, and a box
     // that ducked anyway would have them dodging attacks while standing up.
@@ -571,7 +582,7 @@ export function updateProjectiles(dt) {
       // fighter's own measured crouch top — a flat 70 px was over half of one
       // body and a third of another.
       const tb = bodyMetrics(target.spriteChar || target.charKey);
-      const ducked = target.crouching && p.y < target.y - tb.height * tb.crouch;
+      const ducked = isDucking(target) && p.y < target.y - tb.height * tb.crouch;
       // Sky Fold (Uro): projectiles entering the folded sky are bent straight
       // back at their owner instead of landing
       if (!ducked && target.reflect && target.reflect.t > 0 &&
