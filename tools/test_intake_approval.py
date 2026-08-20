@@ -59,15 +59,22 @@ def run_import(work, char, key, plate):
     os.makedirs(os.path.join(processed, char), exist_ok=True)
     shutil.copy2(plate, os.path.join(processed, char, f"{key}.png"))
     # The importer reads its own measurement report, so run the real intake.
-    shutil.copy2(plate, os.path.join(work, "assets", "intake", char, f"{key}.png")
-                 if os.path.isdir(os.path.join(work, "assets", "intake", char))
-                 else os.path.join(work, "assets", "intake", f"{key}.png"))
+    # The delivery directory is CREATED rather than reused: an emptied round is
+    # deleted (assets/intake/README.md step 7), so in a clean tree there is no
+    # `assets/intake/<char>/` to drop a plate into, and `intake.py` reads one
+    # level deep — a plate one level up is silently not there, and the import
+    # fails on art it never saw.
+    delivery = os.path.join(work, "assets", "intake", char)
+    os.makedirs(delivery, exist_ok=True)
+    shutil.copy2(plate, os.path.join(delivery, f"{key}.png"))
     subprocess.run([sys.executable, os.path.join(work, "tools", "intake.py")],
                    cwd=work, capture_output=True, check=True)
     appr = os.path.join(work, "appr.json")
     json.dump({char: [key]}, open(appr, "w"))
-    subprocess.run([sys.executable, os.path.join(work, "tools", "intake_import.py"),
-                    "--approve", appr], cwd=work, capture_output=True, check=True)
+    r = subprocess.run([sys.executable, os.path.join(work, "tools", "intake_import.py"),
+                        "--approve", appr], cwd=work, capture_output=True, text=True)
+    if r.returncode:
+        raise SystemExit(f"intake_import failed:\n{r.stdout}\n{r.stderr}")
     return json.load(open(os.path.join(work, "sprites", "assets", "manifest.json")))
 
 
@@ -92,7 +99,11 @@ def main():
     print(f"testing two deliveries onto {char}/{key} (currently {original})\n")
 
     with tempfile.TemporaryDirectory() as work:
-        for sub in ("tools", "src"):
+        # `sprites/src` is in the list because intake_import parses
+        # sprites.js for the placement and variant rules rather than keeping a
+        # copy of them — one source of truth for what survives a replacement,
+        # and a sandbox without it cannot import anything at all.
+        for sub in ("tools", "src", os.path.join("sprites", "src")):
             shutil.copytree(os.path.join(ROOT, sub), os.path.join(work, sub))
         os.makedirs(os.path.join(work, "sprites", "assets", char), exist_ok=True)
         os.makedirs(os.path.join(work, "assets", "intake", char), exist_ok=True)

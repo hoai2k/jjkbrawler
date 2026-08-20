@@ -22,7 +22,7 @@ numbered DI1, DI2… — so the tracks never collide. All of them are gathered i
 [image-requests.md](image-requests.md), which is what to read to draw any of
 them; these files are where each is written.)
 
-**Current status: rounds 1–23 delivered. NOTHING IS OUTSTANDING.**
+**Current status: rounds 1–23 and 22L delivered. NOTHING IS OUTSTANDING.**
 **Every fighter on the select screen has every pose the game asks of them** —
 `node tools/check_pose_coverage.mjs` reports 34 fighters and 0 undrawn poses,
 the first time that has been true. Round 22 delivered its three 36-pose sets
@@ -34,10 +34,20 @@ newly promoted fighters, missed by the four roster-wide rounds that ran while
 they were staged. All of it is
 [in the history](asset-requests-history.md#round-22k--the-newly-promoted-sevens-missing-poses-delivered).
 
+**The twenty-nine workbench flags have been answered.** They were the one
+outstanding thing that was not a written request — art that exists and is
+wrong, raised a sprite at a time by whoever was placing it — and
+[22L](asset-requests-history.md#22l-the-twenty-nine-the-workbench-had-flagged--29-sprites)
+delivered all of them. Seventeen were poses drawing a neighbour's file, so the
+roster's substitutions are down from 52 to 35. `node tools/build_image_requests.mjs`
+now reports nothing outstanding for the sprite path from either half of the
+derivation below.
+
 **What "nothing is outstanding" does and does not mean.** It means no art is
 owed against a written request. It does not mean every drawing is right: the
-22I/22J redraws sit in the sprite workbench's approval queue rather than in the
-game, because the drawing each replaces stays in play until somebody says yes.
+22I/22J redraws and now 22L's twenty-nine sit in the sprite workbench's
+approval queue rather than in the game, because the drawing each replaces stays
+in play until somebody says yes.
 And `python3 tools/audit_windup.py` still measures **4 inverted and 19 thin**
 attack pairs across the shipped roster — pairs whose `_a` reaches as far as or
 further than its own `_b`. Those are a redraw round waiting to be written (or,

@@ -202,7 +202,7 @@ distance, same figure scale, only the body moves.
 | Pose | Pose line |
 |---|---|
 | `attack_light_a` | winding up a fast strike, striking hand or weapon drawn back beside the body, shoulders coiled away from the target, weight on the back foot, lead arm up as a guard |
-| `attack_light_b` | the strike fully extended and travelling forward — arm or weapon at full reach out in front of the body, shoulders rotated through, weight transferred onto the front foot, the drawn-back hand recovered to the chest |
+| `attack_light_b` | the strike fully extended and travelling forward — arm or weapon at full reach out in front of the body, shoulders rotated through, weight transferred onto the front foot, the drawn-back hand recovered to the chest. **Thrown with the NEAR arm** — the one on the camera side — so the blow is drawn over the body and not behind it |
 | `attack_heavy_a` | the wind-up of one committed heavy blow: weapon or fist drawn as far back as the body allows, hips loaded, front foot light |
 | `attack_heavy_b` | that blow landing at full extension, hips driven through it, the whole body behind the strike and past its own centre of balance |
 | `attack_air_a` | **wind-up, airborne.** Body coiled mid-jump, striking limb cocked, legs gathered |
@@ -324,11 +324,12 @@ often.
 
 | Fault | Where it shows | Round(s) |
 |---|---|---|
-| **The strike does not extend** | `attack_light_b`, `attack_heavy_b`, `crouch_attack_b` | 11C, 13C, 14A |
+| **The strike does not extend** | `attack_light_b`, `attack_heavy_b`, `crouch_attack_b` | 11C, 13C, 14A, 22L |
 | **The wind-up is already the strike** — `_a` drawn mid-blow, so the pair has no coil and the move has no tell | `attack_light_a`, `attack_heavy_a`, `attack_air_a` | 14A, 17A, 22C, 22D, 22I, 22J |
 | **The pair is delivered inverted** — both frames drawn correctly, the two filenames the wrong way round, so the move plays extend-then-retract. **Not a redraw**: point each pose at the other file in the workbench | any `_a`/`_b` pair | 13B, 22B |
-| **The crouch is a standing fighting stance** | `crouch_a`, `crouch_b`, both `crouch_attack` frames | 12A, 13A, 13B, 22C |
+| **The crouch is a standing fighting stance** | `crouch_a`, `crouch_b`, both `crouch_attack` frames | 12A, 13A, 13B, 22C, 22L |
 | **The costume is a different reading of the character** | any pose, usually a whole sub-batch drawn in one sitting | 10, 12A, 13, 22B |
+| **The strike is thrown with the FAR arm** — the limb on the away side, drawn passing behind the collar, so the blow reads as a lean rather than a punch. The near arm is the one the camera is on | `attack_light_b`, `crouch_attack_b` | 22L |
 | **Hands do not close on the weapon** | `attack_*`, `run_*` | 12A |
 | **`_b` does not finish `_a`** | every pair | 12A, 13B |
 | **The reach falls off the canvas** | `crouch_attack_b`, `attack_heavy_b`, `attack_light_b`, `special_neutral`, `teeter` | 13, 22I, 22J |
