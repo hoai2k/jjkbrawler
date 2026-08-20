@@ -35,11 +35,36 @@ def check(ok, label, extra=""):
 
 def main():
     man = json.load(open(A.MANIFEST))
-    foot = A.learn_foot(man)
-    sizes, anims = A.learn_sizes(man, A.DEFAULT_REVIEWED)
+    anims = A.anims_by_frame(open(A.CHARACTERS_JS).read(), list(man["characters"]))
+    foot = A.learn_foot(man, anims)
+    sizes, levels = A.learn_sizes(man, A.DEFAULT_REVIEWED, anims)
 
     check(foot["global"] is not None and 0.85 < foot["global"] < 1.0,
           "the foot fraction learns to something plausible", f"{foot['global']:.4f}")
+
+    # ---- the foot line is measured per state, and the states that have their
+    # own fraction are the ones whose contact is not a standing sole.
+    run = foot["per_state"].get("run")
+    check(run is not None and run["frac"] > foot["global"],
+          "a running contact is measured above the roster's standing one",
+          f"run {run['frac']:.3f} vs roster {foot['global']:.3f}" if run else "no run fraction")
+    prone = foot["per_state"].get("prone")
+    check(prone is not None and prone["frac"] < 0.8,
+          "and a prone one far below it", f"{prone['frac']:.3f}" if prone else "no prone fraction")
+    # Whatever a state is worth, it is worth it in the same units as the rest:
+    # no fraction may land somewhere a body cannot stand.
+    check(all(0.4 <= v["frac"] <= 1.5 for v in foot["per_state"].values()),
+          "and every learned fraction is somewhere a body could contact")
+    # ---- the size rule survives a character's reference frame moving
+    #
+    # Six fighters carry an idle re-placed 2.3-3% larger than the cell it
+    # replaced. Their level is what stops that from reading as nine states
+    # simultaneously ceasing to be rules.
+    off = {c: v for c, v in levels.items() if abs(v - 1) >= 0.005}
+    check(all(0.9 < v < 1.1 for v in levels.values()),
+          "every character's level is a nudge, not a rescale",
+          ", ".join(f"{c} x{v:.3f}" for c, v in sorted(off.items())) or "(all 1.000)")
+
     uniform = [s for s, v in sizes.items() if v["uniform"]]
     judged = [s for s, v in sizes.items() if not v["uniform"]]
     check(len(uniform) >= 6 and len(judged) >= 6,
@@ -70,7 +95,7 @@ def main():
     states = tuple(sorted(s for s, ks in anims[char].items() if key in ks))
     want = ["foot", "size", "centre"]
 
-    out, why = A.tune_frame(char, key, stored, states, foot, sizes, idle, want)
+    out, why = A.tune_frame(char, key, stored, states, foot, sizes, levels, idle, want)
     check(not why and out, "it has something to say about a freshly imported pose",
           why or ", ".join(out))
     check("bodyBottom" in out and "ox" in out,
@@ -88,7 +113,7 @@ def main():
     settled = dict(stored)
     for field, (_, new, _) in out.items():
         settled[field] = new
-    again, _ = A.tune_frame(char, key, settled, states, foot, sizes, idle, want)
+    again, _ = A.tune_frame(char, key, settled, states, foot, sizes, levels, idle, want)
     check(not again, "running it twice changes nothing the second time",
           ", ".join(sorted(again)) or "(nothing)")
 
@@ -96,14 +121,14 @@ def main():
     for field in ("bodyBottom", "ox", "renderScale"):
         guarded = dict(stored)
         guarded["edited"] = {field: 1.0}
-        got, _ = A.tune_frame(char, key, guarded, states, foot, sizes, idle, want)
+        got, _ = A.tune_frame(char, key, guarded, states, foot, sizes, levels, idle, want)
         check(field not in got, f"a hand-edited {field} is left alone",
               ", ".join(sorted(got)) or "(nothing)")
 
     # An `edited` map covering everything leaves nothing to do at all.
     locked = dict(stored)
     locked["edited"] = {"bodyBottom": 1.0, "ox": 1.0, "renderScale": 1.0}
-    got, _ = A.tune_frame(char, key, locked, states, foot, sizes, idle, want)
+    got, _ = A.tune_frame(char, key, locked, states, foot, sizes, levels, idle, want)
     check(not got, "a fully tuned pose is not touched at all",
           ", ".join(sorted(got)) or "(nothing)")
 
@@ -142,7 +167,7 @@ def main():
         m2 = dict(frames[cand_key])
         m2.pop("edited", None)
         base = man["characters"][cand_char]["idle_a"]["bodyH"]
-        got, _ = A.tune_frame(cand_char, cand_key, m2, st, foot, sizes, base, ["size"])
+        got, _ = A.tune_frame(cand_char, cand_key, m2, st, foot, sizes, levels, base, ["size"])
         check("renderScale" in got and "bodyH" in got,
               f"a uniform state ({'/'.join(st)}) is sized", ", ".join(sorted(got)))
         # bodyH and renderScale have to move together or the manifest disagrees
@@ -153,12 +178,41 @@ def main():
     else:
         check(False, "found a uniform-state pose to size")
 
+    # ---- a state with its own fraction is allowed to move a long way
+    #
+    # `prone` contacts at 0.626: a body on its side stands a third of its height
+    # above its lowest pixel. The old flat guard refused exactly this, because
+    # against one roster fraction a move that big could only be a bad frame.
+    for cand_char in ("momo", "maki", "gojo", "yuji"):
+        frames = man["characters"].get(cand_char) or {}
+        pk = next((k for k in frames if "prone" in
+                   tuple(s for s, ks in anims.get(cand_char, {}).items() if k in ks)), None)
+        if not pk:
+            continue
+        fresh = dict(frames[pk])
+        fresh.pop("edited", None)
+        mp = A.measure(os.path.join(A.SPRITES, fresh["file"]))
+        fresh["bodyBottom"] = round(fresh["oy"] + mp["body_bottom"], 1)
+        got, why2 = A.tune_frame(cand_char, pk, fresh, ("prone",), foot, sizes, levels,
+                                 None, ["foot"])
+        moved = got.get("bodyBottom")
+        check(bool(moved) and not why2,
+              f"a prone pose ({cand_char}) is placed rather than refused", why2 or "")
+        if moved:
+            lifted = (moved[0] - moved[1]) / mp["body_bottom"]
+            check(0.2 < lifted < 0.5,
+                  "and lifted by about a third of its body height", f"{lifted:.2f}")
+        break
+    else:
+        check(False, "found a prone pose to place")
+
     # ---- the foot guard
     absurd = dict(stored)
     absurd["bodyBottom"] = stored["bodyBottom"] + 10_000
-    got, why = A.tune_frame(char, key, absurd, states, foot, sizes, idle, ["foot"])
+    got, why = A.tune_frame(char, key, absurd, states, foot, sizes, levels, idle, ["foot"])
     check("bodyBottom" not in got and why,
-          "a foot line that would jump absurdly is refused, with a reason", why or "")
+          "a foot line that is nowhere near the drawing is refused, with a reason",
+          why or "")
 
     print("\n" + (f"{fails} check(s) failed" if fails else "All checks pass"))
     return 1 if fails else 0

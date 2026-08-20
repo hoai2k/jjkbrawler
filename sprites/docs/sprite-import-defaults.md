@@ -20,8 +20,8 @@ It reads the manifest, the art and `src/characters.js`, and writes nothing.
 
 | Finding | Status |
 |---|---|
-| The foot line is one fraction of body height for the whole roster | **Wrong.** It is one fraction *per animation state*, and the spread between states is five times the spread within one |
-| Ten animation states are sized by one ratio, and the tool detects them | **Off.** The detector now passes exactly one state — `idle` — and the cause is six fighters' idle frames, not the states |
+| The foot line is one fraction of body height for the whole roster | **Wrong, and fixed.** It is one fraction *per animation state*; 14.3px → 5.4px of on-screen error, against 8.4px for the single number |
+| Ten animation states are sized by one ratio, and the tool detects them | **Was off, and is back on.** The detector had been reduced to one state by six fighters' idle frames; dividing out each character's level restores nine |
 | Size cannot be defaulted, only corrected | **Wrong for the same reason `ox` was.** There is no do-nothing option for size either, and the rule that is already computed beats the default in place by half |
 | `ox` from the alpha-weighted centroid | **Right, and beatable.** On the poses where the centroid fails, the answer is already in the manifest next to it |
 | `rotationDeg` and `faceLeft` are not automatable | **Still true**, and the rotation case is now weaker than "no signal" |
@@ -33,6 +33,11 @@ a sprite sideways.
 ---
 
 ## 1. The foot line is one number per state, not one number
+
+> **Landed.** `tools/auto_tune.py` learns a fraction per state, with a
+> per-character level on top. `--report` prints what it learned; `--backtest`
+> scores it leave-one-character-out at **14.3px → 5.4px** median on-screen
+> error, against 8.4px for the single fraction it replaced.
 
 The 0.946 fraction is real — a foot drawn in perspective hides its sole, so the
 figure stands above the lowest drawn pixel — but it describes a body **standing
@@ -75,51 +80,66 @@ floor and is then lifted out by hand.
 
 ### What it is worth
 
-Scored against the hand values, leaving each character out of the data that
-taught the rule, in the pixels a player sees (image error × `renderScale`, on
-~230px fighters):
+Scored against the hand values, leaving each character out of *everything* that
+taught the rule — the state fractions and their own level both — in the pixels
+a player sees (image error × `renderScale`, on ~230px fighters). These are the
+numbers `auto_tune.py --backtest` prints:
 
-| Rule | median | 90th pct | within 2% of body height |
-|---|---:|---:|---:|
-| foot = lowest pixel (what `generated_frame_meta` derives) | 14.3px | 33.7px | 24% |
-| flat 0.946 | 8.5px | 20.1px | 36% |
-| per character, airborne declined — **today** | 6.9px | 21.1px | 43% |
-| **per state × that character's level** | **4.8px** | 16.7px | **54%** |
+| Rule | median | 90th pct |
+|---|---:|---:|
+| foot = lowest pixel (what `generated_frame_meta` derives) | 14.3px | 33.7px |
+| one fraction for the roster, per character — **what this replaced** | 8.4px | 20.6px |
+| **per state × that character's level** | **5.4px** | 15.9px |
 
 Where the gain comes from is more interesting than the median. The per-state
 rule is not uniformly better by a little; it is dramatically better on the
-states the single number cannot describe, and a wash on the ones it can:
+states one number cannot describe, and a wash on the ones it can:
 
-| State | today | per state |
+| State | before | after |
 |---|---:|---:|
-| `fall` | 43.0px | 11.7px |
-| `jump` | 38.7px | 15.0px |
 | `prone` | 34.6px | 6.8px |
-| `dodge_air` | 28.4px | 16.8px |
-| `run` | 11.8px | 3.0px |
-| `dash`, `dashAttack` | 8.0–9.8px | 3.7–5.2px |
-| `idle`, `win`, `sideHeavy`, `hurt` | 1.8–4.4px | 2.1–6.6px |
+| `run` | 11.7px | 3.0px |
+| `dash` | 9.4px | 1.9px |
+| `crouch` | 7.3px | 6.8px |
+| `dashAttack` | 6.7px | 5.2px |
+| `idle`, `win`, `sideHeavy` | 1.8–4.4px | unchanged — they *are* the roster fraction |
 
-### Declining is not free
+Fifteen states earn their own fraction. The rest are measured, found to sit
+within 0.3 of a standard deviation of the roster's, and left on it: `win` at
+0.950, `ult` at 0.947 and `light` at 0.946 are not a different rule from 0.950,
+and putting them on their own smaller sample would be precision theatre.
 
-`NO_STANDING_FOOT` makes the tuner refuse `prone`, `jump`, `fall`, `ledge`,
+### Declining is not free — but it is still right for four states
+
+`NO_STANDING_FOOT` made the tuner refuse `prone`, `jump`, `fall`, `ledge`,
 `dodge_air` and `airLight`, on the reasoning that a body in the air has no foot
 line to solve and a rule that guesses one is worse than no rule. The refusal is
-sound and its *consequence* is not: what refusing leaves behind is the
+sound and its *consequence* was not: what refusing leaves behind is the
 pipeline's own derivation, which pins the lowest drawn pixel to the floor. That
-is not neutral, it is the one answer the rule was written because it knew to be
-wrong — 43px of on-screen error on a `fall`, against 11.7px for that state's
-own measured fraction.
+is not neutral, it is the one answer the rule exists because it knows to be
+wrong.
 
 The same argument the first measurement used to justify applying `ox` applies
 here: **every imported frame is given some foot line, so there is no
-do-nothing option.** The choice is between two estimators, and one of them is
-four times worse.
+do-nothing option.**
 
-`prone` is the sharpest version. Its hand fraction is 0.626 with 35 samples —
-a rule as strong as any in the file — and the tuner declines it into a default
-that is 37% of body height out. `prone` does not need to be excluded from a
-per-state rule; it needs to be *in* one.
+`prone` is the sharpest version, and it is the one that changed. Its fraction
+is 0.626 over 35 poses on 35 fighters — a rule as strong as any in the file —
+and it was being declined into a default 37% of body height out. It did not
+need excluding from a per-state rule; it needed to be *in* one. The guard that
+used to stop it (refuse any move over 20% of body height) now applies only
+where the rule is falling back on the roster fraction, because against a
+*measured* state fraction the size of the move is the measurement rather than a
+warning about it.
+
+The airborne four are still declined, and the reason is samples rather than
+principle: `fall`, `jump` and `dodge_air` carry two or three corrections each
+and `ledge` none. There is a real fraction under them — the handful that exist
+read 0.90, 0.90, 0.91, all well clear of the floor — but three poses on two
+fighters is those fighters' habit, not a fact about the state, and the rule
+wants six over three characters before it will speak. They are also the poses
+where a foot line is least of the answer: an airborne fighter's placement is
+governed by the com hold (`render.js holdComY`), not by where their feet are.
 
 ### What does not work
 
@@ -135,6 +155,12 @@ every measurement-based idea in the first audit lost to a constant:
 ---
 
 ## 2. The size rule switched itself off, and it is six idles
+
+> **Landed.** `learn_sizes` now divides each character's level out before it
+> asks whether a state is uniform, so nine states are rules again and the
+> tuner sizes 153 of the reviewed roster's poses to a median 0.01% of the hand
+> value. The six idles themselves are untouched — that is an art decision, and
+> `--report` now names them at the bottom of the size table so it stays visible.
 
 `tools/auto_tune.py --report` today:
 
@@ -258,11 +284,13 @@ The parser's own docstring records this bug being fixed once already, for
 `RUN_ANIM`, when it made "the busiest sprites in the game" look undrawn. Same
 regex, same shape, two more animations.
 
-**This fix must land with the per-state foot rule, not before it.** Today
-`walk` and `teeter` are state-less, so the tuner leaves them near the
-pipeline's 1.0, which is 0.014 from the hand answer. Make them visible while
-the foot rule is still one flat number and they would be tuned to 0.946
-instead — 0.040 away, three times worse.
+**Correction to an earlier version of this page**, which said the fix had to
+wait for the per-state foot rule because a state-less pose is left near the
+pipeline's 1.0. It is not: a pose with no state falls through to the roster
+fraction like any other, so `walk` and `teeter` have been getting 0.95 all
+along and being corrected to 0.986 by hand. The interlock was imaginary — what
+is real is that the fix is worth more now than it was, because with §1 landed
+those 102 poses would get a locomotion fraction instead of a standing one.
 
 ---
 
@@ -367,24 +395,24 @@ change: this stays a human's call.
 
 ## What to do about it, in order
 
-1. **Learn the foot fraction per state** rather than once, keeping every guard
-   that is already there (per-character level, the 20% magnitude refusal, never
-   overwriting `edited`). Retire `NO_STANDING_FOOT` in favour of those states'
-   own measured fractions, since declining hands the pose back to the estimator
-   the whole rule exists to replace. 6.9px → 4.8px overall; 43px → 12px on a
-   `fall`, 35px → 7px on a `prone`, 12px → 3px on every run frame of every
-   fighter.
-2. **Re-measure the six idles** (jogo, nobara, inumaki, yuta, sukuna, megumi),
-   and learn size ratios with a per-character level removed so the next
-   reference frame that moves does not switch nine rules off silently. Restores
-   auto-sizing for `hurt`, `fall`, `jump`, `shield`, `ledge`, `win`, `upHeavy`,
-   `charge` and `dizzy`, and removes a 2.7% size step six fighters carry in
-   game.
+1. ~~**Learn the foot fraction per state**~~ — **done.** Fifteen states carry
+   their own, on a per-character level, and `prone` is placed rather than
+   refused. 8.4px → 5.4px overall; 35px → 7px on a prone, 12px → 3px on every
+   run frame of every fighter. The airborne states stay declined until they
+   have corrections enough to speak with.
+2. ~~**Learn size ratios with a per-character level removed**~~ — **done.**
+   Nine states are rules again — `hurt`, `fall`, `jump`, `shield`, `ledge`,
+   `win`, `upHeavy`, `charge`, `dizzy` — and reproduce the hand values to a
+   median 0.01%. What is left of this one is an art call: **re-measure the six
+   idles** (jogo, nobara, inumaki, yuta, sukuna, megumi), which would remove
+   the 2.7% size step those fighters carry between their idle and everything
+   else. `--report` names them until somebody does.
 3. **Apply the state size ratio as a derivation** on import, with the standing
    the `centre` rule already has: only over a number the pipeline produced.
    14.9% → 7.3%.
-4. **Fix `named_anims`** so `walk` and `teeter` resolve — *with* step 1, never
-   before it.
+4. **Fix `named_anims`** so `walk` and `teeter` resolve. Now worth more than it
+   was: with the per-state foot rule landed, those 102 poses would be placed on
+   a locomotion fraction instead of a standing one.
 5. **Seed `ox` from a hand-placed `com`** where there is one; keep the centroid
    where there is not. 12.0px → 5.2px on 60% of the poses that get a hand `ox`.
 6. **Carry the foot fraction across a redraw** instead of resetting it, and
