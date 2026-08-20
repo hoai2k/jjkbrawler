@@ -281,8 +281,10 @@ per-character (from their `light`/`heavy` profiles in `src/characters.js`).
   pressing attack throws the low poke rather than snapping the fighter upright
   into a jab. Smash gets the same feel out of its squat-exit animation — an
   attack out of the stand-up frames is still the down tilt. Holding down AND
-  forward together is a different input and keeps its own meaning: the side
-  attack angled 45° at the legs.
+  forward together keeps its own reach — the side attack angled 45° at the
+  legs — but is *posed* out of the crouch, because a stick at five o'clock is
+  a crouch: the aim is the input's, the posture is the fighter's. The hurtbox
+  follows the same reading and stays ducked for the whole low swing.
 - **Aerials** — neutral / up / **down air** in midair; down airs are
   **spikes** that launch downward — the edge-guard finisher.
 

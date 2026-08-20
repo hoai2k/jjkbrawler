@@ -90,8 +90,18 @@ for (let i = 0; i < SECONDS * 10; i++) {
     // took the trouble to fit.
     const span = (drawn) => {
       const fits = Object.values(HURTBOX_FIT[drawn] || {});
+      // Prone is left out of the WIDTH ceiling on purpose: a body on its side
+      // is body-LENGTH wide and the flat branch below admits that shape on its
+      // own terms. Every other reviewed state is an upright box, and the
+      // widest of them is what this fighter is entitled to — a crouch spreads
+      // (HURTBOX.crouchW, plus whatever the review measured on top of it), and
+      // since the box follows the drawn pose the crouch is now what a fighter
+      // is in for the whole of a low swing rather than a rare sample.
+      const upright = Object.entries(HURTBOX_FIT[drawn] || {})
+        .filter(([k]) => k !== "prone").map(([, v]) => v);
       return {
         minW: fits.reduce((m, v) => Math.min(m, v.w ?? 1), 1),
+        maxW: upright.reduce((m, v) => Math.max(m, v.w ?? 1), 1),
         // `dy` counts toward the ceiling as well as `h`: a grounded box lifted
         // off the floor is extended back down to it (combat.js fit), so the
         // shipped box is TALLER than its own height multiplier by exactly the
@@ -251,9 +261,10 @@ for (const s of samples) {
     // is part of those measurements now (src/config_body_points.js).
     const lo = 0.55 * f.span.minW;
     const hi = 0.95 * f.span.maxH;
+    const wide = 1.25 * f.span.maxW;
     const flat = hr <= 0.30 && f.box.w <= f.want.height * 0.70 && wr >= lo;
     if (flat) continue;
-    if (wr < lo || wr > 1.25 || hr > hi) {
+    if (wr < lo || wr > wide || hr > hi) {
       offenders.push(`${f.charKey} as ${f.drawn} `
         + `${Math.round(f.box.w)}x${Math.round(f.box.h)} `
         + `vs body ${Math.round(f.want.width)}x${Math.round(f.want.height)}`);
