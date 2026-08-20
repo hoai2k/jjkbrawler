@@ -18,6 +18,7 @@ import {
 } from "./constants.js";
 import { bodyMetrics } from "./silhouette.js";
 import { comFrac, hurtboxFit } from "./body_points.js";
+import { ledgeBox } from "./hurtbox_art.js";
 import { spawnOffset } from "./muzzle.js";
 import { sharedHit } from "./shared_sprites.js";
 import { swingExtent } from "./moves.js";
@@ -63,8 +64,10 @@ export function hurtbox(f) {
   // the "hurtbox-fit" review). Identity for anyone nobody has checked, so this
   // is a no-op until a decision lands.
   //
-  // Resized about its own BOTTOM edge — the foot line, which is the one edge
-  // that is not a judgement call — and then shifted: `dx` forward along the
+  // Resized about its own BOTTOM edge — the foot line on every box that stands
+  // on one, which is the edge that is not a judgement call (on a hang it is
+  // simply the far end from the lip, and the lip clamp below holds the near
+  // one) — and then shifted: `dx` forward along the
   // facing, `dy` up, both as fractions of the DERIVED size. The shift is what
   // covers a drawing that sits off-centre in its cell; without it a lopsided
   // body could only be covered by widening the box on the empty side too.
@@ -100,8 +103,8 @@ export function hurtbox(f) {
     // argument the other way up. A fighter on the ledge has their hands on the
     // platform's corner; an attack thrown down over the edge has to reach them
     // there, not stop at the top of whatever the hang drawing's shoulders came
-    // out as. The lip is the platform's own surface (fighter.js tryGrabLedge
-    // hangs them off `plat.y`).
+    // out as. The derived box already starts there, so this only bites on a
+    // reviewed fit that lifted the top edge off the lip.
     const lip = f.ledge?.plat?.y;
     if (lip !== undefined && out.y > lip) {
       out = { x: out.x, w: out.w, y: lip, h: out.h + (out.y - lip) };
@@ -109,8 +112,16 @@ export function hurtbox(f) {
     return out;
   };
   if (f.ledge) {
-    return fit({ x: f.x - W * HURTBOX.ledgeW / 2, y: f.y - H * HURTBOX.ledgeTop,
-                 w: W * HURTBOX.ledgeW, h: H * HURTBOX.ledgeH }, "ledge");
+    // HUNG FROM THE CORNER THE HANDS ARE ON, which is where the drawing is
+    // hung too: render.js puts the frame's `ledge` grip on this exact point
+    // (`anchorTo`), so building the box from the same point is the only way
+    // the two can agree. It used to be built up from `f.y`, as every other
+    // state is — but `f.y` on a hang is LEDGE_HANG_Y below the lip and around
+    // the fighter's chest, not under their feet, so that box sat half on the
+    // stage above the ledge and left the dangling body unhittable.
+    const g = ledgeBox(key);
+    return fit({ x: f.ledge.edgeX + (f.facing || 1) * g.cx - g.w / 2,
+                 y: f.ledge.plat.y, w: g.w, h: g.h }, "ledge");
   }
   // Tumbling near horizontal (motion.js draws the body spun by spinAngle): an
   // upright standing box on a body drawn sideways was the biggest remaining

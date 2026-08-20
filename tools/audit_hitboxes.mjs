@@ -271,6 +271,82 @@ try {
 // a better box than none, and failing here would block an art commit on a
 // review queue. It reports, so the work is visible and the bench (which asks
 // again for exactly these) is not the only place it shows.
+// THE ONE BOX THAT IS NOT MEASURED FROM THE FOOT LINE, and the one that was
+// therefore wrong for a long time without anything noticing. A hang is placed
+// by the grip anchor on the platform corner (render.js `anchorTo`), so its box
+// is hung from the same corner (combat.js, hurtbox_art.js `ledgeBox`) — and
+// the only way to know the two agree is to measure the drawing against it.
+//
+// Everything below is quoted RELATIVE TO THE LIP: y down from it in units of
+// the fighter's height, x from it along the facing in units of their width.
+console.log("\n=== the hang box against the body it is drawn beside ===");
+{
+  const { resolvedAnim, anchorPoint, frameFootY } = await import("../sprites/src/sprites.js");
+  const { frameMeta } = await import("../src/assets.js");
+  const { CELL_W, LEDGE_HANG_X, LEDGE_HANG_Y } = await import("../src/constants.js");
+  const { ledgeBox } = await import("../src/hurtbox_art.js");
+  const hangs = [];
+  for (const key of CHARACTER_KEYS) {
+    const frames = resolvedAnim(key, "ledge")?.frames || [];
+    const frame = frames[0];
+    const m = frame ? frameMeta(key, frame) : null;
+    if (!m || !Number.isFinite(m.h)) continue;
+    const b = bodyMetrics(key);
+    const scale = (CHARACTERS[key].scale ?? 1) * (m.renderScale || 1);
+    const facing = m.faceLeft ? -1 : 1;
+    const foot = frameFootY(m), ox = m.ox ?? 0, oy = m.oy ?? 0;
+    const wx = (cx) => (cx - CELL_W / 2) * scale * facing;
+    const wy = (cy) => (cy - foot) * scale;
+    const grip = anchorPoint(key, frame, "ledge", m);
+    if (!grip) continue;
+    // The drawing lands with its grip on the corner, so measure it from there.
+    const dx = LEDGE_HANG_X - wx(grip.x), dy = -LEDGE_HANG_Y - wy(grip.y);
+    const xs = [wx(ox + (m.bodyLeft ?? 0)) + dx, wx(ox + (m.bodyRight ?? m.w)) + dx];
+    const art = {
+      left: Math.min(...xs) - LEDGE_HANG_X, right: Math.max(...xs) - LEDGE_HANG_X,
+      top: wy(oy + (m.bodyTop ?? 0)) + dy + LEDGE_HANG_Y,
+      bottom: wy(oy + m.h) + dy + LEDGE_HANG_Y,
+    };
+    const g = ledgeBox(key);
+    const box = { left: g.cx - g.w / 2, right: g.cx + g.w / 2, top: 0, bottom: g.h };
+    const drawn = art.bottom - art.top;
+    const covered = Math.max(0, Math.min(art.bottom, box.bottom) - Math.max(art.top, box.top));
+    hangs.push({
+      key, H: b.height, W: b.width, art, box, frame,
+      down: art.bottom / b.height,
+      cover: drawn > 0 ? covered / drawn : 0,
+    });
+  }
+  console.log("char         drawnDown  boxDown   artL   artR   boxL   boxR  covered");
+  for (const r of [...hangs].sort((a, b) => b.down - a.down)) {
+    console.log(r.key.padEnd(12),
+      pad(n2(r.down) + "x", 9), pad(n2(r.box.bottom / r.H) + "x", 8),
+      pad(n2(r.art.left / r.W), 6), pad(n2(r.art.right / r.W), 6),
+      pad(n2(r.box.left / r.W), 6), pad(n2(r.box.right / r.W), 6),
+      pad(n0(r.cover * 100) + "%", 8));
+  }
+  const drops = hangs.map((r) => r.down);
+  console.log(`\nhang length below the lip: ${n2(Math.min(...drops))}-${n2(Math.max(...drops))} `
+    + `of height, box ${HURTBOX.ledgeH}x — a hang drawing is longer than a standing one, `
+    + `because the arm is over the head`);
+  // The failure this section exists for: a box built up from the fighter's own
+  // y instead of the lip covered ~37% of the drawn body and floated the other
+  // half of itself over the stage, where nobody was. The bar is not 100% and
+  // should not be — the box stops short of the trailing feet on purpose, the
+  // same bargain `standH` makes with hair, and a drawing with a long dangle
+  // (jogo's is 1.7 heights) spends more of itself outside it. Three fifths is
+  // "the box is on the body"; below that it is somewhere else.
+  for (const r of hangs) {
+    if (r.cover < 0.6) {
+      fail(`${r.key}: the hang box covers only ${n0(r.cover * 100)}% of the drawn body `
+        + `(${r.frame}) — it is hung from the lip, so it should sit on it`);
+    }
+    if (r.art.right < r.box.left || r.art.left > r.box.right) {
+      fail(`${r.key}: the hang box and the hang drawing do not overlap at all in x`);
+    }
+  }
+}
+
 console.log("\n=== hurtbox fits vs the art they were reviewed against ===");
 {
   const { outstandingFits, HURTBOX_CASES } = await import("../src/hurtbox_art.js");

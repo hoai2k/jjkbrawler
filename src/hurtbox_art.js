@@ -29,6 +29,8 @@
 
 import { resolvedAnim } from "../sprites/src/sprites.js";
 import { frameMeta } from "./assets.js";
+import { bodyMetrics } from "./silhouette.js";
+import { HURTBOX } from "./constants.js";
 import { HURTBOX_FIT, HURTBOX_FIT_ART } from "./config_body_points.js";
 
 /**
@@ -57,6 +59,27 @@ export const HURTBOX_CASES = [
 ];
 
 export const caseByKey = (key) => HURTBOX_CASES.find((c) => c.key === key) || null;
+
+/**
+ * THE HANG BOX AS DERIVED, in one place, because three things have to agree
+ * about it: combat.js builds it around a real platform corner, the
+ * verification bench draws it around the corner it hangs the drawing on, and
+ * the audit measures it against the drawing's own pixels.
+ *
+ * Quoted RELATIVE TO THE CORNER — `cx` forward along the facing from it, the
+ * box's top edge on the lip — because that is the point the picture is placed
+ * by (render.js `anchorTo`) and therefore the only point a box and a body can
+ * be compared at. See the HURTBOX note in constants.js for the measurements
+ * the fractions come from.
+ */
+export function ledgeBox(charKey) {
+  const b = bodyMetrics(charKey);
+  return {
+    cx: b.width * HURTBOX.ledgeX,
+    w: b.width * HURTBOX.ledgeW,
+    h: b.height * HURTBOX.ledgeH,
+  };
+}
 
 /** The fields of a frame that decide where and how big the body is drawn.
  *  Anything else in the manifest (review notes, anchors for other purposes)

@@ -35,6 +35,7 @@ import { drawPlatformShape } from "../../src/render.js";
 import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
 import { HURTBOX, GRAB } from "../../src/constants.js";
+import { ledgeBox } from "../../src/hurtbox_art.js";
 import { grabReachOf, holdGapOf } from "../../src/grab.js";
 import { CHARACTERS } from "../../src/characters.js";
 import {
@@ -775,12 +776,27 @@ function drawHurtbox(cx) {
   const H = body.height, W = body.width;
   const states = statesUsing(state.char, state.frame);
   const has = (...names) => states.some((a) => names.includes(a));
-  // `top` is how far the box rises above the foot line, `h` how tall it is.
-  // They differ only on the ledge box, which the game floats clear of the feet.
+  // `top` is how far the box rises above the foot line and `h` is how tall it
+  // is; the two are the same on every box that stands on the ground. The hang
+  // does not stand on anything and is handled first, on its own terms.
   let hb;
   if (has("ledge")) {
-    hb = { w: W * HURTBOX.ledgeW, top: H * HURTBOX.ledgeTop, h: H * HURTBOX.ledgeH, label: "ledge" };
-  } else if (has("prone")) {
+    // A HANG IS NOT PLACED BY ITS FEET, so its box is not drawn from the foot
+    // line either. The game hangs the drawing's `ledge` grip on the platform
+    // corner and hangs the box off that same corner (combat.js, hurtbox_art.js
+    // ledgeBox), so here — where the pose is drawn standing, because there is
+    // no platform to hang it on — the box is placed against the grip anchor
+    // instead. Move the grip handle and the box follows it, which is the
+    // relationship the game actually tests.
+    const g = ledgeBox(state.char);
+    const grip = anchorScreenPos(state.char, state.frame, cx, GROUND_Y,
+                                 { ...viewOpts(state.char, "ledge"), preview: true });
+    if (!grip) return;
+    drawHurtboxRect(grip.x + g.cx * z - g.w * z / 2, grip.y, g.w * z, g.h * z,
+                    `ledge ${Math.round(g.w)}x${Math.round(g.h)}`);
+    return;
+  }
+  if (has("prone")) {
     hb = { w: H * HURTBOX.proneW, top: H * HURTBOX.proneH, h: H * HURTBOX.proneH, label: "prone" };
   } else if (has("crouch", "crouchAttack")) {
     hb = { w: W * HURTBOX.crouchW, top: H * body.crouch, h: H * body.crouch, label: "crouch" };
@@ -791,12 +807,20 @@ function drawHurtbox(cx) {
   } else {
     hb = { w: W, top: H * HURTBOX.standH, h: H * HURTBOX.standH, label: "hurtbox" };
   }
+  drawHurtboxRect(wx(-hb.w / 2), wy(-hb.top), hb.w * z, hb.h * z,
+                  `${hb.label} ${Math.round(hb.w)}x${Math.round(hb.h)}`);
+}
+
+/** One box, stroked and labelled. Every branch above ends here so a hang —
+ *  which is placed against its grip rather than the foot line — is drawn the
+ *  same way as the four that are not. */
+function drawHurtboxRect(x, y, w, h, label) {
   ctx.save();
   ctx.font = "600 10.5px Inter, sans-serif";
   ctx.strokeStyle = "rgba(120, 200, 255, 0.45)";
   ctx.lineWidth = 1;
   ctx.setLineDash([4, 4]);
-  ctx.strokeRect(wx(-hb.w / 2), wy(-hb.top), hb.w * z, hb.h * z);
+  ctx.strokeRect(x, y, w, h);
   ctx.setLineDash([]);
   ctx.fillStyle = "rgba(120, 200, 255, 0.8)";
   ctx.textAlign = "right";
@@ -804,8 +828,7 @@ function drawHurtbox(cx) {
   // is MEASURED from their art (src/silhouette.js), so resizing the pose
   // resizes the box with it — which is exactly the thing you need to know
   // before deciding whether to match the art to the box or the box to the art.
-  ctx.fillText(`${hb.label} ${Math.round(hb.w)}x${Math.round(hb.h)} · follows the art`,
-               wx(-hb.w / 2) - 5, wy(-hb.top) + 11);
+  ctx.fillText(`${label} · follows the art`, x - 5, y + 11);
   ctx.restore();
 }
 

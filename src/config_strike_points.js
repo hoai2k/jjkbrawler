@@ -57,9 +57,9 @@ export const STRIKE_POINTS = {
   },
   "geto": {
     attack_air_b: { x: 957, y: 250.8, file: "geto/attack_air_b.png" },
-    attack_down: { x: 469.6, y: 1069.3, file: "geto/incoming/attack_down.png" },
+    attack_down: { x: 469.6, y: 1069.3, file: "geto/attack_down.png" },
     attack_heavy_b: { x: 917.9, y: 310.8, file: "geto/attack_heavy_b.png" },
-    attack_light_b: { x: 912.1, y: 291.1, file: "geto/attack_light_b.png" },
+    attack_light_b: { x: 1060.4, y: 226.7, file: "geto/attack_dash.png" },
     attack_up: { x: 379.6, y: 214.7, file: "geto/attack_up.png" },
     crouch_attack_b: { x: 877.2, y: 628.1, file: "geto/crouch_attack_b.png" },
   },
@@ -87,6 +87,14 @@ export const STRIKE_POINTS = {
     attack_up: { x: 423.9, y: 150.9, file: "hanami/attack_up.png" },
     crouch_attack_b: { x: 926.5, y: 428.5, file: "hanami/incoming/crouch_attack_b.png" },
   },
+  "haruta": {
+    attack_air_b: { x: 1363, y: 193.8, file: "haruta/attack_air_b.png" },
+    attack_down: { x: 778, y: 1010.2, file: "haruta/attack_down.png" },
+    attack_heavy_b: { x: 868.9, y: 166.8, file: "haruta/attack_heavy_b.png" },
+    attack_light_b: { x: 1036.2, y: 230, file: "haruta/attack_light_b.png" },
+    attack_up: { x: 694.6, y: 84.5, file: "haruta/attack_up.png" },
+    crouch_attack_b: { x: 1129.4, y: 383.9, file: "haruta/crouch_attack_b.png" },
+  },
   "inumaki": {
     attack_air_b: { x: 869.7, y: 391.9, file: "inumaki/attack_air_b.png" },
     attack_down: { x: 271.3, y: 852.7, file: "inumaki/attack_down.png" },
@@ -106,10 +114,10 @@ export const STRIKE_POINTS = {
   "kurourushi": {
     attack_air_b: { x: 1072, y: 346.2, file: "kurourushi/attack_air_b.png" },
     attack_down: { x: 646.7, y: 1031.9, file: "kurourushi/attack_down.png" },
-    attack_heavy_b: { x: 1084.4, y: 307.9, file: "kurourushi/attack_light_b.png" },
+    attack_heavy_b: { x: 1084.4, y: 307.9, file: "kurourushi/attack_heavy_b.png" },
     attack_light_b: { x: 1066.6, y: 346.2, file: "kurourushi/archive/attack_air_b_2.png" },
     attack_up: { x: 715.3, y: 181.9, file: "kurourushi/attack_up.png" },
-    crouch_attack_b: { x: 1140.5, y: 685, file: "kurourushi/archive/dash_2.png" },
+    crouch_attack_b: { x: 1209, y: 719.3, file: "kurourushi/crouch_attack_b.png" },
   },
   "mahito": {
     attack_air_b: { x: 745.3, y: 289.7, file: "mahito/attack_air_b.png" },
@@ -280,9 +288,9 @@ export const STRIKE_POINT_META = {
   },
   "geto": {
     attack_air_b: { at: "2026-08-15", states: ["airLight"] },
-    attack_down: { at: "2026-08-15", states: ["downHeavy"] },
+    attack_down: { at: "2026-08-20", states: ["downHeavy"] },
     attack_heavy_b: { at: "2026-08-15", states: ["sideHeavy"] },
-    attack_light_b: { at: "2026-08-15", states: ["light"] },
+    attack_light_b: { at: "2026-08-20", states: ["light"] },
     attack_up: { at: "2026-08-15", states: ["upHeavy"] },
     crouch_attack_b: { at: "2026-08-15", states: ["crouchAttack"] },
   },
@@ -310,6 +318,14 @@ export const STRIKE_POINT_META = {
     attack_up: { at: "2026-08-15", states: ["upHeavy"] },
     crouch_attack_b: { at: "2026-08-15", states: ["crouchAttack"] },
   },
+  "haruta": {
+    attack_air_b: { at: "2026-08-20", states: ["airLight"] },
+    attack_down: { at: "2026-08-20", states: ["downHeavy"] },
+    attack_heavy_b: { at: "2026-08-20", states: ["sideHeavy"] },
+    attack_light_b: { at: "2026-08-20", states: ["light"] },
+    attack_up: { at: "2026-08-20", states: ["upHeavy"] },
+    crouch_attack_b: { at: "2026-08-20", states: ["crouchAttack"] },
+  },
   "inumaki": {
     attack_air_b: { at: "2026-08-15", states: ["airLight"] },
     attack_down: { at: "2026-08-15", states: ["downHeavy"] },
@@ -329,10 +345,10 @@ export const STRIKE_POINT_META = {
   "kurourushi": {
     attack_air_b: { at: "2026-08-15", states: ["airLight"] },
     attack_down: { at: "2026-08-15", states: ["downHeavy"] },
-    attack_heavy_b: { at: "2026-08-15", states: ["sideHeavy"] },
+    attack_heavy_b: { at: "2026-08-20", states: ["sideHeavy"] },
     attack_light_b: { at: "2026-08-15", states: ["light"] },
     attack_up: { at: "2026-08-15", states: ["upHeavy"] },
-    crouch_attack_b: { at: "2026-08-15", states: ["crouchAttack"] },
+    crouch_attack_b: { at: "2026-08-20", states: ["crouchAttack"] },
   },
   "mahito": {
     attack_air_b: { at: "2026-08-15", states: ["airLight"] },

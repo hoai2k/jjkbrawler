@@ -123,11 +123,11 @@ export function anchorProvider(name) {
         pointEditor(container, task.charKey, value, onChange, bindSync);
       },
 
-      onCanvasDrag: (task, pt) => toGame(pt),
+      onCanvasDrag: (task, pt) => toGame(pt, task),
 
       draw(task, { ctx, canvas, value, redraw }) {
         drawStage(task, { ctx, canvas, redraw, guides: { hurtbox: true } });
-        const p = toCanvas(value);
+        const p = toCanvas(value, task);
 
         // The line the point defines, drawn the way the game uses it: teeter
         // slides the art so this lands on the lip, so its line is vertical;

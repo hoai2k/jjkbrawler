@@ -653,6 +653,29 @@ Melee is about 30% tighter than it was. That is the correction, not a side
 effect: the old boxes reached roughly twice as far as the art, and a punch now
 connects at about two body-widths rather than three.
 
+### The hang box is quoted from the lip, not from the feet
+
+The recommendation in §3.1 gave the ledge hang the same shape as every other
+state — a box built *up* from the fighter's own `y`, `H*0.76` above it and
+`H*0.78` tall. That was wrong the moment the hang got its own art. A fighter on
+a ledge is placed with their `y` 58 px *below* the platform lip
+(`LEDGE_HANG_Y`), which is around their chest, and their drawing is hung from
+the frame's `ledge` grip anchor onto the platform corner (`render.js`
+`anchorTo`) — so the body dangles under the lip while the box floated half of
+itself over the stage above it. Measured against the drawings, the old box sat
+on about **37%** of the body.
+
+The box is now hung from the same corner the drawing is: top edge on the lip,
+`HURTBOX.ledgeH` (1.15 × height) hanging below it, centred `ledgeX` (0.06 ×
+width) ahead of the corner. Measured across all 34 hang drawings it covers
+**66–94%** of the drawn body — deliberately short of the trailing feet, the
+same bargain `standH` makes with hair. `audit_hitboxes.mjs` prints the table
+and fails under three fifths, so it cannot drift back off the body unnoticed.
+
+The 27 per-fighter `ledge` entries in `HURTBOX_FIT` were reviewed against the
+old box, on a bench that drew the hang standing at the foot line, and were
+dropped rather than carried onto a box that has moved.
+
 ### New behaviour worth knowing about
 
 - **Travelling hitboxes.** A forward box's far edge extends across the opening
