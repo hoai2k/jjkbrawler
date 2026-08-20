@@ -21,19 +21,19 @@
 // the pose, the position and your place in the comparison. The flags are live
 // bindings, so these toggles change the next frame while you hold the stick.
 import { state } from "../src/state.js";
-import { loadCoreAssets, ensureMatchAssets } from "../src/assets.js";
+import { loadCoreAssets, ensureMatchAssets, startBackgroundLoad,
+         sharedArtSettled } from "../src/assets.js";
 import { initInput, readGamepads, endInputFrame, playerInput, blankInput,
          connectedPadCount } from "../src/input.js";
-import { stepWorld, makeLatch, latchInputs, clearLatchedEdges } from "../src/sim.js";
+import { stepWorld, makeLatch, advanceWorld, resetFrameClock } from "../src/sim.js";
 import { makeFighter } from "../src/fighter.js";
-import { updateCamera } from "../src/camera.js";
 import { draw } from "../src/render.js";
 import { getStage } from "../src/stages.js";
 import { initStageFx } from "../src/stage_fx.js";
 import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
 import { applyAllHeightScales } from "../src/heights.js";
 import { setSmoothing, smoothingState } from "../src/flags.js";
-import { FIXED_DT, WORLD } from "../src/constants.js";
+import { WORLD } from "../src/constants.js";
 
 const root = document.getElementById("characterRoot");
 const url = new URL(window.location.href);
@@ -222,6 +222,9 @@ async function select(charKey) {
     return;
   }
   bench.loading = false;
+  // The load just ate real time that is not elapsed play, and the frame clock
+  // would otherwise hand the new fighter all of it at once.
+  resetFrameClock();
   overlayEl.classList.remove("is-on");
 }
 
@@ -274,7 +277,6 @@ window.addEventListener("keydown", (e) => {
 
 // ------------------------------------------------------------------- the loop
 let previous = 0;
-let accumulator = 0;
 // What `updateCamera` believes the zoom is. The value it lerps toward is a
 // property of the match — how far apart the fighters are — so the bench's
 // multiplier is applied to the RESULT and taken back off before the next step,
@@ -289,18 +291,33 @@ function loop(now) {
   previous = now;
 
   readGamepads();
-  latchInputs(latch, (id) => (id === 1 ? playerInput(1) : blankInput()));
 
   if (!bench.loading && state.fighters.length) {
-    accumulator = Math.min(accumulator + dt, FIXED_DT * 5);
-    while (accumulator >= FIXED_DT) {
-      stepWorld(FIXED_DT, (f) => (f.id === 1 ? latch[1] : blankInput()));
-      clearLatchedEdges(latch);
-      accumulator -= FIXED_DT;
-      keepOnStage();
-    }
+    // ONE CALL, AND IT IS THE GAME'S.
+    //
+    // `advanceWorld` is the whole live-world frame — the latch, the fixed-step
+    // clock, the slow-motion scale, the particles and the camera — shared with
+    // main.js. The bench supplies only the part that legitimately differs: what
+    // one fixed step of THIS world is, which is the fight plus a respawn
+    // instead of the fight plus a match.
+    //
+    // It is a call rather than a copy because the copy was wrong. This loop
+    // used to step the world itself and forgot `updateParticles`, so every
+    // spark and every banner the fight threw off stayed frozen on screen for
+    // the life of the page.
+    //
+    // The camera's own zoom is taken back before the call and the bench's
+    // multiplier re-applied after, so `updateCamera` lerps the value a match
+    // would have and the zoom slider does not compound into it.
     state.camera.zoom = camZoom;
-    updateCamera(dt);
+    advanceWorld(dt, {
+      latch,
+      read: (id) => (id === 1 ? playerInput(1) : blankInput()),
+      step: (d) => {
+        stepWorld(d, (f) => (f.id === 1 ? latch[1] : blankInput()));
+        keepOnStage();
+      },
+    });
     camZoom = state.camera.zoom;
     frameForBench();
   }
@@ -372,6 +389,19 @@ async function boot() {
   overlayEl.classList.add("is-on");
   await loadCoreAssets();
   initInput();
+  // THE SHARED ART, or a special draws as a white circle.
+  //
+  // `ensureMatchAssets` gates on the fighter and the stage — `matchGroupIds`
+  // lists `char:` and `stage:` groups and nothing else — because in the game
+  // the shared group (effects, summons, backdrops) is already in hand: boot
+  // starts it downloading while the player is still on the menu. A bench that
+  // skips the menu skipped that too, so every technique fell back to the
+  // procedural shape it draws when its art is missing.
+  //
+  // The game's own call, queued the same way: `shared` first, then the roster
+  // behind it — which also means flicking through the list with the arrow keys
+  // stops waiting on a download after the first pass.
+  startBackgroundLoad();
 
   const stage = getStage(STAGE);
   state.stageKey = stage.key;
@@ -406,7 +436,15 @@ boot().catch((err) => {
 // check reaches in here instead. Nothing in the page reads these.
 window.__bench = {
   state: () => ({ char: bench.char, fighters: state.fighters.length,
-                  anim: state.fighters[0]?.animKey, smoothing: smoothingState() }),
+                  anim: state.fighters[0]?.animKey, smoothing: smoothingState(),
+                  // What the loop is responsible for retiring. A number here
+                  // that only ever grows is the bug this bench shipped with:
+                  // the world was stepped and the PRESENTATION was not, so
+                  // every spark, damage number and banner ever spawned stayed
+                  // on screen for the life of the page.
+                  particles: state.particles.length, popups: state.popups.length,
+                  banners: state.banners.length,
+                  sharedArt: sharedArtSettled() }),
   select,
   step,
   press: (key) => { latch[1][key] = true; },

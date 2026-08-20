@@ -4,9 +4,8 @@ import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consum
 import { initAudio, playSfx, setBattleStage, syncMusic, stepAudio, stopDomainLoop, stopShieldLoop, setAudioSuspended, setMatchLive } from "./audio.js";
 import { updateRumble } from "./rumble.js";
 import { makeFighter } from "./fighter.js";
-import { stepWorld, makeLatch, latchInputs as foldInputs, clearLatchedEdges as spendEdges } from "./sim.js";
-import { updateParticles, banner } from "./particles.js";
-import { updateCamera } from "./camera.js";
+import { stepWorld, makeLatch, advanceWorld, resetFrameClock } from "./sim.js";
+import { banner } from "./particles.js";
 import { draw } from "./render.js";
 import { selectRenderBackend, renderBackendLabel } from "./render_backend.js";
 import { enable3dCamera, camera3d } from "./camera_mode.js";
@@ -18,14 +17,13 @@ import { initStageFx } from "./stage_fx.js";
 import { RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { makeAiState, aiInput, cpuDamageMul } from "./ai.js";
 import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, showBattleIntro, fadeBattleIntro, hideBattleIntro, leaveTitle, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady, setPauseNotice, reportError, resetHudCache } from "./ui.js";
-import { FIXED_DT, MAX_FIXED_STEPS, WORLD, SUDDEN_DEATH_DAMAGE } from "./constants.js";
+import { WORLD, SUDDEN_DEATH_DAMAGE } from "./constants.js";
 import { clamp } from "./utils.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 let previousTime = 0;
-let accumulator = 0;
 let introT = 0;
 let endT = 0;
 
@@ -438,11 +436,9 @@ let lastFrameAt = 0;
 let lastRafAt = 0;
 let rafPending = false;
 
-// The latch lives in sim.js with the step that consumes it — see the note
+// The latch lives in sim.js with the frame that consumes it — see the note
 // there for why an edge has to survive a stepless frame.
 const latched = makeLatch();
-const latchInputs = () => foldInputs(latched);
-const clearLatchedEdges = () => spendEdges(latched);
 
 function rafLoop(time) {
   rafPending = false;
@@ -500,24 +496,11 @@ function loop(time) {
   }
 
   if (state.phase === "playing") {
-    latchInputs();
-    const simDt = state.slowMo > 0 ? dt * 0.45 : dt;
-    state.slowMo = Math.max(0, state.slowMo - dt);
-    accumulator = Math.min(accumulator + simDt, FIXED_DT * MAX_FIXED_STEPS);
-    while (accumulator >= FIXED_DT) {
-      updateSimulation(FIXED_DT, latched);
-      clearLatchedEdges();
-      accumulator -= FIXED_DT;
-    }
-    // The presentation layer lives in the same time as the fight it presents:
-    // during a KO's slow-motion beat the sparks, damage numbers and camera all
-    // slow with the bodies. They used to take the raw frame dt, which played
-    // the game's most dramatic moment at two speeds at once — half speed on the
-    // fighters, full speed on everything around them. The camera's smoothing is
-    // dt-correct (1 - pow(k, dt)), so the slowed dt slows the follow and the
-    // shake decay too, which is exactly the drift a slow-motion shot wants.
-    updateParticles(simDt);
-    updateCamera(simDt);
+    // The latch, the fixed-step clock, the slow-motion scale, the particles and
+    // the camera are all `sim.js advanceWorld` — shared with the character
+    // bench, so a second caller cannot assemble a frame that is missing one of
+    // them. What stays here is the MATCH: this passes it in as the step.
+    advanceWorld(dt, { latch: latched, step: (d) => updateSimulation(d, latched) });
     updateHud();
   }
 
@@ -555,7 +538,7 @@ function initPageGuards() {
       previousTime = performance.now();
       lastFrameAt = previousTime;
       lastRafAt = previousTime;
-      accumulator = 0;
+      resetFrameClock();
     }
   });
 

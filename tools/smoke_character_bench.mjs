@@ -129,6 +129,34 @@ for (const mode of ["com", "holds", "xfade"]) {
 const anyOn = await page.evaluate(() => document.getElementById("lights").classList.contains("is-live"));
 ok(anyOn, "the indicator reads as live while anything is on");
 
+// --- the presentation is stepped, and the effect art is loaded
+//
+// Both of these shipped broken in the bench's first version and both looked
+// like a renderer bug from the outside.
+//
+// The world was stepped and the PRESENTATION was not, so nothing the fight
+// threw off ever expired: sparks, damage numbers and a "KO!" banner stayed
+// frozen exactly where they were drawn, for the life of the page. The frame is
+// `sim.js advanceWorld` now — shared with the game, so the bench cannot leave a
+// piece of it out — and this is the assertion that says so out loud.
+await page.keyboard.press("KeyL");
+await page.waitForTimeout(400);
+const busy = await read();
+ok(busy.particles > 0, "a special throws particles", `${busy.particles} alive`);
+// Long enough for anything a special throws to live out its life.
+await page.waitForTimeout(4000);
+const settled = await read();
+ok(settled.particles === 0, "and they expire instead of piling up",
+   `${busy.particles} -> ${settled.particles}`);
+ok(settled.banners === 0, "no banner is left hanging", `${settled.banners} on screen`);
+
+// `ensureMatchAssets` gates on the fighter and the stage only, so the shared
+// group — every technique's art — has to be asked for separately. Without it a
+// special draws the procedural white circle it falls back to.
+await page.waitForFunction(() => window.__bench.state().sharedArt, null, { timeout: 90000 })
+  .catch(() => {});
+ok((await read()).sharedArt, "the shared effect art loads, so specials are not white circles");
+
 ok(errors.length === 0, "no page errors", errors.slice(0, 3).join(" | "));
 
 await browser.close();
