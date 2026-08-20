@@ -57,7 +57,10 @@
 // authoring SPRITES, so being bound to that backend is correct rather than a
 // leak.
 
-import { drawCharFrame as spriteDraw, currentFrame as spriteFrame, cyclePhase as spriteCycle } from "../sprites/src/sprites.js";
+import {
+  drawCharFrame as spriteDraw, currentFrame as spriteFrame, cyclePhase as spriteCycle,
+  frameStep as spriteStep, anchorOffset as spriteAnchorOffset,
+} from "../sprites/src/sprites.js";
 import * as billboard from "../billboards/src/billboard.js";
 import * as render3d from "../render3d/src/backend.js";
 
@@ -68,6 +71,12 @@ const BACKENDS = {
     drawCharFrame: spriteDraw,
     currentFrame: spriteFrame,
     cyclePhase: spriteCycle,
+    // The two OPTIONAL hooks (see frameStep/anchorOffset below). Only a
+    // backend whose frames are drawings has answers here: a backend that
+    // poses a rig per draw inbetweens on the bone and has no "previous
+    // drawing" to fade out of.
+    frameStep: spriteStep,
+    anchorOffset: spriteAnchorOffset,
   },
   // 2.5D: posed 3D models rendered to a texture and blitted into the same 2D
   // world. Characters with a rig draw as models; everyone else falls through
@@ -206,6 +215,23 @@ export function cyclePhase(charKey, animKey, animTime) {
  *  hole. Options are documented on the sprite implementation in sprites.js. */
 export function drawCharFrame(ctx, charKey, frameKey, x, y, opts) {
   return active.drawCharFrame(ctx, charKey, frameKey, x, y, opts);
+}
+
+/** OPTIONAL — where the playhead sits relative to the last frame step, for a
+ *  backend whose animation is a list of DRAWINGS: what is showing, what it cut
+ *  from, and how long ago. Null from a backend that inbetweens a rig instead,
+ *  which has no cut to soften and is already doing the smoothing this would be
+ *  standing in for. See sprites.js for the shape. */
+export function frameStep(charKey, animKey, animTime) {
+  return active.frameStep?.(charKey, animKey, animTime) || null;
+}
+
+/** OPTIONAL — a named anchor as a world offset from the point a frame would be
+ *  drawn at, under the given draw options. Null from a backend that does not
+ *  carry per-frame anchors. Lets a caller drawing two frames at once know
+ *  where each puts its body; see the COM-aligned cross-fade in render.js. */
+export function anchorOffset(charKey, frameKey, name, opts) {
+  return active.anchorOffset?.(charKey, frameKey, name, opts) || null;
 }
 
 /** Warm this backend's heavy per-character assets for `charKey` — called from

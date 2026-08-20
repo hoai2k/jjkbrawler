@@ -102,6 +102,17 @@ const SETS = {
       + "`node tools/audit_sprite_com.mjs` lists the frames worth a look.",
     load: () => import(withKey("./verify_body_points.js")).then((m) => m.comProvider()),
   },
+  // The per-FRAME sibling of the set above, and a queue rather than a roster
+  // walk: there are thousands of these anchors, so it lists only the ones
+  // sprites/src/com_review.js has reason to doubt.
+  "frame-com": {
+    label: "Frame centre of mass",
+    blurb: "Where each suspect DRAWING carries its weight — `meta.anchors.com`, the "
+      + "handle the sprite workbench drags. It was a pivot when it was baked and is a "
+      + "placement now: an airborne drawing hangs from it, and a cross-fade lines its "
+      + "two drawings up on it. Listed worst first, with why each one is here.",
+    load: () => import(withKey("./verify_frame_com.js")).then((m) => m.provider()),
+  },
   "muzzle-points": {
     label: "Muzzle points",
     blurb: "Where a shot leaves the caster. Today it is one offset for the whole "

@@ -29,3 +29,28 @@ const DEBUG_MODES = new Set(
   (params.get("debug") || "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
 );
 export const DEBUG_HITBOXES = DEBUG_MODES.has("hitbox") || DEBUG_MODES.has("hitboxes");
+
+/** SPRITE SMOOTHING EXPERIMENTS — `?smooth=com,holds`, or `?smooth=all`.
+ *
+ *  Both ship dark, which is the point of them being here: the game draws
+ *  exactly as it did until the URL asks otherwise, so judging either one is
+ *  loading the same fight twice rather than reading a diff. A comma list
+ *  because they are meant to be compared apart AND together — the second is
+ *  the first's hardest case, since a hold that flicks over between two
+ *  drawings of the same stance is where an unaligned fade shows worst.
+ *
+ *    com     cross-fades line the two drawings up by their CENTRE OF MASS and
+ *            slide it between them, instead of fading one body out where it
+ *            stood and another in where it stands
+ *    holds   the slow held loops (idle, charge, a held grab) cross-fade their
+ *            own frame steps, which today are a cut like every other
+ *
+ *  Everything either flag reaches is in the fade block in src/render.js, and
+ *  neither can touch the simulation: no hitbox, hurtbox, position or timer is
+ *  read or written by any of it. If they graduate the flags come out; if they
+ *  do not, the block goes with them. */
+const SMOOTH_MODES = new Set(
+  (params.get("smooth") || "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
+);
+export const SMOOTH_COM_FADE = SMOOTH_MODES.has("com") || SMOOTH_MODES.has("all");
+export const SMOOTH_HOLD_FADE = SMOOTH_MODES.has("holds") || SMOOTH_MODES.has("all");

@@ -2,12 +2,14 @@ import { state } from "./state.js";
 import { getImage } from "./assets.js";
 import { sharedAdjust, sharedFadeIn, paintedHeight, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "./shared_sprites.js";
 import { getStage } from "./stages.js";
-import { drawCharFrame, currentFrame } from "./render_backend.js";
+import { drawCharFrame, currentFrame, frameStep, anchorOffset } from "./render_backend.js";
 import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
 import { bodyMetrics } from "./silhouette.js";
 import { comFrac } from "./body_points.js";
-import { TRAIL_ALPHA, STRIKE_ARC, COM_HOLD_MAX_FRAC, MOTION } from "./config_tuning.js";
+import {
+  TRAIL_ALPHA, STRIKE_ARC, COM_HOLD_MAX_FRAC, XFADE_COM_MAX_FRAC, MOTION,
+} from "./config_tuning.js";
 import { paintShared } from "./shared_paint.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
 import { hitboxRect, hurtbox, summonBox } from "./combat.js";
@@ -24,6 +26,7 @@ import { strikeArcs, visibleArtReach, swingExtent } from "./moves.js";
 import { bodyWidth } from "./silhouette.js";
 import { strikePoint, STRIKE_STATES } from "./strike_points.js";
 import { respawnX } from "./fighter.js";
+import { SMOOTH_COM_FADE, SMOOTH_HOLD_FADE } from "./flags.js";
 
 // The cross-fade window on a sprite state change, and the states a change INTO
 // stays a cut. Both mirror the 3D backend's contract (pose.js DIALS.blendTime
@@ -31,7 +34,30 @@ import { respawnX } from "./fighter.js";
 // and a landing that eases in looks like sinking into the deck.
 const SPRITE_XFADE = 0.08;
 const SPRITE_NO_XFADE = new Set(["hurt", "land"]);
+
 import { isFoe } from "./teams.js";
+
+// ---- the two smoothing experiments (src/flags.js, `?smooth=`) -------------
+//
+// Both ship dark and both live entirely in the fade block below. Neither is
+// read by anything outside this file, and neither reads or writes simulation
+// state, so turning them off is the URL and deleting them is this block plus
+// their flag.
+
+/** `?smooth=holds` — the fade window on a FRAME STEP inside a state, and the
+ *  frame rate below which a state is slow enough to want one.
+ *
+ *  A within-state step is a cut by design: `animTime` does not reset inside a
+ *  loop and the snap of limited animation is the style. But "the style" was
+ *  decided for animation that steps at 8-13 fps, and the slow held loops are
+ *  not that: `idle` is two drawings at 2.2 fps, which is a 0.45s hold, and
+ *  `charge` and `grabHold` are 2 fps. At that rate the eye has settled on the
+ *  first drawing long before the second arrives, so the step reads as the
+ *  picture glitching rather than as the body moving. 4 fps is the line — it
+ *  takes idle, charge, crouch and the held grab, and leaves every rate that
+ *  was authored to snap (`ult` at 7, the attacks at 6-12) snapping. */
+const SPRITE_STEP_XFADE = 0.07;
+const SPRITE_STEP_SLOW_FPS = 4;
 
 export function draw(ctx) {
   if (cameraMode === "3d" && camera3d) {
@@ -668,31 +694,80 @@ function drawFighters(ctx, { bodies = true } = {}) {
         glow: glowing ? (f.installs ? f.installs.color : f.char.shadow) : f.char.shadow,
         glowBlur: glowing ? 26 : 12,
       };
-      // CROSS-FADE ON A STATE CHANGE — the sprite renderer's version of the
-      // blend the 3D backend already does off the same `prevAnim` record. A
-      // drawing cannot be inbetweened, but the pose it CUT from can linger:
-      // the outgoing frame is drawn under the new one at a falling alpha for
-      // SPRITE_XFADE seconds after the switch (animTime is the time since —
-      // setAnim zeroes it), which turns every seam around a ledge — run to
-      // teeter to fall to hang to climb — from a cut into a step with a
-      // shadow of where the body just was. Within-state frame steps are NOT
-      // blended: animTime does not reset inside a loop, and the snap of
-      // limited animation is the style. Skipped for the states whose cut IS
-      // the read (SPRITE_NO_XFADE, mirroring pose.js NO_BLEND_IN), and for
-      // any backend token carrying a ":" — those backends blend bones
-      // themselves, and a ghost on top would double it.
-      const prev = f.prevAnim;
-      if (prev && f.animTime < SPRITE_XFADE && !SPRITE_NO_XFADE.has(f.animKey)
-          && !String(frameKey).includes(":")) {
-        const prevFrame = currentFrame(spriteKey, prev.key, prev.t);
-        if (prevFrame && !String(prevFrame).includes(":")) {
-          const k = f.animTime / SPRITE_XFADE;
-          // No glow on the ghost: two glows stack into a flash, which is the
-          // opposite of what a fade is for.
-          drawCharFrame(ctx, spriteKey, prevFrame, f.x + shakeX, f.y, {
-            ...drawOpts, alpha: (drawOpts.alpha ?? 1) * (1 - k), glow: null, prevAnim: null,
-          });
-        }
+      // CROSS-FADE — the sprite renderer's version of the blend the 3D backend
+      // does off the same `prevAnim` record. A drawing cannot be inbetweened,
+      // but the pose it CUT from can linger: the outgoing frame is drawn under
+      // the new one at a falling alpha, which turns every seam around a ledge —
+      // run to teeter to fall to hang to climb — from a cut into a step with a
+      // shadow of where the body just was. `spriteGhost` decides what is
+      // fading and how far through; everything about WHERE the two drawings go
+      // is here.
+      const ghost = spriteGhost(f, spriteKey, frameKey);
+      if (ghost) {
+        // FADING TWO BODIES, OR MOVING ONE. `?smooth=com`.
+        //
+        // Left alone, a cross-fade dissolves the outgoing drawing where it
+        // stood and resolves the incoming one where it stands. When the two
+        // poses carry their weight in the same place that is invisible, and it
+        // is why the fade has been worth having. When they do not — a heavy
+        // whose second drawing has lunged half a body forward, a roll, a
+        // throw — it is a double exposure: two men, briefly, in different
+        // places. The eye reads that as the picture failing rather than as
+        // the body travelling, which is the one thing a fade was supposed to
+        // stop.
+        //
+        // So line them up on the one point that means the same thing in both
+        // drawings — the centre of mass — and slide THAT between them across
+        // the fade. Each frame is offset so its own mass sits on the
+        // interpolated point: the outgoing body walks its mass toward where
+        // the new pose carries it while it dissolves, the incoming body
+        // arrives with its mass where the old one had it and slides home. The
+        // silhouettes still change all at once, which is correct — that is the
+        // pose changing — but they change around a body that is in one place
+        // and moving, and the cut becomes a step rather than a jump.
+        //
+        // X ONLY, deliberately. Vertically a grounded drawing is placed by its
+        // foot line and pulling on its mass instead would lift it off the
+        // deck, and an AIRBORNE drawing is already hung from this very anchor
+        // (`holdComY` above), so the two frames are COM-aligned in y before
+        // this runs. Horizontally nothing is aligning them at all, which is
+        // where the whole problem was.
+        //
+        // NOT WHEN SOMETHING MORE SPECIFIC OWNS X. A ledge hang is placed by
+        // the hand on the corner and a teeter by the foot on the lip
+        // (`anchorTo`), and those are measurements of where the body must be,
+        // against a real edge, rather than of where its weight is. Sliding
+        // them for a fade would take the hand off the corner.
+        // AND IT ONLY MEANS ANYTHING IN A TRUE DISSOLVE, which is why the flag
+        // buys both. The shipped fade is not one: the incoming drawing is
+        // OPAQUE from its first frame and the outgoing one fades out behind
+        // it, so what a viewer sees at the cut is the new pose, whole, with a
+        // shadow behind it. Sliding an opaque body to meet a ghost nobody can
+        // see past it does not align anything — it just moves the fighter, and
+        // `tools/debug_com_fade.mjs` measured exactly that: on Uro's idle into
+        // her up-heavy the seam went from a 4.9 px step to an 8.5 px one, the
+        // opposite of the point.
+        //
+        // So when the alignment is on, the incoming drawing ramps up as the
+        // outgoing one ramps down and the two really do dissolve through each
+        // other. Now neither is the whole picture at the cut, the interpolated
+        // mass is what the eye actually tracks, and moving them onto it is
+        // free — at k = 0 the incoming body is invisible, so its offset costs
+        // nothing to look at.
+        const shift = drawOpts.anchorTo
+          ? 0 : comFadeShift(spriteKey, ghost.frame, frameKey, drawOpts);
+        const base = drawOpts.offsetX || 0;
+        // No glow on the ghost: two glows stack into a flash, which is the
+        // opposite of what a fade is for.
+        drawCharFrame(ctx, spriteKey, ghost.frame, f.x + shakeX, f.y, {
+          ...drawOpts,
+          alpha: (drawOpts.alpha ?? 1) * (1 - ghost.k),
+          offsetX: base + shift * ghost.k,
+          glow: null,
+          prevAnim: null,
+        });
+        drawOpts.offsetX = base - shift * (1 - ghost.k);
+        if (SMOOTH_COM_FADE) drawOpts.alpha = (drawOpts.alpha ?? 1) * ghost.k;
       }
       const drew = drawCharFrame(ctx, spriteKey, frameKey, f.x + shakeX, f.y, drawOpts);
       // Art that did not load leaves a fighter who is simply not on screen —
@@ -711,6 +786,70 @@ function drawFighters(ctx, { bodies = true } = {}) {
     if (f.grabbedBy) drawGrabStruggle(ctx, f);
     drawShieldMeter(ctx, f);
   }
+}
+
+// THE OUTGOING DRAWING this fighter is between, and how far through leaving it
+// we are — 0 at the cut, 1 at the end of the fade. Null when there is nothing
+// to fade out of, which is the ordinary case.
+//
+// Two seams can want a ghost and they cannot both be answering at once:
+//
+//   a STATE CHANGE  the pose came from another state (fighter.js setAnim
+//                   records it as `prevAnim` and zeroes animTime). Shipped,
+//                   and unflagged.
+//   a FRAME STEP    the state's own loop flicked to its next drawing.
+//                   `?smooth=holds`, and only for the slow held loops — see
+//                   SPRITE_STEP_SLOW_FPS.
+//
+// The state change wins where both could answer: it is the bigger move, and at
+// the rates the step branch accepts the two windows do not overlap anyway (the
+// first step of a 2.2 fps loop is 0.45s after the change, the fade is 0.08s).
+//
+// Skipped for the states whose cut IS the read (SPRITE_NO_XFADE, mirroring
+// pose.js NO_BLEND_IN) — an impact that eases in looks absorbed rather than
+// taken — and for any backend token carrying a ":", because those backends
+// blend bones themselves and a ghost on top would double it.
+function spriteGhost(f, spriteKey, frameKey) {
+  if (SPRITE_NO_XFADE.has(f.animKey) || String(frameKey).includes(":")) return null;
+
+  const prev = f.prevAnim;
+  if (prev && f.animTime < SPRITE_XFADE) {
+    const prevFrame = currentFrame(spriteKey, prev.key, prev.t);
+    if (prevFrame && !String(prevFrame).includes(":")) {
+      return { frame: prevFrame, k: f.animTime / SPRITE_XFADE };
+    }
+  }
+
+  if (!SMOOTH_HOLD_FADE) return null;
+  // `frameStep` is optional on a backend and null from the ones that pose a
+  // rig per draw — they have no previous DRAWING and are already inbetweening.
+  const step = frameStep(spriteKey, f.animKey, f.animTime);
+  if (!step?.prev || step.fps > SPRITE_STEP_SLOW_FPS) return null;
+  if (step.since >= SPRITE_STEP_XFADE || String(step.prev).includes(":")) return null;
+  return { frame: step.prev, k: step.since / SPRITE_STEP_XFADE };
+}
+
+/** How far the body's mass moves across a cut, on the x axis, in world px —
+ *  what a COM-aligned fade slides the two drawings by. See the long note at
+ *  the call. Zero (which is "do nothing") whenever the answer cannot be
+ *  trusted:
+ *
+ *    the flag is off             `?smooth=com` opts in
+ *    the backend has no anchors  `anchorOffset` is optional; a rig has none
+ *    either com is a GUESS       `measured` is false when the frame carries no
+ *                                baked anchor and the default resolved instead.
+ *                                Aligning two guesses is moving a body by a
+ *                                number nobody measured.
+ *
+ *  …and clamped to XFADE_COM_MAX_FRAC of body height, so a bad bake that
+ *  survives all of that is still only ever a nudge. */
+function comFadeShift(spriteKey, fromFrame, toFrame, opts) {
+  if (!SMOOTH_COM_FADE) return 0;
+  const from = anchorOffset(spriteKey, fromFrame, "com", opts);
+  const to = anchorOffset(spriteKey, toFrame, "com", opts);
+  if (!from?.measured || !to?.measured) return 0;
+  const cap = bodyMetrics(spriteKey).height * XFADE_COM_MAX_FRAC;
+  return clamp(to.x - from.x, -cap, cap);
 }
 
 // The instant this fighter's current attack turns its hitbox on, in seconds

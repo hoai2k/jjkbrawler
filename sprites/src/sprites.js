@@ -346,6 +346,61 @@ export function anchorLocal(charKey, frameKey, name = "com", meta = null) {
   return fallback ? [...fallback] : null;
 }
 
+/** THE MAPPING A DRAWING IS PLACED BY: cell-space (where `ox`, `oy` and
+ *  `bodyBottom` live) to world pixels measured from the point the frame is
+ *  drawn at. `drawCharFrame` works in this space and so does anything that has
+ *  to reason about where a body actually SITS without drawing it, so it is one
+ *  helper rather than the same three lines in both. `opts` is the draw options
+ *  the frame will be drawn with — scale and facing are the caller's, and both
+ *  move the anchor with the art. */
+function frameSpace(meta, opts) {
+  // renderScale corrects frames whose art is drawn at a different zoom than
+  // the character's standing sprites (see tools/extract_sprites.py)
+  const scale = (opts.scale ?? 0.6) * (meta.renderScale || 1);
+  // The sheets are drawn facing RIGHT (verified across every character's run
+  // row); only the frames the manifest marks `faceLeft` are drawn facing left.
+  // Mirror so the fighter always looks in their logical direction. A fractional
+  // value is legal and is how a turn sweeps through side-on.
+  const facing = (opts.facing ?? 1) * (meta.faceLeft ? -1 : 1);
+  const anchorY = frameFootY(meta);
+  return {
+    scale, facing, anchorY,
+    worldX: (cellX) => (cellX - CELL_W / 2) * scale * facing,
+    worldY: (cellY) => (cellY - anchorY) * scale,
+  };
+}
+
+/** A named anchor as a WORLD offset from the point the frame would be drawn
+ *  at, under the draw options it would be drawn with. Null when the frame or
+ *  the anchor does not resolve.
+ *
+ *  `drawCharFrame` computes this internally for the anchors it applies; this
+ *  exposes it because a caller drawing TWO frames of the same fighter at once
+ *  — a cross-fade — has to know where each one carries its body before it can
+ *  decide where to put them. See the COM-aligned fade in src/render.js.
+ *
+ *  `measured` says whether the number came off a real bake or is the default
+ *  this frame falls back to, and it travels WITH the point because the callers
+ *  that move something by it are exactly the ones that must not act on a
+ *  guess. `com` always resolves, so without this the fallback is invisible. */
+export function anchorOffset(charKey, frameKey, name = "com", opts = {}) {
+  const meta = frameMeta(charKey, frameKey);
+  if (!meta) return null;
+  const a = anchorPoint(charKey, frameKey, name, meta);
+  if (!a) return null;
+  const { worldX, worldY } = frameSpace(meta, opts);
+  return { x: worldX(a.x), y: worldY(a.y), measured: !!meta.anchors?.[name] };
+}
+
+/** Does this frame carry a STORED anchor of this name, as opposed to the
+ *  default one `anchorPoint` always resolves to? The difference matters
+ *  wherever an anchor is trusted to MOVE something: a measurement can be
+ *  believed, a fallback guess should only ever be a nudge. */
+export function hasAnchor(charKey, frameKey, name = "com", meta = null) {
+  const m = meta || frameMeta(charKey, frameKey);
+  return !!m?.anchors?.[name];
+}
+
 /** Where an anchor sits before anyone has placed it. */
 function defaultAnchor(charKey, frameKey, name, meta) {
   const com = defaultCom(charKey, frameKey, meta);
@@ -598,19 +653,10 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
     return false;
   }
 
-  // renderScale corrects frames whose art is drawn at a different zoom than
-  // the character's standing sprites (see tools/extract_sprites.py)
-  const scale = (opts.scale ?? 0.6) * (meta.renderScale || 1);
-  // The sheets are drawn facing RIGHT (verified across every character's run
-  // row); only the frames the manifest marks `faceLeft` are drawn facing left.
-  // Mirror so the fighter always looks in their logical direction. A fractional
-  // value is legal and is how a turn sweeps through side-on.
-  const facing = (opts.facing ?? 1) * (meta.faceLeft ? -1 : 1);
-  const anchorY = frameFootY(meta);
-
-  // Local -> world helper for a cell-space point, given the current mirroring.
-  const worldX = (cellX) => (cellX - CELL_W / 2) * scale * facing;
-  const worldY = (cellY) => (cellY - anchorY) * scale;
+  // Scale, mirroring and the cell -> world mapping. Shared with anchorOffset
+  // above, so a caller placing a body and this function drawing it can never
+  // disagree about where that body's anchors are.
+  const { scale, facing, anchorY, worldX, worldY } = frameSpace(meta, opts);
 
   let offX = opts.offsetX || 0;
   let offY = opts.offsetY || 0;
@@ -727,6 +773,43 @@ export function currentFrame(charKey, animKey, animTime) {
   const idx = Math.floor(animTime * anim.fps);
   const i = anim.loop ? idx % anim.frames.length : Math.min(idx, anim.frames.length - 1);
   return anim.frames[i];
+}
+
+/** WHERE THE PLAYHEAD SITS RELATIVE TO THE LAST FRAME STEP, for a caller that
+ *  wants to soften the step rather than take it whole.
+ *
+ *  `currentFrame` answers "what is showing". This also answers "what did it
+ *  just cut from, and how long ago" — the two facts a within-state cross-fade
+ *  needs, and the two `currentFrame` throws away. Nothing here decides whether
+ *  a step SHOULD be softened; that is a look decision and it lives with the
+ *  other ones in src/render.js.
+ *
+ *    frame   the drawing now, identical to currentFrame
+ *    prev    the drawing before it, or null when there was no step to come out
+ *            of — a one-frame state, the first frame of any state (the state
+ *            change owns that seam, not this), or a one-shot that has run out
+ *            and is holding its last pose
+ *    since   seconds since that step
+ *    fps     the rate this state resolved to, which is what says whether a
+ *            step is a beat of animation or a slow hold flicking over
+ */
+export function frameStep(charKey, animKey, animTime) {
+  const anim = resolvedAnim(charKey, animKey);
+  const n = anim.frames.length;
+  const idx = Math.floor(animTime * anim.fps);
+  const wrap = (i) => ((i % n) + n) % n;
+  const i = anim.loop ? wrap(idx) : Math.min(idx, n - 1);
+  // Past the end of a one-shot the playhead has STOPPED: the pose is held, not
+  // freshly cut to, and fading a ghost under a held pose would put a second
+  // body under every finished attack.
+  const held = !anim.loop && idx >= n;
+  return {
+    frame: anim.frames[i],
+    prev: n < 2 || idx < 1 || held ? null : anim.frames[anim.loop ? wrap(idx - 1) : idx - 1],
+    since: held ? Infinity : animTime - idx / anim.fps,
+    fps: anim.fps,
+    frames: n,
+  };
 }
 
 /** Where the playhead sits inside the whole looped cycle, 0..1, plus how many

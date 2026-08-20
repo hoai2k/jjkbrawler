@@ -135,7 +135,7 @@ export function ensureFrames(charKey) {
  * about either. Returns false when the art was not in memory (it asks for it
  * and the caller repaints).
  */
-export function drawStage(task, { ctx, canvas, guides = {}, redraw, spin = 0 }) {
+export function drawStage(task, { ctx, canvas, guides = {}, redraw, spin = 0, frame: only = null }) {
   const { charKey, state } = task;
   const b = bodyMetrics(charKey);
 
@@ -149,10 +149,16 @@ export function drawStage(task, { ctx, canvas, guides = {}, redraw, spin = 0 }) 
   ctx.stroke();
 
   // The drawing, asked for by INDEX and sampled mid-frame — see contactIndex.
+  //
+  // `frame` overrides that outright, for a set whose SUBJECT is a drawing
+  // rather than a state: the per-frame centre-of-mass queue walks a list of
+  // suspect frames, and several of them belong to states that draw something
+  // else at the contact beat. Asking for the state and hoping is how a
+  // reviewer ends up placing an anchor on a drawing they were not shown.
   const anim = resolvedAnim(charKey, state);
   const idx = frameIndex(task);
   const t = anim?.fps ? (idx + 0.5) / anim.fps : 0;
-  const frame = currentFrame(charKey, state, t);
+  const frame = only || currentFrame(charKey, state, t);
   // A HANG IS NOT DRAWN FROM THE FOOT LINE. render.js hangs a ledge frame from
   // its `ledge` anchor onto the real platform corner (`anchorTo`), so the hand
   // meets the lip rather than the feet standing in mid-air beside it. Reviewing
@@ -198,14 +204,18 @@ export function drawStage(task, { ctx, canvas, guides = {}, redraw, spin = 0 }) 
     ctx.strokeRect(CENTRE_X - boxW / 2, GROUND_Y - boxH, boxW, boxH);
   }
   if (guides.com) {
-    const y = GROUND_Y - b.height * COM_BODY_FRAC * ZOOM;
+    // The roster default, unless the set asks for this fighter's OWN verified
+    // value — which is the one a per-frame anchor is actually judged against
+    // (`guides.com: "verified"`).
+    const frac = guides.com === "verified" ? comFrac(charKey) : COM_BODY_FRAC;
+    const y = GROUND_Y - b.height * frac * ZOOM;
     ctx.strokeStyle = "rgba(160, 170, 190, 0.55)";
     ctx.beginPath();
     ctx.moveTo(CENTRE_X - 9, y); ctx.lineTo(CENTRE_X + 9, y);
     ctx.stroke();
     ctx.fillStyle = "rgba(160, 170, 190, 0.75)";
     ctx.font = "10px system-ui";
-    ctx.fillText("COM 0.55", CENTRE_X + 13, y + 3);
+    ctx.fillText(`COM ${frac.toFixed(2)}`, CENTRE_X + 13, y + 3);
   }
   if (guides.reach) {
     const x = CENTRE_X + b.reach * ZOOM;
