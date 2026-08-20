@@ -149,6 +149,27 @@ export const COM_BODY_FRAC = 0.55;
  *  frames it clips are the ones the audit is already asking about. */
 export const COM_HOLD_MAX_FRAC = 0.10;
 
+/** How far a cross-fade will slide a body to line its two drawings up by their
+ *  centre of mass, as a fraction of body height (`?smooth=com`; the fade
+ *  itself is in src/render.js, which carries the reasoning).
+ *
+ *  The sibling of COM_HOLD_MAX_FRAC above and capped for the same reason: a
+ *  per-frame `com` is a bake, not a judgement, so the worst a bad one may do
+ *  is under-align a fade rather than throw a body sideways. A cap also
+ *  degrades smoothly where a hard cutoff would pop between two poses either
+ *  side of it.
+ *
+ *  0.12 is a bit over a body width, which covers the honest case this is for:
+ *  a heavy that lunges really does carry its mass forward, and that lunge is
+ *  exactly what an unaligned fade turns into two men standing apart.
+ *
+ *  It is ALSO the review threshold. A pair of adjacent drawings whose mass
+ *  disagrees by more than this is a pair the fade cannot fully align — either
+ *  the pose genuinely lunges that far or an anchor is wrong, and only a person
+ *  can say which, so sprites/src/com_review.js reads the same number to decide
+ *  what to put in front of one. */
+export const XFADE_COM_MAX_FRAC = 0.12;
+
 /** Seconds the COM hold takes to blend in after leaving the ground, and out
  *  again after landing (fighter.js comHoldW -> render.js holdComW).
  *

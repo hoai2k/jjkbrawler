@@ -39,6 +39,7 @@ relative links. It is not in `npm run check`; run it after moving a doc.
 | `smoke_*` | play the real game (mostly headless via Playwright) and measure the result | 33 |
 | `audit_*` | report on the data rather than pass/fail it — reach, hitboxes, frame sizes, model health | 12 |
 | `build_*` | generate a checked-in file from the source of truth | 6 |
+| `debug_*` | probe one mechanism and print what it did — no pass/fail, for judging a look change | 1 |
 | `intake_*`, `*_intake` | take a delivery from `assets/intake/` or `render3d/intake/` into the game | |
 | `pose_*` | the sprite pose reads and the sheets that review them | |
 | `blender_*` | run inside Blender against a rig; see `render3d/docs/blender-requests.md` | |
