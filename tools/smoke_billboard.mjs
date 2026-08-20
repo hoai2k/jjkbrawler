@@ -227,7 +227,8 @@ try {
     const THREE = await import("/vendor/three/three.module.js");
     const rig = await import("/render3d/src/loader.js");
     const renderer = await import("/billboards/src/renderer.js");
-    const { aimSolve, STATES, AIM_BAND_DEG } = await import("/render3d/src/states.js");
+    const { aimSolve, STATES, AIM_BAND_DEG, AIM_ELEVATIONS, aimBandFor } =
+      await import("/render3d/src/states.js");
     renderer.initRenderer(THREE);
     await rig.initRigs(THREE, null, ["mann"], ["mann"]);
 
@@ -267,7 +268,16 @@ try {
       tilts.push((a.pitch * 180) / Math.PI);
     }
     out.tiltSpan = Math.round(Math.max(...tilts) - Math.min(...tilts));
-    out.band = AIM_BAND_DEG;
+    out.band = aimBandFor("light");
+    // HOW FAR OFF ITS NEAREST ANCHOR each sample landed, which is what the
+    // band actually bounds. The span across samples does NOT bound it: `light`
+    // carries the diagonals (AIM_ELEVATIONS: -45, 0, 45), so an opponent high
+    // and an opponent low legitimately settle on different anchors 90° apart.
+    const anchors = AIM_ELEVATIONS.light;
+    out.anchors = anchors.join("/");
+    out.worstOffAnchor = Math.round(Math.max(...tilts.map(
+      (t) => Math.min(...anchors.map((e) => Math.abs(t - e))))));
+    out.tilts = tilts.map((t) => Math.round(t)).join(",");
     return out;
   });
 
@@ -281,9 +291,19 @@ try {
   // instead of dead level. The reason the snap existed is unchanged and is what
   // the band enforces — a jab must not angle at the floor because the opponent
   // is a little lower — so what is checked is the BOUND, not the absence.
-  check(r.tiltSpan > 0 && r.tiltSpan <= r.band * 2 + 2,
+  //
+  // AGAINST THE NEAREST ANCHOR, not across the sweep. This measured the span
+  // between the highest and lowest sample and demanded it fit inside one band,
+  // which stopped being the bound the moment `light` took the diagonals
+  // (states.AIM_ELEVATIONS: -45, 0, 45). A fighter aiming up settles on +45 and
+  // one aiming down on -45 — 90° apart by design, each still pinned to an
+  // anchor — so the span said 72° and the check called correct behaviour a
+  // failure. What the band bounds is how far any ONE aim strays from the anchor
+  // it chose, which is exactly the thing that keeps a jab out of the floor.
+  check(r.tiltSpan > 0 && r.worstOffAnchor <= r.band + 2,
     "a grounded arm strike follows the opponent, but only within its band",
-    `${r.tiltSpan}° of travel across the sweep, band ±${r.band}°`);
+    `tilts ${r.tilts}° against anchors ${r.anchors}° — worst ${r.worstOffAnchor}° `
+      + `off its own, band ±${r.band}°`);
   // The move is still the aim: an up attack goes up, a crouch poke goes low,
   // and a standing jab goes neither — each about its own anchor.
   check(r.elevations.up > 30 && Math.abs(r.elevations.level) <= r.band && r.elevations.low < -10,
