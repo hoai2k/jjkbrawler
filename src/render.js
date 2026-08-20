@@ -60,6 +60,13 @@ const SPRITE_STEP_XFADE = 0.07;
 const SPRITE_STEP_SLOW_FPS = 4;
 
 export function draw(ctx) {
+  // Cleared here and filled by whatever actually runs this frame — see
+  // smoothingActivity. Zeroed even on the 3D path, so a bench that switched
+  // backends does not go on showing the last flat frame's answer.
+  smoothingActivity.xfade = 0;
+  smoothingActivity.com = 0;
+  smoothingActivity.holds = 0;
+  smoothingActivity.turn = 0;
   if (cameraMode === "3d" && camera3d) {
     draw3d(ctx);
     return;
@@ -688,6 +695,21 @@ function drawFighters(ctx, { bodies = true } = {}) {
     // A transformed fighter (Megumi as Mahoraga) draws from another actor's
     // sprite set for the duration of the install; everything else about them —
     // kit, controls, hurtbox — is unchanged.
+    // MID-TURN: the mirror sweeps through zero over TURN_TIME rather than
+    // flipping in one frame (fighter.js). It is not one of the flagged
+    // experiments — it ships, and always has — but it is the same KIND of
+    // thing and the hardest of the four to catch in the act, so it reports
+    // alongside them.
+    //
+    // How far there is still to go, on the same scale the fades report: the
+    // mirror starts a full 2 away from where it is heading (+1 to -1) and
+    // arrives at 0, so this is 1 the frame the turn begins and 0 when it is
+    // done — 0.5 as the body passes side-on.
+    if (f.facingVis !== undefined && f.facingVis !== f.facing) {
+      smoothingActivity.turn = Math.max(smoothingActivity.turn,
+        Math.abs(f.facingVis - f.facing) / 2);
+    }
+
     const spriteKey = f.spriteChar || f.charKey;
     const spriteActor = getActor(spriteKey) || f.char;
     const frameKey = currentFrame(spriteKey, f.animKey, f.animTime);
@@ -842,19 +864,52 @@ function drawFighters(ctx, { bodies = true } = {}) {
         // free — at k = 0 the incoming body is invisible, so its offset costs
         // nothing to look at.
         const shift = drawOpts.anchorTo
-          ? 0 : comFadeShift(spriteKey, ghost.frame, frameKey, drawOpts);
+          ? NO_SHIFT : comFadeShift(spriteKey, ghost.frame, frameKey, drawOpts);
         const base = drawOpts.offsetX || 0;
+
+        // HOW FAR TO DISSOLVE, AND WHY IT IS NOT ALWAYS ALL THE WAY.
+        //
+        // Ramping the incoming drawing up as the outgoing one ramps down is
+        // what makes the alignment mean anything — an opaque body cannot be
+        // "lined up" with a ghost nobody can see past. But a dissolve of two
+        // drawings that OVERLAP costs opacity: painting the ghost at 1-k and
+        // the body at k over it covers (1-k) + k² of the background, which
+        // bottoms out at 0.75 halfway through. A quarter of the stage shows
+        // through the fighter.
+        //
+        // At a state change that reads as a smear and is the price of the
+        // alignment. On a slow held loop it does not: `idle` steps between two
+        // drawings of one stance twice a second, they overlap almost exactly,
+        // and the dip lands on the whole body every 0.45s — which is a FLICKER,
+        // reported as one, and the reason this is not simply `* ghost.k`.
+        //
+        // So the dissolve goes as deep as the alignment needs and no deeper.
+        // `depth` is how much of the slide budget this cut uses: two poses
+        // carrying their weight in the same place get an opaque incoming
+        // drawing and the fade the game already shipped, a real lunge gets the
+        // full dissolve, and everything between gets its share. The idle step
+        // has nothing to align, so it stops paying for alignment.
+        const dissolve = 1 - (1 - ghost.k) * shift.depth;
+
         // No glow on the ghost: two glows stack into a flash, which is the
         // opposite of what a fade is for.
         drawCharFrame(ctx, spriteKey, ghost.frame, f.x + shakeX, f.y, {
           ...drawOpts,
           alpha: (drawOpts.alpha ?? 1) * (1 - ghost.k),
-          offsetX: base + shift * ghost.k,
+          offsetX: base + shift.x * ghost.k,
           glow: null,
           prevAnim: null,
         });
-        drawOpts.offsetX = base - shift * (1 - ghost.k);
-        if (SMOOTH_COM_FADE) drawOpts.alpha = (drawOpts.alpha ?? 1) * ghost.k;
+        drawOpts.offsetX = base - shift.x * (1 - ghost.k);
+        drawOpts.alpha = (drawOpts.alpha ?? 1) * dissolve;
+
+        // What a bench light reads. `xfade` and `holds` report how far through
+        // the fade this frame is, `com` how hard the alignment is working.
+        const A = smoothingActivity;
+        const strength = 1 - ghost.k;
+        if (ghost.kind === "holds") A.holds = Math.max(A.holds, strength);
+        else A.xfade = Math.max(A.xfade, strength);
+        if (shift.depth > 0) A.com = Math.max(A.com, shift.depth);
       }
       const drew = drawCharFrame(ctx, spriteKey, frameKey, f.x + shakeX, f.y, drawOpts);
       // Art that did not load leaves a fighter who is simply not on screen —
@@ -907,7 +962,7 @@ function spriteGhost(f, spriteKey, frameKey) {
   if (prev && f.animTime < SPRITE_XFADE) {
     const prevFrame = currentFrame(spriteKey, prev.key, prev.t);
     if (prevFrame && !String(prevFrame).includes(":")) {
-      return { frame: prevFrame, k: f.animTime / SPRITE_XFADE };
+      return { frame: prevFrame, k: f.animTime / SPRITE_XFADE, kind: "xfade" };
     }
   }
 
@@ -917,8 +972,27 @@ function spriteGhost(f, spriteKey, frameKey) {
   const step = frameStep(spriteKey, f.animKey, f.animTime);
   if (!step?.prev || step.fps > SPRITE_STEP_SLOW_FPS) return null;
   if (step.since >= SPRITE_STEP_XFADE || String(step.prev).includes(":")) return null;
-  return { frame: step.prev, k: step.since / SPRITE_STEP_XFADE };
+  return { frame: step.prev, k: step.since / SPRITE_STEP_XFADE, kind: "holds" };
 }
+
+/** WHAT THE SMOOTHING ACTUALLY DID ON THE FRAME JUST DRAWN, 0..1 per
+ *  mechanism, highest across the fighters on screen.
+ *
+ *  A switch says what is ARMED. It cannot say whether the thing is doing
+ *  anything right now, and for these three that is most of the question: a
+ *  fade runs for 0.08s at a state change and a hold fade for 0.07s twice a
+ *  second, so a bench light that is simply lit whenever the flag is on tells
+ *  you nothing about the frame you are staring at. This is the other half —
+ *  the character bench paints its dots off it, and reading it is how you tell
+ *  "on" from "happening".
+ *
+ *  A number rather than a flag because how MUCH matters: `com` at 0.02 is a
+ *  fade that found nothing to align, which is a different fact from a fade
+ *  sliding a body a full body-width.
+ *
+ *  Written every frame and read the same frame. Nothing in the simulation
+ *  looks at it. */
+export const smoothingActivity = { xfade: 0, com: 0, holds: 0, turn: 0 };
 
 /** How far the body's mass moves across a cut, on the x axis, in world px —
  *  what a COM-aligned fade slides the two drawings by. See the long note at
@@ -935,13 +1009,20 @@ function spriteGhost(f, spriteKey, frameKey) {
  *  …and clamped to XFADE_COM_MAX_FRAC of body height, so a bad bake that
  *  survives all of that is still only ever a nudge. */
 function comFadeShift(spriteKey, fromFrame, toFrame, opts) {
-  if (!SMOOTH_COM_FADE) return 0;
+  if (!SMOOTH_COM_FADE) return NO_SHIFT;
   const from = anchorOffset(spriteKey, fromFrame, "com", opts);
   const to = anchorOffset(spriteKey, toFrame, "com", opts);
-  if (!from?.measured || !to?.measured) return 0;
+  if (!from?.measured || !to?.measured) return NO_SHIFT;
   const cap = bodyMetrics(spriteKey).height * XFADE_COM_MAX_FRAC;
-  return clamp(to.x - from.x, -cap, cap);
+  const x = clamp(to.x - from.x, -cap, cap);
+  // `depth` is how much of the cap this cut is using: 0 when the two poses
+  // carry their weight in the same place and there is nothing to align, 1 at
+  // a slide the fade has to clamp. It is what decides how far the dissolve
+  // goes — see the note at the call.
+  return { x, depth: cap > 0 ? Math.abs(x) / cap : 0 };
 }
+
+const NO_SHIFT = { x: 0, depth: 0 };
 
 // The instant this fighter's current attack turns its hitbox on, in seconds
 // from action start, or undefined outside an attack (or when the anim has

@@ -154,9 +154,18 @@ const SLOW_MO_SCALE = 0.45;
  *  take that choice away. Everything before the draw is here precisely because
  *  none of it is a choice.
  */
-export function advanceWorld(dt, { latch, read, step }) {
+export function advanceWorld(dt, { latch, read, step, scale = 1 }) {
   latchInputs(latch, read);
-  const simDt = state.slowMo > 0 ? dt * SLOW_MO_SCALE : dt;
+  // `scale` is a caller's own slow motion — the character bench's speed
+  // slider, and nothing in a match. It multiplies the DRAMATIC slow-mo rather
+  // than replacing it, so a KO still reads as a KO while the bench is dialled
+  // down, and it scales simulated TIME rather than the step: a smaller step
+  // would change what the game computes, and a bench showing a different game
+  // at 0.1x would be worse than no bench.
+  //
+  // `state.slowMo` still drains on real time, so a hit-stop lasts as long as
+  // it should on the clock rather than being stretched by the slider too.
+  const simDt = (state.slowMo > 0 ? dt * SLOW_MO_SCALE : dt) * scale;
   state.slowMo = Math.max(0, state.slowMo - dt);
 
   accumulator = Math.min(accumulator + simDt, FIXED_DT * MAX_FIXED_STEPS);
