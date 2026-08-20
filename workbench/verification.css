@@ -157,3 +157,33 @@
 .unit { font-size: 11px; color: var(--dim); }
 
 select.ghost { padding-right: 22px; }
+
+/* ------------------------------------------------- the picker and its box */
+
+/* The picker is two lines: what you are on, and how much of the list you are
+   willing to see. Baseline-aligned bar, so the column has to be its own item
+   rather than two things wrapping around the header's other controls. */
+.v-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-left: 8px;
+}
+.v-pick > select { margin-left: 0; }
+.v-show-archived {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--dim);
+  font-size: 11px;
+  cursor: pointer;
+  user-select: none;
+}
+.v-show-archived:hover { color: var(--text); }
+.v-show-archived input {
+  width: 12px;
+  height: 12px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}

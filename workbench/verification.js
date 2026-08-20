@@ -162,7 +162,7 @@ const SETS = {
   },
 };
 
-// ---------------------------------------------------------- archived sets
+// ------------------------------------------------- open, answered, archived
 //
 // Which drawer a queue is filed in used to be a fact about the table above: a
 // set sat under the picker's "archived" rule because `archived: true` said so,
@@ -171,14 +171,21 @@ const SETS = {
 // queue heading files the open set away, or fetches it back, and the choice
 // is remembered per browser.
 //
-// A queue also files ITSELF away the moment nothing is left to answer: a set
-// whose every item is in the tree is not work, and leaving it in the open
-// list makes the list lie about how much there is to do. That is a reading of
-// the tree, so it is taken fresh every time a set loads — a re-bake that
-// reopens items puts the set straight back on top. A HAND is louder than that
-// reading, in both directions: unarchive an empty queue to keep it in sight
-// and it stays, archive a busy one and it stays filed, until you say
-// otherwise.
+// There are THREE groups, because a queue stops being work for two quite
+// different reasons and they should not be spelled the same way:
+//
+//   OPEN      — something in it is still unanswered. Ordinary work.
+//   ANSWERED  — every item is in the tree. Nobody has to look at it, but
+//               nobody has put it away either: a re-bake or a redraw reopens
+//               it, and when that happens it goes straight back to open. This
+//               is READ FROM THE TREE, not decided, so it is not a filing.
+//   ARCHIVED  — somebody said so. This one is a filing, it outranks the
+//               reading, and it survives whatever the tree does next.
+//
+// So an answered queue is listed under its own rule rather than shoved in
+// with the archived ones, and it can still be archived by hand from there —
+// or, once archived, unarchived back into whichever of the first two groups
+// the tree says it belongs to.
 //
 // Decisions are deliberately NOT persisted (see setWork below). None of this
 // is a decision: it records nothing about any item, claims nothing about the
@@ -188,12 +195,13 @@ const SETS = {
 const ARCHIVE_KEY = "jjk.verification.archived.v1";
 const EMPTIED_KEY = "jjk.verification.emptied.v1";
 const RECENT_KEY = "jjk.verification.recent.v1";
+const SHOW_ARCHIVED_KEY = "jjk.verification.showArchived.v1";
 
 const asArray = (v) => (Array.isArray(v) ? v : []);
 
 /** setId -> boolean, and ONLY for sets somebody moved by hand. Absent means
- *  "however it works out", so a new set arrives where it belongs, a set that
- *  empties files itself, and an entry for a set that no longer exists costs
+ *  "whatever the table says", so a new set arrives in the group its author
+ *  filed it under, and an entry for a set that no longer exists costs
  *  nothing. */
 const archiveOverrides = new Map(
   Object.entries(readStore(ARCHIVE_KEY, {})).map(([id, on]) => [id, !!on]),
@@ -204,10 +212,14 @@ const archiveOverrides = new Map(
  *  a dropdown would trade the whole point of lazy sets for a sorted list. */
 const emptied = new Set(asArray(readStore(EMPTIED_KEY, [])));
 
-/** Set ids, most recently opened first. The open half of the picker is a
- *  history rather than a table: the queue you were on last night is the one
- *  you want tonight, and it should not be eleven items down. */
+/** Set ids, most recently opened first. The open group is a history rather
+ *  than a table: the queue you were on last night is the one you want
+ *  tonight, and it should not be eleven items down. */
 const recent = asArray(readStore(RECENT_KEY, [])).filter((id) => typeof id === "string");
+
+/** Whether the archived group is listed at all. OFF by default: the point of
+ *  putting a queue away is not seeing it. */
+let showArchived = readStore(SHOW_ARCHIVED_KEY, false) === true;
 
 function readStore(key, fallback) {
   try {
@@ -228,41 +240,35 @@ function writeStore(key, value) {
   }
 }
 
-/** Where a set sits when nobody has said otherwise: emptied out, or filed
- *  under the table's own `archived`. */
-const archivedByDefault = (id) => emptied.has(id) || !!SETS[id]?.archived;
-
 const isArchived = (id) => (
-  archiveOverrides.has(id) ? archiveOverrides.get(id) : archivedByDefault(id)
+  archiveOverrides.has(id) ? archiveOverrides.get(id) : !!SETS[id]?.archived
 );
+
+/** Answered is what is LEFT of "nothing to do here" once a filing has had its
+ *  say: an archived queue is archived whether or not the tree agrees. */
+const isAnswered = (id) => emptied.has(id) && !isArchived(id);
 
 function setArchived(id, on) {
   if (!SETS[id]) return;
-  // Agreeing with where the set would have sat anyway is stored as nothing
-  // rather than as agreement: an override is only worth keeping while it
-  // overrules something. That is what makes "keep this emptied queue in the
-  // open list" stick — there, false really does contradict the default — while
-  // undoing your own archive of a busy set just forgets the whole exchange.
-  if (on === archivedByDefault(id)) archiveOverrides.delete(id);
+  // Agreeing with the table is stored as nothing rather than as agreement, so
+  // a set the table later reopens (or closes) still follows it.
+  if (!!SETS[id].archived === on) archiveOverrides.delete(id);
   else archiveOverrides.set(id, on);
   writeStore(ARCHIVE_KEY, Object.fromEntries(archiveOverrides));
 }
 
-/** What the tree says about a set that just loaded. Returns true when this
- *  changed the answer and the picker needs rebuilding. */
+function setShowArchived(on) {
+  showArchived = !!on;
+  writeStore(SHOW_ARCHIVED_KEY, showArchived);
+}
+
+/** What the tree says about a set that just loaded: open, or answered.
+ *  Returns true when this changed the answer and the picker needs rebuilding. */
 function noteEmptiness(id, hasWork) {
   const was = emptied.has(id);
   if (hasWork) emptied.delete(id); else emptied.add(id);
   if (emptied.has(id) === was) return false;
   writeStore(EMPTIED_KEY, [...emptied]);
-  // A set that fills up again is work again, and an explicit "keep this one
-  // out of the archive" was about a queue with nothing in it. Dropping that
-  // override now is what lets the set come back to the top of the open list
-  // rather than sitting on a decision nobody remembers making.
-  if (hasWork && archiveOverrides.get(id) === false) {
-    archiveOverrides.delete(id);
-    writeStore(ARCHIVE_KEY, Object.fromEntries(archiveOverrides));
-  }
   return true;
 }
 
@@ -281,6 +287,22 @@ function noteOpened(id) {
   return true;
 }
 
+/** The three groups, each in the order its own question deserves. */
+function setGroups() {
+  const ids = Object.keys(SETS);
+  const byLabel = (a, b) => SETS[a].label.localeCompare(SETS[b].label);
+  return {
+    open: ids.filter((id) => !isArchived(id) && !isAnswered(id)).sort(byRecency),
+    answered: ids.filter(isAnswered).sort(byLabel),
+    archived: ids.filter(isArchived).sort(byLabel),
+  };
+}
+
+/** Somewhere there is still work, failing that somewhere there is at least a
+ *  queue — but never the archive, which is where things go to be out of the
+ *  way. */
+const firstUnarchived = (groups) => groups.open[0] || groups.answered[0] || null;
+
 const params = new URL(location.href).searchParams;
 const root = document.getElementById("verificationRoot");
 
@@ -295,7 +317,13 @@ root.innerHTML = `
       <a href="../sprites/workbench/">Sprites →</a>
       <a href="../render3d/workbench/">3D →</a>
     </nav>
-    <select id="vSet" class="ghost" aria-label="Task set"></select>
+    <div class="v-pick">
+      <select id="vSet" class="ghost" aria-label="Task set"></select>
+      <label class="v-show-archived" for="vShowArchived"
+             title="List the queues you have put away, under their own rule">
+        <input id="vShowArchived" type="checkbox"> show archived
+      </label>
+    </div>
     <button id="vExport" class="ghost ghost--go" type="button"
             title="Download every decision so far, as JSON">⭳ Export decisions</button>
     <button id="vRefresh" class="ghost" type="button"
@@ -375,7 +403,7 @@ const el = (id) => document.getElementById(id);
 const els = {
   blurb: el("vBlurb"), set: el("vSet"), exportBtn: el("vExport"), refresh: el("vRefresh"),
   state: el("vState"), progress: el("vProgress"), barFill: el("vBarFill"), list: el("vList"),
-  archive: el("vArchive"), stage: el("vStage"), title: el("vTitle"),
+  archive: el("vArchive"), showArchived: el("vShowArchived"), stage: el("vStage"), title: el("vTitle"),
   subtitle: el("vSubtitle"), source: el("vSource"),
   editor: el("vEditor"), note: el("vNote"), resume: el("vResume"),
   prev: el("vPrev"), next: el("vNext"), approve: el("vApprove"), skip: el("vSkip"),
@@ -565,55 +593,63 @@ function renderArchiveButton() {
   els.archive.classList.toggle("is-on", on);
   els.archive.setAttribute("aria-pressed", String(on));
   els.archive.title = on
-    ? `Archived — put “${SETS[id].label}” back with the open queues, and keep it `
-      + "there even once there is nothing left to answer"
-    : `Archive “${SETS[id].label}” — it drops below the rule in the picker, and stays there`;
+    ? `Archived — put “${SETS[id].label}” back in the picker, under `
+      + (emptied.has(id) ? "“answered”" : "the open queues")
+    : `Archive “${SETS[id].label}” — it leaves the picker until “show archived” is ticked`;
 }
 
 /**
- * OPEN SETS FIRST, THEN A RULE, THEN THE ARCHIVED ONES. The list only grows,
- * and a set whose questions have all been answered is not one anybody is
- * going to the picker for — but it is worth keeping, because a re-bake or a
- * redraw reopens it. The rule between the two groups is a disabled option,
- * which is the separator every browser renders and which cannot be landed on
- * by keyboard.
+ * OPEN QUEUES, THEN THE ANSWERED ONES, THEN — IF YOU ASKED FOR THEM — THE
+ * ARCHIVE. The rules between the groups are disabled options, which is the
+ * separator every browser renders and which cannot be landed on by keyboard.
  *
- * THE TWO HALVES ARE SORTED DIFFERENTLY, because they are asked different
- * questions. The open half is "what am I working on" — most recently opened
- * first, so the queue you were mid-pass on last night is the top item and not
- * eleven down; sets nobody has opened yet follow in the table's own order,
- * which is the order somebody thought to write them in. The archived half is
- * "where did that one go" — a name you already know, looked up alphabetically
- * rather than hunted through a history you have stopped keeping.
+ * EACH GROUP IS SORTED BY THE QUESTION IT ANSWERS. The open group is "what am
+ * I working on" — most recently opened first, so the queue you were mid-pass
+ * on last night is the top item and not eleven down; sets nobody has opened
+ * yet follow in the table's own order, which is the order somebody thought to
+ * write them in. The other two are "where did that one go" — a name you
+ * already know, looked up alphabetically rather than hunted through a history
+ * you have stopped keeping.
  *
- * Rebuilt rather than reordered in place: archiving, emptying and opening all
- * move sets between and within the groups, and the option list is a dozen
- * nodes. The set that is open stays selected even when it is the one just
- * archived — filing your work away should not close it.
+ * The archive is listed only when the checkbox under the picker asks for it,
+ * with one exception: whatever set is OPEN is always in the list. A picker
+ * whose selection is not one of its options shows a blank box and lies about
+ * where you are, which is a worse trade than one extra line.
+ *
+ * Rebuilt rather than reordered in place: archiving, answering and opening
+ * all move sets between and within the groups, and the option list is a dozen
+ * nodes.
  */
 function renderSetPicker(preferred) {
   els.set.textContent = "";
-  const ids = Object.keys(SETS);
-  const open = ids.filter((id) => !isArchived(id)).sort(byRecency);
-  const done = ids.filter((id) => isArchived(id))
-    .sort((a, b) => SETS[a].label.localeCompare(SETS[b].label));
+  const groups = setGroups();
+  const shown = SETS[preferred] ? preferred : firstUnarchived(groups);
+  const archived = showArchived || isArchived(shown) ? groups.archived : [];
   const add = (id) => {
     const opt = document.createElement("option");
     opt.value = id;
     opt.textContent = SETS[id].label;
     els.set.appendChild(opt);
   };
-  open.forEach(add);
-  if (open.length && done.length) {
-    const rule = document.createElement("option");
-    rule.disabled = true;
-    rule.textContent = "────── archived ──────";
-    els.set.appendChild(rule);
+  const rule = (text) => {
+    const opt = document.createElement("option");
+    opt.disabled = true;
+    opt.textContent = `────── ${text} ──────`;
+    els.set.appendChild(opt);
+  };
+  groups.open.forEach(add);
+  if (groups.answered.length) {
+    if (groups.open.length) rule("answered");
+    groups.answered.forEach(add);
   }
-  done.forEach(add);
-  // The first OPEN set, not the first entry: the default has to be somewhere
-  // there is work, or the bench opens on a queue with nothing in it.
-  els.set.value = SETS[preferred] ? preferred : (open[0] || done[0]);
+  if (archived.length) {
+    if (groups.open.length || groups.answered.length) rule("archived");
+    archived.forEach(add);
+  }
+  // The first set with work in it, not the first entry: the default has to be
+  // somewhere there is something to do, or the bench opens on an empty queue.
+  els.set.value = shown || groups.archived[0] || "";
+  els.showArchived.checked = showArchived;
   refreshSetCounts();
 }
 
@@ -694,10 +730,10 @@ function filterCounts() {
 }
 
 const EMPTY_NOTE = {
-  todo: "Nothing left — every item in this set is already in the tree, so it "
-    + "has filed itself under <b>archived</b> in the picker. Switch to "
-    + "<b>All</b> to revisit one, <b>Unarchive</b> to keep it in the open "
-    + "list, or pick another set.",
+  todo: "Nothing left — every item in this set is already in the tree, so the "
+    + "picker lists it under <b>answered</b> rather than with the open queues. "
+    + "Switch to <b>All</b> to revisit one, <b>Archive</b> to put it away for "
+    + "good, or pick another set.",
   done: "Nothing committed yet. Decisions land here once an export has been "
     + "applied to the config and committed.",
   all: "This set has no items.",
@@ -711,11 +747,12 @@ function renderList() {
     // what would fill it — the same courtesy the sprite bench's work lists pay.
     const li = document.createElement("li");
     li.className = "v-empty";
-    li.innerHTML = bench.filter === "todo" && !isArchived(bench.setId)
-      // Somebody pulled this one back out of the archive; it would be a lie to
-      // tell them it filed itself away.
-      ? "Nothing left — every item in this set is already in the tree. "
-        + "Switch to <b>All</b> to revisit one, or pick another set."
+    li.innerHTML = bench.filter === "todo" && isArchived(bench.setId)
+      // An archived queue is not sitting under "answered", whatever the tree
+      // says about it — do not send anybody looking there for it.
+      ? "Nothing left — every item in this set is already in the tree, and the "
+        + "set is archived. Switch to <b>All</b> to revisit one, "
+        + "<b>Unarchive</b> to put it back among the queues, or pick another."
       : EMPTY_NOTE[bench.filter] || EMPTY_NOTE.all;
     frag.appendChild(li);
     els.list.replaceChildren(frag);
@@ -1089,13 +1126,29 @@ function wire() {
   // items stay exactly where they were — only which group it is listed under
   // changes, and it survives the reload.
   els.archive.addEventListener("click", () => {
-    if (!SETS[bench.setId]) return;
-    setArchived(bench.setId, !isArchived(bench.setId));
-    renderSetPicker(bench.setId);
+    const id = bench.setId;
+    if (!SETS[id]) return;
+    const on = !isArchived(id);
+    setArchived(id, on);
+    // Putting a queue away while the archive is hidden means putting it out of
+    // sight, so the bench cannot go on showing it: move to the first queue
+    // that is still listed. Unarchiving, and archiving with the archive in
+    // view, both leave you where you were — the set is still on the list.
+    const next = on && !showArchived ? firstUnarchived(setGroups()) : null;
+    if (next && next !== id) { openSet(next); return; }
+    renderSetPicker(id);
     renderArchiveButton();
-    // The empty-queue note says which drawer the set filed itself into, so it
-    // is wrong the moment you overrule that.
+    // The empty-queue note says which drawer the set is in, so it is wrong the
+    // moment you move it.
     renderList();
+  });
+
+  // Default off: the point of putting a queue away is not seeing it. Ticking
+  // the box does not move anything — it only widens what the picker lists —
+  // so the set you are on stays where it is either way.
+  els.showArchived.addEventListener("change", () => {
+    setShowArchived(els.showArchived.checked);
+    renderSetPicker(bench.setId);
   });
 
   // Only the sets that can be turned offer a way back, and it is always
