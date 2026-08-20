@@ -362,11 +362,10 @@ check(blink.both < blink.holdsOnly + 4,
 // pulled out the other side — a flat card turning over, with a frame in the
 // middle where the fighter is a vertical line.
 //
-// Not asserted as a fault, because it is the game's own look and there is a
-// switch for it. Asserted as a FACT, so that turning `SPRITE_TURN_SWEEP` off
-// is known to produce an instant flip and leaving it on is known to cost the
-// frame it costs. Whoever changes the default should be changing a number they
-// can see here.
+// So the sweep follows the BACKEND now (`render_backend.js sweepsTurns`) and
+// sprites snap. This measures both halves: forced on, a sprite really does go
+// edge-on, which is why it went; left alone on the sprite backend, it flips
+// whole. Whoever moves that default should be moving a number they can see.
 const turn = await page.evaluate(async () => {
   const { state } = await import("/src/state.js");
   const { draw } = await import("/src/render.js");
@@ -375,6 +374,7 @@ const turn = await page.evaluate(async () => {
   const { updateFighter } = await import("/src/fighter.js");
   const { blankInput } = await import("/src/input.js");
   const { bodyMetrics } = await import("/src/silhouette.js");
+  const { sweepsTurns } = await import("/src/render_backend.js");
 
   const cv = new OffscreenCanvas(WORLD.w, WORLD.h);
   const ctx = cv.getContext("2d", { willReadFrequently: true });
@@ -441,18 +441,45 @@ const turn = await page.evaluate(async () => {
     }
     return { rest, narrowest: Math.min(...widths) };
   };
-  const on = run(true);
-  const off = run(false);
-  setSmoothing({ turn: true });
-  return { on, off };
+  const on = run(true);            // forced, as the bench forces it
+  const off = run(null);           // the backend's own answer — sprites snap
+  setSmoothing({ turn: null });
+  return { on, off, backend: sweepsTurns() };
 });
 
 check(turn.on.narrowest < turn.on.rest * 0.2,
   "the facing SWEEP passes the sprite through side-on, which for a drawing is edge-on",
   `${turn.on.rest}px torso down to ${turn.on.narrowest}px — a card turning over`);
 check(turn.off.narrowest > turn.off.rest * 0.8,
-  "...and with the sweep off a sprite flips whole, the way 2D fighters do",
+  "...and left to the backend a sprite flips whole, the way 2D fighters do",
   `never narrower than ${turn.off.narrowest}px of ${turn.off.rest}px`);
+check(turn.backend === false,
+  "the sprite backend does not claim to turn a body",
+  "so nothing has to remember to switch this off per fighter or per stage");
+
+// ...and the other half of the same fact, which is the half that would break
+// silently: the sweep was right for a rig all along, and turning it off for
+// drawings must not take it away from the models. Asked of the registry rather
+// than of a picture, because rendering a rig here would mean loading one.
+// LAST, and put back, so nothing below is drawn through another backend.
+const backends = await page.evaluate(async () => {
+  const b = await import("/src/render_backend.js");
+  const { turnSweeps } = await import("/src/fighter.js");
+  const was = b.renderBackendName();
+  const out = {};
+  for (const name of ["sprite", "billboard", "3d"]) {
+    b.selectRenderBackend(name);
+    out[name] = { backend: b.sweepsTurns(), effective: turnSweeps() };
+  }
+  b.selectRenderBackend(was);
+  return out;
+});
+check(backends["3d"].effective === true && backends.billboard.effective === true,
+  "a rig still turns — the models keep the yaw the sweep was written for",
+  `3d ${backends["3d"].effective}, billboard ${backends.billboard.effective}`);
+check(backends.sprite.effective === false,
+  "...and a drawing flips, with no flag set either way",
+  "the backend answers it, so the two cannot drift apart");
 
 await browser.close();
 console.log(failed ? `\n${failed} check(s) failed` : "\nall smoothness checks passed");

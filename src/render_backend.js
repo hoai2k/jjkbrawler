@@ -77,6 +77,7 @@ const BACKENDS = {
     // drawing" to fade out of.
     frameStep: spriteStep,
     anchorOffset: spriteAnchorOffset,
+    // ...and it does NOT turn. See `sweepsTurns` below.
   },
   // 2.5D: posed 3D models rendered to a texture and blitted into the same 2D
   // world. Characters with a rig draw as models; everyone else falls through
@@ -89,6 +90,7 @@ const BACKENDS = {
     cyclePhase: billboard.cyclePhase,
     init: billboard.init,
     scene3d: billboard.scene3d,
+    sweepsTurns: true,
   },
   // Live 3D: rigged models animated at full frame rate, rendered in a
   // hand-drawn anime style (toon ramp, ink outlines, on-twos stepping) and
@@ -103,6 +105,7 @@ const BACKENDS = {
     init: render3d.init,
     scene3d: render3d.scene3d,
     preload: render3d.preload,
+    sweepsTurns: true,
   },
 };
 
@@ -215,6 +218,24 @@ export function cyclePhase(charKey, animKey, animTime) {
  *  hole. Options are documented on the sprite implementation in sprites.js. */
 export function drawCharFrame(ctx, charKey, frameKey, x, y, opts) {
   return active.drawCharFrame(ctx, charKey, frameKey, x, y, opts);
+}
+
+/** Does this backend TURN A BODY, or mirror a drawing?
+ *
+ *  It decides what a facing flip should look like, and the two answers are not
+ *  a matter of taste. A rig has a back: `facingVis` sweeping from +1 to -1
+ *  becomes a real yaw (render3d `turnYawRad`), the body rotates through side-on
+ *  and that is what turning round looks like. A DRAWING has no side-on. The
+ *  sprite backend hands the same number to `ctx.scale(facing, 1)`, so a sweep
+ *  squashes the art to nothing and pulls it out the other way — a page turning
+ *  rather than a person, with a frame in the middle where the fighter is two
+ *  pixels wide (measured; tools/smoke_smooth.mjs records it).
+ *
+ *  So the sweep follows the backend rather than a global preference, and
+ *  fighter.js asks. `flags.js TURN_SWEEP_OVERRIDE` forces it either way for the
+ *  character bench, which exists to put the two side by side. */
+export function sweepsTurns() {
+  return !!active.sweepsTurns;
 }
 
 /** OPTIONAL — where the playhead sits relative to the last frame step, for a
