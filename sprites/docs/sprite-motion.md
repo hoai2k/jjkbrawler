@@ -240,6 +240,28 @@ where states and `grounded` churn fastest. Guarded by `tools/smoke_smooth.mjs`.
   (`SPRITE_NO_XFADE`, mirroring the 3D backend's `NO_BLEND_IN`): an impact
   that eases in looks absorbed rather than taken.
 
+## Looking at any of this
+
+`/workbench/?edit=character` puts one fighter on a stage and hands you the pad.
+Every action, the roster on arrow keys, a zoom slider, and — bottom left — the
+three smoothing mechanisms on switches with a light each:
+
+| Light | What it turns on |
+|---|---|
+| cross-fade | the fade a state change already ships with (`SPRITE_XFADE`) |
+| com align | `?smooth=com` — a fade lines its drawings up by their centre of mass |
+| hold fade | `?smooth=holds` — the slow held loops fade their own frame steps |
+
+They are the same flags the URL sets (`src/flags.js`), exported as live bindings
+so the switch reaches the renderer on the next frame. That matters more than it
+sounds: what any of these three changes is a seam lasting 70–80ms, and nobody
+can hold one of those in their head across a page reload. Turning it off while
+the fighter is mid-run is the only way to see it.
+
+The bench runs `sim.js stepWorld` and `render.js draw` — the game's own step and
+the game's own renderer — so a pose that reads wrong there reads wrong in a
+match.
+
 ## What a fade cannot fix: the drawings disagreeing
 
 Everything above softens a CUT. None of it can do anything about two drawings

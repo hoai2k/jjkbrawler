@@ -52,5 +52,38 @@ export const DEBUG_HITBOXES = DEBUG_MODES.has("hitbox") || DEBUG_MODES.has("hitb
 const SMOOTH_MODES = new Set(
   (params.get("smooth") || "").split(",").map((s) => s.trim().toLowerCase()).filter(Boolean),
 );
-export const SMOOTH_COM_FADE = SMOOTH_MODES.has("com") || SMOOTH_MODES.has("all");
-export const SMOOTH_HOLD_FADE = SMOOTH_MODES.has("holds") || SMOOTH_MODES.has("all");
+
+// `let`, not `const`, and the only reason is the character bench.
+//
+// An ES module export is a LIVE BINDING: `render.js` imports the name, not the
+// value, so re-assigning it here changes what the renderer sees on the very
+// next frame with no other file knowing. That is what lets
+// `/workbench/?edit=character` put these on switches and have a fighter change
+// under you while you hold the stick — which is the only way to judge a
+// smoothing experiment, because the thing you are judging is a 70ms difference
+// and nobody can hold one in their head across a page reload.
+//
+// The URL still decides where they START, so every other entry point behaves
+// exactly as before, and `setSmoothing` is the only way to move them.
+export let SMOOTH_COM_FADE = SMOOTH_MODES.has("com") || SMOOTH_MODES.has("all");
+export let SMOOTH_HOLD_FADE = SMOOTH_MODES.has("holds") || SMOOTH_MODES.has("all");
+
+/** The cross-fade a state change already ships with (`SPRITE_XFADE` in
+ *  render.js). ON, because it is the game — it is a switch so the bench can
+ *  turn it OFF and show what the other two are being compared against. */
+export let SPRITE_XFADE_ON = true;
+
+/** Move any of the three. Absent keys are left alone, so a caller can flip one
+ *  switch without stating the others. Returns the resulting state, which is
+ *  what an indicator light wants to render. */
+export function setSmoothing({ com, holds, xfade } = {}) {
+  if (com !== undefined) SMOOTH_COM_FADE = !!com;
+  if (holds !== undefined) SMOOTH_HOLD_FADE = !!holds;
+  if (xfade !== undefined) SPRITE_XFADE_ON = !!xfade;
+  return smoothingState();
+}
+
+/** What is on right now. */
+export function smoothingState() {
+  return { com: SMOOTH_COM_FADE, holds: SMOOTH_HOLD_FADE, xfade: SPRITE_XFADE_ON };
+}

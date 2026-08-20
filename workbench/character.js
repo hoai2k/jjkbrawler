@@ -1,0 +1,413 @@
+// THE CHARACTER BENCH — `/workbench/?edit=character`
+//
+// Pick a fighter on the left, drive them on the right. Every action they have
+// in a match, on a pad or the keyboard, with no menus and no opponent to fight
+// you back: the point is to LOOK at a fighter, which a match is a poor place to
+// do because you are busy.
+//
+// IT IS THE GAME, NOT A PREVIEW. The fighter is `makeFighter`, the step is
+// `sim.js stepWorld` — the same one `main.js` runs — and the picture is
+// `render.js draw`. Nothing here re-implements movement, attacks, or drawing,
+// so a pose that reads wrong here reads wrong in a match, which is the only
+// property that makes a bench worth opening. What this file owns is the loop
+// around that, the roster list, and the switches.
+//
+// WHY THE SWITCHES ARE HERE
+//
+// Three smoothing mechanisms sit between the animation data and the screen
+// (src/flags.js): the shipped cross-fade, `com` alignment, and `holds`. Judging
+// any of them means seeing the same fighter do the same thing with the thing on
+// and off, and until now that meant editing a URL and reloading — which loses
+// the pose, the position and your place in the comparison. The flags are live
+// bindings, so these toggles change the next frame while you hold the stick.
+import { state } from "../src/state.js";
+import { loadCoreAssets, ensureMatchAssets } from "../src/assets.js";
+import { initInput, readGamepads, endInputFrame, playerInput, blankInput,
+         connectedPadCount } from "../src/input.js";
+import { stepWorld, makeLatch, latchInputs, clearLatchedEdges } from "../src/sim.js";
+import { makeFighter } from "../src/fighter.js";
+import { updateCamera } from "../src/camera.js";
+import { draw } from "../src/render.js";
+import { getStage } from "../src/stages.js";
+import { initStageFx } from "../src/stage_fx.js";
+import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
+import { applyAllHeightScales } from "../src/heights.js";
+import { setSmoothing, smoothingState } from "../src/flags.js";
+import { FIXED_DT, WORLD } from "../src/constants.js";
+
+const root = document.getElementById("characterRoot");
+const url = new URL(window.location.href);
+
+// A board with a floor and two ledges, so the ledge grab and the teeter are
+// reachable. Any stage works; this one is picked for having somewhere to fall
+// off rather than for how it looks.
+const STAGE = url.searchParams.get("stage") || "shibuya";
+
+// Where the bench's own state lives. Everything else is `state`, the game's.
+const bench = {
+  char: url.searchParams.get("char") || CHARACTER_KEYS[0],
+  dummy: url.searchParams.get("dummy") !== "off",
+  loading: false,
+  fps: 0,
+  // The camera's own zoom is what a match uses, and a match is framed for two
+  // people fighting. A bench is one person LOOKING, so this multiplies it.
+  zoom: Number(url.searchParams.get("zoom")) || 1,
+};
+
+// ------------------------------------------------------------------- the shell
+root.innerHTML = `
+  <header class="bar">
+    <strong>Character Bench</strong>
+    <span class="hint">Every action, on a pad, with nobody hitting back.
+      Runs the game's own step and renderer.</span>
+    <nav class="modes">
+      <a href="?edit=sprites">Sprites →</a>
+      <a href="?edit=verification">Verification →</a>
+      <a href="../index.html">Play →</a>
+    </nav>
+  </header>
+  <div class="charbench">
+    <aside class="roster" id="rosterPane">
+      <div class="roster__head">
+        <label class="roster__search">
+          <input id="rosterFilter" type="search" placeholder="Filter…" autocomplete="off">
+        </label>
+        <p class="roster__hint">↑ ↓ to change · Enter to focus the viewer</p>
+      </div>
+      <ul id="rosterList" class="roster__list" role="listbox" tabindex="0"></ul>
+    </aside>
+    <section class="viewer">
+      <canvas id="benchCanvas" width="1280" height="720"></canvas>
+      <div class="viewer__overlay" id="viewerOverlay"></div>
+      <div class="lights" id="lights">
+        <button class="light" data-mode="xfade" type="button" title="The cross-fade the game ships: the outgoing drawing lingers 0.08s under the new one on a state change">
+          <span class="light__dot"></span><span class="light__name">cross-fade</span>
+        </button>
+        <button class="light" data-mode="com" type="button" title="?smooth=com — a fade lines its two drawings up by their centre of mass and slides it between them">
+          <span class="light__dot"></span><span class="light__name">com align</span>
+        </button>
+        <button class="light" data-mode="holds" type="button" title="?smooth=holds — the slow held loops (idle, crouch, charge) cross-fade their own frame steps">
+          <span class="light__dot"></span><span class="light__name">hold fade</span>
+        </button>
+        <span class="lights__state" id="lightsState"></span>
+      </div>
+      <div class="viewer__foot">
+        <label class="toggle"><input type="checkbox" id="dummyToggle"> training dummy</label>
+        <label class="toggle zoom">zoom
+          <input type="range" id="zoomRange" min="0.6" max="3" step="0.05">
+          <span id="zoomValue"></span>
+        </label>
+        <span class="viewer__pads" id="padState"></span>
+        <span class="viewer__fps" id="fpsState"></span>
+      </div>
+    </section>
+  </div>`;
+
+const canvas = document.getElementById("benchCanvas");
+const ctx = canvas.getContext("2d");
+const listEl = document.getElementById("rosterList");
+const filterEl = document.getElementById("rosterFilter");
+const overlayEl = document.getElementById("viewerOverlay");
+const lightsEl = document.getElementById("lights");
+const lightsStateEl = document.getElementById("lightsState");
+const dummyEl = document.getElementById("dummyToggle");
+const zoomEl = document.getElementById("zoomRange");
+const zoomValueEl = document.getElementById("zoomValue");
+const padEl = document.getElementById("padState");
+const fpsEl = document.getElementById("fpsState");
+
+function resizeCanvas() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const rect = canvas.getBoundingClientRect();
+  if (!rect.width) return;
+  canvas.width = Math.round(rect.width * dpr);
+  canvas.height = Math.round(rect.height * dpr);
+  // The same transform the game sets: everything downstream draws in WORLD
+  // units and never learns how big the window is.
+  ctx.setTransform(canvas.width / WORLD.w, 0, 0, canvas.height / WORLD.h, 0, 0);
+}
+window.addEventListener("resize", resizeCanvas);
+
+// -------------------------------------------------------------------- the list
+const roster = CHARACTER_KEYS.map((key) => ({
+  key, name: CHARACTERS[key]?.fullName || CHARACTERS[key]?.name || key,
+}));
+
+function visibleRoster() {
+  const q = (filterEl.value || "").trim().toLowerCase();
+  if (!q) return roster;
+  return roster.filter((r) => r.key.includes(q) || r.name.toLowerCase().includes(q));
+}
+
+function renderList() {
+  const rows = visibleRoster();
+  listEl.innerHTML = rows.map((r) => `
+    <li role="option" data-key="${r.key}" aria-selected="${r.key === bench.char}"
+        class="${r.key === bench.char ? "is-on" : ""}">
+      <span class="roster__name">${r.name}</span>
+      <span class="roster__key">${r.key}</span>
+    </li>`).join("");
+  const on = listEl.querySelector(".is-on");
+  if (on) on.scrollIntoView({ block: "nearest" });
+}
+
+listEl.addEventListener("click", (e) => {
+  const li = e.target.closest("li[data-key]");
+  if (li) select(li.dataset.key);
+});
+filterEl.addEventListener("input", renderList);
+
+/** Move the selection by `step` through the list as it is currently filtered,
+ *  which is what a person means by "the next one" when they have typed a
+ *  filter. */
+function step(delta) {
+  const rows = visibleRoster();
+  if (!rows.length) return;
+  const at = rows.findIndex((r) => r.key === bench.char);
+  const next = rows[(at + delta + rows.length) % rows.length];
+  select(next.key);
+}
+
+// --------------------------------------------------------------- the sandbox
+const latch = makeLatch([1, 2]);
+
+/** Stand a fighter up on the stage's main platform.
+ *
+ *  `dead` is never set and no stock is counted: a bench fighter cannot lose,
+ *  so walking into the blast zone respawns them where they started rather than
+ *  ending anything. Falling off is a thing to look at, not a fail state.
+ */
+function spawn(charKey) {
+  const main = state.platforms[0];
+  const one = makeFighter(1, charKey, main.x + main.w * 0.4, 1);
+  one.y = main.y;
+  one.grounded = true;
+  one.team = 1;
+  state.fighters = [one];
+  if (bench.dummy) {
+    const two = makeFighter(2, charKey, main.x + main.w * 0.62, -1);
+    two.y = main.y;
+    two.grounded = true;
+    two.team = 2;
+    // No `aiState`: the dummy is driven by `blankInput` below, so it stands
+    // there and takes it. That is the whole job — a grab, a throw and every
+    // strike need a body, and one that fights back is a match, not a look.
+    state.fighters.push(two);
+  }
+  state.hitboxes.length = 0;
+  state.projectiles.length = 0;
+  state.entities.length = 0;
+  state.particles.length = 0;
+  state.popups.length = 0;
+  state.banners.length = 0;
+}
+
+async function select(charKey) {
+  if (bench.loading) return;
+  bench.char = charKey;
+  url.searchParams.set("char", charKey);
+  history.replaceState(null, "", url);
+  renderList();
+  bench.loading = true;
+  overlayEl.textContent = `Loading ${CHARACTERS[charKey]?.name || charKey}…`;
+  overlayEl.classList.add("is-on");
+  try {
+    await ensureMatchAssets([charKey], state.stageKey);
+    applyAllHeightScales();
+    spawn(charKey);
+  } catch (err) {
+    overlayEl.textContent = `Could not load ${charKey}: ${err.message}`;
+    console.warn(err);
+    bench.loading = false;
+    return;
+  }
+  bench.loading = false;
+  overlayEl.classList.remove("is-on");
+}
+
+// --------------------------------------------------------------- the switches
+function paintLights() {
+  const on = smoothingState();
+  for (const btn of lightsEl.querySelectorAll(".light")) {
+    btn.classList.toggle("is-on", !!on[btn.dataset.mode]);
+    btn.setAttribute("aria-pressed", String(!!on[btn.dataset.mode]));
+  }
+  const live = Object.entries(on).filter(([, v]) => v).map(([k]) => k);
+  lightsEl.classList.toggle("is-live", live.length > 0);
+  lightsStateEl.textContent = live.length ? `smoothing: ${live.join(" + ")}` : "no smoothing";
+}
+
+lightsEl.addEventListener("click", (e) => {
+  const btn = e.target.closest(".light");
+  if (!btn) return;
+  const now = smoothingState();
+  setSmoothing({ [btn.dataset.mode]: !now[btn.dataset.mode] });
+  paintLights();
+});
+
+zoomEl.addEventListener("input", () => {
+  bench.zoom = Number(zoomEl.value);
+  zoomValueEl.textContent = `${bench.zoom.toFixed(2)}x`;
+  url.searchParams.set("zoom", String(bench.zoom));
+  history.replaceState(null, "", url);
+});
+
+dummyEl.addEventListener("change", () => {
+  bench.dummy = dummyEl.checked;
+  url.searchParams.set("dummy", bench.dummy ? "on" : "off");
+  history.replaceState(null, "", url);
+  spawn(bench.char);
+});
+
+// ------------------------------------------------------------------ the keys
+//
+// Arrow keys change the fighter, and the game's own controls drive them — which
+// collide on nothing, because the keyboard map for player 1 is WASD and the
+// letter keys (src/config_controls.js). The arrows are free.
+window.addEventListener("keydown", (e) => {
+  if (e.target === filterEl && e.key !== "Escape") return;
+  if (e.key === "ArrowUp") { step(-1); e.preventDefault(); }
+  else if (e.key === "ArrowDown") { step(1); e.preventDefault(); }
+  else if (e.key === "Escape") { filterEl.blur(); canvas.focus(); }
+  else if (e.key === "r" && (e.metaKey || e.ctrlKey)) { /* let the browser reload */ }
+});
+
+// ------------------------------------------------------------------- the loop
+let previous = 0;
+let accumulator = 0;
+// What `updateCamera` believes the zoom is. The value it lerps toward is a
+// property of the match — how far apart the fighters are — so the bench's
+// multiplier is applied to the RESULT and taken back off before the next step,
+// or each frame would compound the last one's and run away.
+let camZoom = 1;
+let frames = 0;
+let fpsAt = 0;
+
+function loop(now) {
+  requestAnimationFrame(loop);
+  const dt = Math.max(0, Math.min((now - previous) / 1000, 1 / 30));
+  previous = now;
+
+  readGamepads();
+  latchInputs(latch, (id) => (id === 1 ? playerInput(1) : blankInput()));
+
+  if (!bench.loading && state.fighters.length) {
+    accumulator = Math.min(accumulator + dt, FIXED_DT * 5);
+    while (accumulator >= FIXED_DT) {
+      stepWorld(FIXED_DT, (f) => (f.id === 1 ? latch[1] : blankInput()));
+      clearLatchedEdges(latch);
+      accumulator -= FIXED_DT;
+      keepOnStage();
+    }
+    state.camera.zoom = camZoom;
+    updateCamera(dt);
+    camZoom = state.camera.zoom;
+    frameForBench();
+  }
+  draw(ctx);
+  endInputFrame();
+
+  frames += 1;
+  if (now - fpsAt > 500) {
+    bench.fps = Math.round((frames * 1000) / (now - fpsAt));
+    frames = 0;
+    fpsAt = now;
+    fpsEl.textContent = `${bench.fps} fps`;
+    const pads = connectedPadCount();
+    padEl.textContent = pads ? `${pads} pad${pads > 1 ? "s" : ""}` : "keyboard";
+  }
+}
+
+/** Zoom in on the fighter being driven, past what a match would.
+ *
+ *  At 1x this does nothing and the game's own camera is what you see, which is
+ *  the default for a reason: the framing is part of how the game reads.
+ *
+ *  Past 1x the bench takes the framing over, and it has to — `updateCamera`
+ *  clamps its centre so the view never leaves the world, and at zoom 1 that
+ *  clamp is the world's exact middle: the camera CANNOT pan. Multiplying its
+ *  zoom without re-centring therefore crops toward the middle of the stage and
+ *  leaves the fighter wherever they happened to be, half out of frame. So the
+ *  centre is taken from the fighter and re-clamped against the tighter view the
+ *  zoom just created.
+ */
+function frameForBench() {
+  const z = camZoom * bench.zoom;
+  state.camera.zoom = z;
+  if (bench.zoom === 1) return;
+  const me = state.fighters[0];
+  if (!me) return;
+  const halfW = WORLD.w / 2 / z;
+  const halfH = WORLD.h / 2 / z;
+  const clamp = (v, lo, hi) => (lo > hi ? (lo + hi) / 2 : Math.max(lo, Math.min(hi, v)));
+  state.camera.x = clamp(me.x, halfW, WORLD.w - halfW);
+  // The same 90px lift the camera gives a solo fighter, so the head has room
+  // and the feet are not on the bottom edge.
+  state.camera.y = clamp(me.y - 90, halfH, WORLD.h - halfH);
+}
+
+/** A fighter who leaves the world comes back, rather than dying.
+ *
+ *  There is no match here to lose, and a bench that empties itself the first
+ *  time somebody walks off the edge would be a bench nobody uses twice. Reset
+ *  is the state a fresh spawn is in, so it is the same call. */
+function keepOnStage() {
+  for (const f of state.fighters) {
+    const out = f.y > WORLD.h + 400 || f.x < -500 || f.x > WORLD.w + 500;
+    if (!out && !f.dead) continue;
+    const main = state.platforms[0];
+    f.dead = false;
+    f.x = main.x + main.w * (f.id === 1 ? 0.4 : 0.62);
+    f.y = main.y;
+    f.vx = 0;
+    f.vy = 0;
+    f.damage = 0;
+    f.grounded = true;
+  }
+}
+
+// -------------------------------------------------------------------- the boot
+async function boot() {
+  overlayEl.textContent = "Loading…";
+  overlayEl.classList.add("is-on");
+  await loadCoreAssets();
+  initInput();
+
+  const stage = getStage(STAGE);
+  state.stageKey = stage.key;
+  state.platforms = stage.platforms.map((p) => ({ ...p }));
+  // `playing` is what the renderer and the camera expect to be looking at; the
+  // bench has no other phase.
+  state.phase = "playing";
+  state.matchTime = 0;
+  state.timeLimit = 0;
+  initStageFx(stage);
+
+  resizeCanvas();
+  renderList();
+  dummyEl.checked = bench.dummy;
+  zoomEl.value = String(bench.zoom);
+  zoomValueEl.textContent = `${bench.zoom.toFixed(2)}x`;
+  camZoom = state.camera.zoom;
+  paintLights();
+  await select(bench.char);
+  requestAnimationFrame((t) => { previous = t; fpsAt = t; loop(t); });
+}
+
+// The bench is a page, and a page that fails silently is a black rectangle
+// nobody can debug. Say it on the canvas.
+boot().catch((err) => {
+  overlayEl.textContent = `Bench failed to start: ${err.message}`;
+  overlayEl.classList.add("is-on");
+  console.error(err);
+});
+
+// For the smoke test: driving a pad from Playwright is not possible, so the
+// check reaches in here instead. Nothing in the page reads these.
+window.__bench = {
+  state: () => ({ char: bench.char, fighters: state.fighters.length,
+                  anim: state.fighters[0]?.animKey, smoothing: smoothingState() }),
+  select,
+  step,
+  press: (key) => { latch[1][key] = true; },
+};

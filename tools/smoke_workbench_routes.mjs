@@ -61,6 +61,8 @@ for (const [mode, expect] of [
   ["audio", "audio"], ["voice", "audio"],
   ["verification", "verification"], ["review", "verification"], ["queue", "verification"],
   ["cards", "cards"], ["card", "cards"], ["crop", "cards"], ["focus", "cards"],
+  ["character", "character"], ["char", "character"], ["fighter", "character"],
+  ["roster", "character"], ["moves", "character"],
 ]) {
   await page.goto(`${BASE}/workbench/?edit=${mode}`, { waitUntil: "load" });
   await page.waitForTimeout(600);
