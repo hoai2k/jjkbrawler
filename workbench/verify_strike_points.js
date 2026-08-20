@@ -28,7 +28,18 @@
 //                  something else (the canvas, an undo) moves it.
 //   draw(task, ctx)                 -> paint the canvas
 //   onCanvasDrag(task, pt, ctx)     -> optional; return a new value
-//   exportBlock(decisions)          -> optional; paste-ready config text
+//   exportBlock(decisions)          -> optional; THIS SITTING'S CHANGES, for
+//                                      tools/apply_verification.mjs to merge
+//
+// WHY CHANGES AND NOT THE WHOLE CONFIG. This block used to carry everything
+// already committed as well, so that pasting it over the file was a complete
+// replacement rather than a truncation. That made the export a snapshot of the
+// tree AS THE BENCH LOADED IT — and a bench stays open. Two sittings from one
+// page load, or a page load older than the last commit, and the second export
+// carries stale values for rows the first one changed; pasting it reverts them
+// with nothing to say it did. Export 20 of these points would have done that to
+// five of export 19's and dropped a sixth. A merge of the changes cannot: a row
+// nobody touched is absent rather than reasserted.
 //
 // The drawing, the guides, the frame stepper and the two sliders are all
 // verify_common.js — a provider is meant to be the part that DIFFERS.
@@ -180,24 +191,10 @@ const fileOf = (charKey, frame) => frameMeta(charKey, frame)?.file || null;
  *  from quietly moving a point somebody already blessed. Flagged items are
  *  listed as comments — they are a job, not a value. */
 function exportBlock(decisions) {
-  const byChar = new Map();
+  const rows = [];
+  const meta = [];
   const flagged = [];
-  // Everything already in the tree goes in FIRST, so the block this produces
-  // is the whole file rather than a fragment. Pasting it over the old one is
-  // then a safe, complete replacement — a block carrying only the current
-  // sitting would silently drop every point committed before it.
-  for (const [char, frames] of Object.entries(STRIKE_POINTS)) {
-    for (const [frame, held] of Object.entries(frames)) {
-      if (!byChar.has(char)) byChar.set(char, new Map());
-      byChar.get(char).set(frame, {
-        char, frame, image: { x: held.x, y: held.y }, file: held.file || null,
-        at: STRIKE_POINT_META[char]?.[frame]?.at || null,
-        states: STRIKE_POINT_META[char]?.[frame]?.states || [],
-        fromTree: true,
-      });
-    }
-  }
-  for (let d of decisions) {
+  for (const d of decisions) {
     if (d.status === "skipped") continue;
     if (d.status === "rejected") {
       flagged.push(`//   ${d.char}.${d.frame || d.state}: ${d.note || "flagged, no note"}`);
@@ -208,38 +205,27 @@ function exportBlock(decisions) {
     // artwork, so it has to survive the sprite being nudged or resized.
     const img = gameToImage(d.char, d.frame, d.value.x, d.value.y);
     if (!img) continue;
-    d = { ...d, image: { x: Math.round(img.x * 10) / 10, y: Math.round(img.y * 10) / 10 } };
-    if (!byChar.has(d.char)) byChar.set(d.char, new Map());
-    // Keyed by FRAME, so two states showing one drawing collapse to one entry.
-    // Last decision wins, and the states it was reviewed under are collected
-    // for the meta — a reader should be able to see that a shared drawing was
-    // signed off from more than one place.
-    const held = byChar.get(d.char).get(d.frame);
-    byChar.get(d.char).set(d.frame, {
-      ...d,
-      states: [...new Set([...(held?.states || []), d.state])],
-    });
-  }
-  const lines = [];
-  const meta = [];
-  for (const [char, frames] of [...byChar].sort()) {
-    const sorted = [...frames].sort(([a], [b]) => a.localeCompare(b));
-    lines.push(`  ${JSON.stringify(char)}: { `
-      + sorted.map(([frame, d]) => `${frame}: { x: ${d.image.x}, y: ${d.image.y}`
-        + `, file: ${JSON.stringify(d.fromTree ? d.file : fileOf(d.char, frame))} }`).join(", ")
-      + ` },`);
-    meta.push(`  ${JSON.stringify(char)}: { `
-      + sorted.map(([frame, d]) => `${frame}: { at: ${JSON.stringify((d.at || "").slice(0, 10))}`
-        + `, states: ${JSON.stringify(d.states)}`
-        + (d.note ? `, note: ${JSON.stringify(d.note)}` : "") + ` }`).join(", ")
-      + ` },`);
+    const x = Math.round(img.x * 10) / 10, y = Math.round(img.y * 10) / 10;
+    const at = (d.at || "").slice(0, 10);
+    rows.push(`  ${JSON.stringify(d.char)}: { ${d.frame}: { x: ${x}, y: ${y}`
+      + `, file: ${JSON.stringify(fileOf(d.char, d.frame))} } },`
+      + (d.note ? `  // ${d.note}` : ""));
+    meta.push(`  ${JSON.stringify(d.char)}: { ${d.frame}: { at: ${JSON.stringify(at)}`
+      + `, states: ${JSON.stringify([d.state].filter(Boolean))}`
+      + (d.note ? `, note: ${JSON.stringify(d.note)}` : "") + ` } },`);
   }
   return {
     file: "src/config_strike_points.js",
-    note: "keyed by sprite frame — a point is a claim about one drawing",
-    text: `export const STRIKE_POINTS = {\n${lines.join("\n")}\n};\n\n`
-      + `export const STRIKE_POINT_META = {\n${meta.join("\n")}\n};\n`
-      + (flagged.length
-        ? `\n// Flagged as broken — these want a fix at the source:\n${flagged.join("\n")}\n` : ""),
+    // THIS SITTING ONLY — see the note at the top of the file. The merge tool
+    // writes these keys over whatever the config holds and leaves the rest
+    // alone, which is the whole reason it is a tool and not a paste.
+    note: "changes from this sitting — apply with "
+      + "`node tools/apply_verification.mjs <the downloaded file>`, do not paste over the config",
+    text: rows.length
+      ? `// STRIKE_POINTS — ${rows.length} change(s) from this sitting\n${rows.join("\n")}\n\n`
+        + `// STRIKE_POINT_META\n${meta.join("\n")}\n`
+        + (flagged.length
+          ? `\n// Flagged as broken — these want a fix at the source:\n${flagged.join("\n")}\n` : "")
+      : "// no changes\n",
   };
 }

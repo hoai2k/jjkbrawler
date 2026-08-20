@@ -207,15 +207,19 @@ export async function muzzleProvider() {
 function blockFor(decisions, key, render) {
   const rows = [];
   const flagged = [];
-  // Committed answers first, so the block is the whole picture for this key
-  // and pasting it replaces rather than truncates.
-  const seen = new Set();
-  for (const [char, held] of Object.entries(BODY_POINTS)) {
-    if (held?.[key] === undefined) continue;
-    if (decisions.some((d) => d.char === char && d.status !== "skipped")) continue;
-    seen.add(char);
-    rows.push(`  ${JSON.stringify(char)}: { ${key}: ${JSON.stringify(held[key])} },`);
-  }
+  // THIS SITTING'S CHANGES ONLY.
+  //
+  // It used to lead with everything already committed, so that pasting the
+  // block over the file replaced rather than truncated. That made the export a
+  // snapshot of the tree AS THE BENCH LOADED IT, and a bench stays open: a
+  // second sitting from the same page load re-asserts stale values over rows
+  // the first one changed, and a paste reverts them silently. The strike
+  // points lost five that way before anybody noticed.
+  //
+  // So the answer is not a better block, it is not pasting: the changes go
+  // through tools/apply_verification.mjs, which writes these keys and leaves
+  // every other key in the file alone. A row nobody touched is then absent
+  // rather than reasserted, which is the only shape that cannot lose work.
   for (const d of decisions) {
     if (d.status === "skipped") continue;
     if (d.status === "rejected") {
@@ -227,8 +231,11 @@ function blockFor(decisions, key, render) {
   }
   return {
     file: "src/config_body_points.js",
-    note: `merge these into BODY_POINTS under each character's "${key}" key`,
-    text: `// ${key}\n${rows.join("\n")}\n`
+    note: "changes from this sitting — apply with "
+      + "`node tools/apply_verification.mjs <the downloaded file>`, do not paste over the config",
+    text: (rows.length
+      ? `// ${key} — ${rows.length} change(s) from this sitting\n${rows.join("\n")}\n`
+      : `// ${key} — no changes\n`)
       + (flagged.length ? `\n// Flagged — a fix at the source:\n${flagged.join("\n")}\n` : ""),
   };
 }

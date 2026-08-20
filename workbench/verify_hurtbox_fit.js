@@ -344,6 +344,13 @@ function fitLiteral(v) {
 function exportBlock(decisions) {
   const byChar = new Map();
   const flagged = [];
+  // THIS SITTING'S CHANGES ONLY. The committed fits used to be listed first so
+  // that pasting the block replaced the file cleanly — which made the export a
+  // snapshot of the tree AS THE BENCH LOADED IT, and a bench stays open. A
+  // second sitting from one page load re-asserts stale values over rows the
+  // first one changed, and a paste reverts them with nothing to say it did.
+  // The changes now go through tools/apply_verification.mjs, which writes
+  // these cases and leaves every other case in the file alone.
   for (const d of decisions) {
     if (d.status === "skipped") continue;
     if (d.status === "rejected") {
@@ -358,18 +365,6 @@ function exportBlock(decisions) {
     if (!byChar.has(d.char)) byChar.set(d.char, []);
     byChar.get(d.char).push(d);
   }
-  // Committed fits first, so the block replaces the file cleanly. A case
-  // carried over keeps whatever art token it was committed with — re-exporting
-  // it must not silently re-bless a fit somebody has not looked at again.
-  for (const [char, held] of Object.entries(HURTBOX_FIT)) {
-    for (const [c, v] of Object.entries(held)) {
-      const list = byChar.get(char) || [];
-      if (list.some((d) => d.case === c)) continue;
-      list.push({ char, case: c, value: v, art: fitState(char, c).stored });
-      byChar.set(char, list);
-    }
-  }
-  // Merged into one pass so a case appears in the same order in both maps.
   const ordered = [...byChar].sort();
   const fits = [], art = [];
   for (const [char, list] of ordered) {
@@ -387,14 +382,17 @@ function exportBlock(decisions) {
   }
   return {
     file: "src/config_body_points.js",
-    note: "replaces HURTBOX_FIT and HURTBOX_FIT_ART — paste both. A box approved "
-      + "as-derived is recorded at 1x1: a no-op multiplier that still says somebody "
-      + "checked it. `dx`/`dy` appear only where the box was shifted off the derived "
-      + "centre. The art token says WHICH DRAWING each answer is about, so a redraw "
-      + "puts the case back on the queue instead of leaving a stale judgement in "
-      + "place unnoticed (src/hurtbox_art.js).",
-    text: `export const HURTBOX_FIT = {\n${fits.join("\n")}\n};\n\n`
-      + `export const HURTBOX_FIT_ART = {\n${art.join("\n")}\n};\n`
+    note: "changes from this sitting — apply with "
+      + "`node tools/apply_verification.mjs <the downloaded file>`, do not paste over the config. "
+      + "A box approved as-derived is recorded at 1x1: a no-op multiplier that still says "
+      + "somebody checked it. `dx`/`dy` appear only where the box was shifted off the derived "
+      + "centre. The art token says WHICH DRAWING each answer is about, so a redraw puts the "
+      + "case back on the queue instead of leaving a stale judgement in place unnoticed "
+      + "(src/hurtbox_art.js).",
+    text: (fits.length
+      ? `// HURTBOX_FIT — ${fits.length} fighter(s) changed this sitting\n${fits.join("\n")}\n\n`
+        + `// HURTBOX_FIT_ART\n${art.join("\n")}\n`
+      : "// no changes\n")
       + (flagged.length ? `\n// Flagged — a fix at the source:\n${flagged.join("\n")}\n` : ""),
   };
 }
