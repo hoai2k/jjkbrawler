@@ -151,10 +151,28 @@ phase and the hurtbox going where the drawing goes:
 | | time | drawn as | worst frame |
 |---|---|---|---|
 | catch | by distance, 450 px/s (0.09–0.40 s) | the fall (or the rise) it came in on, all the way to the ledge, then the hang | 11.2 px |
-| climb | 0.40 s (24 f) | 3 f still hanging, 14 f `jump_rise`, 8 f `land` | 7.9 px |
-| roll | 0.64 s (38 f) | 4 f hanging, 24 f `dodge_roll`, 10 f `land` | 8.2 px |
-| attack | 0.38 s (23 f) | hanging, then `jump_rise` — the swing fires on arrival | 8.0 px |
-| jump off | — | no transition at all: push off *from* the hang and let the arc carry | 6.8 px |
+| climb | 0.40 s (24 f) | 3 f still hanging, 14 f `jump_rise`, 8 f `land` | 11.0 px |
+| roll | 0.64 s (38 f) | 4 f hanging, 24 f `dodge_roll`, 10 f `land` | 12.0 px |
+| attack | 0.38 s (23 f) | hanging, then `jump_rise` — the swing fires on arrival | 11.1 px |
+| jump off | — | no transition at all: push off *from* the hang and let the arc carry | 9.5 px |
+
+**And the grip is part of the trip.** A hang is the only pose placed by an
+anchor rather than by the fighter's position: the drawing's gripping hand goes
+on the platform corner, which carries the body about 130 px below where the
+same drawing standing on its feet would be. That was a pin — on while `f.ledge`
+was set, off the frame it was cleared — so the body popped 110–139 px in one
+frame on the way out, while the hang pose was still what was being drawn, and
+was nailed to the corner for the whole *catch*, not travelling at all, before
+jumping again when the real grip arrived. None of it showed up above, because
+those numbers were measured from the fighter's position and the motion offsets,
+and an anchor is neither.
+
+The grip is now a weight rather than a pin (`LEDGE_GRIP_RELEASE`, 0.36 s), taken
+on when the hang lands and handed back on the way out at a constant rate — with
+the airborne mass-hold easing in as it lets go, each accounting for the other so
+the body is carried once. `tools/smoke_ledge.mjs` measures the drawn body,
+anchor included, which is why the worst frames above went *up* when nothing about
+the trips changed: they are honest now.
 
 None of it waits on new art — the poses are ones every fighter already has.
 

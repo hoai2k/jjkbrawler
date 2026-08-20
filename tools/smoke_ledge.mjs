@@ -62,6 +62,7 @@ try {
     const { updateFighter } = await import("/src/fighter.js");
     const { blankInput } = await import("/src/input.js");
     const { fighterTransform } = await import("/src/motion.js");
+    const { hangGripShift } = await import("/src/render.js");
     const dt = 1 / 60;
     const [a, b] = state.fighters;
     const main = (state.platforms || []).find((p) => p.kind === "main");
@@ -261,9 +262,17 @@ try {
     //     smoothly while holding its hang pose the whole way is still wrong;
     //     the fall has to reach the ledge before the hang starts, and the
     //     climb has to rise and land.
+    //     AND THE ANCHOR COUNTS. A hang is not drawn at the fighter's position:
+    //     the grip goes on the platform corner, which carries the body ~130 px
+    //     down. This measured the position and the motion offsets only, and an
+    //     anchor is neither — so it read the ledge as smooth throughout while
+    //     the body was in fact pinned for the whole catch and popping 110-139
+    //     px on the way out. Everything the renderer moves the drawing by, or
+    //     the check is measuring something nobody sees.
     const drawnAt = () => {
       const m = fighterTransform(a);
-      return { x: a.x + (m.offsetX || 0), y: a.y + (m.offsetY || 0) };
+      const g = hangGripShift(a, a.char.scale);
+      return { x: a.x + (m.offsetX || 0) + g.x, y: a.y + (m.offsetY || 0) + g.y };
     };
     const trace = (frames, input) => {
       const anims = [];
@@ -303,21 +312,25 @@ try {
     out.grabDuring = grab.during.catch || [];
     out.grabbed = !!a.ledge;
     // ...then climb back on.
-    const climb = trace(26, IN({ left: true, dirX: -1 }));
+    // Settled first: the grip takes LEDGE_GRIP_RELEASE to take the body, and an
+    // exit tested before it has is an exit with less to hand back than a real
+    // one — the release is the part being measured.
+    trace(24, blankInput());
+    const climb = trace(30, IN({ left: true, dirX: -1 }));
     out.getupStep = climb.worst;
     out.climbAnims = climb.anims;
     out.climbDuring = climb.during.climb || [];
     out.gotUp = a.grounded && !a.ledge;
     // The roll off it is its own pose.
     fallToLedge();
-    trace(20, blankInput());
+    trace(46, blankInput());
     const roll = trace(48, IN({ shieldHeld: true }));
     out.rollStep = roll.worst;
     out.rollAnims = roll.anims;
     out.rollDuring = roll.during.roll || [];
     // The ledge attack climbs before it swings.
     fallToLedge();
-    trace(20, blankInput());
+    trace(46, blankInput());
     const atk = trace(30, IN({ lightP: true }));
     out.attackStep = atk.worst;
     out.attackAnims = atk.anims;
@@ -325,8 +338,8 @@ try {
     // Jumping off never teleported once the placement was dropped: push off
     // FROM the hang and let the arc carry.
     fallToLedge();
-    trace(20, blankInput());
-    const hop = trace(14, IN({ jumpP: true }));
+    trace(46, blankInput());
+    const hop = trace(16, IN({ jumpP: true }));
     out.jumpStep = hop.worst;
 
     // 6c. LEDGE CAMPING IS PUNISHABLE, on Smash's two rules.

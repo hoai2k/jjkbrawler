@@ -186,6 +186,24 @@ export const LEDGE_CATCH_SPEED = 450;   // px/s
 export const LEDGE_CATCH_MIN = 0.09;    // s, for a catch from right beside it
 export const LEDGE_CATCH_MAX = 0.40;    // s, for the far corner of the reach
 
+// THE GRIP LETS GO OVER TIME, because the drawing is hung from it.
+//
+// A hang is the one pose placed by an anchor rather than by the fighter's own
+// position: the frame's `ledge` grip is put on the platform corner (render.js),
+// which on most fighters carries the body a good 130 px below where the same
+// drawing would stand. That displacement is real and correct while they hang —
+// and it used to vanish in a single frame the moment they left, because the
+// only thing holding it was `f.ledge`, which every exit clears before the hang
+// pose has finished being drawn. The body popped up 110-139 px in one frame,
+// well past where the climb was going to leave it, and settled back down.
+//
+// Nothing caught it: `tools/smoke_ledge.mjs` measured the fighter's position
+// and the motion offsets, and the grip is neither. It measures the drawn body
+// now, this is the ramp that keeps it under the bar, and the same weight eases
+// the grip ON across the catch — where the drawing used to be pinned to the
+// corner for the whole reach and then jumped when the real grip took over.
+export const LEDGE_GRIP_RELEASE = 0.36;  // s to take the body onto the grip, and to hand it back
+
 // LEDGE INTANGIBILITY, on Smash's terms. Two rules, both about the same thing:
 // a ledge is a place you recover THROUGH, not a place you live.
 //
