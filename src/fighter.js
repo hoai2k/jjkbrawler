@@ -28,7 +28,6 @@ import {
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
 import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE } from "./config_tuning.js";
-import { TURN_SWEEP_OVERRIDE } from "./flags.js";
 import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame, sweepsTurns } from "./render_backend.js";
@@ -1280,6 +1279,24 @@ export function updateFighter(f, dt, input) {
   // hanging on ledge
   if (f.ledge) {
     updateLedge(f, dt, input);
+    // A HANG POSE IS ONLY HONEST WHILE THERE IS SOMETHING TO HANG FROM.
+    //
+    // Every ledge exit is taken inside updateLedge, and this branch returns
+    // before `pickAnim` — so an exit that does not name a pose leaves the
+    // fighter wearing the hang, hand closed on air, until the next frame picks
+    // one. The drop-off did exactly that: it clears `f.ledge`, sets a velocity
+    // and returns, and the body fell for a frame still gripping a corner it
+    // had let go of.
+    //
+    // One frame is not nothing now. The cross-fade ghosts the outgoing drawing
+    // for 0.08s, so a single bad frame is five frames of a hand hanging off
+    // nothing, which is how this got noticed at all.
+    //
+    // Narrow on purpose: only when the pose IS the hang, and only once both
+    // the ledge and the transition are gone. A climb ends by setting `land` on
+    // its final frame and must keep it — repairing anything wider would take
+    // that away.
+    if (f.animKey === "ledge" && !f.ledge && !f.ledgeMove) pickAnim(f, input);
     return;
   }
 
@@ -1718,13 +1735,6 @@ export function updateFighter(f, dt, input) {
 // Draw-time state that still has to advance on the fixed clock: tumble spin,
 // the facing sweep, the squash timers and the trail history. Runs after the
 // hitlag early-return, so a frozen fighter is frozen here too.
-/** Should a facing flip sweep? The backend's answer unless the bench forces
- *  one. Exported because the bench's lamp has to show the same answer the
- *  simulation acted on rather than re-deriving it and drifting. */
-export function turnSweeps() {
-  return TURN_SWEEP_OVERRIDE ?? sweepsTurns();
-}
-
 function updatePresentation(f, dt) {
   f.landT = Math.max(0, f.landT - dt);
   f.takeoffT = Math.max(0, f.takeoffT - dt);
@@ -1767,15 +1777,15 @@ function updatePresentation(f, dt) {
   // shared number. They snap, the way 2D fighters always have and the way art
   // drawn in two facings is meant to be shown.
   //
-  // `sweepsTurns` is that question, asked of whoever is drawing.
-  // `TURN_SWEEP_OVERRIDE` forces it for the character bench, which exists to
-  // put the two side by side.
+  // `sweepsTurns` is that question, asked of whoever is drawing. There is no
+  // switch: which of the two a flip should be is a fact about the backend, not
+  // a preference anybody holds, so there is nothing for a preference to say.
   //
   // Cosmetic either way. `facingVis` is read by the renderer and the afterimage
   // trail and by nothing else; `facing` — the one combat, movement and every
   // hitbox use — is what flipped, and it flipped whole.
   if (f.facingVis !== f.facing) {
-    const step = turnSweeps() ? dt / TURN_TIME * 2 : Infinity;
+    const step = sweepsTurns() ? dt / TURN_TIME * 2 : Infinity;
     f.facingVis = Math.abs(f.facing - f.facingVis) <= step
       ? f.facing
       : f.facingVis + Math.sign(f.facing - f.facingVis) * step;

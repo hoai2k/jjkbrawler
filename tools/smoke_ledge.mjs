@@ -452,6 +452,55 @@ try {
     `held tilt 0.45 for 200 frames`);
   check(!r.runHeldGrounded, "...and pushing the stick to a run goes straight over");
   check(r.hitstunLeft, "knockback is never braked — hitstun still leaves the stage");
+
+  // ---- the hang pose is only worn while there is something to hang from
+  //
+  // Every ledge exit is taken inside `updateLedge`, and that branch of
+  // `updateFighter` returns before `pickAnim` — so an exit that does not name a
+  // pose leaves the fighter wearing the hang, hand closed on air, until the
+  // next step picks one. The DROP-OFF did that: it clears `f.ledge`, sets a
+  // velocity and returns, naming nothing.
+  //
+  // One step is not nothing. The cross-fade ghosts the outgoing drawing for
+  // 0.08s, so a single bad step is five frames of a hand hanging off a corner
+  // that is not there, which is how it was noticed.
+  //
+  // Stepped by hand, because the fault is one step wide and anything sampling
+  // over requestAnimationFrame is racing the page's own loop for who reads the
+  // fighter first. And stepped until the hang has SETTLED first: a grab starts
+  // a `catch` transition and `f.ledge` is set while that runs, so stopping at
+  // `f.ledge` alone leaves the fighter mid-reach, where the hang timer is not
+  // read at all and this branch is unreachable.
+  const orphan = await page.evaluate(async () => {
+    const { state } = await import("/src/state.js");
+    const { updateFighter } = await import("/src/fighter.js");
+    const { blankInput } = await import("/src/input.js");
+    const f = state.fighters[0];
+    const plat = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+    const dt = 1 / 60;
+
+    Object.assign(f, {
+      x: plat.x - 24, y: plat.y + 40, vx: 0, vy: 60, grounded: false, airT: 0.5,
+      ledge: null, ledgeMove: null, ledgeCooldown: 0, hitstun: 0, action: null,
+      dead: false, respawnTimer: 0,
+    });
+    for (let i = 0; i < 120 && !(f.ledge && !f.ledgeMove); i++) {
+      updateFighter(f, dt, blankInput());
+    }
+    if (!(f.ledge && !f.ledgeMove)) return { hung: false };
+    // Past the 2.8s hang timer, which is the same branch as pressing down.
+    f.ledgeTimer = 3;
+    updateFighter(f, dt, blankInput());
+    return {
+      hung: true, pose: f.animKey,
+      orphan: f.animKey === "ledge" && !f.ledge && !f.ledgeMove,
+    };
+  });
+  check(orphan.hung, "a fighter dropped beside the lip catches it and settles into the hang");
+  check(orphan.hung && !orphan.orphan,
+    "and letting go changes the pose on the same step it lets go",
+    `drew \`${orphan.pose}\` — remove the guard in fighter.js and this is \`ledge\`, `
+    + "a hand gripping air");
   check(Math.abs(r.restMoved) < 0.01, "standing at the lip is left alone",
     `moved ${r.restMoved}px`);
   check(r.grabbed && r.grabStep <= MOVE_BAR,
