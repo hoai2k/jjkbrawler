@@ -609,8 +609,8 @@ export const MELEE_GRACE = {
 // the "somewhere in between" this was asked for. Raise both to go back toward
 // the old reach, drop them toward 0 to play the drawings as measured.
 export const ADDED_RANGE = {
-  short: 24,
-  long: 4,
+  short: 20,
+  long: 0,
   pastArt: 8,
 };
 
