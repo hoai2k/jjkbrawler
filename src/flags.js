@@ -50,6 +50,28 @@ export function setContactTier(on) {
   return CONTACT_TIER;
 }
 
+/** THE ROSTER'S SIZE, as a multiplier on `HEIGHT_BASE_PX` (config_tuning.js).
+ *
+ *  1 is the game. Anything else is somebody asking the question the level
+ *  design keeps running into: our fighters are about twice the size Smash's
+ *  are relative to their board, so a main platform is 5.7 body heights where
+ *  Battlefield is 11-14, and a full hop clears 1.03 of a body where Mario's
+ *  clears 2.6. Every one of those ratios moves together when this one number
+ *  does, which is what makes it worth a knob rather than an argument.
+ *
+ *  DELIBERATELY NOT A URL FLAG. It is not a mechanic that could ship dark — it
+ *  is a measuring instrument for a decision about art, and the only place it
+ *  can be judged is the character bench with a fighter under your thumb.
+ *  `setRosterScale` (heights.js) is the way to move it, because moving it means
+ *  re-deriving every cached measurement of every body. */
+export let FIGHTER_SCALE = 1;
+
+/** Set by heights.js setRosterScale — call that, not this. */
+export function setFighterScaleRaw(s) {
+  FIGHTER_SCALE = Math.max(0.05, Number(s) || 1);
+  return FIGHTER_SCALE;
+}
+
 /** THE COM-ALIGNED CROSS-FADE — ON, and no longer a switch of its own.
  *
  *  It is part of what the fade IS: a fade that does not line its two drawings

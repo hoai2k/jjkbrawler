@@ -45,9 +45,15 @@
 // for a fighter of HEIGHT_BASE_PX and multiplied through `g.vy` — otherwise a
 // 153 px Momo throws an up smash whose box floats 73 px above her own head.
 
-import { STRIKE_ARC, MELEE_GRACE, REACH_PRICE, SWEETSPOT, HEIGHT_BASE_PX } from "./config_tuning.js";
+import {
+  STRIKE_ARC, MELEE_GRACE, MELEE_SPAN, ADDED_RANGE, REACH_PRICE, SWEETSPOT,
+  HEIGHT_BASE_PX, ART_SCALE,
+} from "./config_tuning.js";
 import { SAKURAI, SMASH_TILT_ANGLE, DASH_LUNGE_DRAG } from "./constants.js";
-import { artReach, bodyWidth, bodyMetrics, moveReach, rosterReach } from "./silhouette.js";
+import {
+  artReach, bodyWidth, bodyMetrics, moveReach, paintedReach, rosterReach,
+  rosterReachSpan,
+} from "./silhouette.js";
 import { clamp } from "./utils.js";
 
 function round1(v) {
@@ -60,13 +66,19 @@ function round1(v) {
  * targets against.
  *
  * Per character because the art is, and per MOVE when a state is named, because
- * the art is that too: the cap is only telling the truth about the grace margin
- * if it is the cap for the move whose box is next to it. Without a state it is
- * the fighter's longest swing, which is the right answer for "how long are this
+ * the art is that too: the cap is only telling the truth about the margin if it
+ * is the cap for the move whose box is next to it. Without a state it is the
+ * fighter's longest swing, which is the right answer for "how long are this
  * fighter's arms".
  */
 export function visibleArtReach(char, state = null) {
-  return state ? moveReach(keyOf(char), state) : artReach(keyOf(char));
+  const key = keyOf(char);
+  if (!state) return artReach(key);
+  // Whichever of the two art bounds is actually deciding this move's box: where
+  // the blow lands, or where the drawing stops. The line is there to make the
+  // margin past the art readable, so it has to be drawn at the bound the margin
+  // was measured from — see tipOf.
+  return Math.max(moveReach(key, state), paintedReach(key, state) ?? 0);
 }
 
 function keyOf(char) {
@@ -107,8 +119,31 @@ function geo(char) {
  * fighter's advantage comes from their arms, not from a bigger lie.
  */
 function tipOf(g, variant, state = null) {
-  const grace = (MELEE_GRACE[variant] ?? MELEE_GRACE.side) * MELEE_GRACE.scale;
-  return moveReach(g.charKey, state) + grace;
+  const base = MELEE_GRACE[variant] ?? MELEE_GRACE.side;
+  const grace = (base + addedFor(g)) * MELEE_GRACE.scale;
+  const tip = moveReach(g.charKey, state) + grace;
+  // ...and never inside the drawing. A forward attack connects at least
+  // ADDED_RANGE.pastArt past the ink of the frame it is thrown on, whatever the
+  // arithmetic above worked out to, because a swing that visually overlaps an
+  // opponent and does nothing is the complaint this whole chain exists to
+  // answer. Straddling moves pass no state and have no forward ink to floor on.
+  const ink = paintedReach(g.charKey, state);
+  return ink == null ? tip : Math.max(tip, ink + ADDED_RANGE.pastArt * MELEE_GRACE.scale);
+}
+
+/**
+ * The extra px this fighter's attacks get on top of the per-move grace, by
+ * where their reach sits between the shortest and longest on the roster.
+ *
+ * More at the short end, and see ADDED_RANGE for why: deriving range from the
+ * drawings moved everybody, the fighters it moved DOWN are the ones who lost
+ * hits they used to land, and a few px on the shortest arms in the game
+ * disturbs spacing far less than the same few px on the longest.
+ */
+function addedFor(g) {
+  const { min, max } = rosterReachSpan();
+  const t = max > min ? clamp((g.reach - min) / (max - min), 0, 1) : 0;
+  return ADDED_RANGE.short + (ADDED_RANGE.long - ADDED_RANGE.short) * t;
 }
 
 /**
@@ -126,7 +161,10 @@ function priceOf(g) {
  *  at the move's tip. */
 function forward(g, tip, oy, h, nearMul = 1) {
   const ox = g.width * MELEE_GRACE.near * nearMul;
-  return { ox, w: Math.max(g.width * 0.45, tip - ox), oy: g.vy(oy), h: g.vy(h) };
+  return {
+    ox, w: Math.max(g.width * MELEE_SPAN.minWidth, tip - ox),
+    oy: g.vy(oy), h: g.vy(h),
+  };
 }
 
 /** A box centred on the fighter, reaching out `span` in both directions —
@@ -240,7 +278,7 @@ export function lightMove(char, variant, jabStep = 0) {
         dmg: round1(p.dmg * 1.1), baseKb: 330, growth: 6.2, angle: p.angle,
         critBand: p.critBand || tipBand(g, tip),
         label: "Dash " + p.label,
-        lungeVx: 44, lunge: true, lungeDrag: DASH_LUNGE_DRAG,
+        lungeVx: 44 * ART_SCALE, lunge: true, lungeDrag: DASH_LUNGE_DRAG,
       };
     }
     case "up":
@@ -248,7 +286,7 @@ export function lightMove(char, variant, jabStep = 0) {
         ...base,
         anim: "upHeavy",
         delay: 0.06 / s, dur: 0.13, recover: 0.2 * priceOf(g),
-        ...straddle(g, tipOf(g, "up") * 0.9, -196, 130),
+        ...straddle(g, tipOf(g, "up") * MELEE_SPAN.up, -196, 130),
         dmg: round1(p.dmg * 0.9), baseKb: 300, growth: 6.0, angle: 1.15,
         label: "Rising " + p.label,
       };
@@ -257,7 +295,7 @@ export function lightMove(char, variant, jabStep = 0) {
         ...base,
         anim: "crouchAttack",
         delay: 0.05 / s, dur: 0.12, recover: 0.18 * priceOf(g),
-        ...forward(g, tipOf(g, "down", "crouchAttack"), -52, 54, 0.8),
+        ...forward(g, tipOf(g, "down", "crouchAttack"), -52, 54, MELEE_SPAN.nearLow),
         dmg: round1(p.dmg * 0.85), baseKb: 250, growth: 5.0,
         // A low poke that stays low. With the flat launch pop gone (combat.js)
         // this finally sends a grounded opponent sliding rather than popping
@@ -270,7 +308,7 @@ export function lightMove(char, variant, jabStep = 0) {
         ...base,
         anim: "airLight",
         delay: 0.05 / s, dur: 0.16, recover: 0.14 * priceOf(g),
-        ...forward(g, tipOf(g, "air", "airLight"), -104, 104, 0.7),
+        ...forward(g, tipOf(g, "air", "airLight"), -104, 104, MELEE_SPAN.nearAir),
         dmg: round1(p.dmg * 0.95), baseKb: 290, growth: 5.9, angle: 0.5,
         label: "Aerial " + p.label,
       };
@@ -279,7 +317,7 @@ export function lightMove(char, variant, jabStep = 0) {
         ...base,
         anim: "airLight",
         delay: 0.05 / s, dur: 0.15, recover: 0.14 * priceOf(g),
-        ...straddle(g, tipOf(g, "up") * 0.9, -210, 120),
+        ...straddle(g, tipOf(g, "up") * MELEE_SPAN.up, -210, 120),
         dmg: round1(p.dmg * 0.9), baseKb: 280, growth: 6.1, angle: 1.3,
         label: "Air Rising " + p.label,
       };
@@ -288,7 +326,7 @@ export function lightMove(char, variant, jabStep = 0) {
         ...base,
         anim: "airLight",
         delay: 0.07 / s, dur: 0.15, recover: 0.18 * priceOf(g),
-        ...straddle(g, tipOf(g, "down") * 0.8, -8, 96),
+        ...straddle(g, tipOf(g, "down") * MELEE_SPAN.down, -8, 96),
         dmg: round1(p.dmg * 1.05), baseKb: 240, growth: 6.6, angle: -1.25,
         label: "Meteor " + p.label, spike: true,
       };
@@ -341,7 +379,7 @@ export function heavyMove(char, variant, charge = 0) {
         dmg: round1(p.dmg * 0.95), baseKb: 420, growth: 8.0, angle: p.angle,
         critBand: p.critBand || tipBand(g, tip),
         label: "Charging " + p.label,
-        lungeVx: 62, lunge: true, lungeDrag: DASH_LUNGE_DRAG,
+        lungeVx: 62 * ART_SCALE, lunge: true, lungeDrag: DASH_LUNGE_DRAG,
       };
     }
     case "up":
@@ -349,7 +387,7 @@ export function heavyMove(char, variant, charge = 0) {
         ...base,
         anim: "upHeavy",
         delay: 0.14 / s, dur: 0.16, recover: 0.32 * price,
-        ...straddle(g, tipOf(g, "upHeavy"), -226, 160),
+        ...straddle(g, tipOf(g, "upHeavy") * MELEE_SPAN.upHeavy, -226, 160),
         dmg: round1(p.dmg * 0.95 * chargeMul), baseKb: 440 * (1 + 0.25 * charge), growth: 8.8, angle: 1.35,
         critBand: p.critBand || null,
         label: "Skyward " + p.label,
@@ -359,7 +397,7 @@ export function heavyMove(char, variant, charge = 0) {
         ...base,
         anim: "downHeavy",
         delay: 0.17 / s, dur: 0.15, recover: 0.34 * price,
-        ...straddle(g, tipOf(g, "downHeavy") * 1.9, -64, 78),
+        ...straddle(g, tipOf(g, "downHeavy") * MELEE_SPAN.downHeavy, -64, 78),
         dmg: round1(p.dmg * 0.9 * chargeMul), baseKb: 400 * (1 + 0.25 * charge), growth: 7.8, angle: 0.9,
         critBand: p.critBand || null,
         label: "Quake " + p.label, quake: true,
@@ -369,7 +407,7 @@ export function heavyMove(char, variant, charge = 0) {
         ...base,
         anim: "airLight",
         delay: 0.13 / s, dur: 0.16, recover: 0.2 * price,
-        ...forward(g, tipOf(g, "airHeavy", "airLight"), -104, 110, 0.7),
+        ...forward(g, tipOf(g, "airHeavy", "airLight"), -104, 110, MELEE_SPAN.nearAir),
         dmg: round1(p.dmg * 0.9), baseKb: 380, growth: 7.6, angle: 0.48,
         critBand: p.critBand || null,
         label: "Aerial " + p.label,
@@ -434,7 +472,14 @@ function arcSpan(half, radius) {
  * @param {number} bodyH  the fighter's rendered height, foot line to head
  */
 export function strikeArcs(m, bodyH) {
+  // Where an arc would start overlapping the fighter's own art. It rides on
+  // every arc returned, because render.js decides how far in the trailing
+  // echoes and the sweetspot ring are worth drawing off it.
   const minRadius = STRIKE_ARC.minRadiusFrac * bodyH;
+  // And whether being that short is a reason not to draw at all. Off by
+  // default — see STRIKE_ARC.hideInsideArt for why redundant beats absent.
+  const floor = STRIKE_ARC.hideInsideArt ? minRadius : 0;
+  const drawable = (r) => r > 0 && r >= floor;
   const x0 = m.ox, x1 = m.ox + m.w;
   const y0 = m.oy, y1 = m.oy + m.h;
   const armY = -STRIKE_ARC.armHeight * bodyH;
@@ -446,13 +491,13 @@ export function strikeArcs(m, bodyH) {
   // box ends on.
   if (straddles && m.h > m.w * 1.2) {
     return y1 <= 0
-      ? vertical(armY, armY - y0, -Math.PI / 2, m.w / 2, minRadius)
-      : vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2, minRadius);
+      ? vertical(armY, armY - y0, -Math.PI / 2, m.w / 2, minRadius, drawable)
+      : vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2, minRadius, drawable);
   }
   // Straddling and hanging at or below the feet: a meteor, wider than it is
   // deep but still aimed straight down.
   if (straddles && y0 > -m.h * 0.3) {
-    return vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2, minRadius);
+    return vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2, minRadius, drawable);
   }
 
   // Sideways. Arm height, unless the box sits low enough that the strike is
@@ -474,20 +519,21 @@ export function strikeArcs(m, bodyH) {
   // and only once a box had dropped far enough to trip that.
   const aim = m.aimTilt || 0;
   const arcs = [];
-  if (x1 >= minRadius) {
+  if (drawable(x1)) {
     arcs.push({ pivotY, radius: x1, aim, span: arcSpan(half, x1), minRadius });
   }
   // Backward too, for the down-smash quakes whose box spans both sides.
-  if (-x0 >= minRadius) {
+  if (drawable(-x0)) {
     arcs.push({ pivotY, radius: -x0, aim: Math.PI, span: arcSpan(half, -x0), minRadius });
   }
   return arcs;
 }
 
 /** The one-arc list for a straight-up or straight-down strike — empty when the
- *  arc would sit inside the fighter's own art. */
-function vertical(pivotY, radius, aim, half, minRadius) {
-  if (radius < minRadius) return [];
+ *  radius is not worth drawing, which by default means only "not positive".
+ *  See STRIKE_ARC.hideInsideArt. */
+function vertical(pivotY, radius, aim, half, minRadius, drawable) {
+  if (!drawable(radius)) return [];
   return [{ pivotY, radius, aim, span: arcSpan(half, radius), minRadius }];
 }
 

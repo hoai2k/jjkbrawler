@@ -8,6 +8,7 @@
 // Every count, palette and speed in here reads from src/config_fx.js.
 
 import { emit, burst, dust, sparkLine, ring } from "./particles.js";
+import { ART_SCALE } from "./config_tuning.js";
 import { FX_DENSITY, HIT_RECIPES, ELEMENT_PALETTES, DASH_FX, PROJ_EMIT, BLACK_FLASH, CHAR_FX } from "./config_fx.js";
 import { rand, pick } from "./utils.js";
 import { state } from "./state.js";
@@ -284,7 +285,7 @@ export function explodeFx(p) {
     case "fire":
       flames(p.x, p.y, n(16, 1), 1.4);
       embers(p.x, p.y, n(12, 1), 1.4);
-      smoke(p.x, p.y - 12, n(5, 1));
+      smoke(p.x, p.y - 12 * ART_SCALE, n(5, 1));
       break;
     case "blood":
       droplets(p.x, p.y, 1, n(9, 1), 1.2);
@@ -311,7 +312,7 @@ export function explodeFx(p) {
 export function dashLaunchFx(f, color, element = f.char.fxElement) {
   if (element === "feather") {
     // Mei Mei: black feathers scatter off the lunge, her ambient signature.
-    flutter(f.x - f.facing * 20, f.y - 90, "#15161c", n(5, 1));
+    flutter(f.x - f.facing * 20, f.y - 90 * ART_SCALE, "#15161c", n(5, 1));
   }
   glints(
     f.x - f.facing * 26, f.y - 80, -f.facing,
@@ -448,8 +449,8 @@ export function muzzleFx(element, x, y, dir, color) {
 /** Maki's Awakening (and any steel install): power as the ABSENCE of glow —
  *  white speed-lines both ways, a dust shockwave, no coloured energy. */
 export function steelInstallFx(f) {
-  glints(f.x, f.y - 90, 1, n(10, 1), 1.3);
-  glints(f.x, f.y - 90, -1, n(10, 1), 1.3);
+  glints(f.x, f.y - 90 * ART_SCALE, 1, n(10, 1), 1.3);
+  glints(f.x, f.y - 90 * ART_SCALE, -1, n(10, 1), 1.3);
   dust(f.x, f.y, 22);
   f.fxTrailT = 1.0;
 }

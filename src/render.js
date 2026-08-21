@@ -8,8 +8,18 @@ import { fighterTransform, trailStrength } from "./motion.js";
 import { bodyMetrics } from "./silhouette.js";
 import { comFrac } from "./body_points.js";
 import {
-  TRAIL_ALPHA, MACH, STRIKE_ARC, COM_HOLD_MAX_FRAC, XFADE_COM_MAX_FRAC, MOTION,
+  TRAIL_ALPHA, MACH, STRIKE_ARC, COM_HOLD_MAX_FRAC, XFADE_COM_MAX_FRAC, MOTION, ART_SCALE,
 } from "./config_tuning.js";
+
+// EVERY DRAWN LENGTH IN THIS FILE IS EITHER BODY OR BOARD.
+//
+// A body-sized number — a shadow, a shield bubble, a meter over somebody's
+// head, the lip of light on a platform — follows the roster's scale, so the
+// camera's compensating zoom puts it on screen exactly where and how big it
+// always was. A board-sized one — a platform's x, its width, the blast zone —
+// does not, and the space opening up between the two is the whole point of
+// the change. `A` is the first kind, short because it appears beside numbers.
+const A = ART_SCALE;
 import { paintShared } from "./shared_paint.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
 import { hitboxRect, hurtbox, summonBox } from "./combat.js";
@@ -228,16 +238,23 @@ export function drawPlatformShape(ctx, p) {
   if (p.shakeMag) ctx.translate((Math.random() - 0.5) * p.shakeMag, (Math.random() - 0.5) * p.shakeMag * 0.5);
   if (p.ghost) {
     ctx.globalAlpha = 0.3;
-    ctx.setLineDash([7, 6]);
+    ctx.setLineDash([7 * A, 6 * A]);
     ctx.strokeStyle = "rgba(180, 200, 230, 0.8)";
-    ctx.lineWidth = 2;
-    roundRect(ctx, p.x, p.y, p.w, p.h, 8);
+    ctx.lineWidth = 2 * A;
+    roundRect(ctx, p.x, p.y, p.w, p.h, 8 * A);
     ctx.stroke();
     ctx.restore();
     return;
   }
+  // THE SLAB'S OWN SHADOW, thrown down and to the right. Every number here is
+  // a fact about the DRAWING rather than about the board: how far the light
+  // pushes the shadow, and how round the corners are. They scale with the
+  // roster (config_tuning.js ART_SCALE) like the slab's thickness does — at
+  // the shipped 42px slab a 12px drop is a lip under the platform, and left
+  // unscaled against a thinner slab it walks out from under it entirely and
+  // reads as a second, floating platform.
   ctx.fillStyle = "rgba(2, 3, 8, 0.45)";
-  roundRect(ctx, p.x + 8, p.y + 12, p.w, p.h, 8);
+  roundRect(ctx, p.x + 8 * A, p.y + 12 * A, p.w, p.h, 8 * A);
   ctx.fill();
 
   // Moved to the platform rather than rebuilt at it: the cached gradient spans
@@ -245,15 +262,17 @@ export function drawPlatformShape(ctx, p) {
   ctx.save();
   ctx.translate(p.x, 0);
   ctx.fillStyle = platformGradient(ctx, p.kind, p.w);
-  roundRect(ctx, 0, p.y, p.w, p.h, 8);
+  roundRect(ctx, 0, p.y, p.w, p.h, 8 * A);
   ctx.fill();
   ctx.restore();
 
+  // The lip of light along the walking surface: a line ON the slab, so its
+  // weight and its inset from the ends are drawing numbers too.
   ctx.strokeStyle = p.accent || (p.kind === "main" ? "rgba(255, 211, 92, 0.55)" : "rgba(97, 216, 255, 0.45)");
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 2 * A;
   ctx.beginPath();
-  ctx.moveTo(p.x + 6, p.y + 1);
-  ctx.lineTo(p.x + p.w - 6, p.y + 1);
+  ctx.moveTo(p.x + 6 * A, p.y + 1 * A);
+  ctx.lineTo(p.x + p.w - 6 * A, p.y + 1 * A);
   ctx.stroke();
   ctx.restore();
 }
@@ -329,7 +348,11 @@ function drawProjectiles(ctx) {
     }
     ctx.save();
     ctx.globalCompositeOperation = "lighter";
-    const grad = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, p.r);
+    // The orb a shot without art falls back to. `r` is the kit's number and
+    // stays one; the LENGTH it becomes here scales with the roster, the same
+    // way the collision radius derived from it does (combat.js hitRegion).
+    const pr = p.r * A;
+    const grad = ctx.createRadialGradient(p.x, p.y, 2 * A, p.x, p.y, pr);
     grad.addColorStop(0, "#ffffff");
     grad.addColorStop(0.45, p.color);
     // Fade to a transparent version of the projectile's OWN colour — a fixed
@@ -337,12 +360,12 @@ function drawProjectiles(ctx) {
     grad.addColorStop(1, colorAlpha(p.color, 0));
     ctx.fillStyle = grad;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, pr, 0, Math.PI * 2);
     ctx.fill();
     ctx.strokeStyle = "rgba(255,255,255,0.55)";
-    ctx.lineWidth = 1.6;
+    ctx.lineWidth = 1.6 * A;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r * 0.72, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, pr * 0.72, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
   }
@@ -421,7 +444,15 @@ function strikeArc(ctx, x, y, facing, a, k, color, power = 1, hb = null, sweet =
   // A heavy swing cuts a heavier line. Both the band's weight and the length of
   // its trail come off the same power, so a jab and a charged smash are told
   // apart at a glance rather than by reading a damage popup afterwards.
-  const thick = clamp(radius * A.thickness, A.thicknessMin, A.thicknessMax)
+  //
+  // `thicknessMin` is held under a fraction of the radius as well as being a
+  // floor, because a short arc gets drawn now (STRIKE_ARC.hideInsideArt) and a
+  // 6 px band on a 12 px radius is a blob rather than a crescent — it would
+  // read as a bloom at the shoulder, which is a different thing than the mark
+  // on a swing's edge. Only the smallest handful of arcs on the roster are
+  // touched by it; everything from a jab upward is on the flat floor.
+  const floor = Math.min(A.thicknessMin, radius * A.thicknessOfRadius);
+  const thick = clamp(radius * A.thickness, floor, A.thicknessMax)
     * (1 + (power - 1) * A.powerThickness);
   // Settings > Strike Arcs. "Simple" drops the echo trail and coarsens the
   // step, which is most of the stroke count, and keeps every reading the arc
@@ -1093,7 +1124,8 @@ function drawTrail(ctx, f) {
     return;
   }
   ctx.shadowColor = f.char.theme;
-  ctx.shadowBlur = 10;
+  // The glow around an afterimage is part of the body it is a copy of.
+  ctx.shadowBlur = 10 * A;
   for (let i = 0; i < f.trail.length; i++) {
     const g = f.trail[i];
     const fade = ((i + 1) / f.trail.length) * TRAIL_ALPHA * strength;
@@ -1113,7 +1145,11 @@ function drawShadow(ctx, f) {
   ctx.globalAlpha = clamp(0.42 - (groundY - f.y) / 900, 0.08, 0.42);
   ctx.fillStyle = "#020308";
   ctx.beginPath();
-  ctx.ellipse(f.x, groundY + 8, 34, 8, 0, 0, Math.PI * 2);
+  // The pool a BODY casts, so it is body-sized: it follows the roster's scale
+  // like the body does, and the two stay the same picture (config_tuning.js
+  // ART_SCALE). Its distance below the feet scales too — a shadow sitting the
+  // old 8px out from a 30% smaller pair of boots reads as a fighter hovering.
+  ctx.ellipse(f.x, groundY + 8 * A, 34 * A, 8 * A, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
@@ -1165,14 +1201,14 @@ export function paintProceduralAura(ctx, f, cx, cy) {
   ctx.globalAlpha = 0.24 + 0.1 * Math.sin(state.matchTime * 8);
   ctx.fillStyle = f.installs.color;
   ctx.beginPath();
-  ctx.ellipse(cx, cy, 56, 96, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx, cy, 56 * A, 96 * A, 0, 0, Math.PI * 2);
   ctx.fill();
   // Distortion Solo: the aura's edge clips like an overdriven signal — a
   // square-wave ring stepping between two radii, not a smooth ellipse.
   if (!f.installs.ampUp) return;
   ctx.globalAlpha = 0.5;
   ctx.strokeStyle = f.installs.color;
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 3 * A;
   ctx.beginPath();
   const steps = 22;
   const spin = state.matchTime * 1.7;
@@ -1199,14 +1235,14 @@ function drawMissingArt(ctx, f, flicker) {
   ctx.fillRect(box.x, box.y, box.w, box.h);
   ctx.globalAlpha = 1;
   ctx.strokeStyle = "#ff5a6e";
-  ctx.lineWidth = 2;
-  ctx.setLineDash([6, 4]);
+  ctx.lineWidth = 2 * A;
+  ctx.setLineDash([6 * A, 4 * A]);
   ctx.strokeRect(box.x, box.y, box.w, box.h);
   ctx.setLineDash([]);
   ctx.fillStyle = "#fff";
-  ctx.font = "bold 11px system-ui, sans-serif";
+  ctx.font = `bold ${11 * A}px system-ui, sans-serif`;
   ctx.textAlign = "center";
-  ctx.fillText("ART MISSING", box.x + box.w / 2, box.y - 6);
+  ctx.fillText("ART MISSING", box.x + box.w / 2, box.y - 6 * A);
   ctx.restore();
 }
 
@@ -1216,10 +1252,10 @@ function drawShieldBubble(ctx, f) {
   ctx.save();
   ctx.globalAlpha = 0.5;
   ctx.strokeStyle = fresh ? "#ffffff" : f.char.theme;
-  ctx.lineWidth = 2 + pct * 5;
+  ctx.lineWidth = (2 + pct * 5) * A;
   ctx.fillStyle = f.char.shadow;
   ctx.beginPath();
-  ctx.arc(f.x, f.y - 70, 52 + pct * 20, 0, Math.PI * 2);
+  ctx.arc(f.x, f.y - 70 * A, (52 + pct * 20) * A, 0, Math.PI * 2);
   ctx.fill();
   ctx.stroke();
   ctx.restore();
@@ -1230,9 +1266,9 @@ function drawShieldMeter(ctx, f) {
   const pct = f.shield / SHIELD_MAX;
   ctx.save();
   ctx.fillStyle = "rgba(6, 10, 20, 0.7)";
-  ctx.fillRect(f.x - 35, f.y - 148, 70, 7);
+  ctx.fillRect(f.x - 35 * A, f.y - 148 * A, 70 * A, 7 * A);
   ctx.fillStyle = pct > 0.35 ? f.char.theme : "#ff5a5a";
-  ctx.fillRect(f.x - 34, f.y - 147, 68 * pct, 5);
+  ctx.fillRect(f.x - 34 * A, f.y - 147 * A, 68 * pct * A, 5 * A);
   ctx.restore();
 }
 
@@ -1252,21 +1288,21 @@ function drawGrabStruggle(ctx, f) {
   ctx.globalCompositeOperation = "lighter";
   ctx.globalAlpha = 0.45 + 0.25 * Math.sin(state.matchTime * 18);
   ctx.strokeStyle = f.grabbedBy.char.theme;
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 3 * A;
   ctx.beginPath();
-  ctx.arc(gx, f.y - 78, 30 + 4 * Math.sin(state.matchTime * 12), 0, Math.PI * 2);
+  ctx.arc(gx, f.y - 78 * A, (30 + 4 * Math.sin(state.matchTime * 12)) * A, 0, Math.PI * 2);
   ctx.stroke();
   // the escape bar: amber draining to red, over the victim's head
   ctx.globalCompositeOperation = "source-over";
   ctx.globalAlpha = 1;
   ctx.fillStyle = "rgba(6, 10, 20, 0.7)";
-  ctx.fillRect(f.x - 35, f.y - 168, 70, 8);
+  ctx.fillRect(f.x - 35 * A, f.y - 168 * A, 70 * A, 8 * A);
   ctx.fillStyle = pct > 0.4 ? "#ffd35a" : "#ff5a5a";
-  ctx.fillRect(f.x - 34, f.y - 167, 68 * pct, 6);
+  ctx.fillRect(f.x - 34 * A, f.y - 167 * A, 68 * pct * A, 6 * A);
   ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 10px system-ui, sans-serif";
+  ctx.font = `bold ${10 * A}px system-ui, sans-serif`;
   ctx.textAlign = "center";
-  ctx.fillText("MASH!", f.x, f.y - 173);
+  ctx.fillText("MASH!", f.x, f.y - 173 * A);
   ctx.restore();
 }
 
@@ -1276,7 +1312,7 @@ function drawDizzyStars(ctx, f) {
   for (let i = 0; i < 3; i++) {
     const a = state.matchTime * 5 + (i * Math.PI * 2) / 3;
     ctx.beginPath();
-    ctx.arc(f.x + Math.cos(a) * 30, f.y - 130 + Math.sin(a) * 8, 4, 0, Math.PI * 2);
+    ctx.arc(f.x + Math.cos(a) * 30 * A, f.y + (-130 + Math.sin(a) * 8) * A, 4 * A, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
@@ -1287,9 +1323,9 @@ function drawCounterAura(ctx, f) {
   ctx.globalCompositeOperation = "lighter";
   ctx.globalAlpha = 0.5 + 0.3 * Math.sin(state.matchTime * 20);
   ctx.strokeStyle = "#a8e6ff";
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 3 * A;
   ctx.beginPath();
-  ctx.arc(f.x, f.y - 70, 62, 0, Math.PI * 2);
+  ctx.arc(f.x, f.y - 70 * A, 62 * A, 0, Math.PI * 2);
   ctx.stroke();
   ctx.restore();
 }
@@ -1303,25 +1339,25 @@ function drawSimpleDomain(ctx, f) {
   ctx.save();
   ctx.globalAlpha = 0.55;
   ctx.strokeStyle = color;
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 2.5 * A;
   ctx.beginPath();
-  ctx.ellipse(f.x, f.y - 6, radius, radius * 0.3, 0, 0, Math.PI * 2);
+  ctx.ellipse(f.x, f.y - 6 * A, radius, radius * 0.3, 0, 0, Math.PI * 2);
   ctx.stroke();
   // the standing wall, faint, so the circle reads as a volume
   ctx.globalAlpha = 0.22;
   ctx.beginPath();
-  ctx.ellipse(f.x, f.y - 110, radius, radius * 1.1, 0, 0, Math.PI * 2);
+  ctx.ellipse(f.x, f.y - 110 * A, radius, radius * 1.1, 0, 0, Math.PI * 2);
   ctx.stroke();
   // ticks around the rim, turning slowly — the technique is holding, not idling
   ctx.globalAlpha = 0.5;
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 3 * A;
   for (let i = 0; i < 8; i++) {
-    const a = (i / 8) * Math.PI * 2 + state.matchTime * 0.9;
-    const x = f.x + Math.cos(a) * radius;
-    const y = f.y - 6 + Math.sin(a) * radius * 0.3;
+    const ang = (i / 8) * Math.PI * 2 + state.matchTime * 0.9;
+    const x = f.x + Math.cos(ang) * radius;
+    const y = f.y - 6 * A + Math.sin(ang) * radius * 0.3;
     ctx.beginPath();
     ctx.moveTo(x, y);
-    ctx.lineTo(x, y - 14);
+    ctx.lineTo(x, y - 14 * A);
     ctx.stroke();
   }
   ctx.restore();
@@ -1338,8 +1374,9 @@ function drawBlindSplatter(ctx, f) {
   for (let i = 0; i < 5; i++) {
     const a = i * 1.7 + Math.floor(state.matchTime * 3) * 0.6;
     ctx.beginPath();
-    ctx.ellipse(f.x - 22 + i * 11, f.y - 150 + Math.sin(a) * 4,
-                7 + (i % 3) * 3, 5 + (i % 2) * 3, a, 0, Math.PI * 2);
+    // Painted on a face, so every number here is body-sized.
+    ctx.ellipse(f.x + (-22 + i * 11) * A, f.y + (-150 + Math.sin(a) * 4) * A,
+                (7 + (i % 3) * 3) * A, (5 + (i % 2) * 3) * A, a, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
@@ -1352,17 +1389,17 @@ function drawNailMarks(ctx, f) {
   ctx.globalCompositeOperation = "lighter";
   const pulse = 0.7 + 0.3 * Math.sin(state.matchTime * 9);
   for (let i = 0; i < f.statuses.nailMarks; i++) {
-    const x = f.x - 24 + i * 10;
-    const y = f.y - 156;
+    const x = f.x + (-24 + i * 10) * A;
+    const y = f.y - 156 * A;
     ctx.globalAlpha = 0.55 * pulse;
     ctx.fillStyle = "#ff9a6a";
     ctx.beginPath();
-    ctx.arc(x, y, 6.5, 0, Math.PI * 2);
+    ctx.arc(x, y, 6.5 * A, 0, Math.PI * 2);
     ctx.fill();
     ctx.globalAlpha = 1;
     ctx.fillStyle = "#ffd7b8";
     ctx.beginPath();
-    ctx.arc(x, y, 2.8, 0, Math.PI * 2);
+    ctx.arc(x, y, 2.8 * A, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
@@ -1383,14 +1420,17 @@ function drawIncomingMarker(ctx, x, y, color, timeLeft) {
   ctx.globalCompositeOperation = "lighter";
   ctx.globalAlpha = 0.25 + 0.5 * p;
   ctx.strokeStyle = color;
-  ctx.lineWidth = 2 + 2 * p;
+  ctx.lineWidth = (2 + 2 * p) * A;
   ctx.beginPath();
-  ctx.ellipse(x, y + 6, RESPAWN_PLATFORM_HALF_W * (2.2 - 1.2 * p), 16 * (2.2 - 1.2 * p), 0, 0, Math.PI * 2);
+  // The disc's WIDTH is the platform's own half-width — a thing a fighter
+  // lands on — so it stays; how thick the disc reads, and how far it sits
+  // under the feet, are drawing numbers and scale.
+  ctx.ellipse(x, y + 6 * A, RESPAWN_PLATFORM_HALF_W * (2.2 - 1.2 * p), 16 * A * (2.2 - 1.2 * p), 0, 0, Math.PI * 2);
   ctx.stroke();
   ctx.globalAlpha = 0.15 + 0.35 * p;
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.ellipse(x, y + 6, RESPAWN_PLATFORM_HALF_W * p, 11 * p, 0, 0, Math.PI * 2);
+  ctx.ellipse(x, y + 6 * A, RESPAWN_PLATFORM_HALF_W * p, 11 * A * p, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
@@ -1407,14 +1447,14 @@ function drawRevivalPlatform(ctx, f) {
   ctx.globalAlpha = (0.35 + 0.45 * p) * blink;
   ctx.fillStyle = f.char.theme;
   ctx.beginPath();
-  ctx.ellipse(plat.x, plat.y + 6, RESPAWN_PLATFORM_HALF_W, 11, 0, 0, Math.PI * 2);
+  ctx.ellipse(plat.x, plat.y + 6 * A, RESPAWN_PLATFORM_HALF_W, 11 * A, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.globalCompositeOperation = "lighter";
   ctx.globalAlpha = (0.4 + 0.4 * p) * blink;
   ctx.strokeStyle = urgent ? "#ffffff" : f.char.theme;
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 2 * A;
   ctx.beginPath();
-  ctx.ellipse(plat.x, plat.y + 6, RESPAWN_PLATFORM_HALF_W, 11, 0, 0, Math.PI * 2);
+  ctx.ellipse(plat.x, plat.y + 6 * A, RESPAWN_PLATFORM_HALF_W, 11 * A, 0, 0, Math.PI * 2);
   ctx.stroke();
   ctx.restore();
 }

@@ -1,5 +1,16 @@
 import { state } from "./state.js";
 import { rand, clamp } from "./utils.js";
+import { ART_SCALE } from "./config_tuning.js";
+
+// EVERY LENGTH IN THIS FILE IS FIGHTER-SIZED, so every one of them follows the
+// roster's size (config_tuning.js ART_SCALE) and the picture does not change:
+// a spark is drawn 70% as big and thrown 70% as far in WORLD pixels, and the
+// camera — zoomed in by the reciprocal — puts it on screen exactly where and
+// exactly how big it always was. Sizes, speeds, gravity, spread and ring radii
+// all go through here, which is why this is the only file that has to know.
+//
+// Positions do NOT scale: an x and a y are a place in the world, not a size.
+const S = ART_SCALE;
 
 /** Low-level spawn for the element recipes in fx.js. Beyond the classic dot
  *  fields, a particle may carry:
@@ -25,11 +36,18 @@ const MAX_BANNERS = 8;
 
 export function emit(props) {
   if (state.particles.length >= MAX_PARTICLES) return;
-  state.particles.push({
+  const p = {
     x: 0, y: 0, vx: 0, vy: 0, gravity: 0,
     size: 4, life: 0.4, maxLife: 0.4, color: "#ffffff",
     ...props,
-  });
+  };
+  p.size *= S;
+  p.vx *= S; p.vy *= S; p.gravity *= S;
+  if (p.ringMax) p.ringMax *= S;
+  if (p.ringR) p.ringR *= S;
+  // A fork carries its own polyline, built at spawn in the caller's pixels.
+  if (p.forkPts) p.forkPts = p.forkPts.map(([dx, dy]) => [dx * S, dy * S]);
+  state.particles.push(p);
 }
 
 export function burst(x, y, color, count = 20, force = 1) {
@@ -39,10 +57,10 @@ export function burst(x, y, color, count = 20, force = 1) {
     const speed = (120 + rand(0, 420)) * force;
     state.particles.push({
       x, y,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed,
-      gravity: 120,
-      size: 3 + rand(0, 9),
+      vx: Math.cos(angle) * speed * S,
+      vy: Math.sin(angle) * speed * S,
+      gravity: 120 * S,
+      size: (3 + rand(0, 9)) * S,
       life: 0.28 + rand(0, 0.48),
       maxLife: 0.76,
       color,
@@ -54,11 +72,11 @@ export function dust(x, y, count = 10) {
   if (state.particles.length >= MAX_PARTICLES) return;
   for (let i = 0; i < count; i++) {
     state.particles.push({
-      x: x + rand(-18, 18), y,
-      vx: rand(-90, 90),
-      vy: -40 - rand(0, 120),
-      gravity: 360,
-      size: 5 + rand(0, 12),
+      x: x + rand(-18, 18) * S, y,
+      vx: rand(-90, 90) * S,
+      vy: (-40 - rand(0, 120)) * S,
+      gravity: 360 * S,
+      size: (5 + rand(0, 12)) * S,
       life: 0.22 + rand(0, 0.35),
       maxLife: 0.57,
       color: "rgba(188, 196, 220, 0.8)",
@@ -70,11 +88,11 @@ export function sparkLine(x, y, dirX, color, count = 12) {
   if (state.particles.length >= MAX_PARTICLES) return;
   for (let i = 0; i < count; i++) {
     state.particles.push({
-      x, y: y + rand(-14, 14),
-      vx: dirX * (220 + rand(0, 480)),
-      vy: rand(-140, 140),
-      gravity: 60,
-      size: 2 + rand(0, 6),
+      x, y: y + rand(-14, 14) * S,
+      vx: dirX * (220 + rand(0, 480)) * S,
+      vy: rand(-140, 140) * S,
+      gravity: 60 * S,
+      size: (2 + rand(0, 6)) * S,
       life: 0.16 + rand(0, 0.3),
       maxLife: 0.46,
       color,
@@ -84,12 +102,12 @@ export function sparkLine(x, y, dirX, color, count = 12) {
 
 export function ring(x, y, color, radius = 60) {
   if (state.particles.length >= MAX_PARTICLES) return;
-  state.particles.push({ ringR: 8, ringMax: radius, x, y, life: 0.32, maxLife: 0.32, color, size: 0, vx: 0, vy: 0, gravity: 0 });
+  state.particles.push({ ringR: 8 * S, ringMax: radius * S, x, y, life: 0.32, maxLife: 0.32, color, size: 0, vx: 0, vy: 0, gravity: 0 });
 }
 
 export function popup(x, y, text, color = "#ffffff", size = 26) {
   if (state.popups.length >= MAX_POPUPS) return;
-  state.popups.push({ x: clamp(x, 60, 1220), y: clamp(y, 60, 660), vy: -46, text, color, size, life: 0.7, maxLife: 0.7 });
+  state.popups.push({ x: clamp(x, 60, 1220), y: clamp(y, 60, 660), vy: -46 * S, text, color, size: size * S, life: 0.7, maxLife: 0.7 });
 }
 
 export function banner(text, color = "#ffffff", opts = {}) {
@@ -155,7 +173,9 @@ export function drawParticles(ctx) {
     if (want !== op) { op = want; ctx.globalCompositeOperation = op; }
     if (p.ringMax) {
       ctx.strokeStyle = p.color;
-      ctx.lineWidth = 3;
+      // The stroke is part of the ring's own drawing, so it scales with
+      // everything else the roster's size moves (S at the top of this file).
+      ctx.lineWidth = 3 * S;
       ctx.beginPath();
       // Floored: canvas throws on a negative radius, and an exception here
       // aborts the whole frame's rendering, not just this one ring.
@@ -165,7 +185,7 @@ export function drawParticles(ctx) {
       // A line along the velocity — the particle IS its own motion blur.
       const k = p.streakLen || 0.045;
       ctx.strokeStyle = liveColor(p);
-      ctx.lineWidth = Math.max(1, p.size / 2.5);
+      ctx.lineWidth = Math.max(1 * S, p.size / 2.5);
       ctx.lineCap = "round";
       ctx.beginPath();
       ctx.moveTo(p.x, p.y);
@@ -174,7 +194,7 @@ export function drawParticles(ctx) {
     } else if (p.shape === "fork" && p.forkPts) {
       // A jagged branch, fixed where it spawned — lightning, cracks.
       ctx.strokeStyle = liveColor(p);
-      ctx.lineWidth = Math.max(1.2, p.size / 3);
+      ctx.lineWidth = Math.max(1.2 * S, p.size / 3);
       ctx.lineJoin = "miter";
       ctx.beginPath();
       ctx.moveTo(p.x, p.y);
@@ -183,7 +203,7 @@ export function drawParticles(ctx) {
     } else {
       ctx.fillStyle = liveColor(p);
       ctx.beginPath();
-      ctx.arc(p.x, p.y, Math.max(0.5, p.size / 2), 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, Math.max(0.5 * S, p.size / 2), 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -197,7 +217,9 @@ export function drawPopupsWorld(ctx) {
   for (const p of state.popups) {
     ctx.globalAlpha = clamp(p.life / 0.35, 0, 1);
     ctx.font = `900 ${p.size}px Inter, sans-serif`;
-    ctx.lineWidth = 4;
+    // The outline that keeps a damage number readable over a bright effect: a
+    // stroke on a glyph, so it scales with the glyph.
+    ctx.lineWidth = 4 * S;
     ctx.strokeStyle = "rgba(0,0,0,0.85)";
     ctx.strokeText(p.text, p.x, p.y);
     ctx.fillStyle = p.color;

@@ -92,6 +92,13 @@ export const state = {
   introT: 0,
   endT: 0,
 
+  // Fraction of the arena's height the stats HUD covers along the TOP edge,
+  // measured from the live DOM by ui.js (the panels are absolutely positioned
+  // CSS chrome, so how much of the picture they eat depends on the window and
+  // on how many seats the match has). The camera frames the fight into what is
+  // left rather than into the whole canvas — see camera.js.
+  hudBand: 0,
+
   // Stage-wide physics modifiers, set per match by initStageFx (stage_fx.js).
   // gravityMul scales GRAVITY; frictionPow < 1 makes ground slick (the
   // per-character friction base is raised to this power).

@@ -29,6 +29,7 @@
 // recently released (fighter.js owns the timer).
 
 import { state } from "./state.js";
+import { ART_SCALE } from "./config_tuning.js";
 import { clamp, rectsOverlap, sign } from "./utils.js";
 import { bodyMetrics } from "./silhouette.js";
 import { resolvedAnim } from "../sprites/src/sprites.js";
@@ -204,8 +205,8 @@ function connectGrab(f, victim) {
   f.hitPause = Math.max(f.hitPause, 0.1);
   victim.hitPause = Math.max(victim.hitPause, 0.12);
   victim.shakeMag = 4;
-  popup(victim.x, victim.y - 160, "GRABBED!", f.char.theme, 20);
-  burst(victim.x, victim.y - 90, f.char.theme, 10, 0.8);
+  popup(victim.x, victim.y - 160 * ART_SCALE, "GRABBED!", f.char.theme, 20);
+  burst(victim.x, victim.y - 90 * ART_SCALE, f.char.theme, 10, 0.8);
   playSfx("grabConnect", 0.9);
   rumbleFighter(victim, 0.5, 0.3, 0.12);
   rumbleFighter(f, 0.3, 0.2, 0.1);
@@ -294,7 +295,7 @@ export function updateGrabbedFighter(f, dt, input) {
   if (mashes) {
     holder.grab.holdT -= mashes * GRAB.mashReduce;
     f.shakeMag = Math.max(f.shakeMag, 2.5);
-    if (Math.random() < 0.35) dust(f.x, f.y - 40, 2);
+    if (Math.random() < 0.35) dust(f.x, f.y - 40 * ART_SCALE, 2);
   }
   setAnim(f, "grabbed");
   f.animTime += dt;
@@ -311,8 +312,8 @@ function breakOut(f, v) {
   v.grounded = false;
   v.invuln = Math.max(v.invuln, 0.35);
   f.landLag = Math.max(f.landLag, GRAB.escapeLag); // the stumble: no act, no move
-  popup(v.x, v.y - 160, "BROKE FREE!", "#ffffff", 22);
-  ring(v.x, v.y - 90, v.char.theme, 90);
+  popup(v.x, v.y - 160 * ART_SCALE, "BROKE FREE!", "#ffffff", 22);
+  ring(v.x, v.y - 90 * ART_SCALE, v.char.theme, 90);
   dust(v.x, v.y, 8);
   playSfx("grabBreak", 0.95);
   rumbleFighter(f, 0.4, 0.25, 0.12);

@@ -115,12 +115,15 @@ ok(after.fighters > 0, "and the new fighter loads and stands up", after.char);
 // the RENDERER sees, not just the button's colour. Reading them back through
 // `smoothingState()` is reading the same binding render.js imports.
 const start = (await read()).smoothing;
-ok(start.xfade === true && start.stride === true,
-   "the switches start where the game ships — both on now", JSON.stringify(start));
-// The COM alignment is no longer among them: it is the fade's, not its own,
-// and `setSmoothing` turns it on with the fade (src/flags.js). What is left is
-// the fade itself and the stride bake.
-for (const mode of ["stride", "xfade"]) {
+// The lamps are whatever the bench offers, not a list written down twice: the
+// com-aligned fade stopped being a switch of its own when it became part of
+// what the fade IS, and this test went on clicking a button that no longer
+// existed. Read the row instead, and assert every lamp it shows.
+const lamps = await page.$$eval(".light[data-mode]", (els) => els.map((e) => e.dataset.mode));
+ok(lamps.length > 0 && lamps.every((m) => start[m] === true),
+   "the switches start where the game ships — all on now",
+   `${lamps.join(", ")} = ${JSON.stringify(start)}`);
+for (const mode of lamps) {
   await page.click(`.light[data-mode="${mode}"]`);
   const now = (await read()).smoothing;
   ok(now[mode] !== start[mode], `the ${mode} switch moves its flag`,
@@ -236,6 +239,186 @@ ok(slowRate < fullRate * 0.35,
    "the speed slider slows the simulation rather than the frame rate",
    `${fullRate.toFixed(0)} steps/s at 1x against ${slowRate.toFixed(1)} at 0.1x`);
 await page.evaluate(() => window.__bench.setSpeed(1));
+
+// --- the two angle readouts
+//
+// A diagonal attack that comes out level is either an angle that never reached
+// the attack or an angle the attack read and drew wrong, and the two need
+// opposite fixes. The bench answers that by showing both numbers, so the check
+// is that each one MOVES WITH THE THING IT CLAIMS TO DESCRIBE: the live one
+// with the stick this frame, the latched one with the attack that read it.
+await page.focus("#benchCanvas");
+const stickReads = [];
+for (const keys of [["KeyW", "KeyD"], ["KeyS", "KeyD"], []]) {
+  for (const k of keys) await page.keyboard.down(k);
+  await page.waitForTimeout(220);
+  stickReads.push(await page.textContent("#stickState"));
+  for (const k of keys) await page.keyboard.up(k);
+  await page.waitForTimeout(140);
+}
+ok(/45°/.test(stickReads[0]) && /-45°/.test(stickReads[1]) && /centred/.test(stickReads[2]),
+   "the stick readout follows the stick", stickReads.join(" | "));
+
+// The latched half, straight through the attack. Driven by stepping the
+// fighter rather than by pressing a key, so the reading and the press are the
+// same statement and neither can be a frame the sampler happened to miss.
+const aim = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { updateFighter } = await import("/src/fighter.js");
+  const { blankInput } = await import("/src/input.js");
+  const f = state.fighters[0];
+  const plat = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+  const swing = (deg, mag) => {
+    const r = (deg * Math.PI) / 180;
+    Object.assign(f, {
+      x: plat.x + plat.w / 2, y: plat.y, vx: 0, vy: 0, grounded: true,
+      hitstun: 0, hitPause: 0, action: null, charging: false, shielding: false,
+      crouching: false, dashT: 0, walking: false, facing: 1, facingVis: 1,
+      aimPoint: null, jabStep: 0, jabResetT: 0, ledge: null, ledgeMove: null,
+      prone: 0, dead: false,
+    });
+    const ax = Math.cos(r) * mag, ay = -Math.sin(r) * mag;
+    updateFighter(f, 1 / 60, {
+      ...blankInput(), lightP: true, moveX: ax, moveY: ay, dirX: Math.sign(ax),
+      right: ax > 0.28, left: ax < -0.28, up: ay < -0.5, down: ay > 0.5,
+    });
+    return { ...f.attackAim };
+  };
+  const rows = [40, -40, 80].map((d) => ({ deg: d, ...swing(d, 1) }));
+  rows.push({ deg: 40, ...swing(40, 0.3) });   // barely off centre
+  // The panel is painted from the fighter on the next frame, so let one pass.
+  await new Promise((r) => requestAnimationFrame(r));
+  await new Promise((r) => requestAnimationFrame(r));
+  return { rows, text: window.__bench.state().aimText };
+});
+const aimed = aim.rows.filter((r) => r.verdict === "aimed");
+ok(aimed.length === 2 && aimed.every((r) => r.tilt === r.deg),
+   "the attack readout records the angle the attack aimed at",
+   aim.rows.map((r) => `${r.deg}°→${r.verdict}/${r.tilt}°`).join("  "));
+ok(aim.rows[2].verdict === "cardinal" && aim.rows[3].verdict === "too near centre",
+   "and says WHY a swing came out level rather than only that it did",
+   `${aim.rows[2].verdict} | ${aim.rows[3].verdict}`);
+ok(/0\.3/.test(aim.text) && /→/.test(aim.text),
+   "the panel shows the last attack's reading and keeps it", aim.text);
+
+// --- who the dummy is
+//
+// Self by default, because most of what this bench answers is about one
+// fighter; anybody else on the roster for the questions where the other body
+// is the question — reach against someone taller, a low attack against Panda.
+// The checks are that the list is the roster in reading order, that picking
+// somebody actually stands THEM up (which means their art was loaded first,
+// not just their name recorded), and that the choice outlives changing the
+// fighter under inspection.
+const pick = await page.$$eval("#dummyChar option", (o) => o.map((x) => x.textContent));
+const names = pick.slice(1);
+ok(pick[0] === "Self" && names.length > 20
+   && JSON.stringify(names) === JSON.stringify([...names].sort((a, b) => a.localeCompare(b))),
+   "the dummy list is Self, then the roster alphabetically",
+   `${pick.length} entries: ${pick.slice(0, 3).join(", ")}…`);
+ok(await page.inputValue("#dummyChar") === "self"
+   && (await page.evaluate(() => window.__bench.state())).dummy
+      === (await page.evaluate(() => window.__bench.state())).char,
+   "and Self stands a copy of the fighter under inspection");
+
+await page.selectOption("#dummyChar", { label: "Panda" });
+await page.waitForFunction(() => window.__bench.state().dummy === "panda", null, { timeout: 30000 })
+  .catch(() => {});
+const picked = await page.evaluate(() => window.__bench.state());
+ok(picked.dummy === "panda", "picking one stands that fighter up instead", `dummy ${picked.dummy}`);
+
+await page.evaluate(() => window.__bench.select("maki"));
+await page.waitForFunction(() => window.__bench.state().char === "maki", null, { timeout: 30000 });
+await page.waitForTimeout(400);
+const kept = await page.evaluate(() => window.__bench.state());
+ok(kept.dummy === "panda" && kept.char === "maki",
+   "and the choice survives changing the fighter under inspection",
+   `${kept.char} against ${kept.dummy}`);
+
+await page.uncheck("#dummyToggle");
+await page.waitForTimeout(150);
+ok(await page.isHidden("#dummyChar")
+   && (await page.evaluate(() => window.__bench.state())).fighters === 1,
+   "no dummy, no picker — a dropdown for an absent fighter is a puzzle");
+await page.check("#dummyToggle");
+await page.waitForTimeout(200);
+ok(await page.isVisible("#dummyChar")
+   && (await page.evaluate(() => window.__bench.state())).dummy === "panda",
+   "and it comes back with the same choice");
+await page.selectOption("#dummyChar", "self");
+await page.waitForTimeout(300);
+
+// --- the wall
+//
+// Every other platform in this game is a floor: landed on from above, passed
+// through from below, and transparent sideways. The bench's wall is the one
+// solid, and what it is FOR is a fighter who can hold a diagonal without
+// walking off the board — so the checks are that walking into it stops you at
+// the drawn body's edge rather than at the origin between your feet, that
+// rising does not pass through it (the floor test is skipped on the way up, so
+// the wall has to hold on its own), and that the switch takes it away again.
+await page.check("#wallToggle");
+await page.waitForTimeout(150);
+const wall = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { updateFighter } = await import("/src/fighter.js");
+  const { blankInput } = await import("/src/input.js");
+  const { bodyMetrics } = await import("/src/silhouette.js");
+  const f = state.fighters[0];
+  const w = state.platforms.find((p) => p.kind === "wall");
+  const main = state.platforms.find((p) => p.kind === "main");
+  if (!w) return { built: false };
+  const half = bodyMetrics(f.spriteChar || f.charKey).width * 0.5;
+  const place = (x, y, vy) => Object.assign(f, {
+    x, y: y ?? main.y, vx: 0, vy: vy || 0, grounded: !vy, hitstun: 0, hitPause: 0,
+    action: null, ledge: null, ledgeMove: null, dead: false, dashT: 0, prone: 0,
+    facing: 1, crouching: false,
+  });
+  const hold = (input, n) => { for (let i = 0; i < n; i++) updateFighter(f, 1 / 60, input); };
+
+  place(w.x - 260);
+  hold({ ...blankInput(), right: true, dirX: 1, moveX: 1 }, 120);
+  const left = { gap: Math.round(w.x - f.x - half), vx: Math.round(f.vx) };
+
+  place(w.x + w.w + 260);
+  hold({ ...blankInput(), left: true, dirX: -1, moveX: -1 }, 120);
+  const right = { gap: Math.round(f.x - (w.x + w.w) - half), vx: Math.round(f.vx) };
+
+  place(w.x - half - 30, main.y - 40, -600);
+  f.vx = 500;
+  hold({ ...blankInput(), right: true, dirX: 1, moveX: 1 }, 10);
+  const rising = f.x <= w.x - half + 1;
+
+  // The case it exists for: hold up-and-forward for two seconds and still be
+  // on the board, with the attack reading the diagonal.
+  place(w.x - 260);
+  const diag = { ...blankInput(), right: true, up: true, dirX: 1, moveX: 0.71, moveY: -0.71 };
+  hold(diag, 120);
+  const held = { grounded: f.grounded, x: Math.round(f.x) };
+  updateFighter(f, 1 / 60, { ...diag, lightP: true });
+  return { built: true, left, right, rising, held, aim: { ...f.attackAim },
+           top: w.y, floor: main.y,
+           // The LOWEST thing above the floor — the greatest y — which is the
+           // tier you climb to first and so the height the wall stops at.
+           tier: Math.max(...state.platforms
+             .filter((p) => p.kind !== "wall" && p.y < main.y).map((p) => p.y)) };
+});
+ok(wall.built && wall.left.gap === 0 && wall.right.gap === 0,
+   "walking into the wall stops the DRAWN body against it, from either side",
+   wall.built ? `gap ${wall.left.gap}px left, ${wall.right.gap}px right` : "no wall was built");
+ok(wall.built && wall.left.vx === 0 && wall.right.vx === 0,
+   "and takes the speed out of the walk instead of pressing on", "vx 0 both ways");
+ok(wall.rising, "and holds a fighter travelling upward, where the floor test is skipped");
+ok(wall.built && wall.held.grounded && wall.aim?.verdict === "aimed",
+   "holding up-and-forward against it stays on the board and still aims the attack",
+   wall.built ? `${wall.aim.deg}° → ${wall.aim.verdict}, still grounded ${wall.held.grounded}` : "");
+ok(wall.built && wall.top === wall.tier,
+   "it runs from the floor to the first tier above it, so the way over is the platforms",
+   wall.built ? `top ${wall.top}, tier ${wall.tier}, floor ${wall.floor}` : "");
+await page.uncheck("#wallToggle");
+await page.waitForTimeout(150);
+ok(!(await page.evaluate(() => window.__bench.state().wall)),
+   "and the switch takes it away again");
 
 ok(errors.length === 0, "no page errors", errors.slice(0, 3).join(" | "));
 

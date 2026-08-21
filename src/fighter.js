@@ -29,7 +29,7 @@ import {
   ATTACK_TILT_LEVEL_DEG, ATTACK_TILT_CARDINAL_DEG, ATTACK_TILT_MIN_MAG,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
-import { TRAIL_LEN, TRAIL_STEP, MACH, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE } from "./config_tuning.js";
+import { TRAIL_LEN, TRAIL_STEP, MACH, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE, ART_SCALE } from "./config_tuning.js";
 import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame, sweepsTurns } from "./render_backend.js";
@@ -264,14 +264,44 @@ function executeMove(f, move, opts = {}) {
  *  not wobble a few degrees with it, and a stick near vertical belongs to the
  *  up or down attack, which are their own moves. */
 function attackTilt(f, input) {
-  const h = Math.abs(input.moveX ?? ((input.right ? 1 : 0) - (input.left ? 1 : 0)));
-  const v = -(input.moveY ?? ((input.down ? 1 : 0) - (input.up ? 1 : 0)));
-  if (Math.hypot(h, v) < ATTACK_TILT_MIN_MAG) return 0;
-  if (h <= 0) return 0;                       // straight up or down: not a tilt
-  const up = Math.atan2(v, h);                // radians above horizontal
+  // `||`, not `??`: an axis of ZERO is an absent axis, not a centred stick.
+  // Only a real pad reports `moveX`/`moveY` — `blankInput` sets both to 0, and
+  // the CPU (ai.js) and the smokes build their input from the direction flags
+  // alone. Reading those zeroes as a centred stick meant a fighter who was
+  // holding down-and-forward could not angle an attack unless a human pad was
+  // holding it, which is the same trap `moveTilt` documents below.
+  const h = Math.abs(input.moveX || ((input.right ? 1 : 0) - (input.left ? 1 : 0)));
+  const v = -(input.moveY || ((input.down ? 1 : 0) - (input.up ? 1 : 0)));
+  const mag = Math.hypot(h, v);
+  const up = mag ? Math.atan2(v, h) : 0;      // radians above horizontal
   const deg = Math.abs(up) * (180 / Math.PI);
-  if (deg < ATTACK_TILT_LEVEL_DEG || deg > ATTACK_TILT_CARDINAL_DEG) return 0;
-  return -up;                                 // positive downward, as y is
+
+  /** WHAT THIS ATTACK MADE OF THE STICK, left on the fighter for the character
+   *  bench to show (`workbench/character.js`, the "attack read" panel).
+   *
+   *  It is written here because here is the only place that knows: by the time
+   *  a hitbox exists the reading has already been turned into a tilt, and a
+   *  tilt of zero is four different answers — the stick was barely off centre,
+   *  it was straight up, it was level, it was steep enough to be the up
+   *  attack. Telling those apart from the outside is guesswork, and the
+   *  question the panel exists to settle is precisely "did my angle reach the
+   *  attack, or did the attack read it and draw it wrong". So the reading says
+   *  which of them it was, and nothing downstream reads it. */
+  const read = (verdict, tilt) => {
+    f.attackAim = {
+      deg: Math.round(up * (180 / Math.PI)),  // above horizontal, folded forward
+      mag: +mag.toFixed(2),
+      tilt: Math.round(-tilt * (180 / Math.PI)),
+      verdict,
+    };
+    return tilt;
+  };
+
+  if (mag < ATTACK_TILT_MIN_MAG) return read("too near centre", 0);
+  if (h <= 0) return read("straight up or down", 0);
+  if (deg < ATTACK_TILT_LEVEL_DEG) return read("level", 0);
+  if (deg > ATTACK_TILT_CARDINAL_DEG) return read("cardinal", 0);
+  return read("aimed", -up);                  // positive downward, as y is
 }
 
 /** Point the BODY along `tilt` (radians, positive downward) for this attack,
@@ -423,7 +453,7 @@ function releaseHeavy(f, input) {
   }
   executeMove(f, move, { grunt: charge > 0.5 });
   if (charge > 0.25) {
-    burst(f.x, f.y - 90, f.char.theme, 14 + charge * 16, 1 + charge);
+    burst(f.x, f.y - 90 * ART_SCALE, f.char.theme, 14 + charge * 16, 1 + charge);
     state.camera.shake = Math.max(state.camera.shake, 3 + charge * 4);
   }
 }
@@ -667,7 +697,7 @@ function tryGrabLedge(f) {
         occupant.vx = side * 170;
         occupant.vy = -240;
         occupant.invuln = Math.max(occupant.invuln, 0.3);
-        dust(occupant.x, occupant.y - 40, 6);
+        dust(occupant.x, occupant.y - 40 * ART_SCALE, 6);
         playSfx("whoosh", 0.6);
       }
       f.ledge = { side, edgeX, plat };
@@ -793,7 +823,49 @@ function moveTilt(input) {
  *  Read by the ledge brake as well as by the contact test, so "the last pixel
  *  you can stand on" is one number rather than two that drift. */
 function standMargin(plat) {
+  // A WALL gets none. The margin is generosity about the last pixel you can
+  // stand on, which is right for a board you are meant to be able to hang off
+  // the end of, and wrong for a 20px pillar — 24px each side would let a
+  // fighter stand on thin air beside one.
+  if (plat.kind === "wall") return 0;
   return plat.kind === "main" ? 14 : plat.kind === "respawn" ? 0 : 24;
+}
+
+/**
+ * WALLS: the one piece of stage a fighter cannot walk through.
+ *
+ * Every platform in this game is a floor — landed on from above, passed
+ * through from below, and completely transparent horizontally. A wall is the
+ * other thing: `{ kind: "wall" }` blocks sideways movement along its whole
+ * height, and is otherwise an ordinary platform, so its top is stood on and
+ * jumped over exactly like any other.
+ *
+ * No stage builds one. It exists for the character bench's wall switch, where
+ * the point is somewhere to push UP AGAINST: an angled attack is thrown by
+ * holding the stick diagonally, holding a diagonal walks you forward, and on
+ * an open board that means the fighter is off the edge before the swing can be
+ * looked at twice.
+ *
+ * Blocked at the DRAWN body's half width rather than at the fighter's origin,
+ * which is a point between their feet. Standing against a wall should look
+ * like standing against it; stopping the origin at the face buries half of
+ * them in it, and that is the one thing this is for looking at.
+ */
+function pushOutOfWalls(f) {
+  for (const w of state.platforms) {
+    if (w.kind !== "wall" || w.ghost) continue;
+    if (f.y <= w.y) continue;                    // on top of it, or over it
+    if (f.y > w.y + w.h + 1) continue;           // below its foot
+    // WHICH SIDE, from where they are rather than from where they were: a wall
+    // is thin and a step is small, so the near face is the one they are
+    // nearest, and nothing has to be remembered between frames for it.
+    const half = bodyMetrics(f.spriteChar || f.charKey).width * 0.5;
+    const side = f.x < w.x + w.w / 2 ? -1 : 1;
+    const limit = (side < 0 ? w.x : w.x + w.w) + side * half;
+    if (side < 0 ? f.x <= limit : f.x >= limit) continue;
+    f.x = limit;
+    if (side * f.vx < 0) f.vx = 0;               // only the speed INTO the wall
+  }
 }
 
 /**
@@ -905,6 +977,7 @@ export function isTeetering(f) {
 }
 
 function resolvePlatforms(f, prevY) {
+  pushOutOfWalls(f);
   f.grounded = false;
   // A fighter's own revival platform is checked first and only for them, so
   // they can stand on it, walk along it, and step off the end of it exactly the
@@ -1098,10 +1171,10 @@ function respawn(f) {
   // Everything Has a Price (Mei Mei): each stock opens with an advance payment
   if (f.char.passive.id === "warCompensation" && f.meter < 25) {
     f.meter = clamp(25, 0, METER_MAX);
-    popup(f.x, f.y - 40, "ADVANCE PAID", "#ffd35a", 16);
+    popup(f.x, f.y - 40 * ART_SCALE, "ADVANCE PAID", "#ffd35a", 16);
   }
   dust(f.x, f.y, 20);
-  ring(f.x, f.y - 40, f.char.theme, 120);
+  ring(f.x, f.y - 40 * ART_SCALE, f.char.theme, 120);
 }
 
 /**
@@ -1209,7 +1282,7 @@ export function updateFighter(f, dt, input) {
       f.miracleT = 0;
       if (f.miracleStock < 3) {
         f.miracleStock += 1;
-        popup(f.x, f.y - 160, `a miracle banked (${f.miracleStock})`, "#c8a8e0", 13);
+        popup(f.x, f.y - 160 * ART_SCALE, `a miracle banked (${f.miracleStock})`, "#c8a8e0", 13);
       }
     }
   }
@@ -1242,8 +1315,8 @@ export function updateFighter(f, dt, input) {
       if (dist < radius && sign(f.vx) === toward && Math.abs(f.vx) > 30) {
         f.vx -= toward * 2600 * dt * (1 - dist / radius);
         if (dist < 130 && Math.random() < 4 * dt) {
-          popup(f.x, f.y - 150, "REPELLED", "#d9a8ff", 15);
-          burst(f.x + toward * 30, f.y - 90, "#d9a8ff", 6, 0.5);
+          popup(f.x, f.y - 150 * ART_SCALE, "REPELLED", "#d9a8ff", 15);
+          burst(f.x + toward * 30, f.y - 90 * ART_SCALE, "#d9a8ff", 6, 0.5);
           playSfx("starRepel", 0.7);
         }
       }
@@ -1270,7 +1343,7 @@ export function updateFighter(f, dt, input) {
     // Flowing Red Scale (Choso): overclocked blood burns him while it's held
     if (f.installs.selfDrainPerSec) f.damage = Math.min(999, f.damage + f.installs.selfDrainPerSec * dt);
     if (f.installs.t <= 0) {
-      popup(f.x, f.y - 170, `${f.installs.label} FADED`, "#9aa4c0", 16);
+      popup(f.x, f.y - 170 * ART_SCALE, `${f.installs.label} FADED`, "#9aa4c0", 16);
       // A transformation ends with the install that carried it: back to your
       // own body (config_transform.js).
       if (f.installs.spriteChar) f.spriteChar = null;
@@ -1471,7 +1544,7 @@ export function updateFighter(f, dt, input) {
     } else {
       f.charging.t += dt;
       if (!input.heavyHeld || f.charging.t >= 0.8) releaseHeavy(f, input);
-      else if (Math.random() < 0.3) burst(f.x, f.y - 90, f.char.theme, 1, 0.5);
+      else if (Math.random() < 0.3) burst(f.x, f.y - 90 * ART_SCALE, f.char.theme, 1, 0.5);
     }
   }
 
@@ -1592,17 +1665,17 @@ export function updateFighter(f, dt, input) {
     } else if (openSlot >= 0 && f.char.domains?.[openSlot]) {
       f.bufferedAction = null;
       if (canOpenDomain(f, openSlot)) performDomain(f, openSlot);
-      else if (f.meter < DOMAIN_METER_COST) popup(f.x, f.y - 160, "NEEDS A FULL BAR", "#9aa4c0", 15);
+      else if (f.meter < DOMAIN_METER_COST) popup(f.x, f.y - 160 * ART_SCALE, "NEEDS A FULL BAR", "#9aa4c0", 15);
     } else if (domainSpecial) {
       f.bufferedAction = null;
       performSpecial(f, domainSpecial);
     } else if (input.domainP) {
-      popup(f.x, f.y - 160, "NO DOMAIN", "#9aa4c0", 15);
+      popup(f.x, f.y - 160 * ART_SCALE, "NO DOMAIN", "#9aa4c0", 15);
     } else if (input.ultP && f.meter >= ULT_METER_COST) {
       performUltimate(f);
     } else if (input.ultP && f.meter < ULT_METER_COST) {
       // Same wording as the domain refusal — they cost the same thing now.
-      popup(f.x, f.y - 160, "NEEDS A FULL BAR", "#9aa4c0", 15);
+      popup(f.x, f.y - 160 * ART_SCALE, "NEEDS A FULL BAR", "#9aa4c0", 15);
     } else {
       // A fresh press wins over a buffered one; the buffer only covers inputs
       // that arrived while the fighter was busy.
@@ -1823,7 +1896,9 @@ export function updateFighter(f, dt, input) {
   brakeAtLedge(f, input);
   f.y += f.vy * dt;
   if (f.vy >= 0 || f.grounded) resolvePlatforms(f, prevY);
-  else f.grounded = false;
+  // Rising skips the floor test — there is no floor to catch on the way up —
+  // but a wall stops you whichever way you are travelling.
+  else { pushOutOfWalls(f); f.grounded = false; }
 
   if (!f.grounded) tryGrabLedge(f);
   // After the contact test, so it reads the platform this step actually left

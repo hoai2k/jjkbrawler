@@ -4,6 +4,7 @@
 // get bespoke handlers; common shapes share primitives.
 
 import { state } from "./state.js";
+import { ART_SCALE } from "./config_tuning.js";
 // Effects spawned from CODE draw here rather than through render.js, so the
 // per-drawing nudge has to be applied at each of them or the workbench dial
 // silently does nothing for exactly the art that needs it most: a wall, a
@@ -40,7 +41,7 @@ import { isFoe } from "./teams.js";
 // overwritten by special-move buffs (1).
 export function applyInstall(f, install, priority = 1) {
   if (f.installs && (f.installs.priority || 1) > priority) {
-    popup(f.x, f.y - 170, "ALREADY SURGING", "#9aa4c0", 15);
+    popup(f.x, f.y - 170 * ART_SCALE, "ALREADY SURGING", "#9aa4c0", 15);
     return false;
   }
   f.installs = { ...install, priority };
@@ -91,9 +92,9 @@ export function spokenCast(f, lineEl, call) {
       // it gets a puff of breath at head height and a quiet word, not a hit's
       // worth of spectacle, and no screen shake at all. The fighter is about to
       // be in hitstun from whatever cut them off, and that is the loud part.
-      dust(f.x + f.facing * 18, f.y - 132, 6);
-      burst(f.x + f.facing * 18, f.y - 132, "#9aa4c0", 7, 0.5);
-      popup(f.x, f.y - 168, "CUT OFF", "#9aa4c0", 15);
+      dust(f.x + f.facing * 18, f.y - 132 * ART_SCALE, 6);
+      burst(f.x + f.facing * 18, f.y - 132 * ART_SCALE, "#9aa4c0", 7, 0.5);
+      popup(f.x, f.y - 168 * ART_SCALE, "CUT OFF", "#9aa4c0", 15);
     },
   };
 }
@@ -123,12 +124,12 @@ export function performSpecial(f, slot) {
   if (!cfg) return;
   if (f.cooldowns[slot] > 0) return;
   if (f.statuses.silence > 0) {
-    popup(f.x, f.y - 160, "TECHNIQUE SEALED", "#a8aeb8", 16);
+    popup(f.x, f.y - 160 * ART_SCALE, "TECHNIQUE SEALED", "#a8aeb8", 16);
     return;
   }
   if (f.char.passive.id === "throatStrain") {
     if (f.throatLock > 0) {
-      popup(f.x, f.y - 160, "*cough*", "#d7d9e7", 16);
+      popup(f.x, f.y - 160 * ART_SCALE, "*cough*", "#d7d9e7", 16);
       return;
     }
   }
@@ -146,7 +147,7 @@ export function performSpecial(f, slot) {
       if (f.throatStrain >= 3) {
         f.throatStrain = 0;
         f.throatLock = 2.5;
-        popup(f.x, f.y - 176, "THROAT STRAIN!", "#ff8a8a", 18);
+        popup(f.x, f.y - 176 * ART_SCALE, "THROAT STRAIN!", "#ff8a8a", 18);
       }
     }
   };
@@ -231,8 +232,8 @@ const HANDLERS = {
     // Name what answered. With five shikigami on one button, the player has to
     // be told which one they got — the creature is the information, not the
     // technique, and its own art may not be drawn yet.
-    if (rolled?.name) popup(f.x, f.y - 176, rolled.name.toUpperCase(), spec.color || f.char.theme, 18);
-    ring(f.x, f.y - 80, spec.color || f.char.theme, 110);
+    if (rolled?.name) popup(f.x, f.y - 176 * ART_SCALE, rolled.name.toUpperCase(), spec.color || f.char.theme, 18);
+    ring(f.x, f.y - 80 * ART_SCALE, spec.color || f.char.theme, 110);
     playSfx("blast", 0.6, 1.2);
     grantSummonMeter(f, cfg);
   },
@@ -243,7 +244,7 @@ const HANDLERS = {
     // Blood Manipulation (Choso): blood techniques are paid for in blood
     if (p.bloodCost) {
       f.damage = Math.min(999, f.damage + p.bloodCost);
-      burst(f.x, f.y - 90, "#c22e4a", 6, 0.5);
+      burst(f.x, f.y - 90 * ART_SCALE, "#c22e4a", 6, 0.5);
     }
     // Distortion Solo (Gakuganji): amped Power Chords fire an extra wave
     let count = p.count || 1;
@@ -332,7 +333,7 @@ const HANDLERS = {
     effortSound(f, cfg);
     spawnMelee(f, { ...p });
     if (p.sprite) spawnSummonFlash(f, p.sprite, 0.52, p.spriteH || 220, p.spriteForward || 105);
-    if (p.unblockable) ring(f.x + f.facing * 70, f.y - 90, p.color || f.char.theme, 80);
+    if (p.unblockable) ring(f.x + f.facing * 70, f.y - 90 * ART_SCALE, p.color || f.char.theme, 80);
   },
 
   commandGrab(f, p, cfg) {
@@ -345,7 +346,7 @@ const HANDLERS = {
       effect: p.effect, label: cfg.name, unblockable: true, sfx: "blast",
     });
     if (p.sprite) spawnSummonFlash(f, p.sprite, 0.5, p.spriteH || 150, p.spriteForward || 78);
-    burst(f.x + f.facing * 70, f.y - 96, p.color || f.char.theme, 18, 0.8);
+    burst(f.x + f.facing * 70, f.y - 96 * ART_SCALE, p.color || f.char.theme, 18, 0.8);
   },
 
   counter(f, p, cfg) {
@@ -361,7 +362,7 @@ const HANDLERS = {
       // blast made the fastest sword in the game sound like everyone else.
       sfx: p.sfx,
     };
-    ring(f.x, f.y - 90, p.color || f.char.theme, 100);
+    ring(f.x, f.y - 90 * ART_SCALE, p.color || f.char.theme, 100);
     playSfx("shield", 0.7, 1.4);
   },
 
@@ -377,10 +378,10 @@ const HANDLERS = {
     });
     if (!ok) return;
     banner(p.label || cfg.name, p.color || f.char.theme, { y: 240, size: 38, life: 1.0 });
-    ring(f.x, f.y - 90, p.color || f.char.theme, 140);
+    ring(f.x, f.y - 90 * ART_SCALE, p.color || f.char.theme, 140);
     // Steel fighters power up with speed-lines and dust, never a glow.
     if (f.char.fxElement === "steel") steelInstallFx(f);
-    else burst(f.x, f.y - 90, p.color || f.char.theme, 26, 1.2);
+    else burst(f.x, f.y - 90 * ART_SCALE, p.color || f.char.theme, 26, 1.2);
     playSfx("ult", 0.6);
   },
 
@@ -398,7 +399,7 @@ const HANDLERS = {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
     if (p.sprite) spawnSummonFlash(f, p.sprite, 0.42, p.spriteH || 190, 0);
     if (!opp || opp.dead || Math.abs(opp.x - f.x) > (p.range || 560) || opp.respawnTimer > 0) {
-      popup(f.x, f.y - 160, "clap.", "#b66cff", 18);
+      popup(f.x, f.y - 160 * ART_SCALE, "clap.", "#b66cff", 18);
       playSfx("miss", 0.8);
       return;
     }
@@ -418,7 +419,7 @@ const HANDLERS = {
     f.grounded = false; opp.grounded = false;
     f.vy = Math.min(f.vy, 0); opp.vy = Math.min(opp.vy, 0);
     f.facing = sign(opp.x - f.x) || f.facing;
-    popup(f.x, f.y - 170, "BOOGIE WOOGIE", p.color, 22);
+    popup(f.x, f.y - 170 * ART_SCALE, "BOOGIE WOOGIE", p.color, 22);
     playSfx("blast", 0.8, 1.3);
     playSfx("boogieClap", 1); // the dry, huge clap: the technique IS this sound
     state.camera.shake = Math.max(state.camera.shake, 6);
@@ -431,18 +432,18 @@ const HANDLERS = {
 
   shadowPort(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.34);
-    burst(f.x, f.y - 70, p.color || "#20244a", 22, 1);
+    burst(f.x, f.y - 70 * ART_SCALE, p.color || "#20244a", 22, 1);
     dust(f.x, f.y, 12);
     f.x = clamp(f.x + f.facing * (p.dist || 300), 70, 1210);
     f.invuln = Math.max(f.invuln, p.iframes || 0.4);
-    burst(f.x, f.y - 70, p.color || "#20244a", 22, 1);
+    burst(f.x, f.y - 70 * ART_SCALE, p.color || "#20244a", 22, 1);
     playSfx("whoosh", 0.9, 0.8);
   },
 
   heal(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), p.duration || 1.4, { lockMovement: true });
     f.healing = { t: p.duration || 1.4, rate: p.healPerSec || 8 };
-    ring(f.x, f.y - 90, p.color || "#a5ffd8", 90);
+    ring(f.x, f.y - 90 * ART_SCALE, p.color || "#a5ffd8", 90);
     playSfx("shield", 0.5, 1.5);
     if (p.castSfx) playSfx(p.castSfx, 0.8);
   },
@@ -453,33 +454,33 @@ const HANDLERS = {
     if (p.takada) {
       f.meter = clamp(f.meter + 8, 0, METER_MAX);
       f.damage = Math.max(0, f.damage - 2);
-      popup(f.x, f.y - 170, "TAKADA-CHAN ♥", "#ffd6f2", 22);
-      ring(f.x, f.y - 90, "#ffd6f2", 110);
+      popup(f.x, f.y - 170 * ART_SCALE, "TAKADA-CHAN ♥", "#ffd6f2", 22);
+      ring(f.x, f.y - 90 * ART_SCALE, "#ffd6f2", 110);
       return;
     }
     const roll = Math.random();
     if (roll < 0.35) {
       f.meter = clamp(f.meter + 18, 0, METER_MAX);
-      popup(f.x, f.y - 170, "REACH! +METER", "#ffd35a", 20);
+      popup(f.x, f.y - 170 * ART_SCALE, "REACH! +METER", "#ffd35a", 20);
     } else if (roll < 0.6) {
       f.damage = Math.max(0, f.damage - 8);
-      popup(f.x, f.y - 170, "LUCKY! HEALED", "#a5ffd8", 20);
+      popup(f.x, f.y - 170 * ART_SCALE, "LUCKY! HEALED", "#a5ffd8", 20);
     } else if (roll < 0.8) {
       if (applyInstall(f, { t: 4, label: "HOT STREAK", color: "#ff62cf", dmgMul: 1.15 })) {
-        popup(f.x, f.y - 170, "HOT STREAK!", "#ff62cf", 20);
+        popup(f.x, f.y - 170 * ART_SCALE, "HOT STREAK!", "#ff62cf", 20);
       }
     } else {
       f.meter = clamp(f.meter - 6, 0, METER_MAX);
-      popup(f.x, f.y - 170, "BUST… -METER", "#ff8a8a", 18);
+      popup(f.x, f.y - 170 * ART_SCALE, "BUST… -METER", "#ff8a8a", 18);
     }
-    burst(f.x, f.y - 100, "#ffd35a", 18, 0.9);
+    burst(f.x, f.y - 100 * ART_SCALE, "#ffd35a", 18, 0.9);
   },
 
   modeToggle(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.4);
     if (f.installs && f.installs.id === "gorilla") {
       f.installs = null;
-      popup(f.x, f.y - 170, "PANDA CORE", "#8ea0b8", 20);
+      popup(f.x, f.y - 170 * ART_SCALE, "PANDA CORE", "#8ea0b8", 20);
       return;
     }
     effortSound(f, cfg);
@@ -489,7 +490,7 @@ const HANDLERS = {
     });
     if (!ok) return;
     banner(p.label, p.color, { y: 240, size: 36, life: 0.9 });
-    burst(f.x, f.y - 100, p.color, 26, 1.2);
+    burst(f.x, f.y - 100 * ART_SCALE, p.color, 26, 1.2);
     state.camera.shake = Math.max(state.camera.shake, 5);
   },
 
@@ -507,10 +508,10 @@ const HANDLERS = {
     });
     // Sound made visible: stacked concentric wavefronts and a cone of
     // streaks, not one lonely ring.
-    ring(f.x + f.facing * 80, f.y - 100, p.color, 60);
-    ring(f.x + f.facing * 80, f.y - 100, p.color, 120);
-    ring(f.x + f.facing * 80, f.y - 100, "#ffffff", 180);
-    glints(f.x + f.facing * 40, f.y - 100, f.facing, 8, 0.9, [p.color, "#ffffff"]);
+    ring(f.x + f.facing * 80, f.y - 100 * ART_SCALE, p.color, 60);
+    ring(f.x + f.facing * 80, f.y - 100 * ART_SCALE, p.color, 120);
+    ring(f.x + f.facing * 80, f.y - 100 * ART_SCALE, "#ffffff", 180);
+    glints(f.x + f.facing * 40, f.y - 100 * ART_SCALE, f.facing, 8, 0.9, [p.color, "#ffffff"]);
     // Inumaki's shouts keep the pitched-up blast; Tengen's barrier has its own
     // recording. The 1.2 goes with the borrowed file — a generic blast was
     // sped up so a shout would not sound like an explosion, and a sound made
@@ -522,13 +523,13 @@ const HANDLERS = {
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
     const opp = opponentOf(f);
     if (!opp || opp.dead || Math.abs(opp.x - f.x) > p.range || opp.respawnTimer > 0) {
-      popup(f.x, f.y - 160, "…too far", "#9aa4c0", 15);
+      popup(f.x, f.y - 160 * ART_SCALE, "…too far", "#9aa4c0", 15);
       return;
     }
     // After the range check, like every other handler that guards first: a
     // command with nobody in reach is not spoken, it is not even attempted.
     effortSound(f, cfg);
-    ring(opp.x, opp.y - 90, p.color, 100);
+    ring(opp.x, opp.y - 90 * ART_SCALE, p.color, 100);
     const res = applyHit(f, opp, {
       dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: 0.1,
       label: cfg.name, sfx: "blast",
@@ -545,12 +546,12 @@ const HANDLERS = {
     const opp = opponentOf(f);
     const marks = opp ? opp.statuses.nailMarks : 0;
     if (!opp || marks <= 0) {
-      popup(f.x, f.y - 160, "no nails set…", "#9aa4c0", 15);
+      popup(f.x, f.y - 160 * ART_SCALE, "no nails set…", "#9aa4c0", 15);
       return;
     }
     effortSound(f, cfg);
-    burst(opp.x, opp.y - 90, "#ff9a6a", 16 + marks * 8, 1 + marks * 0.2);
-    ring(opp.x, opp.y - 90, "#ff9a6a", 70 + marks * 25);
+    burst(opp.x, opp.y - 90 * ART_SCALE, "#ff9a6a", 16 + marks * 8, 1 + marks * 0.2);
+    ring(opp.x, opp.y - 90 * ART_SCALE, "#ff9a6a", 70 + marks * 25);
     applyHit(f, opp, {
       dmg: p.dmgPerMark * marks,
       baseKb: p.base + marks * 40,
@@ -566,11 +567,11 @@ const HANDLERS = {
     const opp = opponentOf(f);
     const marks = opp ? opp.statuses.nailMarks : 0;
     if (!opp || marks <= 0) {
-      popup(f.x, f.y - 160, "no nails set…", "#9aa4c0", 15);
+      popup(f.x, f.y - 160 * ART_SCALE, "no nails set…", "#9aa4c0", 15);
       return;
     }
     if (opp.invuln > 0 || opp.respawnTimer > 0 || opp.dead) {
-      popup(f.x, f.y - 160, "…no resonance", "#9aa4c0", 15);
+      popup(f.x, f.y - 160 * ART_SCALE, "…no resonance", "#9aa4c0", 15);
       return;
     }
     effortSound(f, cfg);
@@ -578,10 +579,10 @@ const HANDLERS = {
     opp.damage = Math.min(999, opp.damage + dmg);
     opp.hitstun = Math.max(opp.hitstun, p.hitstun);
     opp.statuses.nailMarks = Math.floor(marks / 2);
-    burst(opp.x, opp.y - 90, p.color, 26, 1.1);
-    ring(opp.x, opp.y - 90, p.color, 120);
-    popup(opp.x, opp.y - 140, `RESONANCE ${dmg}%`, p.color, 22);
-    popup(f.x, f.y - 160, "…hurts, right?", "#d86a4a", 15);
+    burst(opp.x, opp.y - 90 * ART_SCALE, p.color, 26, 1.1);
+    ring(opp.x, opp.y - 90 * ART_SCALE, p.color, 120);
+    popup(opp.x, opp.y - 140 * ART_SCALE, `RESONANCE ${dmg}%`, p.color, 22);
+    popup(f.x, f.y - 160 * ART_SCALE, "…hurts, right?", "#d86a4a", 15);
     playSfx("blast", 0.9, 0.8);
     state.camera.shake = Math.max(state.camera.shake, 7);
   },
@@ -626,7 +627,7 @@ const HANDLERS = {
           dmg: p.echoDmg, base: p.echoBase, growth: p.echoGrowth, angle: p.echoAngle,
           label: "Divergent Impact", sfx: "blast",
         });
-        burst(self.x + self.facing * 80, self.y - 96, p.color || self.char.theme, 18, 1.0);
+        burst(self.x + self.facing * 80, self.y - 96 * ART_SCALE, p.color || self.char.theme, 18, 1.0);
         if (p.sprite) spawnSummonFlash(self, p.sprite, 0.3, p.spriteH || 140, 80);
         playSfx("blast", 0.85, 1.1);
       },
@@ -637,7 +638,7 @@ const HANDLERS = {
   payToWin(f, p, cfg) {
     if (f.meter < p.cost) {
       f.cooldowns[currentSlot(cfg, f)] = 0.6; // a declined card shouldn't cost the full cooldown
-      popup(f.x, f.y - 160, "INSUFFICIENT FUNDS", "#9aa4c0", 15);
+      popup(f.x, f.y - 160 * ART_SCALE, "INSUFFICIENT FUNDS", "#9aa4c0", 15);
       playSfx("miss", 0.8);
       return;
     }
@@ -646,8 +647,8 @@ const HANDLERS = {
     f.meter = clamp(f.meter - p.cost, 0, METER_MAX);
     if (!applyInstall(f, { t: p.duration, label: p.label || cfg.name, color: p.color, dmgMul: p.dmgMul })) return;
     banner(p.label || cfg.name, p.color, { y: 240, size: 34, life: 0.9 });
-    ring(f.x, f.y - 90, p.color, 120);
-    burst(f.x, f.y - 100, p.color, 20, 1.0);
+    ring(f.x, f.y - 90 * ART_SCALE, p.color, 120);
+    burst(f.x, f.y - 100 * ART_SCALE, p.color, 20, 1.0);
     playSfx("ult", 0.5);
   },
 
@@ -660,7 +661,7 @@ const HANDLERS = {
       label: cfg.name, name: "SKY FOLD",
     };
     f.reflect = { t: p.window || 0.55, color: p.color || f.char.theme };
-    ring(f.x, f.y - 90, p.color || f.char.theme, 110);
+    ring(f.x, f.y - 90 * ART_SCALE, p.color || f.char.theme, 110);
     playSfx("shield", 0.7, 1.2);
   },
 
@@ -688,7 +689,7 @@ const HANDLERS = {
       label: cfg.name, name: "SIMPLE DOMAIN", color,
     };
     f.simpleDomain = { t: dur, radius: p.radius || 132, color };
-    ring(f.x, f.y - 90, color, (p.radius || 132) * 1.4);
+    ring(f.x, f.y - 90 * ART_SCALE, color, (p.radius || 132) * 1.4);
     playSfx("shield", 0.8, 0.9);
   },
 
@@ -711,8 +712,8 @@ const HANDLERS = {
       t.damage = Math.min(999, t.damage + (p.dmg || 6));
       t.hitstun = Math.max(t.hitstun, 0.2);
       applyStatus(p.effect || "drench", f, t);
-      popup(t.x, t.y - 140, "UNDERTOW", color, 16);
-      burst(t.x, t.y - 60, color, 16, 0.9);
+      popup(t.x, t.y - 140 * ART_SCALE, "UNDERTOW", color, 16);
+      burst(t.x, t.y - 60 * ART_SCALE, color, 16, 0.9);
     }
     // the water itself, spiralling in around him
     state.entities.push({
@@ -808,8 +809,8 @@ const HANDLERS = {
           if (rectsOverlap(rect, hurtbox(t))) {
             t.damage = Math.min(999, t.damage + p.tickDmg);
             applyStatus(p.effect, f, t);
-            burst(t.x, t.y - 70, p.color, 4, 0.4);
-            popup(t.x, t.y - 130, `${p.tickDmg}%`, p.color, 12);
+            burst(t.x, t.y - 70 * ART_SCALE, p.color, 4, 0.4);
+            popup(t.x, t.y - 130 * ART_SCALE, `${p.tickDmg}%`, p.color, 12);
           }
         }
       },
@@ -930,7 +931,7 @@ const HANDLERS = {
           vx: back * (p.speed ?? 680), vy: 0,
           label: "Nyoi Recall",
         });
-        glints(far, self.y - 86, back, 6, 0.9, [p.color || f.char.theme, "#ffffff"]);
+        glints(far, self.y - 86 * ART_SCALE, back, 6, 0.9, [p.color || f.char.theme, "#ffffff"]);
         playSfx("whoosh", 0.9, 1.4);
       },
     });
@@ -990,7 +991,7 @@ const HANDLERS = {
     playSfx("whoosh", 1, 1.3);
     if (!connected) {
       applyStatus("framelock", f, f, { dur: p.selfLock || 0.7 });
-      popup(f.x, f.y - 176, "IMPOSSIBLE TRAJECTORY", "#9aa4c0", 16);
+      popup(f.x, f.y - 176 * ART_SCALE, "IMPOSSIBLE TRAJECTORY", "#9aa4c0", 16);
     }
   },
 
@@ -1003,13 +1004,13 @@ const HANDLERS = {
     const opp = opponentOf(f);
     const marks = opp ? opp.statuses.starMarks : 0;
     if (!opp || marks <= 0) {
-      popup(f.x, f.y - 160, "no stars set…", "#9aa4c0", 15);
+      popup(f.x, f.y - 160 * ART_SCALE, "no stars set…", "#9aa4c0", 15);
       return;
     }
     effortSound(f, cfg);
     const color = p.color || f.char.theme;
-    burst(opp.x, opp.y - 90, color, 14 + marks * 6, 0.9 + marks * 0.15);
-    for (let i = 0; i < marks; i++) ring(opp.x, opp.y - 90, i % 2 ? "#ffffff" : color, 60 + i * 30);
+    burst(opp.x, opp.y - 90 * ART_SCALE, color, 14 + marks * 6, 0.9 + marks * 0.15);
+    for (let i = 0; i < marks; i++) ring(opp.x, opp.y - 90 * ART_SCALE, i % 2 ? "#ffffff" : color, 60 + i * 30);
     applyHit(f, opp, {
       dmg: p.dmgPerMark * marks,
       baseKb: p.base + marks * (p.basePerMark || 90),
@@ -1035,9 +1036,9 @@ const HANDLERS = {
     if (f.miracleStock === undefined) f.miracleStock = 2;
     if (f.miracleStock < 3) {
       f.miracleStock += 1;
-      popup(f.x, f.y - 150, `a miracle banked (${f.miracleStock})`, p.color || f.char.theme, 15);
+      popup(f.x, f.y - 150 * ART_SCALE, `a miracle banked (${f.miracleStock})`, p.color || f.char.theme, 15);
     } else {
-      popup(f.x, f.y - 150, "please don't", p.color || f.char.theme, 15);
+      popup(f.x, f.y - 150 * ART_SCALE, "please don't", p.color || f.char.theme, 15);
     }
     if (p.heal) f.damage = Math.max(0, f.damage - p.heal);
     dust(f.x, f.y, 10);
@@ -1054,7 +1055,7 @@ const HANDLERS = {
     );
     if (!dolls.length) {
       f.cooldowns[currentSlot(cfg, f)] = 0.8; // nothing to wind shouldn't cost the full wait
-      popup(f.x, f.y - 160, "no corpses out…", "#9aa4c0", 15);
+      popup(f.x, f.y - 160 * ART_SCALE, "no corpses out…", "#9aa4c0", 15);
       return;
     }
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
@@ -1063,11 +1064,11 @@ const HANDLERS = {
       d.hp = Math.min(d.maxHp, d.hp + (p.heal ?? 22));
       d.dur += p.extend ?? 2.5;
       d.attackCd = Math.min(d.attackCd, 0.1);
-      burst(d.x, d.y - 60, p.color || f.char.theme, 14, 0.8);
-      ring(d.x, d.y - 60, p.color || f.char.theme, 80);
+      burst(d.x, d.y - 60 * ART_SCALE, p.color || f.char.theme, 14, 0.8);
+      ring(d.x, d.y - 60 * ART_SCALE, p.color || f.char.theme, 80);
       f.meter = clamp(f.meter + (p.meterPer ?? 4), 0, METER_MAX);
     }
-    popup(f.x, f.y - 176, "SENTIENT CORES", p.color || f.char.theme, 18);
+    popup(f.x, f.y - 176 * ART_SCALE, "SENTIENT CORES", p.color || f.char.theme, 18);
     playSfx("ult", 0.5, 1.2);
   },
 };
