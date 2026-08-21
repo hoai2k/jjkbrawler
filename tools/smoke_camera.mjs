@@ -179,7 +179,7 @@ pass("KO / respawn transitions");
     watch();
   }
   const settle = Math.hypot(state.camera.x - arrival.x, state.camera.y - arrival.y);
-  check(worstPan < 16, "a ring-out and a respawn never cut the camera",
+  check(worstPan < 13, "a ring-out and a respawn never cut the camera",
     `worst frame ${worstPan.toFixed(1)}px, against 150.6px before the trip existed`);
   // 0.02 is a fifth of the 0.10 the arrival used to cost and half what the
   // launch just before it spends chasing the body out — a zoom that moves,
@@ -331,6 +331,40 @@ for (const [vx0, vy0] of [[1900, -1500], [-2100, -900], [400, 2000], [-2600, -24
   }
 }
 pass("launches stay framed");
+
+// ---- 10b. THE SHOT NEVER OUTRUNS THE FIGHTERS.
+//
+// The pan is eased, and an eased pan is proportional: fastest exactly when the
+// error is largest. Coming back from a ledge closes a ~300 px framing error and
+// the first frame of that ease used to be a third of it — the shot lurched,
+// settled, and read as the camera having been startled. It is speed-limited now
+// (camera.js PAN_MAX_SPEED, 720 px/s = 12 px a frame), and the containment pass
+// is deliberately NOT limited, so this measures the two together: a launch is
+// the case where containment SHOULD override, and it is also the case where the
+// old proportional whip was worst.
+{
+  resetState();
+  run(1);
+  const f = state.fighters[1];
+  f.vx = 2400; f.vy = -1800;
+  let worst = 0, worstAt = "";
+  for (let i = 0; i < 90; i++) {
+    f.vy += 2350 * DT;
+    f.x += f.vx * DT;
+    f.y += f.vy * DT;
+    const before = { x: state.camera.x, y: state.camera.y };
+    updateCamera(DT);
+    const step = Math.hypot(state.camera.x - before.x, state.camera.y - before.y);
+    // Containment is allowed to move the frame as far as it must; what is
+    // measured here is the frames where it is NOT binding, which is where the
+    // comfort rule owns the motion.
+    const fitting = Math.abs(f.x - state.camera.x) + 155 < WORLD.w / 2 / state.camera.zoom;
+    if (fitting && step > worst) { worst = step; worstAt = `frame ${i}`; }
+  }
+  check(worst <= 12.2, "the pan never outruns a running fighter",
+    `worst unforced frame ${worst.toFixed(1)}px ${worstAt}, cap 12.0px`);
+  pass("pan speed limit");
+}
 
 // Both fighters at opposite gutters at once — the widest legal shot.
 resetState();

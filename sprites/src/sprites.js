@@ -4,6 +4,7 @@ import { CELL_W, CELL_H, CELL_FOOT_Y } from "../../src/constants.js";
 import { LEDGE_GRIP_Y_FRAC } from "../../src/config_tuning.js";
 import { comFrac } from "../../src/body_points.js";
 import { clamp } from "../../src/utils.js";
+import { STRIDE_SMOOTH } from "../../src/flags.js";
 
 const DEG = Math.PI / 180;
 
@@ -364,10 +365,34 @@ export function anchorLocal(charKey, frameKey, name = "com", meta = null) {
  *  helper rather than the same three lines in both. `opts` is the draw options
  *  the frame will be drawn with — scale and facing are the caller's, and both
  *  move the anchor with the art. */
+/** THE SIZE THIS FRAME IS DRAWN AT, and the one switch that can move it.
+ *
+ *  `tools/smooth_cycles.py` took the limp out of the run and walk cycles by
+ *  bringing each pair of matching stride frames to their mean `renderScale` —
+ *  the two halves of a four-frame cycle are the same stride on opposite legs,
+ *  so a difference between them carried no intent to preserve, and at six and a
+ *  half footfalls a second a 5% disagreement about body height is a bob.
+ *
+ *  It banked what it replaced (`smoothed.was.renderScale`), so the correction
+ *  can be taken back off for a look — which is the only way to judge it, since
+ *  what you are comparing is two versions of a motion nobody can hold in their
+ *  head side by side. `STRIDE_SMOOTH` (src/flags.js) is that switch, and the
+ *  character bench is where it gets thrown.
+ *
+ *  In the DRAWING PATH only. Everything that measures a body — silhouette.js,
+ *  the hurtbox, the audits — reads `meta.renderScale` directly and goes on
+ *  seeing the shipped number, so the switch cannot move a hitbox.
+ */
+export function renderScaleOf(meta) {
+  if (!meta) return 1;
+  const was = meta.smoothed?.was?.renderScale;
+  return (STRIDE_SMOOTH ? meta.renderScale : (was ?? meta.renderScale)) || 1;
+}
+
 function frameSpace(meta, opts) {
   // renderScale corrects frames whose art is drawn at a different zoom than
   // the character's standing sprites (see tools/extract_sprites.py)
-  const scale = (opts.scale ?? 0.6) * (meta.renderScale || 1);
+  const scale = (opts.scale ?? 0.6) * renderScaleOf(meta);
   // The sheets are drawn facing RIGHT (verified across every character's run
   // row); only the frames the manifest marks `faceLeft` are drawn facing left.
   // Mirror so the fighter always looks in their logical direction. A fractional
@@ -586,7 +611,7 @@ export function anchorScreenPos(charKey, frameKey, x, y, opts = {}) {
   if (!meta) return null;
   const a = anchorPoint(charKey, frameKey, opts.name || "com", meta);
   if (!a) return null;
-  const scale = (opts.scale ?? 0.6) * (meta.renderScale || 1);
+  const scale = (opts.scale ?? 0.6) * renderScaleOf(meta);
   const facing = (opts.facing ?? 1) * (meta.faceLeft ? -1 : 1);
   return {
     x: x + (a.x - CELL_W / 2) * scale * facing,
@@ -598,7 +623,7 @@ export function anchorScreenPos(charKey, frameKey, x, y, opts = {}) {
 export function screenPosToLocal(charKey, frameKey, px, py, x, y, opts = {}) {
   const meta = frameMeta(charKey, frameKey, { preview: !!opts.preview });
   if (!meta) return null;
-  const scale = (opts.scale ?? 0.6) * (meta.renderScale || 1);
+  const scale = (opts.scale ?? 0.6) * renderScaleOf(meta);
   const facing = (opts.facing ?? 1) * (meta.faceLeft ? -1 : 1);
   return [
     (px - x) / (scale * facing) + CELL_W / 2 - (meta.ox ?? 0),

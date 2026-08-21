@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { getImage } from "./assets.js";
+import { getImage, frameMeta } from "./assets.js";
 import { sharedAdjust, sharedFadeIn, paintedHeight, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "./shared_sprites.js";
 import { getStage } from "./stages.js";
 import { drawCharFrame, currentFrame, anchorOffset } from "./render_backend.js";
@@ -27,6 +27,10 @@ import { bodyWidth } from "./silhouette.js";
 import { strikePoint, STRIKE_STATES } from "./strike_points.js";
 import { respawnX } from "./fighter.js";
 import { SMOOTH_COM_FADE, SPRITE_XFADE_ON } from "./flags.js";
+// A stride correction of this much — 6% of the frame's own scale — is the
+// lamp at full brightness. The pass moved a median 5% of body height and up to
+// 25%, so the common case reads as a lit lamp rather than a dim one.
+const STRIDE_WORK_FULL = 0.06;
 
 // The cross-fade window on a sprite state change, and the states a change INTO
 // stays a cut. Both mirror the 3D backend's contract (pose.js DIALS.blendTime
@@ -44,6 +48,7 @@ export function draw(ctx) {
   // backends does not go on showing the last flat frame's answer.
   smoothingActivity.xfade = 0;
   smoothingActivity.com = 0;
+  smoothingActivity.stride = 0;
   if (cameraMode === "3d" && camera3d) {
     draw3d(ctx);
     return;
@@ -871,6 +876,20 @@ function drawFighters(ctx, { bodies = true } = {}) {
         A.xfade = Math.max(A.xfade, 1 - ghost.k);
         if (shift.depth > 0) A.com = Math.max(A.com, shift.depth);
       }
+      // ...and the stride smoothing, which is not an event but a placement: the
+      // lamp is lit while a frame the cycle pass corrected is the one on
+      // screen, and brightens with how much of a correction it was. A run is
+      // four such frames at 6.5 a second, so it flickers green through a run
+      // and sits dark through everything else — which is exactly the shape of
+      // what the switch does.
+      {
+        const m = frameMeta(spriteKey, frameKey);
+        const was = m?.smoothed?.was?.renderScale;
+        if (was && m.renderScale) {
+          smoothingActivity.stride = Math.max(smoothingActivity.stride,
+            Math.min(1, Math.abs(m.renderScale - was) / (was * STRIDE_WORK_FULL)));
+        }
+      }
       const drew = drawCharFrame(ctx, spriteKey, frameKey, f.x + shakeX, f.y, drawOpts);
       // Art that did not load leaves a fighter who is simply not on screen —
       // still fighting, still taking damage, invisible. Draw the space they
@@ -944,7 +963,7 @@ function spriteGhost(f, spriteKey, frameKey) {
  *
  *  Written every frame and read the same frame. Nothing in the simulation
  *  looks at it. */
-export const smoothingActivity = { xfade: 0, com: 0 };
+export const smoothingActivity = { xfade: 0, com: 0, stride: 0 };
 
 /** How far the body's mass moves across a cut, on the x axis, in world px —
  *  what a COM-aligned fade slides the two drawings by. See the long note at
