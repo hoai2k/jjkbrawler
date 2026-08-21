@@ -193,7 +193,13 @@ function executeMove(f, move, opts = {}) {
   // speed off the moment it locks movement, which is right for a tilt thrown on
   // the spot and wrong for a dash attack, whose whole idea is the run carrying
   // through the swing.
-  beginAction(f, "attack", total, move.anim, { move, keepMomentum: move.keepMomentum, lunge: move.lunge });
+  beginAction(f, "attack", total, move.anim, {
+    move, keepMomentum: move.keepMomentum, lunge: move.lunge,
+    // A lunge that wants its own decay says so. Absent means LUNGE_DRAG, which
+    // is the dashStrike specials' number — see constants.js for why a dash
+    // attack is not those.
+    lungeDrag: move.lungeDrag,
+  });
   if (move.lungeVx && f.grounded) f.vx += f.facing * move.lungeVx * 3;
   spawnMelee(f, {
     ...move,
@@ -1659,7 +1665,8 @@ export function updateFighter(f, dt, input) {
     // and at no rate at all it slid the width of a quarter of the stage at a
     // flat 520 px/s before stopping dead. Decaying is what makes it read as a
     // lunge that ran out rather than a fighter being dragged.
-    f.vx *= Math.pow(friction, dt * (f.action?.lunge ? LUNGE_DRAG : 40));
+    f.vx *= Math.pow(friction, dt * (f.action?.lunge
+      ? (f.action.lungeDrag ?? LUNGE_DRAG) : 40));
     if (Math.abs(f.vx) < 8) f.vx = 0;
   }
 
