@@ -11,7 +11,7 @@ import { cycleRenderBackend, renderBackendMenuLabel, preloadChar } from "./rende
 import { previewCharacter, claimCharacter, previewStage, loadProgress, onLoadProgress } from "./assets.js";
 import { warmMenuArt } from "./menu_art.js";
 import { CHARACTER_QUOTES, RANDOM_GROUP, ROSTER_ASPECTS, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
-import { cardFocus } from "./config_cards.js";
+import { cardFocus, isDefaultFocus } from "./config_cards.js";
 import { CONTROL_ROWS, rowAtPad } from "./config_controls.js";
 import { domainStickFor, charDomainSpecialSlot } from "./domains.js";
 import { MATCH_MODES, MAX_FIGHTERS, matchPlan, modeLabel, HUMAN_TEAM } from "./modes.js";
@@ -369,22 +369,26 @@ function heroCardSrc(key) {
   return `assets/cards/${key}_card.jpg`;
 }
 
-/** A card's crop focus (src/config_cards.js) as an inline custom property.
- *  Eight differently-shaped holes crop these paintings and styles.css aims
- *  every one of them off this single number — `object-position: 50%
- *  var(--card-focus, 0%)`. Emitted only when it is not the 0 default, so a card
- *  nobody has tuned still produces exactly the markup it always did. */
+/** A card's crop focus point (src/config_cards.js) as inline custom
+ *  properties. Eight differently-shaped holes crop these paintings and
+ *  styles.css aims every one of them off this one point —
+ *  `object-position: var(--card-focus-x, 50%) var(--card-focus, 0%)`. Emitted
+ *  only when it is not the centred-and-top default, so a card nobody has tuned
+ *  still produces exactly the markup it always did. */
 function cardFocusStyle(key) {
   const focus = cardFocus(key);
-  return focus ? ` style="--card-focus:${focus}%"` : "";
+  if (isDefaultFocus(focus)) return "";
+  return ` style="--card-focus-x:${focus.x}%;--card-focus:${focus.y}%"`;
 }
 
-/** The same, for an <img> the caller already holds. Always writes, even for 0:
- *  these elements are REUSED as the fighter changes, so an unset property would
- *  leave the previous character's focus aiming this one's crop. */
+/** The same, for an <img> the caller already holds. Always writes, even for the
+ *  default: these elements are REUSED as the fighter changes, so an unset
+ *  property would leave the previous character's focus aiming this one's crop. */
 function setHeroCard(img, key) {
+  const focus = cardFocus(key);
   img.src = heroCardSrc(key);
-  img.style.setProperty("--card-focus", `${cardFocus(key)}%`);
+  img.style.setProperty("--card-focus-x", `${focus.x}%`);
+  img.style.setProperty("--card-focus", `${focus.y}%`);
 }
 
 /** A fighter's full-body victory pose, transparent PNG. The results screen
