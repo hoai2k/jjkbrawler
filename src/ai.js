@@ -252,6 +252,19 @@ function makePlan(f, opp, lvl) {
 }
 
 function finishPlan(f, input, opp) {
+  // TURN INTO THE SWING. Nothing auto-faces any more (fighter.js: which way a
+  // fighter looks is spent by whoever owns them and holds until they spend it
+  // again), so a plan that presses attack while pointed the other way swings
+  // at the air behind it. A human turns by pushing the stick toward the target
+  // on the same input as the attack and the attack routing turns them into it;
+  // this presses the same thing for the same reason. Here rather than in the
+  // plan so it lasts exactly the frame the attack fires: held for a whole
+  // plan it would be a walk the plan never asked for.
+  const swinging = input.lightP || input.heavyP || input.grabP || input.specialP;
+  const dx = opp && !opp.dead ? sign(opp.x - f.x) : 0;
+  if (swinging && !input.left && !input.right && dx && dx !== f.facing) {
+    if (dx > 0) input.right = true; else input.left = true;
+  }
   input.dirX = (input.right ? 1 : 0) - (input.left ? 1 : 0);
   return input;
 }

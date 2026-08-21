@@ -81,7 +81,12 @@ async function play(script) {
         const input = Object.assign(blankInput(), rest);
         if (patch.right) input.dirX = 1;
         if (patch.left) input.dirX = -1;
+        // The stick, not just the buttons: the attack angle is read off the
+        // ANALOG axes now (fighter.js attackTilt), so a script that only set
+        // the booleans was holding a stick at dead centre and never reached
+        // the diagonal band at all.
         input.moveX = input.dirX;
+        input.moveY = (patch.down ? 1 : 0) - (patch.up ? 1 : 0);
         f.lastInput = input;
         updateFighter(f, DT, input);
         if (!out && f.action?.kind === "attack") {

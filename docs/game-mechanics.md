@@ -64,6 +64,7 @@ the moment you get hit. It dims and then blinks as its time runs out.
 | **Dash attack** | Light or heavy while running: the run's own committal attack (§4) |
 | **Ledge brake** | Momentum never carries you off a platform, and a WALK never does either — see below |
 | Turn lock | Reversing at speed costs 0.08 s of traction — spacing has commitment |
+| **Facing** | Yours to spend, and it holds. Nothing turns a fighter to face their opponent: walk away, let go, and they stay looking that way. You turn by tapping a direction, flicking the tilt stick, or throwing an attack with a direction held — which is thrown the way you held |
 | Jump | Per-character impulse; **short hop** by releasing jump within ~0.09 s |
 | Double jump | One air jump at 92% power. Three fighters get two — Momo's broom, Uro's sky-riding, Kurourushi's wings |
 | Jump buffer / coyote time | 0.15 s buffer, 0.10 s coyote window |
