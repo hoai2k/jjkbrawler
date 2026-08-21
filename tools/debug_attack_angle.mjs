@@ -136,4 +136,76 @@ for (const r of rows) {
   console.log(`  ${r.stick}  ${cell(r.light).padStart(20)}${cell(r.heavy).padStart(24)}${cell(r.heavyAimed).padStart(28)}`);
 }
 
+// ---------------------------------------------------------- the stick window
+//
+// The report is not that the angle is wrong but that it never happens. That is
+// a question about the STICK, not the swing: `attackTilt` needs a horizontal
+// AND a vertical at once, and input.js derives each from its own independent
+// threshold (`ax > 0.5`, `ay < -0.5`). Both at once is a band of stick angles
+// rather than a half-plane, and a stick not pushed to about 0.71 of full
+// deflection cannot satisfy both at any angle at all.
+//
+// So this sweeps a real stick around its circle at full deflection and reports
+// which angles actually produce a tilted attack.
+const window = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { updateFighter } = await import("/src/fighter.js");
+  const { blankInput } = await import("/src/input.js");
+  const { strikeArcs } = await import("/src/moves.js");
+  const { bodyMetrics } = await import("/src/silhouette.js");
+
+  const f = state.fighters[0];
+  const main = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+  const dt = 1 / 60;
+  const key = f.spriteChar || f.charKey;
+
+  const test = (deg, mag) => {
+    const r = (deg * Math.PI) / 180;
+    const ax = Math.cos(r) * mag, ay = -Math.sin(r) * mag;
+    Object.assign(f, {
+      x: main.x + main.w / 2, y: main.y, vx: 0, vy: 0, grounded: true,
+      hitstun: 0, action: null, charging: false, crouching: false, dashT: 0,
+      walking: false, facing: 1, facingVis: 1, aimPoint: null, jabStep: 0,
+      jabResetT: 0, dead: false,
+    });
+    state.hitboxes.length = 0;
+    // Exactly what input.js builds from a pad at this stick position.
+    const stick = {
+      right: ax > 0.5, left: ax < -0.5, up: ay < -0.5, down: ay > 0.5,
+      dirX: ax, moveX: ax,
+    };
+    updateFighter(f, dt, { ...blankInput(), ...stick, lightP: true });
+    for (let i = 0; i < 40; i++) {
+      updateFighter(f, dt, { ...blankInput(), ...stick });
+      const live = state.hitboxes.find((h) => h.owner === f);
+      if (live) {
+        const arcs = strikeArcs(f.action?.move || {}, bodyMetrics(key).height);
+        return {
+          tilt: Math.round(((f.action?.move?.aimTilt || 0) * 180) / Math.PI),
+          arc: arcs.length ? Math.round((arcs[0].aim * 180) / Math.PI) : null,
+        };
+      }
+    }
+    return { tilt: null, arc: null };
+  };
+
+  const rows = [];
+  for (let deg = 0; deg <= 90; deg += 10) rows.push({ deg, mag: 1, ...test(deg, 1) });
+  const mags = [];
+  for (const mag of [1, 0.9, 0.8, 0.75, 0.7, 0.6]) mags.push({ mag, ...test(45, mag) });
+  return { rows, mags };
+});
+
+console.log("\nstick swept around its circle at FULL deflection, light attack:\n");
+console.log("  stick angle   swing tilt   drawn arc");
+for (const r of window.rows) {
+  console.log(`  ${String(r.deg).padStart(6)}°   ${String(r.tilt === null ? "—" : `${r.tilt}°`).padStart(10)}`
+    + `   ${String(r.arc === null ? "—" : `${r.arc}°`).padStart(9)}`);
+}
+console.log("\nand at 45°, as the stick is pushed less far:\n");
+console.log("  deflection   swing tilt");
+for (const r of window.mags) {
+  console.log(`  ${String(r.mag).padStart(9)}   ${String(r.tilt === null ? "—" : `${r.tilt}°`).padStart(10)}`);
+}
+
 await browser.close();

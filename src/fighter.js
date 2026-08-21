@@ -22,6 +22,7 @@ import {
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
   LEDGE_CLIMB_TIME, LEDGE_ROLL_TIME, LEDGE_ATTACK_TIME,
   LEDGE_CATCH_SPEED, LEDGE_CATCH_MIN, LEDGE_CATCH_MAX, LEDGE_GRIP_RELEASE,
+  LEDGE_GRIP_TAKE,
   LEDGE_INVULN_TRAVEL, LEDGE_REGRAB_SCALE, LEDGE_HANG_INVULN, LEDGE_JUMP_INVULN,
   TEETER_EDGE, TEETER_DELAY,
   RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE, ATTACK_DIAG_DEG,
@@ -502,11 +503,19 @@ function updateHangGrip(f, dt) {
   // what used to nail the drawing to the corner for the whole reach, so the
   // body did not move at all while the fighter crossed up to 200 px, and then
   // jumped when the hang pose brought the real grip with it.
+  //
+  // Ramping it ACROSS the catch instead was tried and does not work either:
+  // the drawn body is the simulated position plus this offset, the position is
+  // already travelling on `ease`, and ninety more pixels in the same window
+  // takes the worst frame from 11px to 22px — over the step budget
+  // smoke_ledge.mjs holds the reach to. Sharing the curve makes it 27px, since
+  // then both move fastest at the same moment. The grip needs its own time,
+  // and the pose waits for it instead (see updateLedge).
   const to = f.ledge && !f.ledgeMove ? 1 : 0;
   // LINEAR, in both directions and at one rate: a constant weight per frame is
   // a constant number of pixels per frame, which is the quantity being kept
   // under the step bar. An eased ramp would spend its middle frames over it.
-  const step = dt / LEDGE_GRIP_RELEASE;
+  const step = dt / (to ? LEDGE_GRIP_TAKE : LEDGE_GRIP_RELEASE);
   f.hangGripW = clamp((f.hangGripW || 0) + (to ? step : -step), 0, 1);
   // Forgotten only once the ledge is behind them AND the body is back on its
   // own feet. Dropping it on weight alone would throw the corner away during
@@ -531,6 +540,28 @@ function ledgeMoveAnim(m) {
   return k < 0.7 ? "jump" : "land";
 }
 
+/** THE HANG POSE WAITS FOR THE HAND — `ledge` once the grip is home, the fall
+ *  it still visually is until then.
+ *
+ *  `f.ledge` is set the moment the catch lands, but the DRAWING is still ninety
+ *  pixels from the corner at that point: the grip takes the body over its own
+ *  ramp (updateHangGrip), and until it is home a hang pose is a fighter
+ *  gripping air. Which is what was reported — the hang showing "way too early",
+ *  hands nowhere near the ledge.
+ *
+ *  Both places that put a fighter on the hang ask this, because they are one
+ *  frame apart and only one of them was ever the obvious one: `updateLedge`
+ *  every frame of the hang, and `updateLedgeMove` on the frame a catch
+ *  completes. Fixing only the first left exactly one frame of hang-gripping-air
+ *  behind, which is the bug in miniature.
+ *
+ *  Nothing about timing moves. The ledge is held from the first frame either
+ *  way; every option, every timer and the hurtbox are on `f.ledge`, not on
+ *  this. */
+function hangAnim(f) {
+  return (f.hangGripW || 0) >= 1 ? "ledge" : "fall";
+}
+
 /** Step one transition. Returns true while it is still running, so the caller
  *  knows the fighter is not doing anything else this frame. */
 function updateLedgeMove(f, dt) {
@@ -544,8 +575,9 @@ function updateLedgeMove(f, dt) {
   if (!done) return true;
   f.ledgeMove = null;
   if (m.kind === "catch") {
-    // Arrived on the hang: from here the ledge options are live.
-    setAnim(f, "ledge");
+    // Arrived on the hang: from here the ledge options are live. The POSE
+    // still waits for the grip — see hangAnim.
+    setAnim(f, hangAnim(f));
     f.ledgeTimer = 0;
     return true;
   }
@@ -648,7 +680,7 @@ function updateLedge(f, dt, input) {
     return;
   }
   f.ledgeTimer += dt;
-  setAnim(f, "ledge");
+  setAnim(f, hangAnim(f));
   const inward = l.side === -1 ? input.right : input.left;
   const outward = l.side === -1 ? input.left : input.right;
   const inX = (to) => l.edgeX + (l.side === -1 ? to : -to);

@@ -497,6 +497,58 @@ try {
     };
   });
   check(orphan.hung, "a fighter dropped beside the lip catches it and settles into the hang");
+
+  // ---- and the hang is never drawn with the hand off the corner
+  //
+  // The pose used to arrive with `f.ledge`, which is the frame the CATCH lands
+  // — but the drawing is still ninety pixels away at that point, because the
+  // grip takes the body over its own ramp. So the hang appeared gripping air
+  // and crept onto the corner over the next twenty frames, which is what gets
+  // reported as "the hang shows too early".
+  //
+  // The pose waits for the grip now (fighter.js hangAnim). Measured rather than
+  // asserted from the flag: where the drawing's own `ledge` anchor ends up,
+  // against the corner it is supposed to be holding.
+  const grip = await page.evaluate(async () => {
+    const { state } = await import("/src/state.js");
+    const { updateFighter } = await import("/src/fighter.js");
+    const { blankInput } = await import("/src/input.js");
+    const { hangGripShift } = await import("/src/render.js");
+    const { currentFrame, anchorOffset } = await import("/src/render_backend.js");
+    const { getActor } = await import("/src/characters.js");
+
+    const f = state.fighters[0];
+    const plat = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+    const key = f.spriteChar || f.charKey;
+    const scale = getActor(key)?.scale;
+    const dt = 1 / 60;
+
+    Object.assign(f, {
+      x: plat.x - 24, y: plat.y + 40, vx: 0, vy: 60, grounded: false, airT: 0.5,
+      ledge: null, ledgeMove: null, ledgeCooldown: 0, hitstun: 0, action: null,
+      dead: false, respawnTimer: 0, hangGrip: null, hangGripW: 0,
+      animKey: "fall", animTime: 0.2, prevAnim: null,
+    });
+    let drawn = 0, worst = 0;
+    for (let i = 0; i < 90; i++) {
+      updateFighter(f, dt, blankInput());
+      if (f.animKey !== "ledge" || !f.hangGrip) continue;
+      const frame = currentFrame(key, f.animKey, f.animTime);
+      const a = frame && anchorOffset(key, frame, "ledge", { scale, facing: f.facingVis ?? f.facing });
+      if (!a) continue;
+      const g = hangGripShift(f, scale);
+      drawn++;
+      worst = Math.max(worst, Math.hypot(
+        f.x + a.x + g.x - f.hangGrip.x, f.y + a.y + g.y - f.hangGrip.y));
+      if (drawn > 8) break;
+    }
+    return { drawn, worst: Math.round(worst) };
+  });
+  check(grip.drawn > 0, "the hang is reached and drawn", `${grip.drawn} frame(s) of it`);
+  check(grip.worst <= 2,
+    "and never drawn with the gripping hand off the corner",
+    `worst ${grip.worst}px over ${grip.drawn} hang frame(s) — it was 90px on the `
+    + "frame the catch landed");
   check(orphan.hung && !orphan.orphan,
     "and letting go changes the pose on the same step it lets go",
     `drew \`${orphan.pose}\` — remove the guard in fighter.js and this is \`ledge\`, `
