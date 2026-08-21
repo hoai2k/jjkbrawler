@@ -264,6 +264,11 @@ function dashFlick(pad, x) {
 
 function padSnapshot(pad) {
   const axX = Math.abs(pad.axes[PAD_AXES.moveX] || 0) > 0.28 ? pad.axes[PAD_AXES.moveX] : 0;
+  // Kept at the deadzone the crouch and the up-attack were tuned against; the
+  // aimed attack reads it too, and reads it as an ANGLE rather than a
+  // threshold. `up`/`down` below cannot tell 20 degrees from 44, which is why
+  // the diagonal used to be a narrow band you had to find — fighter.js
+  // attackTilt takes the angle off `moveX`/`moveY` instead.
   const axY = Math.abs(pad.axes[PAD_AXES.moveY] || 0) > 0.42 ? pad.axes[PAD_AXES.moveY] : 0;
   const left = axX < -0.28;
   const right = axX > 0.28;
@@ -278,6 +283,7 @@ function padSnapshot(pad) {
   return {
     left, right, up, down,
     moveX: axX,
+    moveY: axY,
     aimX: (dRight ? 1 : 0) - (dLeft ? 1 : 0),
     aimY: (dDown ? 1 : 0) - (dUp ? 1 : 0),
     tiltX: Math.abs(tx) > AIM_DEADZONE ? tx : 0,
@@ -355,6 +361,9 @@ export function blankInput() {
     // reads dirX, while the movement code reads this to tell a walk from a
     // run (constants.js RUN_TILT). A keyboard reports ±1, so it runs.
     moveX: 0,
+    // How far the stick is pushed VERTICALLY, -1..1, up negative as y is. Only
+    // the aimed attack reads it; movement has no use for a vertical.
+    moveY: 0,
     // Grab (?throw=true). Bound to nothing when the flag is off, so it simply
     // never reads true there.
     grabP: false,
@@ -376,7 +385,7 @@ export function blankInput() {
 // Buttons merge by OR; the analog axes merge by whichever source is pushed
 // furthest, so a pad and a keyboard on the same player cannot cancel out or
 // collapse a stick to a boolean.
-const AXIS_KEYS = new Set(["dirX", "moveX", "aimX", "aimY", "tiltX", "tiltY", "dashFlick"]);
+const AXIS_KEYS = new Set(["dirX", "moveX", "moveY", "aimX", "aimY", "tiltX", "tiltY", "dashFlick"]);
 // Fields that carry a VALUE rather than a flag. Whichever source has one wins,
 // pad first. ORing these would turn "up" into `true`, which reads as a flick in
 // no direction at all.
@@ -407,6 +416,9 @@ export function playerInput(playerId) {
   // A keyboard has no axis to report, so it stands in at full deflection —
   // otherwise every key press would read as the gentlest possible walk.
   if (!merged.moveX) merged.moveX = merged.dirX;
+  // Keys have no stick, so the corner they are holding IS their angle: up and
+  // forward together is 45 degrees, which is what a keyboard can say.
+  if (!merged.moveY) merged.moveY = (merged.down ? 1 : 0) - (merged.up ? 1 : 0);
   return merged;
 }
 

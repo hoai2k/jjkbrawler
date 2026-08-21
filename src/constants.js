@@ -353,7 +353,25 @@ export const SAKURAI_KB = 620;        // where one becomes the other
  *  every direction a fighter can point is then either a distinct move or one
  *  diagonal away from one. fighter.js attackTilt picks it; moves.swingMove
  *  swings the hitbox by it and the pose is aimed along the same line. */
-export const ATTACK_DIAG_DEG = 45;
+// THE BAND AN AIMED ATTACK OWNS, in degrees off horizontal, and the stick
+// deflection it takes to mean it.
+//
+// The tilt used to be a fixed 45 degrees whenever `up` and `right` were both
+// true — two independent 0.5 thresholds, so the diagonal was the intersection
+// of two half-planes: a 20-degree band needing three-quarter deflection, which
+// most players never find. Measured, not guessed (tools/debug_attack_angle.mjs
+// sweeps the stick round its circle).
+//
+// It follows the stick now, so these are the two hand-offs rather than a
+// snap. Under LEVEL the swing is a plain side attack, because a stick a few
+// degrees off horizontal means "forward" and the arc should not wobble with
+// it. Over CARDINAL the dedicated up or down attack takes over — those are
+// different moves with geometry drawn for a vertical, where a side attack
+// rotated that far is mostly gone: `swingMove` scales its reach by the cosine,
+// so 60 degrees already costs half of it.
+export const ATTACK_TILT_LEVEL_DEG = 12;
+export const ATTACK_TILT_CARDINAL_DEG = 62;
+export const ATTACK_TILT_MIN_MAG = 0.42;
 
 export const SMASH_TILT = 0.42;
 export const SMASH_TILT_ANGLE = 0.6;
