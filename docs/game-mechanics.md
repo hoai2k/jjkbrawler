@@ -654,7 +654,9 @@ hazard can never KO by itself. The CPU steps out of telegraphed zones.
 - Match clock: none / 2:00 / 3:00 / 5:00 / 8:00 (default 5:00).
 - **VS CPU** (Easy / Normal / Hard — reaction time, aggression, defense, and a
   damage handicap all scale) or **local multiplayer** — one gamepad per player,
-  seated on sight, up to four.
+  seated on sight, up to eight. Seats keep their number across a disconnect: a
+  pad leaving seat 2 of three leaves players 1 and 3 where they are, and the
+  next pad to arrive takes seat 2 back. A seat nobody is in fights as a CPU.
 - Pause (Start), Move List in the pause menu, hitbox debug on `` ` ``.
 
 ### The clock, and sudden death
@@ -710,7 +712,8 @@ A free-for-all gives every fighter a team of their own, which makes "different
 team" and "different fighter" the same test, and the match ends when one side
 is left standing rather than one fighter.
 
-A match seats up to eight fighters (four players and four CPUs). Five or more
+A match seats up to eight fighters — eight players, or four players and four
+CPUs, or anything between. Five or more
 switches the HUD to its compact row, and in a team match each panel is tagged
 with the side it fights for.
 

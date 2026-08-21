@@ -102,26 +102,34 @@ for (const [w, h] of [[1280, 720], [1920, 1080], [2560, 1440]]) {
 
 // ---------------------------------------------------------- the hero cards
 //
-// Seats are set through the state module rather than by faking pads: what is
-// under test is the fitter's response to a seat count, and smoke_controllers
-// already owns the question of how a pad comes to be seated.
+// Seats come from FAKE PADS rather than from writing the count into the state
+// module: the menu re-derives both the count and which seats are occupied from
+// the controllers every frame (src/input.js), so an injected count is gone
+// again a frame later. How a pad comes to be seated is smoke_controllers'
+// question; all this needs is a believable `n` players.
 async function selectScreen(w, h, players) {
   const page = await browser.newPage({ viewport: { width: w, height: h } });
   page.on("pageerror", (e) => console.log("page error:", String(e).slice(0, 200)));
+  await page.addInitScript((n) => {
+    const pads = Array.from({ length: n }, (_, index) => ({
+      index, id: `fake pad ${index}`, connected: true, mapping: "standard",
+      axes: [0, 0, 0, 0],
+      buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })),
+    }));
+    navigator.getGamepads = () => pads;
+  }, players);
   await page.goto(`${BASE}/index.html?camera=flat`);
   await pressStart(page);
   await page.waitForTimeout(900);
-  await page.evaluate(async (n) => {
+  await page.evaluate(async () => {
     const { state } = await import("/src/state.js");
     const ui = await import("/src/ui.js");
-    state.playerCount = n;
-    state.mode = n === 1 ? state.mode : "local";
     // A fighter in every seat, so the cards are measured carrying their
     // furniture rather than as empty placeholders.
-    const picks = ["nanami", "gakuganji", "megumi", "nobara"];
-    for (let id = 1; id <= 4; id++) state.selection[id] = picks[id - 1];
+    const picks = ["nanami", "gakuganji", "megumi", "nobara", "todo", "toji", "maki", "yuta"];
+    for (let id = 1; id <= picks.length; id++) state.selection[id] = picks[id - 1];
     ui.updateSelectionUi();
-  }, players);
+  });
   await page.waitForTimeout(300);
   return page;
 }
@@ -168,6 +176,17 @@ for (const [w, h] of [[1280, 720], [1920, 1080]]) {
     + `${four.hero}, ${four.rows} row(s), ${four.overflow}px over`);
   check(duo.clipped <= 0 && four.clipped <= 0,
     `${at}: neither card clips its ultimate — ${duo.clipped}px landscape, ${four.clipped}px portrait`);
+
+  // A full house. Eight cards cannot carry a fighter's description as well as
+  // their portrait, so the card sheds it (styles.css, data-slots 5-8) — what
+  // the bar must still do is fit them all on one row without eating the roster.
+  const full = await selectScreen(w, h, 8);
+  const eight = await heroMetrics(full);
+  await full.close();
+  check(eight.rows === 1 && eight.overflow <= 0,
+    `${at}: eight seats still fit across one row — ${eight.rows} row(s), ${eight.overflow}px over`);
+  check(eight.barH <= four.barH + 4,
+    `${at}: ...without the bar growing taller than a four-player one — ${eight.barH}px against ${four.barH}px`);
 }
 
 await browser.close();

@@ -20,8 +20,7 @@ const padPrev = new Map(); // pad index -> button pressed array
 const padNow = new Map();
 let joinedPlayers = 1;
 
-// Which seat each physical pad drives, assigned the first time we see it and
-// never reassigned: pad index -> player id.
+// Which seat each physical pad drives: pad index -> player id.
 //
 // This has to be its own record rather than a position in the browser's list,
 // because that list is SPARSE and its holes move. A gamepad is invisible to
@@ -32,6 +31,10 @@ let joinedPlayers = 1;
 // their pad and pushed the list back into shape. That is the whole of "the
 // second controller does nothing until the first one moves".
 const padSeats = new Map();
+
+/** How many players a match can seat. Every one of them is a person with a
+ *  controller; the engine's own ceiling (MAX_FIGHTERS) is the same number. */
+export const MAX_SEATS = 8;
 
 // Right-stick deadzone. Wider than the movement stick's, because this stick is
 // normally at rest: a smash that angles itself off controller drift is worse
@@ -95,23 +98,38 @@ export function freezePadSeats(on) {
   seatsFrozen = on;
 }
 
-/** Seat every connected pad, in the order the browser lists them.
+/** Keep the seating in step with the pads that are actually plugged in.
  *
- *  Seats used to be handed out on first sight and kept per pad.index for the
- *  session, which quietly broke for the commonest case of all: ONE controller.
- *  A pad that sleeps and wakes, or is unplugged and plugged back in, can come
- *  back under a different index — and the old mapping had no idea it was the
- *  same controller, so it took the "next free" seat 2 while seat 1 stayed held
- *  by an index that no longer exists. The player then drove player 2 with the
- *  only pad in the room. Counting the pads that are actually there cannot get
- *  that wrong. */
+ *  A seat is held for as long as its pad answers and is handed back the moment
+ *  it stops, and a new pad takes the LOWEST free seat. Two properties fall out
+ *  of that, and both were reported as bugs against the schemes before it:
+ *
+ *  - One controller that sleeps and wakes, or is unplugged and plugged back
+ *    in, can come back under a different pad index. Seats kept per index for
+ *    the session never noticed it was the same controller, so it took "the
+ *    next free" seat 2 while seat 1 stayed held by an index that no longer
+ *    exists — one pad in the room, driving player 2. Releasing the seat first
+ *    means the lowest free seat is the one it just left.
+ *  - Re-deriving the whole seating from the live pad list each frame (the fix
+ *    for that) compacted the numbering instead, so player 2 unplugging turned
+ *    player 3 into player 2 mid-menu. Holding each live pad's seat keeps the
+ *    hole where it is until somebody fills it. */
 function reseatPads(pads) {
-  padSeats.clear();
-  let seat = 1;
+  const live = new Set();
+  for (const pad of pads) if (pad && pad.connected) live.add(pad.index);
+  // A pad that has gone quiet gives its seat back. That is what makes the
+  // seating stable across a reconnect: player 2 unplugging leaves seats 1 and
+  // 3 exactly where they were, and the next pad to arrive — theirs coming back
+  // or somebody else's — drops into the hole at 2 rather than onto the end.
+  for (const index of [...padSeats.keys()]) if (!live.has(index)) padSeats.delete(index);
+  const taken = new Set(padSeats.values());
   for (const pad of pads) {
-    if (!pad || !pad.connected || seat > 4) continue;
+    if (!pad || !pad.connected || padSeats.has(pad.index)) continue;
+    let seat = 1;
+    while (taken.has(seat)) seat += 1;
+    if (seat > MAX_SEATS) continue;
     padSeats.set(pad.index, seat);
-    seat += 1;
+    taken.add(seat);
   }
 }
 
@@ -135,12 +153,24 @@ export function readGamepads() {
     // session is silent. Cheap to test — this only looks until the first press.
     if (now.some((down, i) => down && !prev[i])) noteGamepadGesture();
   }
-  // Inside a match the count never falls: a pad that drops out (a flat battery,
-  // a kicked cable) must not silently hand its fighter back to a CPU. On the
-  // menu it tracks what is plugged in, so unplugging a second pad before the
-  // fight starts is allowed to un-join that player.
-  const seated = Math.min(4, padSeats.size);
-  joinedPlayers = seatsFrozen ? Math.max(joinedPlayers, seated) : Math.max(1, seated);
+  // Inside a match the seating never changes: a pad that drops out (a flat
+  // battery, a kicked cable) must not silently hand its fighter back to a CPU.
+  // On the menu it tracks what is plugged in, so unplugging a pad before the
+  // fight starts is allowed to un-join that player — and to leave the hole in
+  // the middle of the numbering that reseatPads keeps for them.
+  //
+  // The player COUNT is the highest seat in use rather than how many pads
+  // answer, because seats 1 and 3 with nobody on 2 is a real three-seat match:
+  // slot 2 is simply nobody's, and falls to the CPU.
+  const highest = Math.max(0, ...padSeats.values());
+  joinedPlayers = seatsFrozen ? Math.max(joinedPlayers, highest) : Math.max(1, highest);
+}
+
+/** Every seat a pad is sitting in right now, in order. The menu draws its hero
+ *  cards from this: a seat nobody holds is a gap in the bar, not a card that
+ *  shuffles the others along. */
+export function occupiedSeats() {
+  return [...padSeats.values()].sort((a, b) => a - b);
 }
 
 export function joinedPlayerCount() {
@@ -155,7 +185,7 @@ export function joinedPlayerCount() {
  *  died". A match needs that difference: the second case leaves a fighter with
  *  no input source at all, which reads as a frozen dummy standing in the
  *  stage until something kills it. */
-export function disconnectedSeats(upToSeat = 4) {
+export function disconnectedSeats(upToSeat = MAX_SEATS) {
   const out = [];
   for (const seat of padSeats.values()) {
     if (seat <= upToSeat && !padFor(seat)) out.push(seat);

@@ -18,7 +18,7 @@
 
 import { THROW_ENABLED } from "./flags.js";
 
-/** Keyboard codes per player slot. Slots 3 and 4 are gamepad-only. */
+/** Keyboard codes per player slot. Every seat above 2 is gamepad-only. */
 export const KEY_BINDS = {
   1: {
     left: ["KeyA"], right: ["KeyD"], up: ["KeyW"], down: ["KeyS"],
@@ -123,8 +123,9 @@ export function keyLabel(code) {
 // not fit the art.
 //
 // There is no keyboard column. The game is played on controllers, one pad per
-// player: that is what the roster, the four-way select screen and the in-game
-// diagram are all built around, and it is what the instructions describe.
+// player and up to eight of them: that is what the roster, the select screen
+// and the in-game diagram are all built around, and it is what the
+// instructions describe.
 // KEY_BINDS above still drives slots 1 and 2 so the game can be played and
 // tested at a desk with no pad plugged in, but it is deliberately undocumented
 // rather than offered as a supported way to play.

@@ -5,7 +5,7 @@ import { audioSettings, audioUnlocked, cycleMusicMode, MUSIC_MODES, musicPlaying
 import { cpuLevelName } from "./ai.js";
 import { METER_MAX, TIME_OPTIONS } from "./constants.js";
 import { clamp } from "./utils.js";
-import { padsMenuState, padsMenuStates } from "./input.js";
+import { padsMenuState, padsMenuStates, MAX_SEATS } from "./input.js";
 import { cameraMode } from "./camera_mode.js";
 import { cycleRenderBackend, renderBackendMenuLabel, preloadChar } from "./render_backend.js";
 import { previewCharacter, claimCharacter, previewStage, loadProgress, onLoadProgress } from "./assets.js";
@@ -30,11 +30,13 @@ let movesMode = "players";
 let settingsReturnPhase = "menu";
 
 const STOCK_OPTIONS = [1, 2, 3, 5];
-const PLAYER_IDS = [1, 2, 3, 4];
-// Every seat a match can have, human or CPU. Only the first four are ever
-// picked by hand; the rest are fighters a match mode brought along.
+// Every seat a person can sit in. Eight of them, which is also the engine's
+// ceiling (MAX_FIGHTERS): a full house is eight players and no CPUs at all.
+const PLAYER_IDS = Array.from({ length: MAX_SEATS }, (_, i) => i + 1);
+// Every seat a match can have, human or CPU. The tail are fighters a match
+// mode brought along rather than seats anybody picked.
 const FIGHTER_IDS = Array.from({ length: MAX_FIGHTERS }, (_, i) => i + 1);
-const pickerCursor = { 1: null, 2: null, 3: null, 4: null };
+const pickerCursor = Object.fromEntries(PLAYER_IDS.map((id) => [id, null]));
 const pickerRepeat = PLAYER_IDS.map(() => ({ dir: null, t: 0 }));
 
 // Menu art that failed to arrive, asked for once more.
@@ -70,17 +72,17 @@ export function initUi(cb) {
   // from MAX_FIGHTERS rather than written out per slot, because a match can
   // seat anywhere from two to eight fighters.
   buildHud();
+  // Same story for the hero cards: one per seat, built rather than written out,
+  // so the bar can seat eight and can number them Player 1 .. Player N.
+  buildMatchupBar();
   for (const id of [
     "hud", "utilityActions", "introOverlay", "titleOverlay", "titlePressStart", "titleCredit", "titleHint", "selectSpotlight", "pauseStandings", "menuOverlay", "stageOverlay", "movesOverlay", "roundOverlay", "pauseOverlay",
     "settingsOverlay", "loadOverlay", "loadStatus", "loadBar", "loadBarFill", "characterGrid", "stageGrid",
     "matchupBar",
-    "p1PickCard", "p2PickCard", "p3PickCard", "p4PickCard",
-    "p1PickImage", "p2PickImage", "p3PickImage", "p4PickImage",
-    "p1PickName", "p2PickName", "p3PickName", "p4PickName",
-    "p1PickLabel", "p2PickLabel", "p3PickLabel", "p4PickLabel",
-    "p1PickInfo", "p2PickInfo", "p3PickInfo", "p4PickInfo",
-    "p1PickReady", "p2PickReady", "p3PickReady", "p4PickReady",
-    "p1PickRandomArt", "p2PickRandomArt", "p3PickRandomArt", "p4PickRandomArt",
+    ...PLAYER_IDS.flatMap((id) => [
+      `p${id}PickCard`, `p${id}PickImage`, `p${id}PickName`, `p${id}PickLabel`,
+      `p${id}PickInfo`, `p${id}PickReady`, `p${id}PickRandomArt`,
+    ]),
     "startButton", "movesButton", "settingsButton", "fullscreenButton", "muteButton", "controllerStatus", "menuHint", "loadHint",
     ...FIGHTER_IDS.flatMap((id) => [
       `p${id}Panel`, `p${id}Name`, `p${id}Damage`, `p${id}Stocks`,
@@ -234,7 +236,13 @@ function steeringCpu() {
   return steeredSlot(1) === 2;
 }
 
+/** The seats a PERSON is in. Normally whichever seats hold a controller, which
+ *  is what lets the numbering keep a hole in it: players 1 and 3 with nobody on
+ *  2 are still players 1 and 3. With no pad in the room at all it is seat 1 —
+ *  the keyboard — and, in a local match, seat 2 alongside it. */
 function humanIds() {
+  const seated = state.seats.filter((id) => id <= state.playerCount);
+  if (seated.length) return seated;
   return PLAYER_IDS.slice(0, state.playerCount);
 }
 
@@ -275,6 +283,9 @@ function syncCpuRoll() {
 // Commit a fighter for a slot. Humans lock in (ready); the CPU slot just takes
 // the fighter and hands the shared cursor back to Player 1.
 function selectFighter(id, key) {
+  // Somebody else got there first. Refusing silently reads as a dropped input,
+  // so it says no out loud and leaves the cursor where it is.
+  if (!keyAvailable(id, key)) { playSfx("uiDenied"); return; }
   state.selection[id] = key;
   // Committed, so this fighter's art is definitely needed: start it now instead
   // of waiting for the background queue to reach them. Random resolves at match
@@ -295,9 +306,32 @@ function selectFighter(id, key) {
     pickerCursor[id] = null;
     if (focusEl?.dataset?.character) clearMenuFocus();
   }
+  nudgeCursorsOff(key, id);
   updateSelectionUi();
   playLockIn(id);
   playSfx("uiLockIn");
+}
+
+/** Move everyone else off a fighter that has just been claimed.
+ *
+ *  Two players browsing the same card is normal — everybody starts on Random,
+ *  and the roster draws a ring per player for exactly that reason. But the
+ *  moment one of them locks it in, the others are resting on a card they can no
+ *  longer take, so their cursor steps to the next free card in roster order
+ *  rather than sitting somewhere their confirm button would be refused. */
+function nudgeCursorsOff(key, claimedBy) {
+  if (!key || key === RANDOM_KEY) return;
+  const order = [...els.characterGrid?.querySelectorAll(".char-card") || []]
+    .map((el) => el.dataset.character);
+  for (const id of pickedSlots()) {
+    if (id === claimedBy || state.ready[id] || isCpuSlot(id)) continue;
+    if ((pickerCursor[id] || state.selection[id]) !== key) continue;
+    const taken = claimedKeys(id);
+    const from = Math.max(0, order.indexOf(key));
+    const free = order.slice(from + 1).concat(order.slice(0, from))
+      .find((k) => !taken.has(k));
+    if (free) pickerCursor[id] = free;
+  }
 }
 
 // Restarts the lock-in animation on a hero card even if it is already playing,
@@ -432,6 +466,7 @@ function buildCharacterCard(key) {
     : `<img src="${rosterTileSrc(key)}"${rosterTileFocusStyle(key)} alt="${name}"><span>${name}</span>`;
   btn.addEventListener("click", () => {
     const slot = steeredSlot(state.activePicker);
+    if (!keyAvailable(slot, key)) { playSfx("uiDenied"); return; }
     if (slot !== state.activePicker) { setPickerCursor(slot, key); return; }
     selectFighter(state.activePicker, key);
   });
@@ -909,6 +944,52 @@ function buildHud() {
   hud.insertBefore(center, hud.firstChild);
 }
 
+// ---------------------------------------------------------- matchup bar
+//
+// One hero card per seat, built once and then shown or hidden — the same shape
+// as the HUD panels, and for the same reason: eight seats written out by hand
+// is eight chances for one of them to drift.
+//
+// The cards live in the bar in SEAT ORDER, Player 1 through Player 8, with the
+// centre column (the VS badge and the start button) sitting in the middle of
+// however many are on screen. Flexbox `order` does the placing, so a seat
+// nobody is in simply leaves a gap in the numbering rather than shuffling the
+// players after it along — see syncMatchupOrder.
+function buildMatchupBar() {
+  const bar = $("matchupBar");
+  const centre = bar.querySelector(".matchup-center");
+  for (const id of PLAYER_IDS) {
+    const card = document.createElement("button");
+    card.id = `p${id}PickCard`;
+    card.type = "button";
+    card.className = "matchup-side is-empty hidden";
+    card.dataset.seat = String(id);
+    card.innerHTML = `
+      <span id="p${id}PickLabel" class="hero-slot-label">${TEXT.slot.player(id)}</span>
+      <img id="p${id}PickImage" alt="${TEXT.slot.player(id)} fighter">
+      <b id="p${id}PickRandomArt" class="hero-random-art hidden">?</b>
+      <strong id="p${id}PickName">${TEXT.slot.empty}</strong>
+      <div id="p${id}PickInfo" class="hero-info"></div>
+      <i id="p${id}PickReady" class="hero-ready hidden">${TEXT.slot.readyBadge}</i>`;
+    bar.insertBefore(card, centre);
+  }
+}
+
+/** Lay the visible cards out in seat order with the centre column in the
+ *  middle of them.
+ *
+ *  `order` is doubled so the centre can sit BETWEEN two cards without needing a
+ *  fractional value: cards take the even numbers, the centre takes the odd one
+ *  just before the card that starts the right-hand half. A 1v1 therefore still
+ *  reads P1 · VS · P2, and an eight-player bar splits four and four. */
+function syncMatchupOrder(visible) {
+  for (const id of PLAYER_IDS) {
+    els[`p${id}PickCard`].style.order = String(visible.indexOf(id) * 2);
+  }
+  const centre = els.matchupBar.querySelector(".matchup-center");
+  if (centre) centre.style.order = String(Math.ceil(visible.length / 2) * 2 - 1);
+}
+
 // ------------------------------------------------------------- match mode
 //
 // The VS badge is a button: it opens this list. Everything the modes actually
@@ -1218,7 +1299,9 @@ function heroInfoHtml(char) {
 // shown — there is nothing to look at yet, and nothing to choose.
 function pickedSlots() {
   const cpuFrom = matchPlan().cpuFrom;
-  const seats = state.playerCount === 1 ? [1, 2] : PLAYER_IDS.slice(0, state.playerCount);
+  // Slot 2 in a one-player game is the CPU opponent, which IS picked for on
+  // this screen even though nobody sits in it.
+  const seats = state.playerCount === 1 ? [1, 2] : humanIds();
   return seats.filter((id) => id < cpuFrom);
 }
 
@@ -1240,6 +1323,30 @@ function markedSlots() {
   const slots = pickedSlots();
   if (state.playerCount !== 1 || steeringCpu()) return slots;
   return slots.filter((id) => id !== 2);
+}
+
+/** Fighters another PLAYER has already committed to, and so are spoken for.
+ *
+ *  Locking in claims a fighter: nobody else's cursor may land on them, and the
+ *  roster greys them out. Random is never claimed — it is a dice roll, not a
+ *  fighter — and neither is the CPU's pick in a one-player game, where mirror
+ *  matches against the computer have always been allowed.
+ *
+ *  `exclude` is the slot asking, so a player is never blocked by their own
+ *  pick: backing out with B and re-confirming has to keep working. */
+function claimedKeys(exclude = null) {
+  const taken = new Set();
+  for (const id of pickedSlots()) {
+    if (id === exclude || isCpuSlot(id) || !state.ready[id]) continue;
+    const key = state.selection[id];
+    if (key && key !== RANDOM_KEY) taken.add(key);
+  }
+  return taken;
+}
+
+/** Whether `slot` may land on `key` at all. */
+function keyAvailable(slot, key) {
+  return !claimedKeys(slot).has(key);
 }
 
 // A human slot that has not locked in is "browsing": its card shows whatever
@@ -1279,7 +1386,7 @@ function markedKey(id) {
  *  card takes a RING PER PLAYER, drawn concentrically in seat order, rather
  *  than one player's colour winning and the others vanishing. The rings are
  *  built here instead of in CSS because the combinations are the power set of
- *  four seats; the stylesheet just consumes --mark-rings. */
+ *  eight seats; the stylesheet just consumes --mark-rings. */
 function renderRosterMarkers() {
   const marks = new Map();
   for (const id of markedSlots()) {
@@ -1288,7 +1395,12 @@ function renderRosterMarkers() {
     if (!marks.has(key)) marks.set(key, []);
     marks.get(key).push(id);
   }
+  // Claimed by SOMEBODY (no slot excluded), which is what the grid shows: a
+  // card greys out for everyone, and the player holding it is named by the
+  // ring and tag it keeps.
+  const taken = claimedKeys();
   for (const btn of els.characterGrid?.querySelectorAll(".char-card") || []) {
+    btn.classList.toggle("is-taken", taken.has(btn.dataset.character));
     const on = marks.get(btn.dataset.character) || [];
     btn.classList.toggle("is-marked", on.length > 0);
     btn.querySelectorAll(".pick-tag").forEach((el) => el.remove());
@@ -1380,15 +1492,18 @@ export function updateSelectionUi() {
     els[`p${id}PickCard`].classList.toggle("is-active", state.activePicker === id);
     els[`p${id}PickCard`].classList.toggle("is-ready", state.ready[id]);
   }
-  // Three and four hero cards share the same bar, so each one is much narrower
-  // than in a 1v1. The full name has to shrink with them, and CSS cannot see a
-  // flex item's computed width — so publish the count and let it key off that.
-  const slots = String(
-    [1, 2, 3, 4].filter((id) => !els[`p${id}PickCard`].classList.contains("hidden")).length
-  );
+  // Cards in seat order, Player 1 first, with the VS badge in the middle of
+  // however many are on screen.
+  const onScreen = PLAYER_IDS.filter((id) => !els[`p${id}PickCard`].classList.contains("hidden"));
+  syncMatchupOrder(onScreen);
+  // Three, four — or eight — hero cards share the same bar, so each one is much
+  // narrower than in a 1v1. The full name has to shrink with them, and CSS
+  // cannot see a flex item's computed width — so publish the count and let it
+  // key off that.
+  const slots = String(onScreen.length);
   const seatsChanged = els.matchupBar.dataset.slots !== slots;
   els.matchupBar.dataset.slots = slots;
-  els.p2PickLabel.textContent = state.mode === "cpu" ? TEXT.slot.cpu : TEXT.slot.player(2);
+  els.p2PickLabel.textContent = isCpuSlot(2) ? TEXT.slot.cpu : TEXT.slot.player(2);
   syncModeUi();
   const go = allReady();
   els.startButton.disabled = !go;
@@ -1404,18 +1519,27 @@ export function updateSelectionUi() {
   if (seatsChanged && state.phase === "menu") layoutCharacterGrid();
 }
 
-export function syncControllerPlayers(count) {
-  const joined = Math.min(4, count);
-  if (joined <= state.playerCount) return;
+export function syncControllerPlayers(count, seats = []) {
+  const joined = Math.min(MAX_SEATS, count);
+  const seated = seats.filter((id) => id <= joined);
+  // Both halves matter: how many seats the match has, and WHICH of them somebody
+  // is in. A pad leaving seat 2 of three does not renumber players 1 and 3 — it
+  // leaves the hole for the next pad to drop into (input.js reseatPads) — so the
+  // seat list is stored rather than derived from the count.
+  if (joined === state.playerCount && String(seated) === String(state.seats)) return;
+  state.seats = seated.length ? seated : [1];
   state.playerCount = joined;
   state.mode = joined === 1 ? state.mode : "local";
-  // Slots 3 and 4 arrive holding a default fighter nobody picked by hand. A pad
-  // joining is the first moment we know those slots are in play, so their art
-  // is claimed here rather than being discovered at the match gate.
-  for (let id = 1; id <= joined; id++) {
+  // A seat above 2 arrives holding a default fighter nobody picked by hand. A
+  // pad joining is the first moment we know that seat is in play, so its art is
+  // claimed here rather than being discovered at the match gate.
+  for (const id of state.seats) {
     const key = state.selection[id];
     if (key && key !== RANDOM_KEY) { claimCharacter(key); preloadChar(key, true); }
   }
+  // A seat whose player has gone was steering the roster; the cursor goes back
+  // to somebody who is still here.
+  if (!pickedSlots().includes(state.activePicker)) state.activePicker = humanIds()[0] || 1;
   updateMenuButtons();
   updateSelectionUi();
 }
@@ -1765,7 +1889,7 @@ function renderMovesSplit() {
   els.movesTitle.textContent = TEXT.moves.splitHeading;
   els.movesKicker.textContent = TEXT.moves.splitKicker;
   // Drives how much room the shared controller diagram is allowed to take:
-  // at three or four columns it gives way entirely so each player's Domain
+  // at three columns and up it gives way entirely so each player's Domain
   // Expansion still lands above the fold.
   els.movesPanel.dataset.players = String(players.length);
   els.movesPanel.innerHTML = `
@@ -1991,9 +2115,9 @@ export function updateHud() {
     els[`p${id}Panel`].classList.toggle("hidden", !f);
     if (!f) continue;
     const panel = els[`p${id}Panel`];
-    // Slots 1-4 also colour the select screen; every panel colours itself.
+    // Every seat also colours the select screen; every panel colours itself.
     hudSet(`${id}:theme`, f.char.theme, (theme) => {
-      if (id <= 4) document.documentElement.style.setProperty(`--p${id}-theme`, theme);
+      if (id <= MAX_SEATS) document.documentElement.style.setProperty(`--p${id}-theme`, theme);
       panel.style.setProperty("--panel-theme", theme);
     });
     // In a team match the panels have to say which side each fighter is on;
@@ -2268,6 +2392,10 @@ function setPickerCursor(playerId, key, { quiet = false } = {}) {
   // ready, so the rule belongs here where every path passes.
   if (state.ready[playerId]) return;
   if (!key || pickerCursor[playerId] === key) return;
+  // A fighter another player has locked in is not somewhere a cursor may rest.
+  // The rule lives here rather than only in the pad walk because the mouse and
+  // the keyboard reach the roster through this function too.
+  if (!keyAvailable(playerId, key)) return;
   pickerCursor[playerId] = key;
   // A CPU slot has no lock-in of its own, so pointing at a fighter IS the
   // choice — and being a real commitment, its art is claimed rather than
@@ -2300,10 +2428,17 @@ function setPickerCursor(playerId, key, { quiet = false } = {}) {
  *  card of a row landed on the LAST card of the row above, and pressing up
  *  anywhere on the top row did nothing at all). */
 function movePickerCursor(playerId, dx, dy) {
-  const items = [...els.characterGrid.querySelectorAll(".char-card")];
-  if (!items.length) return;
+  const all = [...els.characterGrid.querySelectorAll(".char-card")];
+  if (!all.length) return;
   const currentKey = pickerCursor[playerId] || state.selection[playerId];
-  const current = items.find((el) => el.dataset.character === currentKey) || items[0];
+  const current = all.find((el) => el.dataset.character === currentKey) || all[0];
+  // A fighter somebody else has locked in is not a place this cursor can stop,
+  // so it is not a candidate either — the walk STEPS OVER them, which is what
+  // makes a claimed roster still feel like a grid rather than a minefield of
+  // presses that do nothing. `current` stays in the list only as the origin.
+  const taken = claimedKeys(playerId);
+  const items = all.filter((el) => !taken.has(el.dataset.character));
+  if (!items.length) return;
   const from = current.getBoundingClientRect();
   const fx = from.left + from.width / 2;
   const fy = from.top + from.height / 2;
@@ -2423,7 +2558,7 @@ function updateCharacterPickerPads(dt) {
   // `pads` is indexed by SEAT (input.js), so `pads[i]` is player i+1's own pad
   // and a seat with no pad connected right now is a blank snapshot rather than
   // a gap that shifts everyone along.
-  for (let i = 0; i < Math.min(4, pads.length, state.playerCount); i++) {
+  for (let i = 0; i < Math.min(MAX_SEATS, pads.length, state.playerCount); i++) {
     const playerId = i + 1;
     const pad = pads[i];
     const repeat = pickerRepeat[i];

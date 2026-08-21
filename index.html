@@ -70,22 +70,11 @@
           </div>
 
           <div id="matchupBar" class="matchup-bar">
-            <button id="p1PickCard" class="matchup-side is-active is-empty" type="button">
-              <span id="p1PickLabel" class="hero-slot-label">Player 1</span>
-              <img id="p1PickImage" alt="Player 1 fighter">
-              <b id="p1PickRandomArt" class="hero-random-art hidden">?</b>
-              <strong id="p1PickName">Choose a fighter</strong>
-              <div id="p1PickInfo" class="hero-info"></div>
-              <i id="p1PickReady" class="hero-ready hidden">Ready</i>
-            </button>
-            <button id="p3PickCard" class="matchup-side hidden" type="button">
-              <span id="p3PickLabel" class="hero-slot-label">Player 3</span>
-              <img id="p3PickImage" src="assets/cards/megumi_card.jpg" alt="Player 3 fighter">
-              <b id="p3PickRandomArt" class="hero-random-art hidden">?</b>
-              <strong id="p3PickName">Megumi</strong>
-              <div id="p3PickInfo" class="hero-info"></div>
-              <i id="p3PickReady" class="hero-ready hidden">Ready</i>
-            </button>
+            <!-- The hero cards are built by ui.js (buildMatchupBar), one per
+                 seat, so the bar can seat anywhere from two to eight players
+                 and can order them Player 1 .. Player N regardless of which
+                 seats are actually occupied. Only the centre column — the mode
+                 badge and the start button — is written out here. -->
             <div class="matchup-center">
               <button id="vsModeButton" class="vs-mode" type="button" aria-haspopup="true" aria-expanded="false" title="Change match mode">
                 <img class="vs-badge" src="assets/ui/vs_badge.png" alt="Versus">
@@ -94,22 +83,6 @@
               <div id="modeMenu" class="mode-menu hidden" role="menu" aria-label="Match mode"></div>
               <button id="startButton" class="primary-action" type="button">Choose Stage</button>
             </div>
-            <button id="p4PickCard" class="matchup-side hidden" type="button">
-              <span id="p4PickLabel" class="hero-slot-label">Player 4</span>
-              <img id="p4PickImage" src="assets/cards/nobara_card.jpg" alt="Player 4 fighter">
-              <b id="p4PickRandomArt" class="hero-random-art hidden">?</b>
-              <strong id="p4PickName">Nobara</strong>
-              <div id="p4PickInfo" class="hero-info"></div>
-              <i id="p4PickReady" class="hero-ready hidden">Ready</i>
-            </button>
-            <button id="p2PickCard" class="matchup-side" type="button">
-              <span id="p2PickLabel" class="hero-slot-label">CPU</span>
-              <img id="p2PickImage" src="assets/cards/sukuna_card.jpg" alt="Player 2 fighter">
-              <b id="p2PickRandomArt" class="hero-random-art hidden">?</b>
-              <strong id="p2PickName">Sukuna</strong>
-              <div id="p2PickInfo" class="hero-info"></div>
-              <i id="p2PickReady" class="hero-ready hidden">Ready</i>
-            </button>
           </div>
 
           <div id="characterGrid" class="character-grid" aria-label="Fighter select"></div>

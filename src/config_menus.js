@@ -181,7 +181,7 @@ export const TEXT = {
     loadingRoster: (ready, total) => `Loading fighters… ${ready}/${total} ready · pick anyone, yours loads first`,
   },
 
-  // The four hero cards above the roster
+  // The hero cards above the roster — one per seat, up to eight
   slot: {
     player: (n) => `Player ${n}`,
     cpu: "CPU",
@@ -264,7 +264,7 @@ export const TEXT = {
       ["Right stick, while a smash charges", "Angle the swing high or low"],
       [`D-pad + ${padName("special")}`, "Aim and fly Nue / cursed spirits"],
     ],
-    // The game is played on controllers: one pad per player, up to four.
+    // The game is played on controllers: one pad per player, up to eight.
     stickHint:
       `The left stick moves, ${padName("jump")} jumps and ${padName("special")} is special; `
       + "SHOVE the stick from centre to dash — roll it out gently and you walk — or double-tap a "

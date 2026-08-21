@@ -141,6 +141,118 @@ async function push(page, padIndex, axis, value, ms = 420) {
   await page.close();
 }
 
+/** Press and release a pad button. */
+async function tap(page, padIndex, button = 0) {
+  await page.evaluate(([p, b]) => { window.__pads[p].buttons[b].pressed = true; }, [padIndex, button]);
+  await page.waitForTimeout(120);
+  await page.evaluate(([p, b]) => { window.__pads[p].buttons[b].pressed = false; }, [padIndex, button]);
+  await page.waitForTimeout(220);
+}
+
+/** Put one slot's cursor on a named fighter without going through the walk. */
+async function hover(page, key) {
+  await page.evaluate((k) => document.querySelector(`[data-character="${k}"]`)
+    .dispatchEvent(new MouseEvent("mouseenter")), key);
+  await page.waitForTimeout(200);
+}
+
+const cursorOf = (s, id) => s.cursors.match(new RegExp(`p${id}=(\\S+)`))?.[1];
+
+// ---- 4. Eight seats. The engine has always seated eight fighters; every one
+//         of them can now be a person, and the bar has to number them in order.
+{
+  const page = await padPage({ pads: 8 });
+  const bar = await page.evaluate(async () => {
+    const { state } = await import("/src/state.js");
+    const cards = [...document.querySelectorAll(".matchup-side")].filter((c) => !c.classList.contains("hidden"));
+    return {
+      players: state.playerCount,
+      seats: state.seats.join(","),
+      // Reading order down the bar, which is what a player actually sees —
+      // `order` places the cards, so DOM order says nothing on its own.
+      order: cards.sort((a, b) => Number(a.style.order) - Number(b.style.order))
+        .map((c) => c.dataset.seat).join(","),
+    };
+  });
+  check(bar.players === 8, "eight pads seat eight players", `playerCount ${bar.players}`);
+  check(bar.seats === "1,2,3,4,5,6,7,8", "…in seats 1-8", bar.seats);
+  check(bar.order === "1,2,3,4,5,6,7,8", "…and the hero cards read Player 1 first", bar.order);
+  await page.close();
+}
+
+// ---- 5. A seat that empties KEEPS ITS NUMBER. Player 2 of three unplugging
+//         leaves players 1 and 3 alone rather than promoting player 3, and the
+//         next pad to arrive drops into the hole rather than onto the end.
+{
+  const page = await padPage({ pads: 3 });
+  const seating = () => page.evaluate(async () => {
+    const { state } = await import("/src/state.js");
+    const cards = [...document.querySelectorAll(".matchup-side")].filter((c) => !c.classList.contains("hidden"));
+    return {
+      players: state.playerCount,
+      seats: state.seats.join(","),
+      cards: cards.sort((a, b) => Number(a.style.order) - Number(b.style.order))
+        .map((c) => c.dataset.seat).join(","),
+    };
+  });
+  await page.evaluate(() => {
+    const live = () => window.__pads.filter((p) => !window.__gone?.has(p.index));
+    window.__gone = new Set();
+    navigator.getGamepads = live;
+  });
+  await page.waitForTimeout(300);
+  await page.evaluate(() => window.__gone.add(1));   // player 2 walks off
+  await page.waitForTimeout(400);
+  const gone = await seating();
+  check(gone.seats === "1,3", "player 2 leaving leaves players 1 and 3 where they are", gone.seats);
+  check(gone.players === 3, "…so the match still has three seats", `playerCount ${gone.players}`);
+  check(gone.cards === "1,3", "…and the bar shows those two, still numbered", gone.cards);
+
+  await page.evaluate(() => window.__gone.delete(1)); // somebody picks a pad up
+  await page.waitForTimeout(400);
+  const back = await seating();
+  check(back.seats === "1,2,3", "a pad joining fills the empty seat in the middle", back.seats);
+  check(back.cards === "1,2,3", "…and slots itself back into the order", back.cards);
+  await page.close();
+}
+
+// ---- 6. Locking a fighter in CLAIMS them: no other cursor may rest there, and
+//         the walk steps over the card rather than stopping on it.
+{
+  const page = await padPage({ pads: 2 });
+  await hover(page, "gojo");            // the active picker is player 1
+  await tap(page, 0);                   // …who locks Gojo in
+  const claimed = await page.evaluate(() =>
+    [...document.querySelectorAll(".char-card.is-taken")].map((c) => c.dataset.character).join(","));
+  check(claimed === "gojo", "a locked-in fighter is marked taken on the roster", claimed);
+
+  // Player 2 is the active picker now, so the hover drives their cursor.
+  await hover(page, "nanami");
+  const before = await seats(page);
+  check(cursorOf(before, 2) === "nanami", "player 2's cursor parks where it was put", before.cursors);
+  // Nanami sits immediately to Gojo's right in the Faculty block, so this is a
+  // press straight at the claimed card. One step only — the hold is shorter
+  // than the cursor's repeat delay.
+  await push(page, 1, 0, -0.95, 300);
+  const after = await seats(page);
+  check(cursorOf(after, 2) !== "gojo", "…and stepping toward a claimed fighter steps OVER them",
+    `${cursorOf(before, 2)} -> ${cursorOf(after, 2)}`);
+
+  // The mouse cannot get there either — the rule is on the cursor, not the pad.
+  await hover(page, "gojo");
+  const hovered = await seats(page);
+  check(cursorOf(hovered, 2) !== "gojo", "hovering a claimed fighter does not move a cursor onto them",
+    `p2 on ${cursorOf(hovered, 2)}`);
+  await page.click('[data-character="gojo"]');
+  await page.waitForTimeout(250);
+  const ready = await page.evaluate(async () => {
+    const { state } = await import("/src/state.js");
+    return `${state.ready[2]}:${state.selection[2]}`;
+  });
+  check(!ready.startsWith("true"), "…and clicking them does not commit a second player to them", ready);
+  await page.close();
+}
+
 console.log(failures ? `\n${failures} check(s) failed` : "\nall controller checks passed");
 await browser.close();
 process.exit(failures ? 1 : 0);
