@@ -236,10 +236,13 @@ export function trailStrength(f) {
   if (Math.abs(f.spin) > 1) return TRAIL_STRENGTH.tumble;
   if (f.action?.kind === "dodge") return TRAIL_STRENGTH.dodge;
   if (f.dashT > 0) return TRAIL_STRENGTH.dash;
-  // Projection Sorcery (Naoya): once the choreography is wound up, the run
-  // itself earns frames — drawn as a strip of crisp stills, not a blur
-  // (drawTrail branches on char.frameTrail).
-  if (f.char.frameTrail && (f.machRamp || 0) > 0.4) return TRAIL_STRENGTH.dash;
+  // Projection Sorcery (Naoya): the planned frames are drawn only while the
+  // technique is being HELD (fighter.js `machSprint`, B down on a run). A
+  // plain run is a man running and leaves nothing behind him — the strip of
+  // film used to come free with any sustained sprint, which spent the read on
+  // ordinary movement. Drawn as crisp stills, not a blur: drawTrail branches
+  // on char.frameTrail.
+  if (f.char.frameTrail) return f.machSprint ? TRAIL_STRENGTH.mach : 0;
   // dashStrike specials boost the trail for their lunge (fx.js sets the timer)
   if (f.fxTrailT > 0) return DASH_FX.trailStrength;
   return 0;

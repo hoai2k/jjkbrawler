@@ -331,6 +331,28 @@ export const TRAIL_STRENGTH = {
   tumble: 1,
   dodge: 0.85,
   dash: 0.6,
+  // Projection Sorcery held down (see MACH below). Stronger than a dash
+  // because these are not a blur of a fast body — they are the frames he
+  // planned, and a plan you can barely see is not one worth drawing.
+  mach: 1,
+};
+
+// ---------------------------------------------------- Projection Sorcery run
+//
+// Naoya's afterimages used to come free with any sustained run, which put a
+// strip of film behind him for most of a normal match — the technique's whole
+// read (he is executing planned frames, not moving fast) worn as a default.
+//
+// So the frames are OPTED INTO, on the button they belong to: hold B while
+// running and he winds the choreography up — faster, and trailing. Let go and
+// he is a man running. The trail is his own, not the generic blur: sampled
+// further apart and drawn harder, so it reads as snapshots of where he has
+// been rather than a smear of where he is.
+export const MACH = {
+  speedMul: 1.28,     // how much faster the held run is
+  step: 5,            // sim steps between his samples (a blur trail is 2)
+  len: 5,             // how many of them are kept
+  alpha: 0.62,        // opacity of a planned frame (a blur ghost peaks at 0.34)
 };
 
 // ----------------------------------------------------------- strike arcs

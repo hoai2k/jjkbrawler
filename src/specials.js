@@ -25,6 +25,7 @@ import {
   playSfx, playGrunt, moveCallFor, spokenLead, spokenCommitAt, cutSfx, playCutGrunt,
 } from "./audio.js";
 import { METER_MAX } from "./constants.js";
+import { FRAME_RUSH } from "./config_fx.js";
 import { rectsOverlap, circleRectOverlap } from "./utils.js";
 import { getImage } from "./assets.js";
 import { spawnSummon } from "./summons.js";
@@ -971,7 +972,13 @@ const HANDLERS = {
       owner: f, t: 0, dead: false,
       update(dt) { this.t += dt; if (this.t > 0.5) this.dead = true; },
       draw(ctx) {
-        const alpha = 0.55 * (1 - this.t / 0.5);
+        // HELD, THEN CUT. These are the frames he planned and executed, and
+        // they were fading from the moment they were drawn — a strip of film
+        // already half gone by the time the eye reaches it. They hold at full
+        // strength for the first two thirds and then go at once, which is what
+        // makes them read as stills rather than a dissolve.
+        const k = this.t / 0.5;
+        const alpha = FRAME_RUSH.alpha * (k < 0.66 ? 1 : (1 - k) / 0.34);
         for (const gx of ghosts) {
           drawCharFrame(ctx, charKey, frame, gx, y, { scale: char.scale, facing, alpha });
         }

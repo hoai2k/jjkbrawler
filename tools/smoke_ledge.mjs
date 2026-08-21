@@ -542,13 +542,28 @@ try {
         f.x + a.x + g.x - f.hangGrip.x, f.y + a.y + g.y - f.hangGrip.y));
       if (drawn > 8) break;
     }
-    return { drawn, worst: Math.round(worst) };
+    // How far the ANIMATION CLOCK has got by the time the hang has settled.
+    //
+    // The hang is the one state whose update returns before the `animTime +=
+    // dt` at the end of updateFighter, and for a long time it therefore did
+    // not have one: the playhead sat at zero for the whole hang. Nothing
+    // noticed, because a still pose looks the same either way — except to the
+    // cross-fade, which asks `animTime < SPRITE_XFADE` to decide whether the
+    // pose the fighter arrived in is still worth painting underneath. Frozen
+    // at zero that answer is always yes, so the FALL was drawn under the hang,
+    // at full strength, for as long as the fighter held the corner. Two
+    // sprites on the ledge, reported as exactly that.
+    return { drawn, worst: Math.round(worst), clock: +f.animTime.toFixed(3) };
   });
   check(grip.drawn > 0, "the hang is reached and drawn", `${grip.drawn} frame(s) of it`);
   check(grip.worst <= 2,
     "and never drawn with the gripping hand off the corner",
     `worst ${grip.worst}px over ${grip.drawn} hang frame(s) — it was 90px on the `
     + "frame the catch landed");
+  check(grip.clock > 0.08,
+    "and the hang's animation clock runs, so the fade it arrived on ends",
+    `animTime ${grip.clock}s at the settled hang, against a 0.08s fade — frozen `
+    + "at 0 it painted the fall under the hang for the whole hang");
   check(orphan.hung && !orphan.orphan,
     "and letting go changes the pose on the same step it lets go",
     `drew \`${orphan.pose}\` — remove the guard in fighter.js and this is \`ledge\`, `
