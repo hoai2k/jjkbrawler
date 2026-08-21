@@ -176,6 +176,53 @@ check("Kaichi keeps turning toward what it was aimed at",
   !!kaichiNow && kaichiNow.vy < kaichi.vy0 - 20,
   kaichiNow ? `vy ${kaichi.vy0.toFixed(0)} -> ${kaichiNow.vy.toFixed(0)} (target is above)` : "shot expired");
 
+// ------------------------------------------------- Ryu meets Uro's Sky Fold
+// The one anti-projectile interaction in the game, against the one projectile
+// that is still being FLOWN after it leaves the muzzle. Two things have to hold
+// when the sky folds it back: the dragon has to change sides — reflection
+// reassigns `p.owner`, and a dragon that ignored that would keep hunting the
+// wrong fighter — and it must not run away with itself. The weave and
+// `homing` are both accelerations with no ceiling of their own, and before the
+// renormalise in the director they compounded to 1300 px/s, which is how a
+// reflected ultimate does something absurd.
+await asIno();
+await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { performUltimate } = await import("/src/ultimates.js");
+  const f = state.fighters[0], o = state.fighters[1];
+  o.x = f.x + f.facing * 300; o.y = f.y; o.damage = 0; f.damage = 0;
+  // Sky Fold, held open by hand rather than by casting Uro's whole kit.
+  o.reflect = { t: 4, color: "#8fd7e8" };
+  performUltimate(f);
+});
+let turned = false, fastest = 0;
+for (let i = 0; i < 12; i++) {
+  await page.waitForTimeout(200);
+  const shot = await page.evaluate(async () => {
+    const { state } = await import("/src/state.js");
+    const p = state.projectiles.find((q) => q.label === "RYU");
+    return p ? { mine: p.owner === state.fighters[0], speed: Math.hypot(p.vx, p.vy) } : null;
+  });
+  if (!shot) continue;
+  if (!shot.mine) turned = true;
+  fastest = Math.max(fastest, shot.speed);
+}
+check("the sky folds Ryu back onto Ino's side of the fight", turned, `owner changed hands`);
+// Against the kit's own launch speed, not a number copied out of it — this
+// check exists to catch acceleration, and it should keep working after a
+// tuning pass moves the speed.
+const launch = await page.evaluate(async () => {
+  const { CHARACTERS } = await import("/src/characters.js");
+  return CHARACTERS.ino.ultimate.p.speed;
+});
+check("a reflected Ryu does not run away with itself",
+  fastest > 0 && fastest < launch * 1.15,
+  `peak ${fastest.toFixed(0)} px/s against a launch of ${launch}`);
+await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  state.fighters[1].reflect = null;
+});
+
 // --------------------------------------------------------------------- report
 for (const r of results) console.log(`${r.pass ? "PASS" : "FAIL"}  ${r.name}  [${r.detail}]`);
 const failed = results.filter((r) => !r.pass).length;

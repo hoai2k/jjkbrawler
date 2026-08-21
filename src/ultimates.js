@@ -153,10 +153,28 @@ const DIRECTORS = {
           // Dead or expired: the projectile list owns its lifetime, so the
           // controller follows it out rather than guessing at the duration.
           if (!state.projectiles.includes(this.shot)) { this.dead = true; return; }
-          // The weave. An impulse rather than a set, so the shot's own homing
-          // still wins the argument about where the head is going — a snake
-          // that tracks you is a snake, one that ignores you is a sine wave.
-          this.shot.vy += Math.cos(this.shot.age * 11) * (p.weave ?? 250) * dt * 8;
+          // The weave — a bounded ROTATION of the heading, at a held speed.
+          // Both of those are lessons rather than taste. Written the obvious
+          // way, as an impulse on `vy`, the weave and updateProjectiles'
+          // `homing` are two accelerations with no ceiling between them: a
+          // 2.3 s flight reached 1300 px/s and climbed clean over the target,
+          // crossing the fighter it was aimed at four times without touching
+          // them. Clamping the speed fixed the runaway and left the second
+          // half — a vertical impulse large enough to snake is large enough to
+          // point the shot AWAY from the target, and the dragon whiffed a
+          // full-bar ultimate outright about one cast in four.
+          //
+          // Rotating instead makes the two agree by construction. Homing owns
+          // the heading, the weave leans off it by at most `weave` radians,
+          // and the speed never changes — so it always closes, and it snakes
+          // the whole way in.
+          const v = this.shot;
+          const sp = Math.hypot(v.vx, v.vy) || 1;
+          const lean = Math.sin(v.age * 9) * (p.weave ?? 0.5);
+          const dir = Math.atan2(v.vy, v.vx) + lean;
+          const want = p.speed ?? 660;
+          v.vx = Math.cos(dir) * want;
+          v.vy = Math.sin(dir) * want;
           // Every segment of it that goes past is its own hit. Without the
           // re-arm a piercing shot touches each fighter exactly once and the
           // whole dragon is worth one 9% poke.

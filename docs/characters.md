@@ -1007,8 +1007,13 @@ technique, and the technique has an off switch.
 - **Ultimate — Auspicious Beast: Ryu:** the fourth beast, on a new `serpent`
   director. Not the `beam` shape: a beam is one hit box in a straight line and
   a snake is neither, so the shot pierces, weaves, and has its hit set re-armed
-  every 0.24 s — which is what turns one projectile into a body with segments
-  going past you. ~29% on a fresh cast.
+  every 0.20 s — which is what turns one projectile into a body with segments
+  going past you. ~29% on a fresh cast, and the same 29% every cast: the weave
+  is a bounded ROTATION of a heading homing already owns, at a held speed, so
+  the dragon always closes. Written the obvious way — an impulse on `vy` — the
+  weave and `homing` are two unbounded accelerations that between them sent it
+  over the target's head at 1300 px/s, and it whiffed roughly one cast in four.
+  That is the note to read before touching its numbers.
 - *Passive — The Mask:* the technique's actual rule. Beast damage is 12% higher
   while the mask is on, and **a shield break tears it off**, sealing all three
   beasts for 4.5 s (the `silence` status Toji's spear already used) and

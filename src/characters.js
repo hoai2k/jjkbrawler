@@ -1976,7 +1976,7 @@ export const CHARACTERS = {
     ultimate: {
       name: "Auspicious Beast: Ryu", type: "serpent",
       desc: "The fourth beast, the one his mask came off before he ever got to use: a serpentine dragon surges out of his hands and coils through whatever it catches.",
-      p: { charge: 0.55, speed: 660, dur: 2.3, r: 52, dmg: 9.5, base: 300, growth: 6.0, angle: 0.42, homing: 360, pull: 170, weave: 250, rehit: 0.24, color: "#a8582f", label: "RYU", sprite: "effect:ryu_dragon", spriteH: 190 },
+      p: { charge: 0.55, speed: 430, dur: 2.6, r: 60, dmg: 9.5, base: 280, growth: 5.6, angle: 0.42, homing: 300, pull: 190, weave: 0.5, rehit: 0.2, color: "#a8582f", label: "RYU", sprite: "effect:ryu_dragon", spriteH: 190 },
     },
     passive: { id: "beastMask", name: "The Mask", desc: "The seance only runs while his face is covered: beast techniques hit 12% harder with the mask on — and a shield break tears it off, sealing all three for 4.5 s." },
     ai: { style: "balanced", range: 300 },

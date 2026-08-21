@@ -488,7 +488,7 @@ Effects, on the grey key, to the same spec as the roster's other technique art.
 - **`effect:ryu_dragon`** — Ryu, his ultimate. Painted height 190 px,
   travelling and mirrored, so draw it heading RIGHT. A serpentine eastern
   dragon — long body, no wings, a maned head — drawn as a length rather than a
-  ball, because the move re-arms its hit box every 0.24 s specifically so that
+  ball, because the move re-arms its hit box every 0.20 s specifically so that
   the whole body of it counts as it goes past. Cursed water, so it wants the
   same blue-white the `water` element already uses, not his own ochre.
 
