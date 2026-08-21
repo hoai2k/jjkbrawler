@@ -1,6 +1,6 @@
 import { state } from "./state.js";
 import { clamp, lerp } from "./utils.js";
-import { WORLD } from "./constants.js";
+import { WORLD, RESPAWN_WAIT } from "./constants.js";
 
 // Smash-style framing: fit the alive fighters' bounding box, padded, and zoom
 // to whatever makes that box fill the frame — tight duels are shot tight, a
@@ -45,6 +45,42 @@ const KEEP_PAD_X = 110;
 const KEEP_PAD_TOP = 250;
 const KEEP_PAD_BOTTOM = 70;
 
+// A FIGHTER WHO IS COMING BACK IS STILL IN THE SHOT — ON THEIR WAY BACK.
+//
+// A ring-out used to take them out of the framing outright. Two cuts came of
+// that, in the same second: the frame let go of the body it had been holding at
+// the blast line and whipped in toward whoever was left, and then the blackout
+// ended, a body appeared on a revival platform most of a stage away, and the
+// containment pass below — which must open the frame the instant somebody is
+// outside it — snapped the zoom in ONE frame to catch it.
+//
+// Both ends are known in advance. fighter.js records where they went out and
+// where they are coming back the moment they are rung out (`respawnAt`), so
+// what the camera tracks through the blackout is a POINT TRAVELLING BETWEEN
+// THEM: at the ring-out it is exactly where the fighter was, so nothing is let
+// go of; at the arrival it is exactly where the body appears, so nothing is
+// discovered. In between the shot carries the eye across, which is the move a
+// human operator would make.
+//
+// Eased rather than linear, because the ends are what matter: it leaves the
+// blast line gently and settles onto the platform gently, and the middle —
+// empty stage nobody is looking at — is where the speed goes.
+const smooth = (t) => t * t * (3 - 2 * t);
+
+/** How far through the trip back a rung-out fighter is, 0..1. */
+const arriving = (f) => (f.dead || !f.respawnAt ? 0
+  : smooth(1 - clamp(f.respawnTimer / RESPAWN_WAIT, 0, 1)));
+
+/** Where the shot should be holding them right now. */
+function returnPoint(f) {
+  const r = f.respawnAt;
+  const k = arriving(f);
+  return {
+    x: lerp(r.fromX ?? r.x, r.x, k),
+    y: lerp(r.fromY ?? r.y, r.y, k),
+  };
+}
+
 const PAN_DAMP = 0.0009;
 // Settling into a tighter shot is slow and unnoticeable; opening up to keep
 // somebody in frame is near-instant. A single symmetric rate cannot do both,
@@ -70,12 +106,17 @@ function contain(c, half, lo, hi) {
 export function updateCamera(dt) {
   const cam = state.camera;
   const alive = state.fighters.filter((f) => !f.dead && f.respawnTimer <= 0);
+  // The bodies that are not on the stage yet, at the point they will appear.
+  const incoming = state.fighters
+    .filter((f) => f.respawnTimer > 0 && f.respawnAt && !f.dead)
+    .map(returnPoint);
+  const framed = alive.length + incoming.length;
 
   let cx = WORLD.w / 2;
   let cy = WORLD.h / 2;
   let zoomTarget = 1;
 
-  if (alive.length >= 2) {
+  if (framed >= 2) {
     let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
     for (const f of alive) {
       const lx = clamp((f.vx || 0) * LOOKAHEAD_T, -LOOKAHEAD_MAX, LOOKAHEAD_MAX);
@@ -84,6 +125,14 @@ export function updateCamera(dt) {
       right = Math.max(right, f.x, f.x + lx);
       top = Math.min(top, f.y, f.y + ly);
       bottom = Math.max(bottom, f.y, f.y + ly);
+    }
+    // No lookahead: this point's whole path is already known, so there is
+    // nothing to anticipate.
+    for (const p of incoming) {
+      left = Math.min(left, p.x);
+      right = Math.max(right, p.x);
+      top = Math.min(top, p.y);
+      bottom = Math.max(bottom, p.y);
     }
     left -= FRAME_PAD_X;
     right += FRAME_PAD_X;
@@ -95,7 +144,7 @@ export function updateCamera(dt) {
     );
     cx = (left + right) / 2;
     cy = (top + bottom) / 2;
-  } else if (alive.length === 1) {
+  } else if (framed === 1 && alive.length === 1) {
     const f = alive[0];
     cx = f.x + clamp((f.vx || 0) * LOOKAHEAD_T, -LOOKAHEAD_MAX, LOOKAHEAD_MAX) / 2;
     cy = f.y - 90 + clamp((f.vy || 0) * LOOKAHEAD_T, -LOOKAHEAD_MAX, LOOKAHEAD_MAX) / 2;
@@ -122,7 +171,7 @@ export function updateCamera(dt) {
   // it — including the shake amplitude, which is applied after this.
   let halfW = WORLD.w / 2 / cam.zoom;
   let halfH = WORLD.h / 2 / cam.zoom;
-  if (alive.length) {
+  if (alive.length || incoming.length) {
     const m = cam.shake * 0.5;
     let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
     for (const f of alive) {
@@ -130,6 +179,16 @@ export function updateCamera(dt) {
       right = Math.max(right, f.x + KEEP_PAD_X + m);
       top = Math.min(top, f.y - KEEP_PAD_TOP - m);
       bottom = Math.max(bottom, f.y + KEEP_PAD_BOTTOM + m);
+    }
+    // ...and the travelling point, held exactly as a body is. It is where the
+    // fighter was when the frame last owed them anything and where the next one
+    // appears, so honouring it throughout is what makes both ends free: nothing
+    // is dropped at the ring-out and nothing is found at the arrival.
+    for (const p of incoming) {
+      left = Math.min(left, p.x - KEEP_PAD_X - m);
+      right = Math.max(right, p.x + KEEP_PAD_X + m);
+      top = Math.min(top, p.y - KEEP_PAD_TOP - m);
+      bottom = Math.max(bottom, p.y + KEEP_PAD_BOTTOM + m);
     }
     // Zoom out NOW if the eased zoom has not opened far enough — the shot may
     // lag on the way in, never on the way out. A 2000 px/s launch outruns any

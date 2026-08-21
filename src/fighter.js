@@ -13,7 +13,7 @@ import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop, noteFir
 import { rumbleEvent } from "./rumble.js";
 import { counterShimmerFx, healMotesFx } from "./fx.js";
 import {
-  GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME, CROUCH_GRACE,
+  WORLD, GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME, CROUCH_GRACE,
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
   DASH_MULT, ACTION_BUFFER, AERIAL_LAND_LAG_MULT, AERIAL_LAND_LAG_MIN, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
   SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
@@ -85,6 +85,10 @@ export function makeFighter(id, charKey, x, facing) {
     // dropped the frame somebody presses a direction.
     hangGrip: null, hangGripW: 0,
     respawnTimer: 0, dead: false,
+    // Where this fighter will come back, set the moment they are rung out so
+    // the camera can start moving there while they are still off screen
+    // (camera.js). Null whenever they are on the stage.
+    respawnAt: null,
     // The revival platform this fighter is currently standing on, or null.
     // {x, y, t} — see stepRespawnPlatform.
     respawnPlat: null,
@@ -944,9 +948,24 @@ export function ringOut(f) {
   if (f.stocks <= 0) {
     f.dead = true;
     f.x = -9999;
+    f.respawnAt = null;
     return;
   }
   f.respawnTimer = RESPAWN_WAIT;
+  // WHERE THEY ARE COMING BACK, decided now rather than at the end of the
+  // wait. Nothing about it changes in the meantime — it is a function of the
+  // slot and how many fighters are in the match — and knowing it early is what
+  // lets the camera open toward the spot over the whole blackout instead of
+  // discovering it the frame a body appears there (camera.js).
+  // ...and WHERE THEY WENT OUT, so the camera has a path rather than a
+  // destination: the shot carries the eye from the body it just lost to the
+  // spot the next one appears in, instead of letting go of one and finding the
+  // other. Clamped to the world because a blast-zone position is off the map
+  // and the frame does not go there.
+  f.respawnAt = {
+    x: respawnX(f), y: RESPAWN_PLATFORM_Y,
+    fromX: clamp(f.x, 0, WORLD.w), fromY: clamp(f.y, 0, WORLD.h),
+  };
 }
 
 // Every path that moves a fighter has to run this. A branch that integrates
@@ -981,7 +1000,8 @@ export function respawnX(f) {
 function respawn(f) {
   f.respawnTimer = 0;
   playSfx("respawn");
-  f.x = respawnX(f);
+  f.x = f.respawnAt?.x ?? respawnX(f);
+  f.respawnAt = null;
   // Standing ON the revival platform, in control from this frame. Smash's rule,
   // and the reason respawning does not feel like a second punishment: the
   // platform is protection you spend, not a wait you serve.
