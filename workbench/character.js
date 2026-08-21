@@ -115,6 +115,12 @@ root.innerHTML = `
       <ul id="rosterList" class="roster__list" role="listbox" tabindex="0"></ul>
     </aside>
     <section class="viewer">
+      <!-- The picture and the things that float over it. A box of its own so
+           the floating panels are anchored to the CANVAS rather than to the
+           section: the foot bar wraps to two and three rows on a narrow
+           window, and panels measured from the section's bottom edge climbed
+           over the controls when it did. -->
+      <div class="viewer__stage">
       <canvas id="benchCanvas" width="1280" height="720"></canvas>
       <div class="viewer__overlay" id="viewerOverlay"></div>
       <div class="lights" id="lights">
@@ -129,6 +135,7 @@ root.innerHTML = `
       <div class="aim" id="aimPanel" title="What the last attack made of the left stick — the angle it read, how far the stick was pushed, and where it aimed. Written when the attack starts and left there until the next one, so you can let go of the stick and read it. Light attacks only: a heavy reads the stick as a variant picker, not as an angle.">
         <span class="aim__name">attack read</span>
         <span class="aim__val" id="aimRead">no attack yet</span>
+      </div>
       </div>
       <div class="viewer__foot">
         <label class="toggle"><input type="checkbox" id="dummyToggle"> training dummy</label>
