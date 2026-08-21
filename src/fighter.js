@@ -25,7 +25,8 @@ import {
   LEDGE_GRIP_TAKE,
   LEDGE_INVULN_TRAVEL, LEDGE_REGRAB_SCALE, LEDGE_HANG_INVULN, LEDGE_JUMP_INVULN,
   TEETER_EDGE, TEETER_DELAY,
-  RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE, ATTACK_DIAG_DEG,
+  RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE,
+  ATTACK_TILT_LEVEL_DEG, ATTACK_TILT_CARDINAL_DEG, ATTACK_TILT_MIN_MAG,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
 import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE } from "./config_tuning.js";
@@ -235,15 +236,38 @@ function executeMove(f, move, opts = {}) {
 // pushed into a corner already reports (input.js) and what Up+Right already is
 // on a keyboard. Nothing new to press.
 
-/** The tilt this input asks for, in radians, positive DOWNWARD as y is. Zero
- *  unless a diagonal is held. */
+/** The tilt this input asks for, in radians, positive DOWNWARD as y is — the
+ *  angle the STICK is actually held at, not a step to a fixed diagonal.
+ *
+ *  It used to be `ATTACK_DIAG_DEG` whenever `up` and `right` were both true,
+ *  and those are two independent 0.5 thresholds: a diagonal was the
+ *  intersection of two half-planes, a 20-degree band needing three-quarter
+ *  deflection. Which is why it read as binary — the band is there, it is just
+ *  narrow enough to miss. Sweeping a stick round its circle finds it between
+ *  40 and 60 degrees and nowhere else (tools/debug_attack_angle.mjs).
+ *
+ *  Reading the angle instead makes the whole quadrant live and the swing land
+ *  where it was pointed. The drawn arc comes along for free and cannot drift:
+ *  `swingMove` rotates the hitbox by this and records it, and `strikeArcs`
+ *  turns the crescent by the same recorded number, so one value drives both.
+ *
+ *  HORIZONTAL IS TAKEN AS A MAGNITUDE, so holding back-and-up still throws an
+ *  upward-tilted attack the way it always has — the swing is aimed along the
+ *  facing regardless (aimAlong), and the stick's vertical is the part being
+ *  asked about.
+ *
+ *  Zero outside the band: a stick near level means "forward" and an arc should
+ *  not wobble a few degrees with it, and a stick near vertical belongs to the
+ *  up or down attack, which are their own moves. */
 function attackTilt(f, input) {
-  const forward = input.left || input.right;
-  if (!forward) return 0;
-  const diag = (ATTACK_DIAG_DEG * Math.PI) / 180;
-  if (input.up) return -diag;
-  if (input.down) return diag;
-  return 0;
+  const h = Math.abs(input.moveX ?? ((input.right ? 1 : 0) - (input.left ? 1 : 0)));
+  const v = -(input.moveY ?? ((input.down ? 1 : 0) - (input.up ? 1 : 0)));
+  if (Math.hypot(h, v) < ATTACK_TILT_MIN_MAG) return 0;
+  if (h <= 0) return 0;                       // straight up or down: not a tilt
+  const up = Math.atan2(v, h);                // radians above horizontal
+  const deg = Math.abs(up) * (180 / Math.PI);
+  if (deg < ATTACK_TILT_LEVEL_DEG || deg > ATTACK_TILT_CARDINAL_DEG) return 0;
+  return -up;                                 // positive downward, as y is
 }
 
 /** Point the BODY along `tilt` (radians, positive downward) for this attack,

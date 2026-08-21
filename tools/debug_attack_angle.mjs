@@ -171,8 +171,8 @@ const window = await page.evaluate(async () => {
     state.hitboxes.length = 0;
     // Exactly what input.js builds from a pad at this stick position.
     const stick = {
-      right: ax > 0.5, left: ax < -0.5, up: ay < -0.5, down: ay > 0.5,
-      dirX: ax, moveX: ax,
+      right: ax > 0.28, left: ax < -0.28, up: ay < -0.5, down: ay > 0.5,
+      dirX: Math.sign(ax), moveX: ax, moveY: ay,
     };
     updateFighter(f, dt, { ...blankInput(), ...stick, lightP: true });
     for (let i = 0; i < 40; i++) {
@@ -190,9 +190,9 @@ const window = await page.evaluate(async () => {
   };
 
   const rows = [];
-  for (let deg = 0; deg <= 90; deg += 10) rows.push({ deg, mag: 1, ...test(deg, 1) });
+  for (let deg = -90; deg <= 90; deg += 15) rows.push({ deg, mag: 1, ...test(deg, 1) });
   const mags = [];
-  for (const mag of [1, 0.9, 0.8, 0.75, 0.7, 0.6]) mags.push({ mag, ...test(45, mag) });
+  for (const mag of [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3]) mags.push({ mag, ...test(45, mag) });
   return { rows, mags };
 });
 
