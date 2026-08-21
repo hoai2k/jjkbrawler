@@ -218,6 +218,67 @@ ok(slowRate < fullRate * 0.35,
    `${fullRate.toFixed(0)} steps/s at 1x against ${slowRate.toFixed(1)} at 0.1x`);
 await page.evaluate(() => window.__bench.setSpeed(1));
 
+// --- the two angle readouts
+//
+// A diagonal attack that comes out level is either an angle that never reached
+// the attack or an angle the attack read and drew wrong, and the two need
+// opposite fixes. The bench answers that by showing both numbers, so the check
+// is that each one MOVES WITH THE THING IT CLAIMS TO DESCRIBE: the live one
+// with the stick this frame, the latched one with the attack that read it.
+await page.focus("#benchCanvas");
+const stickReads = [];
+for (const keys of [["KeyW", "KeyD"], ["KeyS", "KeyD"], []]) {
+  for (const k of keys) await page.keyboard.down(k);
+  await page.waitForTimeout(220);
+  stickReads.push(await page.textContent("#stickState"));
+  for (const k of keys) await page.keyboard.up(k);
+  await page.waitForTimeout(140);
+}
+ok(/45°/.test(stickReads[0]) && /-45°/.test(stickReads[1]) && /centred/.test(stickReads[2]),
+   "the stick readout follows the stick", stickReads.join(" | "));
+
+// The latched half, straight through the attack. Driven by stepping the
+// fighter rather than by pressing a key, so the reading and the press are the
+// same statement and neither can be a frame the sampler happened to miss.
+const aim = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { updateFighter } = await import("/src/fighter.js");
+  const { blankInput } = await import("/src/input.js");
+  const f = state.fighters[0];
+  const plat = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+  const swing = (deg, mag) => {
+    const r = (deg * Math.PI) / 180;
+    Object.assign(f, {
+      x: plat.x + plat.w / 2, y: plat.y, vx: 0, vy: 0, grounded: true,
+      hitstun: 0, hitPause: 0, action: null, charging: false, shielding: false,
+      crouching: false, dashT: 0, walking: false, facing: 1, facingVis: 1,
+      aimPoint: null, jabStep: 0, jabResetT: 0, ledge: null, ledgeMove: null,
+      prone: 0, dead: false,
+    });
+    const ax = Math.cos(r) * mag, ay = -Math.sin(r) * mag;
+    updateFighter(f, 1 / 60, {
+      ...blankInput(), lightP: true, moveX: ax, moveY: ay, dirX: Math.sign(ax),
+      right: ax > 0.28, left: ax < -0.28, up: ay < -0.5, down: ay > 0.5,
+    });
+    return { ...f.attackAim };
+  };
+  const rows = [40, -40, 80].map((d) => ({ deg: d, ...swing(d, 1) }));
+  rows.push({ deg: 40, ...swing(40, 0.3) });   // barely off centre
+  // The panel is painted from the fighter on the next frame, so let one pass.
+  await new Promise((r) => requestAnimationFrame(r));
+  await new Promise((r) => requestAnimationFrame(r));
+  return { rows, text: window.__bench.state().aimText };
+});
+const aimed = aim.rows.filter((r) => r.verdict === "aimed");
+ok(aimed.length === 2 && aimed.every((r) => r.tilt === r.deg),
+   "the attack readout records the angle the attack aimed at",
+   aim.rows.map((r) => `${r.deg}°→${r.verdict}/${r.tilt}°`).join("  "));
+ok(aim.rows[2].verdict === "cardinal" && aim.rows[3].verdict === "too near centre",
+   "and says WHY a swing came out level rather than only that it did",
+   `${aim.rows[2].verdict} | ${aim.rows[3].verdict}`);
+ok(/0\.3/.test(aim.text) && /→/.test(aim.text),
+   "the panel shows the last attack's reading and keeps it", aim.text);
+
 ok(errors.length === 0, "no page errors", errors.slice(0, 3).join(" | "));
 
 await browser.close();

@@ -77,6 +77,8 @@ const bench = {
   speed: Number(url.searchParams.get("speed")) || 1,
   // The ledge drill, when one is running: see runDrill.
   drill: null,
+  // The last input handed to the world, for the stick readout. See paintAims.
+  stick: null,
   // How many simulation steps have run. The bench has no clock of its own and
   // the game has no global one, so this is what "how much game happened" means
   // here — and it is the only honest way to show that the speed control slows
@@ -118,6 +120,10 @@ root.innerHTML = `
         </button>
         <span class="lights__state" id="lightsState"></span>
       </div>
+      <div class="aim" id="aimPanel" title="What the last attack made of the left stick — the angle it read, how far the stick was pushed, and where it aimed. Written when the attack starts and left there until the next one, so you can let go of the stick and read it. Light attacks only: a heavy reads the stick as a variant picker, not as an angle.">
+        <span class="aim__name">attack read</span>
+        <span class="aim__val" id="aimRead">no attack yet</span>
+      </div>
       <div class="viewer__foot">
         <label class="toggle"><input type="checkbox" id="dummyToggle"> training dummy</label>
         <button class="drill" id="ledgeDrill" type="button" title="Walks off the edge, hangs, and climbs back — the real grab, the real transition, no state poked in by hand. Getting there on a pad takes a dozen tries and the interesting part is four frames long; turn the speed down and watch it.">ledge drill</button>
@@ -133,6 +139,7 @@ root.innerHTML = `
           <input type="range" id="speedRange" min="0.05" max="1" step="0.05">
           <span id="speedValue"></span>
         </label>
+        <span class="viewer__stick" id="stickState" title="The left stick as input.js reports it this frame — the raw angle, back or forward, and how far it is pushed. This is what reaches the attack; the panel over the picture is what the attack made of it.">stick —</span>
         <span class="viewer__pads" id="padState"></span>
         <span class="viewer__fps" id="fpsState"></span>
       </div>
@@ -154,6 +161,9 @@ const scaleEl = document.getElementById("scaleRange");
 const scaleValueEl = document.getElementById("scaleValue");
 const speedValueEl = document.getElementById("speedValue");
 const drillEl = document.getElementById("ledgeDrill");
+const aimReadEl = document.getElementById("aimRead");
+const aimPanelEl = document.getElementById("aimPanel");
+const stickEl = document.getElementById("stickState");
 const padEl = document.getElementById("padState");
 const fpsEl = document.getElementById("fpsState");
 
@@ -499,7 +509,14 @@ function loop(now) {
     advanceWorld(dt, {
       latch,
       scale: bench.speed,
-      read: (id) => (id === 1 ? playerInput(1) : blankInput()),
+      read: (id) => {
+        if (id !== 1) return blankInput();
+        // Kept for the stick readout: this is the exact object the world is
+        // about to be stepped with, so what the panel shows and what the
+        // fighter was handed cannot disagree.
+        bench.stick = playerInput(1);
+        return bench.stick;
+      },
       step: (d) => {
         // The drill's stick, pressed into the latch after `advanceWorld` has
         // filled it from the real pad and before the world reads it — which is
@@ -523,6 +540,7 @@ function loop(now) {
   // Straight after the draw, because that is what it describes: which of the
   // armed mechanisms actually did something to the frame now on screen.
   paintActivity();
+  paintAims();
   endInputFrame();
 
   frames += 1;
@@ -564,6 +582,43 @@ function frameForBench() {
   state.camera.y = clamp(me.y - 90, halfH, WORLD.h - halfH);
 }
 
+
+// ------------------------------------------------------------- the two angles
+//
+// A diagonal attack that comes out level has two possible faults and they need
+// opposite fixes: either the angle never reached the attack code (a deadzone, a
+// threshold, a pad axis) or it arrived and the swing was drawn somewhere else.
+// Arguing about it from the picture is hopeless, so both numbers are on screen.
+//
+//   stick         what input.js reports THIS FRAME, raw and signed
+//   attack read   what `attackTilt` made of it when the attack began, kept
+//                 until the next attack so the stick can be let go of
+//
+// They are deliberately not the same number. The attack folds the horizontal to
+// a magnitude — back-and-up throws the same upward swing as forward-and-up —
+// so a stick at 135° and one at 45° both reach the attack as 45°. Two readouts
+// that always agreed would not be worth having.
+function paintAims() {
+  const s = bench.stick;
+  const x = s?.moveX || 0;
+  // `|| 0` on the negation as well, or a stick held flat left reports -180°:
+  // negating a zero gives -0, and atan2(-0, -1) is minus pi.
+  const y = -(s?.moveY || 0) || 0;         // up positive, the way an angle reads
+  const mag = Math.hypot(x, y);
+  stickEl.textContent = mag < 0.05
+    ? "stick centred"
+    : `stick ${Math.round(Math.atan2(y, x) * (180 / Math.PI))}° · ${mag.toFixed(2)}`;
+
+  const a = state.fighters[0]?.attackAim;
+  aimPanelEl.classList.toggle("is-aimed", !!a && a.verdict === "aimed");
+  if (!a) { aimReadEl.textContent = "no attack yet"; return; }
+  // `deg` is above horizontal with the horizontal FOLDED FORWARD, which is
+  // what the attack read; `tilt` is where the swing actually went. When the
+  // attack aims they are the same number, and that is the point — seeing them
+  // agree is how you know the reading reached the swing.
+  aimReadEl.textContent = `${a.deg}° at ${a.mag} → `
+    + (a.verdict === "aimed" ? `swings ${a.tilt}°` : `${a.verdict}, swings 0°`);
+}
 
 // ------------------------------------------------------------ the ledge drill
 //
@@ -738,6 +793,10 @@ window.__bench = {
                   anim: state.fighters[0]?.animKey, smoothing: smoothingState(),
                   steps: bench.steps, speed: bench.speed,
                   activity: { ...smoothingActivity },
+                  stick: bench.stick
+                    ? { x: bench.stick.moveX || 0, y: bench.stick.moveY || 0 } : null,
+                  attackAim: state.fighters[0]?.attackAim || null,
+                  aimText: aimReadEl.textContent, stickText: stickEl.textContent,
                   // What the loop is responsible for retiring. A number here
                   // that only ever grows is the bug this bench shipped with:
                   // the world was stepped and the PRESENTATION was not, so

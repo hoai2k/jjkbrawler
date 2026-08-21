@@ -262,12 +262,36 @@ function executeMove(f, move, opts = {}) {
 function attackTilt(f, input) {
   const h = Math.abs(input.moveX ?? ((input.right ? 1 : 0) - (input.left ? 1 : 0)));
   const v = -(input.moveY ?? ((input.down ? 1 : 0) - (input.up ? 1 : 0)));
-  if (Math.hypot(h, v) < ATTACK_TILT_MIN_MAG) return 0;
-  if (h <= 0) return 0;                       // straight up or down: not a tilt
-  const up = Math.atan2(v, h);                // radians above horizontal
+  const mag = Math.hypot(h, v);
+  const up = mag ? Math.atan2(v, h) : 0;      // radians above horizontal
   const deg = Math.abs(up) * (180 / Math.PI);
-  if (deg < ATTACK_TILT_LEVEL_DEG || deg > ATTACK_TILT_CARDINAL_DEG) return 0;
-  return -up;                                 // positive downward, as y is
+
+  /** WHAT THIS ATTACK MADE OF THE STICK, left on the fighter for the character
+   *  bench to show (`workbench/character.js`, the "attack read" panel).
+   *
+   *  It is written here because here is the only place that knows: by the time
+   *  a hitbox exists the reading has already been turned into a tilt, and a
+   *  tilt of zero is four different answers — the stick was barely off centre,
+   *  it was straight up, it was level, it was steep enough to be the up
+   *  attack. Telling those apart from the outside is guesswork, and the
+   *  question the panel exists to settle is precisely "did my angle reach the
+   *  attack, or did the attack read it and draw it wrong". So the reading says
+   *  which of them it was, and nothing downstream reads it. */
+  const read = (verdict, tilt) => {
+    f.attackAim = {
+      deg: Math.round(up * (180 / Math.PI)),  // above horizontal, folded forward
+      mag: +mag.toFixed(2),
+      tilt: Math.round(-tilt * (180 / Math.PI)),
+      verdict,
+    };
+    return tilt;
+  };
+
+  if (mag < ATTACK_TILT_MIN_MAG) return read("too near centre", 0);
+  if (h <= 0) return read("straight up or down", 0);
+  if (deg < ATTACK_TILT_LEVEL_DEG) return read("level", 0);
+  if (deg > ATTACK_TILT_CARDINAL_DEG) return read("cardinal", 0);
+  return read("aimed", -up);                  // positive downward, as y is
 }
 
 /** Point the BODY along `tilt` (radians, positive downward) for this attack,
