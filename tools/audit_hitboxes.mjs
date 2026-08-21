@@ -36,10 +36,11 @@ await loadCoreAssets();
 const { CHARACTERS, CHARACTER_KEYS } = await import("../src/characters.js");
 const { spriteManifest } = await import("../src/assets.js");
 const { lightMove, heavyMove, visibleArtReach } = await import("../src/moves.js");
-const { bodyMetrics, rosterReach, reachSourceName } = await import("../src/silhouette.js");
+const { bodyMetrics, rosterReach, reachSourceName, moveReach, paintedReach } =
+  await import("../src/silhouette.js");
 const { reachFaults, FORWARD_STATES } = await import("../src/strike_reach.js");
 const { HURTBOX } = await import("../src/constants.js");
-const { MELEE_GRACE, BODY, REACH_NUDGE } = await import("../src/config_tuning.js");
+const { MELEE_GRACE, ADDED_RANGE, BODY, REACH_NUDGE } = await import("../src/config_tuning.js");
 const { STAGES } = await import("../src/stages.js");
 
 const n0 = (v) => Math.round(v).toString();
@@ -87,23 +88,56 @@ for (const r of [...rows].sort((a, b) => b.heavyTip - a.heavyTip)) {
     r.measured ? "" : "  (unmeasured art)");
 }
 
-// The whole point of deriving reach from the art: the invisible part of a swing
-// is a fixed margin, so it is the same for everybody. It used to run 62-113 px
-// depending on the character.
+// THE TWO FLOORS EVERY FORWARD ATTACK HAS TO CLEAR.
 //
-// Measured per MOVE against the art THAT move is built from, which is the only
-// way to ask the question now that reach is per move. Against the fighter's
-// scalar it would report a spread of 36 px on a roster where every single
-// margin is exactly MELEE_GRACE.sideHeavy — because a fighter with one long
-// attack has a scalar their short attacks do not use.
-const graces = rows.map((r) => r.heavyTip - r.heavyArt);
-const graceSpread = Math.max(...graces) - Math.min(...graces);
-console.log(`\ngrace margin: ${n0(Math.min(...graces))}-${n0(Math.max(...graces))} px `
-  + `(spread ${n0(graceSpread)}, was 62-113 before hitboxes came off the art)`);
-if (graceSpread > 2) {
-  fail(`grace margin varies by ${n0(graceSpread)} px across the roster — it should be `
-    + `identical, since MELEE_GRACE.sideHeavy is a constant`);
+// A hitbox is built from where the blow LANDS (the verified strike point) plus
+// a margin, and floored at where the DRAWING stops plus a smaller one. Both
+// have to hold on every forward move, and the second is the one a player feels:
+// a swing that visually overlaps an opponent and does nothing is the complaint
+// the floor exists to answer. Dagon's side smash used to end 3 px inside his
+// own ink and 77 of these 204 were within 8 px of theirs.
+const FORWARD = [
+  ["light", "jab", "light", "jab"],
+  ["light", "side", "light", "side"],
+  ["light", "down", "crouchAttack", "down"],
+  ["light", "air", "airLight", "air"],
+  ["heavy", "side", "sideHeavy", "sideHeavy"],
+  ["heavy", "air", "airLight", "airHeavy"],
+];
+let inkFloored = 0, checked = 0;
+const overArt = [], overPoint = [];
+for (const key of CHARACTER_KEYS) {
+  const char = CHARACTERS[key];
+  for (const [kind, variant, state, graceKey] of FORWARD) {
+    const m = kind === "light" ? lightMove(char, variant) : heavyMove(char, variant);
+    const tip = m.ox + m.w;
+    const point = moveReach(key, state);
+    const ink = paintedReach(key, state);
+    checked += 1;
+    const pastPoint = tip - point;
+    overPoint.push(pastPoint);
+    if (pastPoint < MELEE_GRACE[graceKey] * MELEE_GRACE.scale - 0.5) {
+      fail(`${key} ${kind}.${variant}: connects ${n0(pastPoint)} px past the strike point, `
+        + `under the ${n0(MELEE_GRACE[graceKey])} px MELEE_GRACE.${graceKey} says it gets`);
+    }
+    if (ink == null) continue;
+    const pastArt = tip - ink;
+    overArt.push(pastArt);
+    if (pastArt < ADDED_RANGE.pastArt - 0.5) {
+      fail(`${key} ${kind}.${variant}: the hitbox ends ${n0(pastArt)} px past the ink, `
+        + `inside ADDED_RANGE.pastArt (${ADDED_RANGE.pastArt}) — this swing can overlap `
+        + `an opponent on screen and do nothing`);
+    }
+    if (Math.abs(pastArt - ADDED_RANGE.pastArt) < 0.5) inkFloored += 1;
+  }
 }
+console.log(`\nmargins over ${checked} forward attacks: `
+  + `${n0(Math.min(...overPoint))}-${n0(Math.max(...overPoint))} px past the strike point `
+  + `(MELEE_GRACE ${MELEE_GRACE.jabEarly}-${MELEE_GRACE.sideHeavy} plus ADDED_RANGE `
+  + `${ADDED_RANGE.long}-${ADDED_RANGE.short} by reach), `
+  + `${n0(Math.min(...overArt))}-${n0(Math.max(...overArt))} px past the ink`);
+console.log(`  ${inkFloored} of ${checked} are decided by the ink floor rather than the `
+  + `strike point — a drawing that carries on past where the blow lands`);
 
 // --------------------------------------------- 1a: tempering, and the order
 //

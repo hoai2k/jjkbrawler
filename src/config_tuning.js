@@ -161,6 +161,12 @@ export const BODY = {
 export const STRIKE_REACH = {
   min: 0.10,
   max: 1.20,
+
+  // Where a strike point goes for a move nobody has verified and no rig has
+  // measured, along the fighter's own reach (src/strike_points.js). Short of
+  // their tip on purpose: the blow lands with the arm out, not at the far edge
+  // of what the box threatens.
+  derivedFrac: 0.75,
 };
 
 // PER-CHARACTER RANGE NUDGES, in game px, applied after the compression above.
@@ -361,25 +367,49 @@ export const STRIKE_ARC = {
   spanMin: 0.46,
   spanMax: 1.05,
 
-  // A radius under this is not worth drawing — the arc would be inside the
-  // fighter's own art. As a fraction of the fighter's own drawn height, because
-  // "inside their own art" is a fact about their body: roughly half a typical
-  // body width (BODY.widthTypical is 0.38 of height), so the floor is where an
-  // arc would start overlapping the fighter rather than curving around them.
+  // Where an arc starts overlapping the fighter's own drawing rather than
+  // curving around it, as a fraction of their drawn height: roughly half a
+  // typical body width (BODY.widthTypical is 0.38 of height).
   //
-  // It was a flat 46 px, which was about right for a reference-height fighter
-  // and too big for everybody shorter — and it started biting once reach came
-  // off the drawings and the shorter fighters got the shorter attacks they are
-  // actually drawn with. A steeply aimed swing loses horizontal extent to the
-  // tilt (`swingMove` scales the box by cos), so Gojo's side tilt aimed 60° up
-  // ended at 39 px and simply had no crescent — a live hitbox with nothing
-  // drawn on it, which is the one thing the arc must never be.
+  // A fraction and not the flat 46 px it used to be, which was about right for
+  // a reference-height fighter and too big for everybody shorter.
+  //
+  // Two things read it. `hideInsideArt` below decides whether an arc this short
+  // is drawn at all; render.js uses half of it as the point where the trailing
+  // echoes and the sweetspot ring stop being worth drawing, which it does
+  // whatever that switch says.
   minRadiusFrac: 0.19,
+
+  // ...and whether a swing that short goes UNDRAWN.
+  //
+  // OFF, which is a change of mind. The old reasoning was that an arc inside
+  // the art is not worth drawing, and it holds as far as it goes — a crescent
+  // overlapping the fist it belongs to adds nothing. What it misses is that the
+  // alternative is worse: the arc is the mark on a hitbox's real far edge, and
+  // a swing that is live and hits and has NOTHING drawn on it is the one thing
+  // the arc must never be. A fighter reaching that distance naturally is
+  // exactly the case where the crescent is redundant rather than wrong, and
+  // redundant beats absent.
+  //
+  // It also came up as a bug rather than a preference. `swingMove` scales an
+  // aimed box by cos(tilt), so Gojo's side tilt aimed 60° up ended at 39 px,
+  // fell under the floor, and vanished — caught by smoke_combat's "the drawn
+  // arc agrees with the hitbox at every angle". Turning the suppression off
+  // fixes that class outright rather than one tilt at a time.
+  //
+  // Set true to go back to hiding them, which is the only reason it is still a
+  // switch: the two readings are worth being able to put side by side.
+  hideInsideArt: false,
 
   // Thickness of the band, as a fraction of its radius, and its hard limits.
   // The soft glow around it is drawn at `glowWidth` times this.
   thickness: 0.10,
   thicknessMin: 6,
+  // ...and how much of its own radius a band may be, which caps `thicknessMin`
+  // on the short arcs that `hideInsideArt: false` now draws. Without it a 6 px
+  // band on a 12 px radius reads as a bloom at the shoulder rather than as the
+  // edge of a swing.
+  thicknessOfRadius: 0.35,
   thicknessMax: 18,
   glowWidth: 1.7,
 
@@ -502,6 +532,88 @@ export const MELEE_GRACE = {
   upHeavy: 30,
   downHeavy: 26,
   airHeavy: 28,
+};
+
+// EXTRA reach on top of the per-move grace above, in world px — the knob for
+// "attacks feel like they should have connected".
+//
+// The grace above is a margin over the STRIKE POINT: where a person said the
+// blow lands, which is a fist's centre and not the front of the drawing. The
+// drawing keeps going. A sleeve, a claw, the far half of a weapon and the sweep
+// of the swing all sit past that point, so an attack could visually overlap an
+// opponent and do nothing — Dagon's side smash ended 3 px INSIDE his own ink,
+// and 77 of the roster's 204 forward attacks were within 8 px of theirs.
+//
+// Two parts, and both are here to be turned:
+//
+// `short` and `long` are how much is added at the two ends of the roster,
+// interpolated by where a fighter's own reach sits between the shortest and the
+// longest. More for the short end because that is who needs it: deriving range
+// from the drawings moved everybody, and the fighters it moved DOWN are the
+// ones who lost a hit they used to land. It also spends the compression budget
+// where it does least harm — a few px on the shortest arms on the roster
+// changes the spacing game much less than the same few px on the longest.
+//
+// `pastArt` is the floor under all of it: every forward attack connects at
+// least this far past the INK of the drawing it is thrown on, whatever the
+// interpolation above worked out to. That is the part that answers "it looked
+// like it hit". It is held inside STRIKE_REACH.max of the fighter's height, so
+// a frame with a big cursed-energy cloud on it cannot hand somebody the stage.
+// WHERE THE DEFAULTS CAME FROM. Deriving range from the drawings shortened most
+// of the roster: the mean side-smash tip went 142 px -> 113 px against the rig
+// numbers it replaced. `short`/`long` buy that back part of the way, and these
+// are the measured means at a few settings (node tools/audit_hitboxes.mjs
+// prints the live ones):
+//
+//     short  long   mean smash tip   mean forward tip
+//         0     0            112.6              99.4
+//        18     3            126.2             111.2
+//        24     4            130.9             115.7   <- shipping
+//        30     6            135.9             120.5
+//        36     8            140.9             125.4
+//        42    10            145.9             130.3   (past the old numbers)
+//
+// The rig-derived game was 141.9 / 132.3. 24/4 sits almost exactly halfway on
+// forward attacks overall and a little toward the old feel on smashes, which is
+// the "somewhere in between" this was asked for. Raise both to go back toward
+// the old reach, drop them toward 0 to play the drawings as measured.
+export const ADDED_RANGE = {
+  short: 24,
+  long: 4,
+  pastArt: 8,
+};
+
+// How much of a move's reach its BOX actually spans, for the moves that are not
+// a plain swing straight out in front.
+//
+// These were literals sitting inline in moves.js, which meant the one question
+// somebody actually wants to ask — "why does the quake cover so much ground?" —
+// had to be answered by reading the move table. They are range scaling, the
+// same as MELEE_GRACE, and they belong beside it.
+//
+// SPANS multiply the move's tip to get how far a straddling box reaches on EACH
+// side of the fighter. A rising or falling attack is thrown along the centre
+// line, so its width is a swing's arc seen end-on rather than its reach — which
+// is why up and down are under 1 while the quake, which is a shockwave leaving
+// both sides along the floor, is nearly double.
+//
+// NEAR multiplies MELEE_GRACE.near, which is where a forward box starts as a
+// fraction of the fighter's own body width. A low poke and an aerial start
+// closer in than a standing swing does, because the body is not in the way of
+// either in the same way.
+export const MELEE_SPAN = {
+  up: 0.9,            // up tilt and up air
+  upHeavy: 1.0,       // the up smash, which spans its whole reach
+  down: 0.8,          // the meteor
+  downHeavy: 1.9,     // the quake
+  nearLow: 0.8,       // the crouch poke
+  nearAir: 0.7,       // every aerial
+
+  // The narrowest a forward box may be, as a fraction of the fighter's own body
+  // width. It only binds on a move whose tip barely clears the near edge — a
+  // very short poke on a very broad fighter — and it is there so such a move
+  // has a box at all rather than a sliver.
+  minWidth: 0.45,
 };
 
 // What reach costs. `amount` is how much of a fighter's relative reach carries

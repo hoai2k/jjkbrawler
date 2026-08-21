@@ -1084,14 +1084,14 @@ function drawRangeTargets(cx) {
   drawHurtbox(cx);
   ctx.textAlign = "left";
 
-  // Where THIS MOVE is drawn to reach — the verified strike point on this
-  // drawing, or the fighter's own scalar for a state nobody has placed one on
-  // (src/silhouette.js moveReach). It is the number the game builds the box
-  // from, so the gap between this line and the range target beside it IS that
-  // move's grace margin — and it should look about the same on every fighter
-  // and every move. Past it the reach is carried by the swing's strike arc
-  // (drawStrikeArcs in render.js), so art stopping short of a far target is
-  // fine.
+  // Where THIS MOVE is drawn to reach — whichever art bound the game actually
+  // built the box from (src/moves.js tipOf): the verified strike point on this
+  // drawing, or the outer edge of the ink when the drawing carries on past
+  // where the blow lands. The gap between this line and the range target beside
+  // it is that move's margin, and it is never zero: an attack always connects a
+  // little past the picture, or a swing that visually overlapped would do
+  // nothing. Past the target the reach is carried by the swing's strike arc
+  // (drawStrikeArcs in render.js).
   //
   // Taken off the move rather than the character because reach is per move now:
   // a cap drawn at the fighter's longest swing would sit past a jab's box on
