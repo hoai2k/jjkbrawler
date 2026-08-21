@@ -250,8 +250,14 @@ function executeMove(f, move, opts = {}) {
  *  not wobble a few degrees with it, and a stick near vertical belongs to the
  *  up or down attack, which are their own moves. */
 function attackTilt(f, input) {
-  const h = Math.abs(input.moveX ?? ((input.right ? 1 : 0) - (input.left ? 1 : 0)));
-  const v = -(input.moveY ?? ((input.down ? 1 : 0) - (input.up ? 1 : 0)));
+  // `||`, not `??`: an axis of ZERO is an absent axis, not a centred stick.
+  // Only a real pad reports `moveX`/`moveY` — `blankInput` sets both to 0, and
+  // the CPU (ai.js) and the smokes build their input from the direction flags
+  // alone. Reading those zeroes as a centred stick meant a fighter who was
+  // holding down-and-forward could not angle an attack unless a human pad was
+  // holding it, which is the same trap `moveTilt` documents below.
+  const h = Math.abs(input.moveX || ((input.right ? 1 : 0) - (input.left ? 1 : 0)));
+  const v = -(input.moveY || ((input.down ? 1 : 0) - (input.up ? 1 : 0)));
   const mag = Math.hypot(h, v);
   const up = mag ? Math.atan2(v, h) : 0;      // radians above horizontal
   const deg = Math.abs(up) * (180 / Math.PI);
@@ -794,7 +800,49 @@ function moveTilt(input) {
  *  Read by the ledge brake as well as by the contact test, so "the last pixel
  *  you can stand on" is one number rather than two that drift. */
 function standMargin(plat) {
+  // A WALL gets none. The margin is generosity about the last pixel you can
+  // stand on, which is right for a board you are meant to be able to hang off
+  // the end of, and wrong for a 20px pillar — 24px each side would let a
+  // fighter stand on thin air beside one.
+  if (plat.kind === "wall") return 0;
   return plat.kind === "main" ? 14 : plat.kind === "respawn" ? 0 : 24;
+}
+
+/**
+ * WALLS: the one piece of stage a fighter cannot walk through.
+ *
+ * Every platform in this game is a floor — landed on from above, passed
+ * through from below, and completely transparent horizontally. A wall is the
+ * other thing: `{ kind: "wall" }` blocks sideways movement along its whole
+ * height, and is otherwise an ordinary platform, so its top is stood on and
+ * jumped over exactly like any other.
+ *
+ * No stage builds one. It exists for the character bench's wall switch, where
+ * the point is somewhere to push UP AGAINST: an angled attack is thrown by
+ * holding the stick diagonally, holding a diagonal walks you forward, and on
+ * an open board that means the fighter is off the edge before the swing can be
+ * looked at twice.
+ *
+ * Blocked at the DRAWN body's half width rather than at the fighter's origin,
+ * which is a point between their feet. Standing against a wall should look
+ * like standing against it; stopping the origin at the face buries half of
+ * them in it, and that is the one thing this is for looking at.
+ */
+function pushOutOfWalls(f) {
+  for (const w of state.platforms) {
+    if (w.kind !== "wall" || w.ghost) continue;
+    if (f.y <= w.y) continue;                    // on top of it, or over it
+    if (f.y > w.y + w.h + 1) continue;           // below its foot
+    // WHICH SIDE, from where they are rather than from where they were: a wall
+    // is thin and a step is small, so the near face is the one they are
+    // nearest, and nothing has to be remembered between frames for it.
+    const half = bodyMetrics(f.spriteChar || f.charKey).width * 0.5;
+    const side = f.x < w.x + w.w / 2 ? -1 : 1;
+    const limit = (side < 0 ? w.x : w.x + w.w) + side * half;
+    if (side < 0 ? f.x <= limit : f.x >= limit) continue;
+    f.x = limit;
+    if (side * f.vx < 0) f.vx = 0;               // only the speed INTO the wall
+  }
 }
 
 /**
@@ -906,6 +954,7 @@ export function isTeetering(f) {
 }
 
 function resolvePlatforms(f, prevY) {
+  pushOutOfWalls(f);
   f.grounded = false;
   // A fighter's own revival platform is checked first and only for them, so
   // they can stand on it, walk along it, and step off the end of it exactly the
@@ -1772,7 +1821,9 @@ export function updateFighter(f, dt, input) {
   brakeAtLedge(f, input);
   f.y += f.vy * dt;
   if (f.vy >= 0 || f.grounded) resolvePlatforms(f, prevY);
-  else f.grounded = false;
+  // Rising skips the floor test — there is no floor to catch on the way up —
+  // but a wall stops you whichever way you are travelling.
+  else { pushOutOfWalls(f); f.grounded = false; }
 
   if (!f.grounded) tryGrabLedge(f);
   // After the contact test, so it reads the platform this step actually left

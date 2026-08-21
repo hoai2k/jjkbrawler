@@ -237,6 +237,23 @@
 
 .viewer__stick { font-family: ui-monospace, monospace; }
 
+/* The dummy picker, beside the switch that decides whether there is a dummy at
+   all — so it is the same control in two parts rather than a setting somewhere
+   else that happens to be about the same fighter. */
+.dummyPick {
+  padding: 2px 6px;
+  background: #1c2231;
+  border: 1px solid #2a2f3e;
+  border-radius: 6px;
+  color: #cbd5ef;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  max-width: 150px;
+}
+.dummyPick:hover { border-color: #3c6ea8; }
+.dummyPick[hidden] { display: none; }
+
 @media (max-width: 820px) {
   .charbench { grid-template-columns: 1fr; height: auto; }
   .roster { max-height: 220px; }
