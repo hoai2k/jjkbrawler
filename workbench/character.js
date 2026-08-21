@@ -58,6 +58,12 @@ const STAGE = url.searchParams.get("stage") || "shibuya";
 const bench = {
   char: url.searchParams.get("char") || CHARACTER_KEYS[0],
   dummy: url.searchParams.get("dummy") !== "off",
+  // Who stands opposite. "self" is a copy of whoever is selected, which is
+  // what a bench wants by default; any roster key stands that fighter instead.
+  dummyChar: url.searchParams.get("dummy2") || "self",
+  // The centre pillar. Off unless asked for: it changes the board every other
+  // check on this bench is looked at against. See syncWall.
+  wall: url.searchParams.get("wall") === "on",
   loading: false,
   fps: 0,
   // The camera's own zoom is what a match uses, and a match is framed for two
@@ -109,6 +115,12 @@ root.innerHTML = `
       <ul id="rosterList" class="roster__list" role="listbox" tabindex="0"></ul>
     </aside>
     <section class="viewer">
+      <!-- The picture and the things that float over it. A box of its own so
+           the floating panels are anchored to the CANVAS rather than to the
+           section: the foot bar wraps to two and three rows on a narrow
+           window, and panels measured from the section's bottom edge climbed
+           over the controls when it did. -->
+      <div class="viewer__stage">
       <canvas id="benchCanvas" width="1280" height="720"></canvas>
       <div class="viewer__overlay" id="viewerOverlay"></div>
       <div class="lights" id="lights">
@@ -124,8 +136,13 @@ root.innerHTML = `
         <span class="aim__name">attack read</span>
         <span class="aim__val" id="aimRead">no attack yet</span>
       </div>
+      </div>
       <div class="viewer__foot">
         <label class="toggle"><input type="checkbox" id="dummyToggle"> training dummy</label>
+        <select class="dummyPick" id="dummyChar" title="Who the dummy is. Self stands a copy of the fighter you are looking at, which is the default because most of what a bench is for is one fighter against their own size. Anyone else on the roster is here for the questions where the other body matters — reach against a taller opponent, a low attack against Panda."></select>
+        <label class="toggle" title="A pillar up the middle of the board, floor to the height of the side platforms, solid to walk into and cleared by going over the top. Somewhere to push up against: holding a diagonal to throw an angled attack also walks you forward, so on an open board the swing is studied from off the edge.">
+          <input type="checkbox" id="wallToggle"> wall
+        </label>
         <button class="drill" id="ledgeDrill" type="button" title="Walks off the edge, hangs, and climbs back — the real grab, the real transition, no state poked in by hand. Getting there on a pad takes a dozen tries and the interesting part is four frames long; turn the speed down and watch it.">ledge drill</button>
         <label class="toggle zoom">zoom
           <input type="range" id="zoomRange" min="0.6" max="3" step="0.05">
@@ -154,6 +171,8 @@ const overlayEl = document.getElementById("viewerOverlay");
 const lightsEl = document.getElementById("lights");
 const lightsStateEl = document.getElementById("lightsState");
 const dummyEl = document.getElementById("dummyToggle");
+const wallEl = document.getElementById("wallToggle");
+const dummyCharEl = document.getElementById("dummyChar");
 const zoomEl = document.getElementById("zoomRange");
 const zoomValueEl = document.getElementById("zoomValue");
 const speedEl = document.getElementById("speedRange");
@@ -241,6 +260,14 @@ const latch = makeLatch([1, 2]);
  *  so walking into the blast zone respawns them where they started rather than
  *  ending anything. Falling off is a thing to look at, not a fail state.
  */
+/** The roster key the dummy should wear: the fighter under inspection unless
+ *  somebody has picked one. Falls back to self for a key that is not on the
+ *  roster, so a stale `?dummy2=` in a bookmark cannot leave the bench empty. */
+function dummyKey(charKey) {
+  const pick = bench.dummyChar;
+  return pick && pick !== "self" && CHARACTERS[pick] ? pick : charKey;
+}
+
 function spawn(charKey) {
   const main = state.platforms[0];
   const one = makeFighter(1, charKey, main.x + main.w * 0.4, 1);
@@ -249,7 +276,7 @@ function spawn(charKey) {
   one.team = 1;
   state.fighters = [one];
   if (bench.dummy) {
-    const two = makeFighter(2, charKey, main.x + main.w * 0.62, -1);
+    const two = makeFighter(2, dummyKey(charKey), main.x + main.w * 0.62, -1);
     two.y = main.y;
     two.grounded = true;
     two.team = 2;
@@ -276,7 +303,10 @@ async function select(charKey) {
   overlayEl.textContent = `Loading ${CHARACTERS[charKey]?.name || charKey}…`;
   overlayEl.classList.add("is-on");
   try {
-    await ensureMatchAssets([charKey], state.stageKey);
+    // Both bodies, or the dummy draws as whatever the loader last had in hand.
+    // De-duplicated because self is the usual case and asking for one fighter
+    // twice is a wasted queue entry.
+    await ensureMatchAssets([...new Set([charKey, dummyKey(charKey)])], state.stageKey);
     // Newly loaded art arrives at its shipped size; setRosterScale re-solves it
     // against the slider AND drops the caches measured at the old size, which
     // applyAllHeightScales on its own does not.
@@ -443,12 +473,56 @@ zoomEl.addEventListener("input", () => {
   history.replaceState(null, "", url);
 });
 
+wallEl.addEventListener("change", () => {
+  bench.wall = wallEl.checked;
+  url.searchParams.set("wall", bench.wall ? "on" : "off");
+  history.replaceState(null, "", url);
+  syncWall();
+});
+
 dummyEl.addEventListener("change", () => {
   bench.dummy = dummyEl.checked;
   url.searchParams.set("dummy", bench.dummy ? "on" : "off");
   history.replaceState(null, "", url);
+  paintDummyPick();
   spawn(bench.char);
 });
+
+dummyCharEl.addEventListener("change", () => {
+  bench.dummyChar = dummyCharEl.value;
+  url.searchParams.set("dummy2", bench.dummyChar);
+  history.replaceState(null, "", url);
+  // Through `select` rather than `spawn`: a fighter the bench has not loaded
+  // yet has no art, and select is what waits for it (and puts the loading
+  // notice up while it does).
+  select(bench.char);
+});
+
+/** The dummy picker only exists while there is a dummy. A dropdown that
+ *  chooses who an absent fighter would be is a puzzle, not a control. */
+function paintDummyPick() {
+  dummyCharEl.hidden = !bench.dummy;
+}
+
+/** Alphabetical, by the name a person reads rather than the roster key — the
+ *  list is 40-odd fighters and the key is an abbreviation of the name in most
+ *  cases and a surname in the rest. Self sits above them all as the default. */
+function fillDummyPick() {
+  const rows = CHARACTER_KEYS
+    .map((key) => ({ key, name: CHARACTERS[key]?.fullName || CHARACTERS[key]?.name || key }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  dummyCharEl.innerHTML = "";
+  for (const { key, name } of [{ key: "self", name: "Self" }, ...rows]) {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = name;
+    dummyCharEl.append(opt);
+  }
+  // A `?dummy2=` naming somebody who is not on the roster falls back to self,
+  // and the control has to agree with what spawn will actually do.
+  if (!CHARACTERS[bench.dummyChar]) bench.dummyChar = "self";
+  dummyCharEl.value = bench.dummyChar;
+}
 
 // ------------------------------------------------------------------ the keys
 //
@@ -710,6 +784,42 @@ function paintDrill() {
 
 drillEl.addEventListener("click", startDrill);
 
+// ------------------------------------------------------------------- the wall
+//
+// Built from the board rather than written down, so it lands correctly on
+// whichever stage the bench was opened with (`?stage=`): up the middle of the
+// main platform, as tall as the LOWEST thing above it — the side platforms —
+// which is what makes going over it a matter of using them.
+//
+// Appended, never inserted. Several places here and in the game reach for
+// `state.platforms[0]` meaning "the floor".
+const WALL_W = 20;
+
+function wallShape() {
+  const main = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+  const above = state.platforms.filter((p) => p !== main && p.kind !== "wall" && p.y < main.y);
+  // The lowest of the platforms above the floor: the tier you climb to first.
+  const tier = above.length ? above.reduce((low, p) => (p.y > low.y ? p : low)) : null;
+  const top = tier ? tier.y : main.y - 150;
+  return { x: Math.round(main.x + main.w / 2 - WALL_W / 2), y: top,
+           w: WALL_W, h: main.y - top, kind: "wall",
+           accent: "rgba(255, 211, 92, 0.45)" };
+}
+
+function syncWall() {
+  state.platforms = state.platforms.filter((p) => p.kind !== "wall");
+  if (!bench.wall) return;
+  state.platforms.push(wallShape());
+  // Nobody is left standing inside it. `pushOutOfWalls` would do this on the
+  // next step anyway, but it would do it as a jump on screen.
+  const w = state.platforms[state.platforms.length - 1];
+  for (const f of state.fighters) {
+    if (f.y <= w.y || Math.abs(f.x - (w.x + w.w / 2)) > 90) continue;
+    f.x += f.x < w.x + w.w / 2 ? -90 : 90;
+    f.vx = 0;
+  }
+}
+
 /** A fighter who leaves the world comes back, rather than dying.
  *
  *  There is no match here to lose, and a bench that empties itself the first
@@ -763,6 +873,10 @@ async function boot() {
   resizeCanvas();
   renderList();
   dummyEl.checked = bench.dummy;
+  fillDummyPick();
+  paintDummyPick();
+  wallEl.checked = bench.wall;
+  syncWall();
   zoomEl.value = String(bench.zoom);
   zoomValueEl.textContent = `${bench.zoom.toFixed(2)}x`;
   speedEl.value = String(bench.speed);
@@ -790,6 +904,8 @@ boot().catch((err) => {
 // check reaches in here instead. Nothing in the page reads these.
 window.__bench = {
   state: () => ({ char: bench.char, fighters: state.fighters.length,
+                  dummy: state.fighters[1]?.charKey || null,
+                  dummyChar: bench.dummyChar,
                   anim: state.fighters[0]?.animKey, smoothing: smoothingState(),
                   steps: bench.steps, speed: bench.speed,
                   activity: { ...smoothingActivity },
@@ -802,6 +918,7 @@ window.__bench = {
                   // the world was stepped and the PRESENTATION was not, so
                   // every spark, damage number and banner ever spawned stayed
                   // on screen for the life of the page.
+                  wall: state.platforms.find((p) => p.kind === "wall") || null,
                   particles: state.particles.length, popups: state.popups.length,
                   banners: state.banners.length,
                   sharedArt: sharedArtSettled() }),
