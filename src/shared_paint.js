@@ -35,6 +35,7 @@
 // options below are the ones that turned out to be shared by more than one.
 
 import { sharedAdjust } from "./shared_sprites.js";
+import { ART_SCALE } from "./config_tuning.js";
 
 /** For a caller that has already translated the context to the spawn point —
  *  a creature's sway, a hazard's wobble — and wants the rest of the transform. */
@@ -57,8 +58,19 @@ const TOP_FOR = { centre: -0.5, feet: -1, top: 0 };
  */
 export function sharedPlacement(key, img, height, opts = {}) {
   const adj = opts.adjust || sharedAdjust(key);
+  // THE ONE PLACE EVERY SHARED DRAWING IS SIZED — projectile art, install
+  // auras, summoned creatures, stage hazards — and so the one place the
+  // roster's scale is applied to them (config_tuning.js ART_SCALE). It sits
+  // here rather than in paintShared because the 2.5D scene builds its own
+  // matrices from these same numbers (camera3d/billboards.js) and the two
+  // must not get different answers; the workbench's boxes come through
+  // sharedRect for the same reason.
+  //
+  // The drawing's stored nudge scales with it: dx/dy place a picture against
+  // its own spawn point, so they are lengths in the same units the height is.
+  height *= ART_SCALE;
   const w = img.width * height / img.height;
-  const nudge = opts.nudgeScale ?? 1;
+  const nudge = (opts.nudgeScale ?? 1) * ART_SCALE;
   return {
     w, h: height, rot: adj.rot || 0, mirrored: !!opts.mirrored,
     ox: -w / 2 + adj.dx * nudge,
@@ -90,13 +102,16 @@ export function sharedPlacement(key, img, height, opts = {}) {
  */
 export function paintShared(ctx, key, img, at, height, opts = {}) {
   if (!img || !(height > 0)) return;
+  // The glow around a drawing is part of the drawing, so it scales with the
+  // roster like the drawing does (sharedPlacement below owns the size itself).
+  if (opts.shadow?.blur) opts = { ...opts, shadow: { ...opts.shadow, blur: opts.shadow.blur * ART_SCALE } };
   const { w, h, rot, mirrored, ox, oy } = sharedPlacement(key, img, height, opts);
   ctx.save();
   if (opts.composite) ctx.globalCompositeOperation = opts.composite;
   if (opts.alpha != null) ctx.globalAlpha *= opts.alpha;
   if (opts.shadow) {
     ctx.shadowColor = opts.shadow.color;
-    ctx.shadowBlur = opts.shadow.blur ?? 12;
+    ctx.shadowBlur = opts.shadow.blur ?? 12 * ART_SCALE;
   }
   ctx.translate(at.x, at.y);
   if (opts.rotation) ctx.rotate(opts.rotation);

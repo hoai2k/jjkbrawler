@@ -5,6 +5,7 @@
 // time the meter fills.
 
 import { state } from "./state.js";
+import { ART_SCALE } from "./config_tuning.js";
 import { clamp, sign, rand } from "./utils.js";
 // Scaled spawns: kit literals are authored for the reference body and sized
 // to the caster here — see combat.js spawnMeleeScaled.
@@ -48,7 +49,7 @@ function impact(f, color) {
   state.screenFlash = { color, life: 0.32, maxLife: 0.32 };
   playSfx("ult", 1);
   state.camera.shake = Math.max(state.camera.shake, 9);
-  ring(f.x, f.y - 90, color, 190);
+  ring(f.x, f.y - 90 * ART_SCALE, color, 190);
   rumbleEvent(f, "ult"); // a low swell under the slow-mo
 }
 
@@ -241,7 +242,7 @@ const DIRECTORS = {
               if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
               if (Math.abs(t.x - tx) < p.r && Math.abs(t.y - groundY) < 60) {
                 t.damage = Math.min(999, t.damage + 1.6);
-                burst(t.x, t.y - 60, "#ff7a2f", 6, 0.5);
+                burst(t.x, t.y - 60 * ART_SCALE, "#ff7a2f", 6, 0.5);
               }
             }
           }
@@ -358,8 +359,8 @@ const DIRECTORS = {
             if (circleRectOverlap(this.x, this.y, p.r, hurtbox(t))) {
               t.damage = Math.min(999, t.damage + p.dmgTick);
               t.hitstun = Math.max(t.hitstun, 0.18);
-              burst(t.x, t.y - 90, p.color, 6, 0.7);
-              popup(t.x, t.y - 140, `${p.dmgTick}%`, p.color, 14);
+              burst(t.x, t.y - 90 * ART_SCALE, p.color, 6, 0.7);
+              popup(t.x, t.y - 140 * ART_SCALE, `${p.dmgTick}%`, p.color, 14);
             }
           }
         }
@@ -426,7 +427,7 @@ const DIRECTORS = {
             opp.damage = Math.min(999, opp.damage + p.dmgTick);
             opp.hitstun = Math.max(opp.hitstun, 0.14);
             burst(opp.x + rand(-40, 40), opp.y - rand(30, 130), "#d5d6ff", 5, 0.8);
-            popup(opp.x, opp.y - 140, `${p.dmgTick}%`, p.color, 13);
+            popup(opp.x, opp.y - 140 * ART_SCALE, `${p.dmgTick}%`, p.color, 13);
           }
         }
       },
@@ -481,7 +482,7 @@ const DIRECTORS = {
     }, 2);
     // Maki's Awakening: power as the absence of glow — speed-lines and dust.
     if (f.char.fxElement === "steel") steelInstallFx(f);
-    else burst(f.x, f.y - 90, p.color, 40, 1.6);
+    else burst(f.x, f.y - 90 * ART_SCALE, p.color, 40, 1.6);
     if (p.sprite) {
       state.entities.push({
         owner: f, dead: false,
@@ -513,7 +514,7 @@ const DIRECTORS = {
         dmg: 14, base: 520, growth: 8, angle: 0.4, label: ult.name, sfx: "slashHeavy", heavy: true,
       });
       f.meter = clamp(f.meter + ULT_METER_COST * 0.5, 0, METER_MAX); // partial refund on a whiffed read
-      popup(f.x, f.y - 170, "MISSED THE MARK", "#9aa4c0", 16);
+      popup(f.x, f.y - 170 * ART_SCALE, "MISSED THE MARK", "#9aa4c0", 16);
       return;
     }
     const total = p.hits * 0.15 + 0.7;
@@ -534,14 +535,14 @@ const DIRECTORS = {
           t.hitstun = Math.max(t.hitstun, 0.5);
           t.damage = Math.min(999, t.damage + p.dmg);
           t.shakeMag = 5;
-          burst(t.x, t.y - 90, ult.p.color, 12, 1);
+          burst(t.x, t.y - 90 * ART_SCALE, ult.p.color, 12, 1);
           // Sukuna's barrage: the world is CUT — thin white slash lines
           // flash across the target with every volley.
           if (p.lattice) dismantleLatticeFx(t.x, t.y - 90, CHAR_FX.dismantleLines);
-          popup(t.x + rand(-30, 30), t.y - 120 - rand(0, 40), `${p.dmg}%`, "#ffffff", 16);
+          popup(t.x + rand(-30, 30), t.y - 120 * ART_SCALE - rand(0, 40), `${p.dmg}%`, "#ffffff", 16);
           playSfx(Math.random() < 0.5 ? "punch" : "slash", 0.85);
           state.camera.shake = Math.max(state.camera.shake, 5);
-          if (p.teleport) burst(self.x, self.y - 80, ult.p.color, 8, 0.7);
+          if (p.teleport) burst(self.x, self.y - 80 * ART_SCALE, ult.p.color, 8, 0.7);
         },
       });
     }
@@ -558,7 +559,7 @@ const DIRECTORS = {
           effect: p.silence ? "silence" : null,
         }, "script");
         if (p.crit) {
-          popup(t.x, t.y - 180, p.critLabel ? p.critLabel + "!!" : "7:3!!", p.critColor || "#ffd35a", 30);
+          popup(t.x, t.y - 180 * ART_SCALE, p.critLabel ? p.critLabel + "!!" : "7:3!!", p.critColor || "#ffd35a", 30);
           // the Black Flash treatment at reduced strength, in the crit's colour
           critFinisherFx(t.x, t.y - 96, p.critColor || "#ffd35a");
         }
@@ -678,7 +679,7 @@ const DIRECTORS = {
               unblockable: true, heavy: true,
             }, "script");
             opp.statuses.nailMarks = 0;
-            ring(opp.x, opp.y - 90, "#b56cff", 220);
+            ring(opp.x, opp.y - 90 * ART_SCALE, "#b56cff", 220);
           }
         }
       },
@@ -714,10 +715,10 @@ const DIRECTORS = {
           this.boomed = true;
           state.camera.shake = Math.max(state.camera.shake, 16);
           state.screenFlash = { color: "#d7d9e7", life: 0.25, maxLife: 0.25 };
-          ring(f.x, f.y - 100, "#d7d9e7", 320);
+          ring(f.x, f.y - 100 * ART_SCALE, "#d7d9e7", 320);
           playSfx("blast", 1, 0.6);
           f.throatLock = 4; // his throat pays the price
-          popup(f.x, f.y - 180, "*cough cough*", "#ff8a8a", 16);
+          popup(f.x, f.y - 180 * ART_SCALE, "*cough cough*", "#ff8a8a", 16);
         }
         if (this.t > 1.0) this.dead = true;
       },
@@ -844,8 +845,8 @@ const DIRECTORS = {
               Math.hypot(target.x - cx, (target.y - 90) - cy) < p.radius) {
             target.damage = Math.min(999, target.damage + p.dmgPerOrb);
             target.hitstun = Math.max(target.hitstun, 0.2);
-            burst(target.x, target.y - 90, p.color, 8, 0.8);
-            popup(target.x, target.y - 140, `${p.dmgPerOrb}%`, p.color, 14);
+            burst(target.x, target.y - 90 * ART_SCALE, p.color, 8, 0.8);
+            popup(target.x, target.y - 140 * ART_SCALE, `${p.dmgPerOrb}%`, p.color, 14);
           }
         }
         if (this.fired >= p.orbs && this.t > p.delay + p.orbs * orbGap + 0.25) {
@@ -953,7 +954,7 @@ const DIRECTORS = {
     if (!opp || opp.dead || opp.respawnTimer > 0 || Math.abs(opp.x - f.x) > p.range) {
       beginUltAction(f, 0.6);
       f.meter = clamp(f.meter + ULT_METER_COST * 0.5, 0, METER_MAX); // partial refund, matching flurry
-      popup(f.x, f.y - 170, "THE SKY IS EMPTY", "#9aa4c0", 16);
+      popup(f.x, f.y - 170 * ART_SCALE, "THE SKY IS EMPTY", "#9aa4c0", 16);
       return;
     }
     beginUltAction(f, 1.9);
@@ -969,7 +970,7 @@ const DIRECTORS = {
           this.phase = 1;
           t2.vy = -1100;
           t2.grounded = false;
-          burst(t2.x, t2.y - 90, p.color, 26, 1.2);
+          burst(t2.x, t2.y - 90 * ART_SCALE, p.color, 26, 1.2);
           playSfx("whoosh", 1, 0.7);
         }
         if (this.phase === 1) {
@@ -989,8 +990,8 @@ const DIRECTORS = {
             label: "INVERTED SKY", sfx: "blast", unblockable: true, heavy: true,
           }, "script");
           state.camera.shake = Math.max(state.camera.shake, 16);
-          burst(t2.x, t2.y - 40, p.color, 44, 1.8);
-          ring(t2.x, t2.y - 40, p.color, 240);
+          burst(t2.x, t2.y - 40 * ART_SCALE, p.color, 44, 1.8);
+          ring(t2.x, t2.y - 40 * ART_SCALE, p.color, 240);
         }
       },
       draw(ctx) {
@@ -1193,7 +1194,7 @@ const DIRECTORS = {
         if (f.dead || f.respawnTimer > 0) { this.dead = true; return; }
         if (this.t >= p.duration) {
           this.dead = true;
-          ring(f.x, f.y - 90, p.color, 320);
+          ring(f.x, f.y - 90 * ART_SCALE, p.color, 320);
           playSfx("blast", 1, 0.6);
           state.camera.shake = Math.max(state.camera.shake, 14);
           for (const t of state.fighters) {
@@ -1211,15 +1212,15 @@ const DIRECTORS = {
         if (this.tick <= 0) {
           this.tick = p.tickRate;
           playSfx("blast", 0.4, 1.4);
-          ring(f.x, f.y - 90, p.color, 140 + rand(0, 80));
+          ring(f.x, f.y - 90 * ART_SCALE, p.color, 140 + rand(0, 80));
           for (const t of state.fighters) {
             if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
             if (Math.abs(t.x - f.x) < p.radius) {
               t.damage = Math.min(999, t.damage + p.dmgTick);
               t.hitstun = Math.max(t.hitstun, 0.15);
               t.vx += sign(t.x - f.x) * 120; // waves push outward
-              burst(t.x, t.y - 80, p.color, 5, 0.7);
-              popup(t.x, t.y - 140, `${p.dmgTick}%`, p.color, 13);
+              burst(t.x, t.y - 80 * ART_SCALE, p.color, 5, 0.7);
+              popup(t.x, t.y - 140 * ART_SCALE, `${p.dmgTick}%`, p.color, 13);
             }
           }
         }
@@ -1466,8 +1467,8 @@ const DIRECTORS = {
         firstAttackDelay: 0.4 + i * 0.35,
       });
     }
-    ring(f.x, f.y - 90, p.color, 200);
-    burst(f.x, f.y - 90, p.color, 40, 1.5);
+    ring(f.x, f.y - 90 * ART_SCALE, p.color, 200);
+    burst(f.x, f.y - 90 * ART_SCALE, p.color, 40, 1.5);
     playSfx("blast", 0.9, 0.8);
   },
 };

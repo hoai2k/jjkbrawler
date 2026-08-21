@@ -372,7 +372,13 @@ export function updateHitboxes(dt) {
  *  is FORWARD, so it is mirrored by the shot's direction where it is read. */
 function hitRegion(cfg) {
   const h = sharedHit(cfg.sprite);
-  return { hitDx: h.dx, hitDy: h.dy, hitR: (cfg.r ?? 30) * h.scale };
+  // Scaled with the roster, because the DRAWING is: a shot painted 70% as big
+  // that still hit at its old radius would connect from visibly outside itself
+  // — the same failure a hurtbox left unscaled would be (config_tuning.js
+  // ART_SCALE). `r` itself stays the kit's own number; every place it becomes
+  // a length applies the scale, so the kit table still reads in one unit.
+  return { hitDx: h.dx * ART_SCALE, hitDy: h.dy * ART_SCALE,
+           hitR: (cfg.r ?? 30) * h.scale * ART_SCALE };
 }
 
 /** Where a projectile's collision circle really is, and how big. One
@@ -528,7 +534,7 @@ export function updateProjectiles(dt) {
     if (!steering) p.vy += p.gravity * dt;
     p.x += p.vx * dt;
     p.y += p.vy * dt;
-    if (p.wave) p.y = groundY - p.r * 0.7;
+    if (p.wave) p.y = groundY - p.r * 0.7 * ART_SCALE;
     // Where this shot hits from HERE, resolved once now that it has finished
     // moving: the drawing's own correction on top of the projectile's position
     // (src/shared_sprites.js, sharedHit). Every test below uses it, so a shot
