@@ -1576,6 +1576,15 @@ export function updateFighter(f, dt, input) {
         : input.lightP ? "light"
         : input.tiltDir ? "tilt"
         : f.bufferedAction?.kind;
+      // TURN INTO THE ATTACK. Nothing faces the fighter for them any more, so
+      // an attack thrown with a direction held is thrown THAT way — the rule
+      // the tilt stick already had ("a tilt aimed behind you is a tilt behind
+      // you", beginTilt) applied to the buttons too. Not at a run: the dash
+      // attack belongs to the direction the run is already going, and turning
+      // it around mid-stride is not a thing anybody was asking for.
+      if (f.grounded && input.dirX && act && act !== "tilt" && !isRunning(f)) {
+        f.facing = input.dirX;
+      }
       if (act === "grab") {
         // Grounded only, like Smash: the air already belongs to aerials, and
         // an air grab would be a fifth aerial nobody asked for. A press in the
@@ -1699,11 +1708,14 @@ export function updateFighter(f, dt, input) {
     if (input.dirX === -f.dashDir) f.dashT = 0;
   }
 
-  // face the opponent when standing still
-  if (f.grounded && !f.action && !inHitstun && input.dirX === 0 && Math.abs(f.vx) < 40) {
-    const opp = opponentOf(f);
-    if (opp && !opp.dead) f.facing = opp.x >= f.x ? 1 : -1;
-  }
+  // WHICH WAY A FIGHTER LOOKS IS THEIRS. A standing fighter used to snap
+  // around to face the nearest opponent the moment the stick came back to
+  // centre, which meant a turn could not be HELD: walk away, let go, and the
+  // idle drawing spun back. That is a 2D fighter's rule (Street Fighter locks
+  // both players' facing to each other); a platform fighter's is that facing
+  // is spent, like a jump or a dash, and holds until the player spends it
+  // again. Turning is the tap below, the tilt stick (beginTilt), or throwing
+  // an attack with a direction held (the attack routing above).
   f.prevLeft = input.left;
   f.prevRight = input.right;
 
