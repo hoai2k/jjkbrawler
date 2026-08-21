@@ -19,7 +19,7 @@ import {
 import { bodyMetrics } from "./silhouette.js";
 import { comFrac, hurtboxFit } from "./body_points.js";
 import { contactOf, contactBand, stunScale, fxScale } from "./contact.js";
-import { CONTACT } from "./config_tuning.js";
+import { CONTACT, ART_SCALE } from "./config_tuning.js";
 import { ledgeBox } from "./hurtbox_art.js";
 import { spawnOffset } from "./muzzle.js";
 import { sharedHit } from "./shared_sprites.js";
@@ -596,7 +596,7 @@ export function updateProjectiles(dt) {
         p.dur = Math.max(p.dur, 0.7);
         burst(p.x, p.y, target.reflect.color || target.char.theme, 14, 0.9);
         ring(p.x, p.y, target.reflect.color || target.char.theme, 70);
-        popup(target.x, target.y - 168, "RETURNED", target.char.theme, 20);
+        popup(target.x, target.y - 168 * ART_SCALE, "RETURNED", target.char.theme, 20);
         playSfx("guardHit", 0.9, 1.3);
         continue;
       }
@@ -635,7 +635,7 @@ export function applyStatus(effect, owner, target, extra = {}) {
     (target.char.passive.id === "tideBorn" && effect === "drench") ||
     (target.char.passive.id === "infiniteHunger" && ["infest", "blind"].includes(effect));
   if (immune) {
-    popup(target.x, target.y - 150, "IMMUNE", "#b8ffe2", 20);
+    popup(target.x, target.y - 150 * ART_SCALE, "IMMUNE", "#b8ffe2", 20);
     return;
   }
   switch (effect) {
@@ -683,7 +683,7 @@ export function applyStatus(effect, owner, target, extra = {}) {
       break;
     case "silence":
       s.silence = Math.max(s.silence || 0, 3.0);
-      popup(target.x, target.y - 150, "TECHNIQUE SEALED", "#a8aeb8", 18);
+      popup(target.x, target.y - 150 * ART_SCALE, "TECHNIQUE SEALED", "#a8aeb8", 18);
       break;
     // Dagon — soaked to the bone. No damage of its own: waterlogged clothes and
     // a foot of standing water are a movement tax, and Dagon hits a soaked
@@ -703,7 +703,7 @@ export function applyStatus(effect, owner, target, extra = {}) {
     // fight at a discount and their evasion is a guess (see fighter.js).
     case "blind":
       s.blind = Math.max(s.blind || 0, 2.4);
-      popup(target.x, target.y - 150, "BLINDED", "#8f3b4e", 18);
+      popup(target.x, target.y - 150 * ART_SCALE, "BLINDED", "#8f3b4e", 18);
       break;
     // Kirara — Love Rendezvous. A star of the Southern Cross set by touch, up
     // to the full five (Imai included). No damage of its own: while any star
@@ -713,7 +713,7 @@ export function applyStatus(effect, owner, target, extra = {}) {
       s.starMarks = Math.min(5, (s.starMarks || 0) + 1);
       s.starT = 5.0;
       s.starFrom = owner;
-      popup(target.x, target.y - 150, `★ ${s.starMarks}`, "#d9a8ff", 16);
+      popup(target.x, target.y - 150 * ART_SCALE, `★ ${s.starMarks}`, "#d9a8ff", 16);
       break;
     // Kashimo — static planted by an electrified blow. No damage of its own:
     // a charged body takes 15% more from him (his `galvanize` passive) and his
@@ -733,7 +733,7 @@ export function applyStatus(effect, owner, target, extra = {}) {
       target.hitstun = Math.max(target.hitstun, dur);
       target.vx = 0;
       target.vy = 0;
-      popup(target.x, target.y - 150, "24 FPS", "#eef4d8", 20);
+      popup(target.x, target.y - 150 * ART_SCALE, "24 FPS", "#eef4d8", 20);
       break;
     }
     case "weaponBreak":
@@ -752,7 +752,7 @@ export function updateStatuses(f, dt) {
     if (s.burn.tick <= 0) {
       s.burn.tick = 0.45;
       f.damage += s.burn.dmg;
-      burnTickFx(f.x, f.y - 80);
+      burnTickFx(f.x, f.y - 80 * ART_SCALE);
     }
     if (s.burn.t <= 0) s.burn = null;
   }
@@ -762,7 +762,7 @@ export function updateStatuses(f, dt) {
     if (s.bleed.tick <= 0 && Math.abs(f.vx) > 130) {
       s.bleed.tick = 0.5;
       f.damage += s.bleed.dmg;
-      bleedTickFx(f.x, f.y - 70, sign(f.vx) || 1);
+      bleedTickFx(f.x, f.y - 70 * ART_SCALE, sign(f.vx) || 1);
     }
     if (s.bleed.t <= 0) s.bleed = null;
   }
@@ -772,7 +772,7 @@ export function updateStatuses(f, dt) {
     if (s.poison.tick <= 0) {
       s.poison.tick = 0.5;
       f.damage += s.poison.dmg;
-      burst(f.x, f.y - 80, "#9edb7e", 5, 0.4);
+      burst(f.x, f.y - 80 * ART_SCALE, "#9edb7e", 5, 0.4);
     }
     if (s.poison.t <= 0) s.poison = null;
   }
@@ -782,7 +782,7 @@ export function updateStatuses(f, dt) {
     if (s.infest.tick <= 0) {
       s.infest.tick = 0.55;
       f.damage += s.infest.dmg;
-      specks(f.x, f.y - 80, 5, 0.6);
+      specks(f.x, f.y - 80 * ART_SCALE, 5, 0.6);
       // The colony eats for its parent: Kurourushi's hunger is fed by the
       // infestation as well as by its own blows.
       feedHunger(s.infest.from, s.infest.dmg);
@@ -793,18 +793,18 @@ export function updateStatuses(f, dt) {
   if (s.drench > 0) {
     s.drench -= dt;
     // still dripping — a soaked fighter reads as soaked between hits
-    if (Math.random() < 3 * dt) spray(f.x + (Math.random() - 0.5) * 48, f.y - 30, 0, 1, 0.3);
+    if (Math.random() < 3 * dt) spray(f.x + (Math.random() - 0.5) * 48, f.y - 30 * ART_SCALE, 0, 1, 0.3);
   }
   if (s.blind > 0) s.blind -= dt;
   if (s.charge > 0) {
     s.charge -= dt;
     // still carrying the static — an occasional white arc off the body
-    if (Math.random() < 2.5 * dt) sparkLine(f.x, f.y - 90, Math.random() < 0.5 ? 1 : -1, "#d8fff4", 3);
+    if (Math.random() < 2.5 * dt) sparkLine(f.x, f.y - 90 * ART_SCALE, Math.random() < 0.5 ? 1 : -1, "#d8fff4", 3);
   }
   if (s.framelock > 0) {
     s.framelock -= dt;
     // held between frames: a hard white edge-flicker, not a glow
-    if (Math.random() < 6 * dt) sparkLine(f.x, f.y - 80, Math.random() < 0.5 ? 1 : -1, "#ffffff", 2);
+    if (Math.random() < 6 * dt) sparkLine(f.x, f.y - 80 * ART_SCALE, Math.random() < 0.5 ? 1 : -1, "#ffffff", 2);
   }
   if (s.soulMark > 0) s.soulMark -= dt;
   if (s.silence > 0) s.silence -= dt;
@@ -815,7 +815,7 @@ export function updateStatuses(f, dt) {
   if (s.starT > 0) {
     s.starT -= dt;
     // still charted — a faint star-glint off the marked body
-    if (Math.random() < 2 * dt) burst(f.x + (Math.random() - 0.5) * 40, f.y - 100, "#d9a8ff", 2, 0.35);
+    if (Math.random() < 2 * dt) burst(f.x + (Math.random() - 0.5) * 40, f.y - 100 * ART_SCALE, "#d9a8ff", 2, 0.35);
     if (s.starT <= 0) { s.starMarks = 0; s.starFrom = null; }
   }
 }
@@ -972,13 +972,13 @@ export function applyHit(owner, target, hit, source) {
       target.x = clamp(target.x + away * 130, 70, 1210);
       target.invuln = Math.max(target.invuln, 0.5);
       dust(target.x, target.y, 8);
-      burst(target.x, target.y - 90, "#c8a8e0", 10, 0.7);
-      popup(target.x, target.y - 160, surge ? "11:11" : `MIRACLE (${target.miracleStock} left)`, "#c8a8e0", 18);
+      burst(target.x, target.y - 90 * ART_SCALE, "#c8a8e0", 10, 0.7);
+      popup(target.x, target.y - 160 * ART_SCALE, surge ? "11:11" : `MIRACLE (${target.miracleStock} left)`, "#c8a8e0", 18);
       playSfx("whoosh", 0.8, 1.3);
       if (surge && Math.abs(owner.x - target.x) < 200 && owner.invuln <= 0) {
         owner.damage = Math.min(999, owner.damage + 6);
         owner.hitstun = Math.max(owner.hitstun, 0.2);
-        popup(owner.x, owner.y - 150, "CUT ON THE WAY PAST", "#c8a8e0", 15);
+        popup(owner.x, owner.y - 150 * ART_SCALE, "CUT ON THE WAY PAST", "#c8a8e0", 15);
         playSfx("slash", 0.8);
       }
       return "ignored";
@@ -1012,8 +1012,8 @@ export function applyHit(owner, target, hit, source) {
     const sinceRaise = state.matchTime - target.shieldRaisedAt;
     if (sinceRaise <= PARRY_WINDOW) {
       // perfect shield
-      popup(target.x, target.y - 160, "PARRY!", "#ffffff", 30);
-      ring(target.x, target.y - 90, target.char.theme, 90);
+      popup(target.x, target.y - 160 * ART_SCALE, "PARRY!", "#ffffff", 30);
+      ring(target.x, target.y - 90 * ART_SCALE, target.char.theme, 90);
       rumbleEvent(target, "parry");
       playSfx("guardHit", 1, 1.3);
       owner.hitPause = Math.max(owner.hitPause, 0.34);
@@ -1029,7 +1029,7 @@ export function applyHit(owner, target, hit, source) {
     target.shieldStun = 0.1 + dmg * 0.012;
     target.vx += dir * (90 + dmg * 14);
     playSfx("guardHit", 0.85);
-    burst(target.x + dir * -30, target.y - 90, "#cfe4ff", 14, 0.8);
+    burst(target.x + dir * -30, target.y - 90 * ART_SCALE, "#cfe4ff", 14, 0.8);
     state.camera.shake = Math.max(state.camera.shake, 3);
     if (target.shield <= 0) shieldBreak(target);
     return "blocked";
@@ -1082,9 +1082,9 @@ export function applyHit(owner, target, hit, source) {
     growth *= band?.growth ?? 1.15;
     const caption = band?.label || "7:3!";
     label = caption.replace("!", "") + " " + (label || "");
-    popup(target.x, target.y - 175, caption, "#ffd35a", 26);
+    popup(target.x, target.y - 175 * ART_SCALE, caption, "#ffd35a", 26);
     // The ratio drawn onto the target: a precise gold seam, sparks along it.
-    ratioSeamFx(target.x, target.y - 96, dir);
+    ratioSeamFx(target.x, target.y - 96 * ART_SCALE, dir);
     playSfx("hitCrit");
     playSfx("seamCrack", 0.9); // the seam snapping onto the target
   } else if (zone === "sour") {
@@ -1103,12 +1103,12 @@ export function applyHit(owner, target, hit, source) {
       && flashEligible && Math.random() < 0.12) {
     dmg *= 1.35; baseKb *= 1.15; growth *= 1.1;
     owner.meter = clamp(owner.meter + 10, 0, METER_MAX);
-    popup(target.x, target.y - 178, "BLACK FLASH!", "#ff3b30", 26);
+    popup(target.x, target.y - 178 * ART_SCALE, "BLACK FLASH!", "#ff3b30", 26);
     playSfx("blackFlash");
     // The full canon treatment: white core, red-and-black lightning
     // fractures, the world dropping dark and quiet for a beat, and a
     // tick-then-slam rumble on both pads (config_fx.js BLACK_FLASH/RUMBLE).
-    blackFlashFx(target.x, target.y - 96);
+    blackFlashFx(target.x, target.y - 96 * ART_SCALE);
     duckMusic(BLACK_FLASH.duckTo, BLACK_FLASH.duckTime);
     rumbleEvent(owner, "blackFlash");
     rumbleEvent(target, "blackFlash");
@@ -1127,7 +1127,7 @@ export function applyHit(owner, target, hit, source) {
   // Miwa's iai: a strike begun from stillness is the whole art.
   if (owner.char.passive.id === "battoSense" && source === "melee" && (owner.stillT || 0) > 0.5) {
     dmg *= 1.2;
-    popup(target.x, target.y - 172, "IAI", "#8fd0ea", 18);
+    popup(target.x, target.y - 172 * ART_SCALE, "IAI", "#8fd0ea", 18);
   }
   // Yaga's corpses watch over their maker: while one of his stands, he takes less.
   if (target.char.passive.id === "dollMaker" &&
@@ -1184,7 +1184,7 @@ export function applyHit(owner, target, hit, source) {
   kb *= diSpeedScale(target, authored, dir);
 
   if (armored) {
-    popup(target.x, target.y - 150, "ARMOR", "#c9b6ff", 20);
+    popup(target.x, target.y - 150 * ART_SCALE, "ARMOR", "#c9b6ff", 20);
     target.vx += dir * 60;
   } else {
     // a hit knocks a hanging fighter off the ledge
@@ -1293,8 +1293,8 @@ export function applyHit(owner, target, hit, source) {
     const vol = Math.min(0.9, 0.45 + dmg / 34) * (cleanliness === "graze" ? CONTACT.grazeGain : 1);
     playSfx(ELEMENT_HIT_SFX[fxEl], vol, cleanliness === "graze" ? CONTACT.grazePitch : 1);
   }
-  popup(target.x, target.y - 132, `${dmg}%`, "#ffffff", 20 + Math.min(16, dmg));
-  if (label) popup(target.x - dir * 26, target.y - 160, label, owner.char.theme, 17);
+  popup(target.x, target.y - 132 * ART_SCALE, `${dmg}%`, "#ffffff", 20 + Math.min(16, dmg));
+  if (label) popup(target.x - dir * 26, target.y - 160 * ART_SCALE, label, owner.char.theme, 17);
   state.camera.shake = Math.max(state.camera.shake, clamp((4 + dmg * 0.5) * fx, 4, 15));
   if (kb > 880) {
     rumbleEvent(target, "launch");
@@ -1315,21 +1315,21 @@ export function applyHit(owner, target, hit, source) {
   if (owner.installs && owner.installs.echoDamage && source === "melee") {
     const bonus = Math.round(dmg * owner.installs.echoDamage * 10) / 10;
     target.damage = Math.min(999, target.damage + bonus);
-    popup(target.x + dir * 30, target.y - 190, `RIKA +${bonus}%`, "#e8ecf8", 18);
+    popup(target.x + dir * 30, target.y - 190 * ART_SCALE, `RIKA +${bonus}%`, "#e8ecf8", 18);
     sparkLine(hx, hy - 30, dir, "#e8ecf8", 10);
   }
 
   // Jogo's Iron Mountain sears anyone who strikes him up close
   if (target.installs && target.installs.contactBurn && source === "melee") {
     applyStatus("burn", target, owner);
-    burst(owner.x, owner.y - 80, "#ff7a2f", 10, 0.7);
+    burst(owner.x, owner.y - 80 * ART_SCALE, "#ff7a2f", 10, 0.7);
   }
 
   // Mythical Beast Amber (Kashimo): the whole body is a live terminal — strike
   // it up close and the charge jumps to you.
   if (target.installs && target.installs.contactShock && source === "melee") {
     applyStatus("charge", target, owner);
-    sparkLine(owner.x, owner.y - 90, sign(target.x - owner.x) || 1, "#d8fff4", 6);
+    sparkLine(owner.x, owner.y - 90 * ART_SCALE, sign(target.x - owner.x) || 1, "#d8fff4", 6);
   }
 
   recordHit(owner, target, dmg, armored);
@@ -1424,7 +1424,7 @@ export function shieldBreak(target) {
   target.grounded = false;
   banner("SHIELD BREAK!", "#ff8a8a", { y: 180, size: 44, life: 1.2 });
   playSfx("guardBreak", 0.9);
-  burst(target.x, target.y - 90, "#cfe4ff", 40, 1.4);
+  burst(target.x, target.y - 90 * ART_SCALE, "#cfe4ff", 40, 1.4);
   state.camera.shake = Math.max(state.camera.shake, 12);
   rumbleEvent(target, "shieldBreak");
 }
@@ -1433,8 +1433,8 @@ export function triggerCounter(target, attacker) {
   const c = target.counter;
   target.counter = null;
   target.invuln = Math.max(target.invuln, 0.5);
-  popup(target.x, target.y - 168, c.name || "COUNTER!", target.char.theme, 26);
-  ring(target.x, target.y - 90, target.char.theme, 130);
+  popup(target.x, target.y - 168 * ART_SCALE, c.name || "COUNTER!", target.char.theme, 26);
+  ring(target.x, target.y - 90 * ART_SCALE, target.char.theme, 130);
   playSfx("parry", 1);
   state.slowMo = Math.max(state.slowMo, 0.16);
   state.camera.shake = Math.max(state.camera.shake, 10);

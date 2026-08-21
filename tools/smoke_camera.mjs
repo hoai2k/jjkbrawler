@@ -9,6 +9,7 @@
 //
 // Run: node tools/smoke_camera.mjs
 import { state } from "../src/state.js";
+import { ART_SCALE } from "../src/config_tuning.js";
 import { updateCamera } from "../src/camera.js";
 import { updateRig, resetRig, worldToScreen, overlayTransform, dollyFor, camera } from "../src/camera3d/rig.js";
 import { cameraCue } from "../src/camera_mode.js";
@@ -184,7 +185,9 @@ pass("KO / respawn transitions");
   // 0.02 is a fifth of the 0.10 the arrival used to cost and half what the
   // launch just before it spends chasing the body out — a zoom that moves,
   // against one that cuts.
-  check(worstZoom < 0.02, "...and never snap the zoom",
+  // In ZOOM UNITS, and the zoom itself is now 1/ART_SCALE larger — so the same
+  // proportional move costs proportionally more of them.
+  check(worstZoom < 0.02 / ART_SCALE, "...and never snap the zoom",
     `worst frame ${worstZoom.toFixed(4)}x, against 0.1016x before`);
   check(settle < 90, "...so the arrival is the end of the move, not the start",
     `${settle.toFixed(1)}px of camera travel after the body lands`);
@@ -269,15 +272,23 @@ const probe = (x, y) => ({ x: T.a * x + T.c * y + T.e, y: T.b * x + T.d * y + T.
 // things that must land exactly (hitbox debug, particles, popups riding the
 // fighters) are at the anchor; a free-standing stage-FX drawing 400 px from
 // the fight may sit a few px off its GL counterpart, which nothing overlaps.
-// Tolerances are calibrated at the dynamic camera's tightest shot (ZOOM_MAX
-// 1.32, camera.js): a closer dolly both magnifies the error in screen px and
-// steepens the perspective the affine cannot carry — and at that zoom the far
-// probes sit at or beyond the frame edge, where nothing aligned is drawn.
-for (const [x, y, tol] of [[640, 568, 0.75], [500, 480, 0.75], [300, 400, 4], [1000, 250, 12]]) {
+// Tolerances are calibrated at the dynamic camera's tightest shot (camera.js
+// ZOOM_MAX): a closer dolly both magnifies the error in screen px and steepens
+// the perspective the affine cannot carry — and at that zoom the far probes sit
+// at or beyond the frame edge, where nothing aligned is drawn.
+//
+// So they follow the zoom rather than being written down for one. The roster
+// shrank to ART_SCALE and the camera zoomed in by its reciprocal to hold
+// fighters the same size on screen (config_tuning.js), which magnifies AND
+// steepens — both linear in zoom, so the error a fixed tolerance has to admit
+// goes as the square. The numbers below are the 1.32-shot's, carried across.
+const TOL = 1 / (ART_SCALE * ART_SCALE);
+for (const [x, y, tol] of [[640, 568, 0.75 * TOL], [500, 480, 0.75 * TOL],
+                           [300, 400, 4 * TOL], [1000, 250, 12 * TOL]]) {
   const direct = worldToScreen(x, y);
   const affine = probe(x, y);
   const err = Math.hypot(direct.x - affine.x, direct.y - affine.y);
-  check(err < tol, `affine fit within ${tol} px of true projection`, `err=${err.toFixed(3)} at (${x},${y})`);
+  check(err < tol, `affine fit within ${tol.toFixed(2)} px of true projection`, `err=${err.toFixed(3)} at (${x},${y})`);
 }
 pass(`overlay affine fit (fov=${CAMERA.fov}, yawMax=${CAMERA.yawMax})`);
 
@@ -298,16 +309,20 @@ function checkFramed(label) {
     // deliberately stops following rather than showing the void.
     if (f.x < -170 || f.x > WORLD.w + 170 || f.y < -90 || f.y > WORLD.h + 90) continue;
     const inWorld = f.x >= 0 && f.x <= WORLD.w && f.y >= 0 && f.y <= WORLD.h;
-    // Body box around the foot point: widest fighter ~76 px, tallest ~200.
-    // Inside the world we demand slack on top of that; out in the gutter,
-    // where the shot is already at its widest, the body itself is the bar.
-    const slack = inWorld ? 30 : 0;
-    const halfBody = 45;
+    // Body box around the foot point — and a BODY is whatever the roster's
+    // scale says it is (config_tuning.js ART_SCALE). Written as the widest
+    // fighter's ~76px and the tallest's ~200 at full size, then scaled, so
+    // this asks the camera to frame the fighters the game actually draws
+    // rather than the ones it drew when the numbers were typed.
+    const slack = inWorld ? 30 * ART_SCALE : 0;
+    const halfBody = 45 * ART_SCALE;
+    const bodyTop = 200 * ART_SCALE;
+    const bodyFoot = 20 * ART_SCALE;
     check(Math.abs(f.x - v.x) + halfBody + slack <= v.halfW,
       `${label}: fighter ${f.id} framed horizontally`,
       `x=${f.x.toFixed(0)} cx=${v.x.toFixed(0)} half=${v.halfW.toFixed(0)}`);
-    check(f.y - 200 >= v.y - v.halfH - (inWorld ? 0 : 40) + slack &&
-          f.y + 20 <= v.y + v.halfH - slack,
+    check(f.y - bodyTop >= v.y - v.halfH - (inWorld ? 0 : 40 * ART_SCALE) + slack &&
+          f.y + bodyFoot <= v.y + v.halfH - slack,
       `${label}: fighter ${f.id} framed vertically`,
       `y=${f.y.toFixed(0)} cy=${v.y.toFixed(0)} half=${v.halfH.toFixed(0)}`);
   }
