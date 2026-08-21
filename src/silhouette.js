@@ -9,10 +9,27 @@
 //
 //   height   how tall they are drawn, foot line to top of head
 //   width    how wide their body is in a neutral pose
-//   reach    how far in front of them their committed swing is painted
+//   reach    how far in front of them their committed swing lands
 //
 // Everything in combat.js and moves.js sizes off those, so redrawing a pose
 // retunes the move and neither can drift from the other.
+//
+// REACH HAS TWO SOURCES, one per kind of backend, and the switch is `source`
+// below. The sprite game is measured off the drawings — the strike points a
+// person verified on them, `src/strike_reach.js` — and the model backends off
+// the rigs. A secondary renderer has no business setting the primary one's
+// hitboxes, which is what a single rig-derived number was quietly doing.
+//
+// Reach is also per-MOVE now, not just per fighter (`moveReach`): each attack
+// has its own verified contact point, so each attack has its own range, and the
+// scalar here is what is left for the moves that have no forward reach to
+// measure and for everything that asks how long a fighter's arms are in
+// general.
+//
+// And the measurement is TEMPERED before it ships (`temper`): the ends of the
+// roster come in a few px toward the median, and a hand nudge can move an
+// individual. The drawings decide the order; the knobs decide how far apart the
+// order spreads. Neither may change the order, and the audit checks.
 //
 // ---------------------------------------------------------------------------
 // Resilience: the art is in flux, and gameplay must not be.
@@ -23,8 +40,12 @@
 //
 //   * every figure is an aggregate over the character's whole COLLECTION of
 //     relevant poses, not one pose;
-//   * reach discards the single furthest frame before taking a maximum, so one
-//     over-extended or glow-heavy drawing cannot set a character's range;
+//   * a verified strike point outside a guard band is reported as a fault and
+//     NOT used (strike_reach.js reachFaults), so one bad review cannot set a
+//     character's range either — the bench asks about it again instead;
+//   * the silhouette scan behind it discards the single furthest frame before
+//     taking a maximum, so one over-extended or glow-heavy drawing cannot set a
+//     character's range;
 //   * width takes a median, which a couple of odd frames cannot move at all;
 //   * results are BANDED (rounded to a step) so a few pixels of drift does not
 //     register as a change at all — art has to move meaningfully before the
@@ -41,10 +62,11 @@
 
 import { spriteManifest, frameMeta } from "./assets.js";
 import { MODEL_REACH } from "./config_model_reach.js";
+import { spriteReach, verifiedReach, reachGuard } from "./strike_reach.js";
 import { resolvedAnim, frameFootY } from "../sprites/src/sprites.js";
 import { headHeightTarget, referenceSpan } from "./heights.js";
 import { CELL_W, HURTBOX } from "./constants.js";
-import { BODY } from "./config_tuning.js";
+import { BODY, REACH_NUDGE } from "./config_tuning.js";
 import { clamp } from "./utils.js";
 
 // The animation states whose frames show a committed swing. Named by state
@@ -76,13 +98,55 @@ const CROUCH_STATES = ["crouch", "crouchAttack"];
 const AIR_STATES = ["jump", "fall"];
 
 const cache = new Map();
+const moveCache = new Map();
 let rosterCache = null;
+
+// ---------------------------------------------------------------- source
+//
+// WHICH ART A FIGHTER IS MEASURED OFF, and it is the art the player is looking
+// at — set from render_backend.js when a backend is chosen.
+//
+// The sprite game and the model games are different games wearing the same
+// rules. Reach used to come off the rigs for everybody: a number measured from
+// a posed GLB deciding the range of a fighter drawn as a SPRITE, 30-36 px long
+// on Mahito and Nanami and 30 px short on Sukuna, with the strike arc — which
+// is drawn at the hitbox's own far edge — floating that far off the end of the
+// drawing it exists to mark. The sprite backend is the game; the rig is a
+// second way to draw it, and a secondary renderer should not be reaching into
+// the primary one's hitboxes.
+//
+// So each backend names the evidence it is drawn from and gets measured off
+// that. The cost is honest and accepted: the same fighter has slightly
+// different range under `?render=3d`, because under `?render=3d` they are a
+// different set of shapes. Every measurement here is cached, so switching
+// backends mid-match drops the caches and re-measures rather than leaving one
+// backend's numbers on another backend's bodies.
+const SOURCES = new Set(["sprite", "model"]);
+let reachSource = "sprite";
+
+/** Measure fighters off drawings ("sprite") or off rigs ("model"). Returns the
+ *  source in force, which is unchanged if the name is not one. */
+export function setReachSource(name) {
+  if (!SOURCES.has(name) || name === reachSource) return reachSource;
+  reachSource = name;
+  refreshSilhouettes();
+  return reachSource;
+}
+
+/** Which art the measurements are currently coming off. */
+export function reachSourceName() {
+  return reachSource;
+}
 
 /** Drop the cached measurements for a character, or for everyone. The sprite
  *  workbench calls this after an edit; the game never needs to. */
 export function refreshSilhouettes(charKey = null) {
   if (charKey) cache.delete(charKey);
   else cache.clear();
+  // Per-move reach is keyed by character AND state, so a single-character
+  // refresh cannot just delete one entry — and there are a few hundred of
+  // them at most, so rebuilding the lot costs nothing worth a smarter index.
+  moveCache.clear();
   rosterCache = null;
 }
 
@@ -97,7 +161,7 @@ export function refreshSilhouettes(charKey = null) {
 export function bodyMetrics(charKey) {
   const height = headHeightTarget(charKey) || BODY.fallbackHeight;
   const hit = cache.get(charKey);
-  if (hit && hit.height === height) return hit;
+  if (hit && hit.height === height && hit.source === reachSource) return hit;
   const m = measure(charKey, height);
   cache.set(charKey, m);
   return m;
@@ -114,6 +178,44 @@ export function bodyWidth(charKey) {
 }
 
 /**
+ * How far ONE attack reaches, world px — the number moves.js builds that move's
+ * hitbox from.
+ *
+ * A fighter's reach is not one number, and pretending it was is why a jab and a
+ * spear thrust used to end in the same place. Under the sprite source every
+ * attack has its own verified contact point, so every attack gets its own
+ * range: Toji's side smash is drawn 132 px out and his crouch poke 42, and the
+ * two now say so.
+ *
+ * Falls back to the fighter's scalar reach — the furthest they get in anything
+ * — whenever this particular move has no usable answer: no verified point, a
+ * point on art since redrawn, a point outside the guard band
+ * (strike_reach.js reachFaults), or a state struck along the centre line rather
+ * than out in front (an up smash, a quake), whose `x` is not a reach at all.
+ * The model source has no per-move evidence of this kind and always lands here.
+ */
+export function moveReach(charKey, state) {
+  const b = bodyMetrics(charKey);
+  if (reachSource !== "sprite" || !state) return b.reach;
+  const key = `${charKey}/${state}`;
+  const hit = moveCache.get(key);
+  if (hit !== undefined) return hit;
+  const measured = verifiedReach(charKey, state);
+  // The fighter's own tempering, applied to this move as well: their moves keep
+  // the proportions the drawings gave them, and only their standing against the
+  // rest of the roster moves. See temper().
+  const raw = measured == null ? null : measured * b.reachScale;
+  const g = reachGuard(charKey);
+  // Banded, so a nudge in the bench below the step is invisible to the game —
+  // and held to the verified band rather than the scan's, since that is the
+  // evidence in hand. `verifiedReach` has already rejected anything outside it,
+  // so the clamp is a backstop and not a decision.
+  const out = raw == null ? b.reach : band(raw, BODY.reachBand, g.lo, g.hi);
+  moveCache.set(key, out);
+  return out;
+}
+
+/**
  * The roster's median art reach — the yardstick a move's startup and recovery
  * are priced against (moves.js), and the fallback for a fighter whose art has
  * not been measured. Median rather than mean so an outlier at either end does
@@ -124,10 +226,10 @@ export function rosterReach() {
   const keys = Object.keys(spriteManifest?.characters || {});
   const found = [];
   for (const key of keys) {
-    // Same preference as measure(): the rig's number where one exists, so
-    // the yardstick everyone is priced against moves with the same evidence
-    // the individual measurements do.
-    const raw = MODEL_REACH[key]?.reach ?? rawReach(key, scaleOf(key));
+    // Same preference as measure(), so the yardstick everyone is priced
+    // against moves with the same evidence the individual measurements do —
+    // including which backend's art that evidence comes from.
+    const { raw } = reachOf(key);
     if (raw != null) found.push(raw);
   }
   rosterCache = found.length ? median(found) : BODY.fallbackReach;
@@ -146,24 +248,17 @@ function scaleOf(charKey) {
 
 function measure(charKey, height) {
   const scale = scaleOf(charKey);
-  // The RIG measurement wins where one exists (config_model_reach.js,
-  // regenerated by tools/derive_attack_envelopes.mjs): bones and prop shafts
-  // are exactly the things that can hit, where a sprite scan also reads
-  // energy clouds and painted smears as reach. It passes through the same
-  // banding and height-fraction guards below, so a bad bake cannot hand a
-  // fighter the stage any more than a bad export could.
-  const modelReach = MODEL_REACH[charKey]?.reach ?? null;
-  const reachRaw = modelReach ?? rawReach(charKey, scale);
+  const { raw: reachRaw, from: reachFrom } = reachOf(charKey);
   const widthRaw = rawWidth(charKey, scale);
 
   // Missing art falls back to the roster, scaled to this character's height, so
   // an unmeasured fighter is a normal fighter their own size rather than a
   // fighter shaped like the reference.
   const relative = height / BODY.fallbackHeight;
-  const reach = band(
-    reachRaw ?? rosterReach() * relative,
-    BODY.reachBand, height * BODY.reachMin, height * BODY.reachMax
-  );
+  const [reachLo, reachHi] = reachBounds(charKey, reachFrom, height);
+  const measuredReach = reachRaw ?? rosterReach() * relative;
+  const tempered = temper(charKey, measuredReach);
+  const reach = band(tempered.value, BODY.reachBand, reachLo, reachHi);
   // Width is compressed toward a typical body before it is banded — see
   // BODY.widthTrust for why the measurement is evidence rather than truth.
   const typical = height * BODY.widthTypical;
@@ -190,6 +285,16 @@ function measure(charKey, height) {
   return {
     charKey, height, width, reach, crouch, air,
     measured: reachRaw != null,
+    // Which art this fighter was measured off, and which kind of evidence
+    // inside it answered — both for the audit, which should be able to say
+    // where a range came from without re-deriving it.
+    source: reachSource,
+    reachFrom,
+    // What the art actually said, before the roster-wide compression and any
+    // hand nudge (BODY.reachTrust, REACH_NUDGE) — so the audit can print the
+    // two side by side and check that tempering has not reordered anybody.
+    reachMeasured: measuredReach,
+    reachScale: tempered.scale,
     // False means this character's numbers came from art nobody has sized or
     // positioned yet, so they will move once somebody does.
     placed: allPlaced(charKey, SWING_STATES),
@@ -282,6 +387,81 @@ function frameWidth(charKey, frameKey, scale) {
   const hi = Number.isFinite(m.coreRight) ? m.coreRight : m.bodyRight;
   if (!Number.isFinite(lo) || !Number.isFinite(hi)) return null;
   return (hi - lo) * scale * (m.renderScale || 1);
+}
+
+/**
+ * Reach before banding, off whichever art is being drawn.
+ *
+ * SPRITE: the verified strike points first (strike_reach.js) — a person said
+ * where each blow lands on each drawing, which is the only measurement that can
+ * tell a fist from the cursed energy around it. The silhouette scan below is
+ * the fallback for a fighter nobody has walked through the bench yet, and it
+ * reads the outer edge of the ink, smears and all.
+ *
+ * MODEL: the rig (config_model_reach.js, regenerated by
+ * tools/derive_attack_envelopes.mjs), where bones and prop shafts are exactly
+ * the things that can hit. Same fallback, for a character with no rig.
+ *
+ * Either way the answer passes through the same banding and height-fraction
+ * guards in measure(), so a bad bake or a bad review cannot hand a fighter the
+ * stage.
+ */
+function reachOf(charKey) {
+  if (reachSource === "model") {
+    const rig = MODEL_REACH[charKey]?.reach;
+    if (rig != null) return { raw: rig, from: "rig" };
+  } else {
+    const verified = spriteReach(charKey);
+    if (verified != null) return { raw: verified, from: "verified" };
+  }
+  const scan = rawReach(charKey, scaleOf(charKey));
+  return scan != null ? { raw: scan, from: "art" } : { raw: null, from: "roster" };
+}
+
+/**
+ * The measurement, tempered into a range.
+ *
+ * Two steps, both of them deliberate distortions of what the art says, and both
+ * documented where their knobs live (BODY.reachTrust, REACH_NUDGE):
+ *
+ *   1. the fighter's distance from the roster median is compressed, so the ends
+ *      of the roster come in a few px toward the middle;
+ *   2. a hand-typed nudge is added for the individuals somebody has played and
+ *      found wrong anyway.
+ *
+ * Step 1 is a straight line through the median, so it cannot reorder the
+ * roster and a median fighter does not move. Step 2 can, which is why the audit
+ * checks that it has not.
+ *
+ * Returns a RATIO as well as the value, because a fighter's per-move reaches
+ * have to move with their scalar: the tempering is a statement about how long
+ * this fighter's arms are against everybody else's, not about how their own jab
+ * compares to their own spear. Scaling all their moves by the same factor keeps
+ * that second thing exactly as drawn.
+ */
+function temper(charKey, raw) {
+  if (raw == null || !(raw > 0)) return { value: raw, scale: 1 };
+  const ref = rosterReach() || raw;
+  const value = ref + (raw - ref) * BODY.reachTrust + (REACH_NUDGE[charKey] || 0);
+  return { value, scale: value / raw };
+}
+
+/**
+ * Which height-fraction band a piece of evidence is held to.
+ *
+ * A verified point gets the wide one, because it is a person's decision about a
+ * drawing and the guard is only there to catch a misclick (STRIKE_REACH). A
+ * scan or a bake gets the narrow one, because neither knows what it is looking
+ * at and a broken export should not be able to hand a fighter the stage.
+ * Getting this backwards is what clamped Maki — the longest weapon on the
+ * roster — down to below the median.
+ */
+function reachBounds(charKey, from, height) {
+  if (from === "verified") {
+    const g = reachGuard(charKey);
+    return [g.lo, g.hi];
+  }
+  return [height * BODY.reachMin, height * BODY.reachMax];
 }
 
 /**

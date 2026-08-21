@@ -49,9 +49,15 @@
 // and silhouette.js. Those measure how big a fighter IS — height, width, reach,
 // baked once at load out of the manifest's silhouette bounds and fed to
 // combat.js — which is a gameplay number that happens to be derived from art,
-// not a per-frame drawing decision. It needs its own answer from a model
-// backend eventually, but it is a separate seam on a separate clock and
-// folding it in here would blur what this one is for.
+// not a per-frame drawing decision. That is still a separate seam on a separate
+// clock, and the measuring lives there.
+//
+// What this module owes it is ONE FACT: which art is on screen. A backend
+// declares `bodySource` below and `selectRenderBackend` hands it to
+// silhouette.js, which decides what to do with it. That is the whole of the
+// coupling, and it points one way — silhouette.js does not import this module,
+// because render3d's backend imports silhouette and the two would close a
+// cycle.
 //
 // The workbench also calls sprites.js directly, and should: it is the tool for
 // authoring SPRITES, so being bound to that backend is correct rather than a
@@ -63,6 +69,8 @@ import {
 } from "../sprites/src/sprites.js";
 import * as billboard from "../billboards/src/billboard.js";
 import * as render3d from "../render3d/src/backend.js";
+import { setReachSource, refreshSilhouettes } from "./silhouette.js";
+import { refreshStrikePoints } from "./strike_points.js";
 
 /** The registered ways to draw a character. Keyed by the name `?render=` takes. */
 const BACKENDS = {
@@ -74,6 +82,11 @@ const BACKENDS = {
     // An OPTIONAL hook (see anchorOffset below). Only a backend whose frames
     // are drawings has per-frame anchors to answer with.
     anchorOffset: spriteAnchorOffset,
+    // WHAT A FIGHTER'S BODY IS MEASURED OFF while this backend draws. The
+    // sprite game is measured off sprites: the verified strike points on the
+    // drawings, which is the only measurement that knows a fist from the
+    // cursed energy around it (src/strike_reach.js).
+    bodySource: "sprite",
     // ...and it does NOT turn. See `sweepsTurns` below.
   },
   // 2.5D: posed 3D models rendered to a texture and blitted into the same 2D
@@ -87,6 +100,10 @@ const BACKENDS = {
     cyclePhase: billboard.cyclePhase,
     init: billboard.init,
     scene3d: billboard.scene3d,
+    // The bodies on screen are the rigs, so the rigs are what they are
+    // measured off — a fighter who falls through to their sprite still gets
+    // the rig-side answer, which for them is the silhouette scan either way.
+    bodySource: "model",
     sweepsTurns: true,
   },
   // Live 3D: rigged models animated at full frame rate, rendered in a
@@ -102,6 +119,7 @@ const BACKENDS = {
     init: render3d.init,
     scene3d: render3d.scene3d,
     preload: render3d.preload,
+    bodySource: "model",
     sweepsTurns: true,
   },
 };
@@ -144,6 +162,16 @@ export function selectRenderBackend(name) {
     activeName = DEFAULT_BACKEND;
   }
   active = BACKENDS[activeName];
+  // Measure the fighters off the art this backend draws — see `bodySource`
+  // above. Every measurement downstream is cached, so the two refreshes are
+  // what make a mid-match switch land on the new numbers instead of leaving one
+  // backend's reach on another backend's bodies. Dropped unconditionally
+  // rather than only on a change: this runs once at boot and once per press of
+  // the Settings toggle, and rebuilding a few dozen measurements costs less
+  // than the reasoning about when it is safe to skip.
+  setReachSource(active.bodySource || "sprite");
+  refreshSilhouettes();
+  refreshStrikePoints();
   // A backend with startup work (the billboard path loads its engine and rigs)
   // starts it now, async; drawing before it resolves falls through to sprites,
   // which is the fallthrough behaving as designed rather than a race.
@@ -172,11 +200,18 @@ export function renderBackendMenuLabel() {
 
 /** Advance to the next backend and switch to it, returning its menu label.
  *
- *  Takes effect immediately, mid-match and all: unlike the stock count or the
- *  clock, this changes nothing about the fight, only how the fighters in it are
- *  drawn. Any loading the new backend needs starts here and the characters
- *  whose rigs have not arrived keep drawing as sprites meanwhile, which is the
- *  per-character fallthrough working rather than a stall. */
+ *  Takes effect immediately, mid-match and all. Any loading the new backend
+ *  needs starts here and the characters whose rigs have not arrived keep
+ *  drawing as sprites meanwhile, which is the per-character fallthrough working
+ *  rather than a stall.
+ *
+ *  It is no longer purely cosmetic, and that is deliberate. A fighter's reach
+ *  is measured off the art on screen (`bodySource`), so switching renderer
+ *  mid-match re-measures the roster off the other set of bodies and a few
+ *  attacks change length. The alternative was the sprite game inheriting
+ *  ranges from rigs most players never see, which is the thing this exists to
+ *  stop; a toggle in Settings that says "3D" changing what 3D reaches with is
+ *  the honest version. */
 export function cycleRenderBackend() {
   const i = RENDER_OPTIONS.findIndex((o) => o.name === activeName);
   selectRenderBackend(RENDER_OPTIONS[(i + 1) % RENDER_OPTIONS.length].name);

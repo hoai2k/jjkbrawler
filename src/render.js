@@ -459,7 +459,7 @@ function strikeArc(ctx, x, y, facing, a, k, color, power = 1, hb = null, sweet =
     const eSpan = a.span * (1 - e * A.echoNarrow);
     const eFade = fade * A.echoFade ** e;
     const eHead = head - e * A.echoLag;
-    if (er < A.minRadius * 0.5) break;
+    if (er < a.minRadius * 0.5) break;
     for (let i = 0; i < STEPS; i++) {
       const t0 = -1 + 2 * (i / STEPS);
       const t1 = -1 + 2 * ((i + 1) / STEPS);
@@ -494,7 +494,7 @@ function strikeArc(ctx, x, y, facing, a, k, color, power = 1, hb = null, sweet =
   // it hits hardest. Drawn inside the arc's own frame, so it curves with the
   // swing and sits exactly where the band is tested. Only worth drawing on a
   // forward swing whose reach it actually falls inside.
-  if (sweet > A.minRadius * 0.5 && sweet <= a.radius * 1.02) {
+  if (sweet > a.minRadius * 0.5 && sweet <= a.radius * 1.02) {
     const sr = Math.min(sweet, radius);
     ctx.globalAlpha = fade * A.sweetAlpha;
     ctx.strokeStyle = "#ffffff";
@@ -1447,9 +1447,6 @@ function drawDebug(ctx) {
     ctx.strokeStyle = HURT_LINE;
     ctx.lineWidth = 1;
     ctx.strokeRect(r.x, r.y, r.w, r.h);
-    // Where this character's artwork actually reaches, measured from their own
-    // frames (silhouette.js). A hitbox extending far past this is a hit that
-    // will land out of thin air.
     // Where the blow itself is (strike_points.js): the fist, foot or blade,
     // as opposed to the box it threatens with. Ringed rather than filled, and
     // colour-coded by how well it is known — cyan where a person checked it,
@@ -1470,7 +1467,11 @@ function drawDebug(ctx) {
       ctx.moveTo(px, py - 10); ctx.lineTo(px, py + 10);
       ctx.stroke();
     }
-    const reach = visibleArtReach(f.char);
+    // ...and where the ART this move is drawn from reaches, which is what the
+    // box was built off (moves.js). The gap between this line and the hitbox's
+    // far edge is the move's grace margin, and it should look the same on
+    // everybody. Per move, since reach is: a jab's cap is not a spear's.
+    const reach = visibleArtReach(f.char, f.animKey);
     if (reach) {
       const x = f.x + f.facing * reach;
       ctx.strokeStyle = "rgba(255, 190, 90, 0.7)";

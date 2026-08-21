@@ -42,7 +42,44 @@ walks the roster move by move over the real sprite and exports decisions.
 
 **Spent.** Follow-up A below is built (`src/contact.js`): the impact FX, the
 element sound, the shake, the rumble, the Black Flash roll and the hitstun all
-read how cleanly the blow connected. Follow-up B is not.
+read how cleanly the blow connected. Follow-up B is not. And the points now
+carry the sprite game's RANGE as well — see below.
+
+## What they set: the sprite game's reach
+
+A strike point's `x` is how far in front of themselves a fighter's blow lands,
+in game px. That is a reach measurement, and it is a better one than anything
+automatic can produce: a silhouette scan reads cursed-energy clouds and painted
+smears as reach because it cannot tell them from a fist, and the rig measurement
+that was preferred over it is measuring a body most sprite players never see.
+
+So `src/strike_reach.js` reads these points as range, and `src/moves.js` builds
+each hitbox from the point for THAT move plus a fixed grace margin
+(`MELEE_GRACE`). Consequences worth knowing:
+
+* **Reach is per move.** Toji's side smash reaches 132 px and his jab 66. One
+  scalar per character had them ending within a few px of each other.
+* **Dragging a point moves a hitbox** — and the crescent drawn around it, since
+  the arc's radius *is* the box's far edge. The bench is where a range gets set
+  now, not only where a spark gets placed.
+* **Only the forward attacks.** `light`, `sideHeavy`, `crouchAttack`, `airLight`
+  (the two dash attacks alias into the first two). An up smash and a quake are
+  struck along the centre line — their `x` is a few px of shoulder lean, not a
+  reach — so those moves use the fighter's scalar, the furthest they get in
+  anything forward.
+* **A point that cannot be read as a reach is rejected, not clamped.** Behind
+  the centre line, or past `STRIKE_REACH.max` of the fighter's own height: the
+  move falls back to the scalar, `tools/audit_hitboxes.mjs` prints it, and
+  `committed()` returns false so this queue asks again. One trips it today —
+  Hakari's `light`, at x −34.
+* **The number is tempered before it ships.** `BODY.reachTrust` pulls each
+  fighter's distance from the roster median in a little, and `REACH_NUDGE` is a
+  per-character hand adjustment on top. Neither may reorder the roster and the
+  audit checks that. So the point you place decides where this fighter sits in
+  the order and roughly how far out; it is not the shipped px to the last digit.
+* **Only under the sprite backend.** `?render=3d` and `?render=billboard` draw
+  rigs, so they measure rigs (`src/config_model_reach.js`). Each backend
+  declares its `bodySource` in `src/render_backend.js`.
 
 ## The gate, and where it stands
 

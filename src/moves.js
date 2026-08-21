@@ -16,13 +16,26 @@
 // with nothing: longer-reaching moves came out very slightly FASTER.
 // docs/hitbox-audit.md has the measurements.
 //
-// Range is now derived from the art. `artReach` (src/silhouette.js) is how far
-// in front of themselves a character's swing is actually painted, measured
-// across their whole set of attack poses and banded so the art can be reworked
-// without moving a matchup. A move's far edge is that, plus an explicit grace
-// margin per move type — so the invisible part of every attack is the same
-// small, deliberate amount for everybody instead of an accident of how each
-// character happened to be drawn.
+// Range is now derived from the art. A move's far edge is what that move is
+// drawn to reach, plus an explicit grace margin per move type — so the
+// invisible part of every attack is the same small, deliberate amount for
+// everybody instead of an accident of how each character happened to be drawn.
+//
+// PER MOVE, not per fighter (`moveReach`, src/silhouette.js). Every attack has
+// a contact point somebody verified against the drawing, so every attack has
+// its own range: Toji's side smash lands three times as far out as his crouch
+// poke and the boxes say so, where one scalar per character had them ending
+// within a few px of each other. The scalar (`artReach`) is still there for the
+// moves struck along the centre line — an up smash, a quake — which have no
+// forward reach to measure, and for everything that just wants to know how long
+// a fighter's arms are.
+//
+// AND OFF THE ART THE PLAYER IS LOOKING AT. Under the sprite backend those
+// points are the ones placed on the sprites; under `?render=3d` they come off
+// the rigs (src/silhouette.js `source`). The same fighter therefore reaches
+// slightly differently in the two, because in the two they are different
+// shapes — which is the honest version of a renderer toggle, and better than
+// the sprite game inheriting ranges from models most players never see.
 //
 // The trade Smash prices range against is startup and endlag, and it is priced
 // here too: `priceOf` slows a long-armed fighter's attacks and speeds up a
@@ -34,7 +47,7 @@
 
 import { STRIKE_ARC, MELEE_GRACE, REACH_PRICE, SWEETSPOT, HEIGHT_BASE_PX } from "./config_tuning.js";
 import { SAKURAI, SMASH_TILT_ANGLE, DASH_LUNGE_DRAG } from "./constants.js";
-import { artReach, bodyWidth, bodyMetrics, rosterReach } from "./silhouette.js";
+import { artReach, bodyWidth, bodyMetrics, moveReach, rosterReach } from "./silhouette.js";
 import { clamp } from "./utils.js";
 
 function round1(v) {
@@ -42,13 +55,18 @@ function round1(v) {
 }
 
 /**
- * How far in front of a fighter their art is painted to reach — the number the
- * strike arc's "art cap" marks and the sprite workbench draws its range targets
- * against. Per character now, because the art is: it spans 60-113 px across the
- * roster, and the single global constant this replaces was right for nobody.
+ * How far in front of a fighter their art is drawn to reach — the number the
+ * debug overlay's "art cap" marks and the sprite workbench draws its range
+ * targets against.
+ *
+ * Per character because the art is, and per MOVE when a state is named, because
+ * the art is that too: the cap is only telling the truth about the grace margin
+ * if it is the cap for the move whose box is next to it. Without a state it is
+ * the fighter's longest swing, which is the right answer for "how long are this
+ * fighter's arms".
  */
-export function visibleArtReach(char) {
-  return artReach(keyOf(char));
+export function visibleArtReach(char, state = null) {
+  return state ? moveReach(keyOf(char), state) : artReach(keyOf(char));
 }
 
 function keyOf(char) {
@@ -65,6 +83,7 @@ function keyOf(char) {
 function geo(char) {
   const m = bodyMetrics(keyOf(char));
   return {
+    charKey: m.charKey,
     width: m.width,
     height: m.height,
     reach: m.reach,
@@ -72,11 +91,24 @@ function geo(char) {
   };
 }
 
-/** The far edge of a move's hitbox: where the art gets to, plus this move
- *  type's grace margin. `MELEE_GRACE.scale` softens or tightens all of it. */
-function tipOf(g, variant) {
+/**
+ * The far edge of a move's hitbox: where the art gets to, plus this move type's
+ * grace margin. `MELEE_GRACE.scale` softens or tightens all of it.
+ *
+ * `state` names the animation this move plays, which is what the verified
+ * strike points are filed under — so a move that has its own reviewed contact
+ * point is built from THAT rather than from the fighter's longest swing, and a
+ * jab stops ending where a spear thrust does. Omit it and the move gets the
+ * fighter's scalar reach, which is right for the ones struck along the centre
+ * line: an up smash and a quake have no forward reach to measure.
+ *
+ * The grace margin is added identically either way. It is the whole invisible
+ * part of a swing and the one thing that must not vary per character — a long
+ * fighter's advantage comes from their arms, not from a bigger lie.
+ */
+function tipOf(g, variant, state = null) {
   const grace = (MELEE_GRACE[variant] ?? MELEE_GRACE.side) * MELEE_GRACE.scale;
-  return g.reach + grace;
+  return moveReach(g.charKey, state) + grace;
 }
 
 /**
@@ -149,7 +181,7 @@ export function lightMove(char, variant, jabStep = 0) {
   switch (variant) {
     case "jab": {
       const finisher = jabStep >= 2;
-      const tip = tipOf(g, finisher ? "jab" : "jabEarly");
+      const tip = tipOf(g, finisher ? "jab" : "jabEarly", "light");
       return {
         ...base,
         delay: 0.05 / s, dur: 0.09,
@@ -168,7 +200,7 @@ export function lightMove(char, variant, jabStep = 0) {
       };
     }
     case "side": {
-      const tip = tipOf(g, "side");
+      const tip = tipOf(g, "side", "light");
       return {
         ...base,
         delay: 0.07 / s, dur: 0.12, recover: 0.2 * priceOf(g),
@@ -199,7 +231,7 @@ export function lightMove(char, variant, jabStep = 0) {
     // the direction is still held (fighter.js), so the numbers now run the way
     // round a player would guess.
     case "dash": {
-      const tip = tipOf(g, "side");
+      const tip = tipOf(g, "side", "dashAttack");
       return {
         ...base,
         anim: "dashAttack",
@@ -225,7 +257,7 @@ export function lightMove(char, variant, jabStep = 0) {
         ...base,
         anim: "crouchAttack",
         delay: 0.05 / s, dur: 0.12, recover: 0.18 * priceOf(g),
-        ...forward(g, tipOf(g, "down"), -52, 54, 0.8),
+        ...forward(g, tipOf(g, "down", "crouchAttack"), -52, 54, 0.8),
         dmg: round1(p.dmg * 0.85), baseKb: 250, growth: 5.0,
         // A low poke that stays low. With the flat launch pop gone (combat.js)
         // this finally sends a grounded opponent sliding rather than popping
@@ -238,7 +270,7 @@ export function lightMove(char, variant, jabStep = 0) {
         ...base,
         anim: "airLight",
         delay: 0.05 / s, dur: 0.16, recover: 0.14 * priceOf(g),
-        ...forward(g, tipOf(g, "air"), -104, 104, 0.7),
+        ...forward(g, tipOf(g, "air", "airLight"), -104, 104, 0.7),
         dmg: round1(p.dmg * 0.95), baseKb: 290, growth: 5.9, angle: 0.5,
         label: "Aerial " + p.label,
       };
@@ -281,7 +313,7 @@ export function heavyMove(char, variant, charge = 0) {
 
   switch (variant) {
     case "side": {
-      const tip = tipOf(g, "sideHeavy");
+      const tip = tipOf(g, "sideHeavy", "sideHeavy");
       return {
         ...base,
         anim: "sideHeavy",
@@ -300,7 +332,7 @@ export function heavyMove(char, variant, charge = 0) {
     // stopping the run dead. It is the hardest hit available without a charge,
     // and it is paid for in the longest recovery on the ground.
     case "dash": {
-      const tip = tipOf(g, "sideHeavy");
+      const tip = tipOf(g, "sideHeavy", "dashAttackHeavy");
       return {
         ...base,
         anim: "dashAttackHeavy",
@@ -337,7 +369,7 @@ export function heavyMove(char, variant, charge = 0) {
         ...base,
         anim: "airLight",
         delay: 0.13 / s, dur: 0.16, recover: 0.2 * price,
-        ...forward(g, tipOf(g, "airHeavy"), -104, 110, 0.7),
+        ...forward(g, tipOf(g, "airHeavy", "airLight"), -104, 110, 0.7),
         dmg: round1(p.dmg * 0.9), baseKb: 380, growth: 7.6, angle: 0.48,
         critBand: p.critBand || null,
         label: "Aerial " + p.label,
@@ -391,7 +423,7 @@ function arcSpan(half, radius) {
  * facing +x and y running downward as canvas does (so the foot line is 0 and
  * the head is negative). The renderer mirrors the whole frame for facing.
  *
- * Each arc is `{ pivotY, radius, aim, span }`: a band of constant `radius`
+ * Each arc is `{ pivotY, radius, aim, span, minRadius }`: a band of constant `radius`
  * about a centre of curvature `pivotY` above the feet, covering `aim ± span`
  * where 0 points forward, -PI/2 straight up and +PI/2 straight down.
  *
@@ -402,6 +434,7 @@ function arcSpan(half, radius) {
  * @param {number} bodyH  the fighter's rendered height, foot line to head
  */
 export function strikeArcs(m, bodyH) {
+  const minRadius = STRIKE_ARC.minRadiusFrac * bodyH;
   const x0 = m.ox, x1 = m.ox + m.w;
   const y0 = m.oy, y1 = m.oy + m.h;
   const armY = -STRIKE_ARC.armHeight * bodyH;
@@ -413,13 +446,13 @@ export function strikeArcs(m, bodyH) {
   // box ends on.
   if (straddles && m.h > m.w * 1.2) {
     return y1 <= 0
-      ? vertical(armY, armY - y0, -Math.PI / 2, m.w / 2)
-      : vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2);
+      ? vertical(armY, armY - y0, -Math.PI / 2, m.w / 2, minRadius)
+      : vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2, minRadius);
   }
   // Straddling and hanging at or below the feet: a meteor, wider than it is
   // deep but still aimed straight down.
   if (straddles && y0 > -m.h * 0.3) {
-    return vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2);
+    return vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2, minRadius);
   }
 
   // Sideways. Arm height, unless the box sits low enough that the strike is
@@ -441,21 +474,21 @@ export function strikeArcs(m, bodyH) {
   // and only once a box had dropped far enough to trip that.
   const aim = m.aimTilt || 0;
   const arcs = [];
-  if (x1 >= STRIKE_ARC.minRadius) {
-    arcs.push({ pivotY, radius: x1, aim, span: arcSpan(half, x1) });
+  if (x1 >= minRadius) {
+    arcs.push({ pivotY, radius: x1, aim, span: arcSpan(half, x1), minRadius });
   }
   // Backward too, for the down-smash quakes whose box spans both sides.
-  if (-x0 >= STRIKE_ARC.minRadius) {
-    arcs.push({ pivotY, radius: -x0, aim: Math.PI, span: arcSpan(half, -x0) });
+  if (-x0 >= minRadius) {
+    arcs.push({ pivotY, radius: -x0, aim: Math.PI, span: arcSpan(half, -x0), minRadius });
   }
   return arcs;
 }
 
 /** The one-arc list for a straight-up or straight-down strike — empty when the
  *  arc would sit inside the fighter's own art. */
-function vertical(pivotY, radius, aim, half) {
-  if (radius < STRIKE_ARC.minRadius) return [];
-  return [{ pivotY, radius, aim, span: arcSpan(half, radius) }];
+function vertical(pivotY, radius, aim, half, minRadius) {
+  if (radius < minRadius) return [];
+  return [{ pivotY, radius, aim, span: arcSpan(half, radius), minRadius }];
 }
 
 /**

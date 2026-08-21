@@ -109,12 +109,77 @@ export const BODY = {
   // able to set a character's range. Below it there is nothing to spare.
   reachDropTopFrom: 4,
 
+  // How much of a fighter's measured distance from the roster median carries
+  // into their range — the same shape as `widthTrust` above, and for a related
+  // reason.
+  //
+  // The measurement is right about the ORDER and only roughly right about the
+  // gaps. A drawing is a pose somebody chose: a fighter caught mid-lunge
+  // measures longer than the same fighter drawn planted, and that is framing
+  // rather than character. Taken literally it put 2.56x between the shortest
+  // arms on the roster and the longest, which is a bigger spread than the
+  // fighters are, and left the ends of the roster playing a different game
+  // from the middle.
+  //
+  // So the ends come in a little: the shortest fighters get a few px they were
+  // not drawn with and the longest give a few back, everyone keeps their place
+  // in the order (this is a straight line through the median, so it cannot
+  // reorder anybody), and a fighter at the median does not move at all. At
+  // 0.85 the roster's spread goes 2.56x -> 2.28x and nobody shifts by more
+  // than about 10 px. Turn it down to compress harder; 1 ships the measurement
+  // exactly as drawn.
+  //
+  // `tools/audit_hitboxes.mjs` prints the measured number beside the shipped
+  // one and fails if the order ever comes apart.
+  reachTrust: 0.85,
+
   // What a character with no measurable art is treated as. Height matches
   // HEIGHT_BASE_PX; reach and width are the roster medians as measured in
   // docs/hitbox-audit.md, and are only ever used before any art has landed.
   fallbackHeight: 175.3,
   fallbackReach: 80,
   fallbackWidth: 74,
+};
+
+// How far from the centre line a VERIFIED STRIKE POINT may sit and still be
+// read as that move's reach, as a fraction of the fighter's own drawn height.
+//
+// Deliberately far looser than BODY.reachMin/reachMax above, because it is
+// guarding something else. Those bound a SCAN of the ink, which has no idea
+// what it is looking at and needs holding to a plausible body. These bound a
+// DECISION: somebody opened the drawing and put the point on the blade. The
+// guard's whole job is to catch a misclick or a point left on art that has
+// since been redrawn — not to argue with the reviewer about how long a
+// naginata is. Maki's side smash lands at 1.10x her own height and that is
+// simply what is drawn.
+//
+// A point outside the band is not clamped into it. It is reported as a fault
+// (src/strike_reach.js reachFaults), the move falls back to the fighter's
+// scalar reach, and the verification bench puts the item back in the queue —
+// so a bad point costs a re-review rather than quietly setting a range at
+// whatever the guard happened to be. One point on the roster trips it today.
+export const STRIKE_REACH = {
+  min: 0.10,
+  max: 1.20,
+};
+
+// PER-CHARACTER RANGE NUDGES, in game px, applied after the compression above.
+//
+// The escape hatch for a fighter who is still wrong after everything measured
+// and everything tempered — a range that plays long or short in a way the
+// drawings do not explain. Hand-edited on purpose, like the strike-point
+// overrides it sits downstream of: a person decided this, and it should survive
+// a re-measure and be obvious in a diff.
+//
+// It is a NUDGE and not an override: a few px, not a new number. Anything big
+// enough to reorder the roster is the wrong tool — either the strike point is
+// wrong (fix it in the verification bench, where the answer is about a drawing)
+// or the whole roster is too spread out (turn `reachTrust` down). The audit
+// fails if a nudge inverts any pair, so the order stays the drawings'.
+//
+// Empty is the honest default: nothing here has been asked for yet.
+export const REACH_NUDGE = {
+  // gojo: 4,
 };
 
 // FALLBACK ONLY. Characters whose idle carries a measured `bodyTop` are scaled
@@ -297,8 +362,19 @@ export const STRIKE_ARC = {
   spanMax: 1.05,
 
   // A radius under this is not worth drawing — the arc would be inside the
-  // fighter's own art.
-  minRadius: 46,
+  // fighter's own art. As a fraction of the fighter's own drawn height, because
+  // "inside their own art" is a fact about their body: roughly half a typical
+  // body width (BODY.widthTypical is 0.38 of height), so the floor is where an
+  // arc would start overlapping the fighter rather than curving around them.
+  //
+  // It was a flat 46 px, which was about right for a reference-height fighter
+  // and too big for everybody shorter — and it started biting once reach came
+  // off the drawings and the shorter fighters got the shorter attacks they are
+  // actually drawn with. A steeply aimed swing loses horizontal extent to the
+  // tilt (`swingMove` scales the box by cos), so Gojo's side tilt aimed 60° up
+  // ended at 39 px and simply had no crescent — a live hitbox with nothing
+  // drawn on it, which is the one thing the arc must never be.
+  minRadiusFrac: 0.19,
 
   // Thickness of the band, as a fraction of its radius, and its hard limits.
   // The soft glow around it is drawn at `glowWidth` times this.
