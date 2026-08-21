@@ -58,7 +58,38 @@ export const HEIGHT_MAX_RATIO = 1.14;
 // read ~5.3–6.5 body-heights, tier steps land near body height, and the
 // dynamic camera (camera.js) zooms in to keep fighters visually large when
 // the fight is close.
-export const HEIGHT_BASE_PX = 149;
+/**
+ * THE ROSTER'S SIZE AGAINST THE BOARD, and the one number that sets it.
+ *
+ * Our fighters were about twice the size Smash's are relative to their stage: a
+ * main platform ran 5.3 body heights where Battlefield runs 11-14, a full hop
+ * cleared 1.06 of a body where Mario's clears 2.6, and a dash attack slid
+ * further for the same reason. Those are not four problems. Jumps, gravity,
+ * knockback, run speed and the platforms are all absolute pixels, so shrinking
+ * the BODY moves every one of those ratios at once and touches no balance
+ * number: the same jump reaches the same platform, and is worth more of a body
+ * on the way.
+ *
+ * 0.7 is one step of that, not the whole distance — parity would be near 0.45
+ * and would need the backgrounds redrawn to survive the camera zoom that keeps
+ * fighters the size they are on screen. This is the step that costs no art.
+ *
+ * WHAT ELSE FOLLOWS IT. Everything that is fighter-SIZED rather than
+ * board-sized, so the picture does not change scale, only the space around it:
+ * the ground shadow (render.js), every particle, ring and popup (particles.js),
+ * the platform slab's thickness (stages.js), and the camera's own framing —
+ * zoomed in by 1/0.7 so a fighter lands on screen exactly as large as before
+ * (camera.js). What deliberately does NOT follow it is anything belonging to
+ * the BOARD: platform lengths and heights, blast zones, spawn spacing. That gap
+ * opening up is the entire point.
+ */
+export const ART_SCALE = 0.7;
+
+/** 149 was the roster's own height before the step above; this is what the
+ *  game draws now. Every measurement of a body — hurtbox, reach, strike point,
+ *  muzzle, centre of mass — is derived from the drawn art, so all of them
+ *  follow this one number without a second edit. */
+export const HEIGHT_BASE_PX = 149 * ART_SCALE;
 
 // A fighter with no published height and nothing to infer from. 1.0 means "as
 // tall as the reference", which is a neutral default rather than a claim.
@@ -337,6 +368,28 @@ export const TRAIL_STRENGTH = {
   tumble: 1,
   dodge: 0.85,
   dash: 0.6,
+  // Projection Sorcery held down (see MACH below). Stronger than a dash
+  // because these are not a blur of a fast body — they are the frames he
+  // planned, and a plan you can barely see is not one worth drawing.
+  mach: 1,
+};
+
+// ---------------------------------------------------- Projection Sorcery run
+//
+// Naoya's afterimages used to come free with any sustained run, which put a
+// strip of film behind him for most of a normal match — the technique's whole
+// read (he is executing planned frames, not moving fast) worn as a default.
+//
+// So the frames are OPTED INTO, on the button they belong to: hold B while
+// running and he winds the choreography up — faster, and trailing. Let go and
+// he is a man running. The trail is his own, not the generic blur: sampled
+// further apart and drawn harder, so it reads as snapshots of where he has
+// been rather than a smear of where he is.
+export const MACH = {
+  speedMul: 1.28,     // how much faster the held run is
+  step: 5,            // sim steps between his samples (a blur trail is 2)
+  len: 5,             // how many of them are kept
+  alpha: 0.62,        // opacity of a planned frame (a blur ghost peaks at 0.34)
 };
 
 // ----------------------------------------------------------- strike arcs
@@ -578,8 +631,8 @@ export const MELEE_GRACE = {
 // the "somewhere in between" this was asked for. Raise both to go back toward
 // the old reach, drop them toward 0 to play the drawings as measured.
 export const ADDED_RANGE = {
-  short: 24,
-  long: 4,
+  short: 20,
+  long: 0,
   pastArt: 8,
 };
 

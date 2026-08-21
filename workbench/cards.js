@@ -2,18 +2,25 @@
 //
 //     /workbench/?edit=cards
 //
-// One control, and it is a line: drag it up and down the painting to say which
-// height must survive when the card is squeezed into a hole that is not its
+// One control, and it is a POINT: drag it around the painting to say which
+// spot must survive when the card is squeezed into a hole that is not its
 // shape. Everything else on the page exists to show the CONSEQUENCE of that
-// line, because the line on its own tells you nothing — a card is never seen at
-// this size in the game, and "looks about right on the big picture" is how the
-// blanket `top` crop got shipped in the first place.
+// point, because the point on its own tells you nothing — a card is never seen
+// at this size in the game, and "looks about right on the big picture" is how
+// the blanket `top` crop got shipped in the first place.
+//
+// It was a line — height only — for as long as every hole was WIDER than the
+// painting, because a wide hole only ever crops height and the width is free.
+// The tall holes broke that: the intro panel on a four player VS splash is
+// taller than the painting is, so `cover` fills the height and throws away the
+// SIDES, and a figure standing off-centre in its painting walks out of that
+// frame no matter where the line sits. Hence the second axis.
 //
 // So the rail holds every real hole, each an actual `object-fit: cover` box at
-// its actual size, re-cropping live as the line moves — widest first, because
+// its actual size, re-cropping live as the point moves — widest first, because
 // the widest hole discards the most height. The roster tile at the top is the
 // one to watch: it is both the hardest crop in the game and the one most of the
-// game is seen through.
+// game is seen through, and the tall VS panels are at the other end of the list.
 //
 // Nothing here persists — no localStorage, no server write, like the audio
 // bench's picks. Export writes a JSON snapshot of every card, tuned or not, and
@@ -78,12 +85,39 @@ const ROSTER_HOLES = ROSTER_ASPECTS.map((aspect, i) => {
   };
 });
 
-const HOLES = [...ROSTER_HOLES, ...[
+// The VS splash is not one shape either, and it is the extreme end of the set:
+// .intro-splash lays one full-height panel per entrant across the screen, so
+// every extra fighter halves-again how wide a painting's slot is while its
+// height stays the whole window. At two entrants the panel is wider than the
+// painting and crops height like everything else; from three on it is TALLER
+// than the painting, `cover` fills the height instead and starts throwing the
+// SIDES away — which is the crop the focus point's width exists for.
+//
+// Measured off styles.css at a 16:9 window, the widest common shape and so the
+// kindest: .intro-splash is inset -8% -6% (1.12 × vw by 1.16 × vh), the panels
+// split that width evenly, and .intro-panel img is 134% of its panel. The gaps
+// between panels are a few px and ignored. A narrower window makes every one of
+// these tighter still.
+const INTRO_W = (count) => (1.34 * 1.12 * (16 / 9)) / (1.16 * count);
+const INTRO_H = 210; // the preview's height; the width follows from the shape
+const INTRO_COUNTS = [
+  [2, "a 1v1 — the only splash wider than the painting"],
+  [3, "three entrants — the sides start going"],
+  [4, "four entrants — the tall crop the width is tuned for"],
+  [8, "a full Battle Royal — a slat, and mostly whatever the width picks"],
+];
+const INTRO_HOLES = INTRO_COUNTS.map(([count, why]) => ({
+  label: `Intro panel · ${count}P`,
+  note: `.intro-panel img — the VS splash, overscanned 134% — ${why}`,
+  w: Math.round(INTRO_H * INTRO_W(count)),
+  h: INTRO_H,
+}));
+
+const HOLES = [...ROSTER_HOLES, ...INTRO_HOLES, ...[
   { label: "Loser card", note: ".victory-card--loser img — overscanned 124%", w: 140, h: 112 },
   { label: "Victory hero", note: ".victory-hero-art — overscanned 124%", w: 174, h: 140 },
   { label: "HUD portrait", note: ".hud-portrait — beside the damage", w: 52, h: 52 },
   { label: "Pause chip", note: ".pause-chip img", w: 44, h: 44 },
-  { label: "Intro panel", note: ".intro-panel img — the VS splash, overscanned 134%", w: 168, h: 210 },
   // The select screen's hero card has two shapes, because the card does: the
   // landscape variant stands the portrait beside the stats and the portrait one
   // stacks them (styles.css, fitMatchupBar in src/ui.js). Both are listed —
@@ -93,24 +127,36 @@ const HOLES = [...ROSTER_HOLES, ...[
   { label: "Victory card", note: ".victory-card img", w: 120, h: 160 },
 ]].sort((a, b) => b.w / b.h - a.w / a.h);
 
-// The widest hole above, which is the one that discards the most height — and
-// so the one the dimmed band on the painting is measured against. Derived
-// rather than assumed: a hard-coded square would quietly tell the operator that
-// less was being thrown away than really is.
+// The widest hole above, which is the one that discards the most HEIGHT, and
+// the narrowest, which is the one that discards the most WIDTH — the two the
+// dimmed bands on the painting are measured against. Derived rather than
+// assumed: hard-coded shapes would quietly tell the operator that less was
+// being thrown away than really is.
 const tightestAspect = Math.max(...HOLES.map((h) => h.w / h.h));
+const tallestAspect = Math.min(...HOLES.map((h) => h.w / h.h));
 
-// key -> percentage from the painting's top edge. Seeded from the committed
-// config so a session REFINES what is shipped rather than starting from blank
-// and quietly reverting somebody's earlier pass on export.
+// key -> { x, y } percentages from the painting's top-left corner. Seeded from
+// the committed config so a session REFINES what is shipped rather than
+// starting from blank and quietly reverting somebody's earlier pass on export.
 const store = new Map();
 const touched = new Set();
 let current = null;
 let dirty = false;
 
-const focusOf = (key) => (store.has(key) ? store.get(key) : 0);
+const DEFAULT_FOCUS = { x: 50, y: 0 };
+const focusOf = (key) => (store.has(key) ? store.get(key) : DEFAULT_FOCUS);
+const clampPct = (n) => Math.min(100, Math.max(0, Math.round(n * 10) / 10));
+const sameFocus = (a, b) => a.x === b.x && a.y === b.y;
 
-function setFocus(key, pct, { mark = true } = {}) {
-  const v = Math.min(100, Math.max(0, Math.round(pct * 10) / 10));
+/** Move one or both axes. Callers that only mean the height pass `{ y }` and
+ *  leave the width where the operator put it — a nudge of one axis must never
+ *  quietly re-centre the other. */
+function setFocus(key, next, { mark = true } = {}) {
+  const at = focusOf(key);
+  const v = {
+    x: clampPct(next.x === undefined ? at.x : next.x),
+    y: clampPct(next.y === undefined ? at.y : next.y),
+  };
   store.set(key, v);
   if (mark) {
     touched.add(key);
@@ -143,43 +189,83 @@ function paintedRect() {
 }
 
 /** The fraction of the painting's HEIGHT that survives the WIDEST hole in the
- *  game — the crop that throws away the most, and so the honest one to draw.
- *  `cover` scales the painting until it fills the hole's width, which leaves
- *  (painting aspect ÷ hole aspect) of its height showing; a hole narrower than
- *  the painting keeps all of it and crops sideways instead, hence the clamp. */
+ *  game — the crop that throws away the most height, and so the honest one to
+ *  draw. `cover` scales the painting until it fills the hole's width, which
+ *  leaves (painting aspect ÷ hole aspect) of its height showing; a hole
+ *  narrower than the painting keeps all of it and crops sideways instead,
+ *  hence the clamp. */
 function keptFraction() {
   const img = el("cardImg");
   if (!img.naturalWidth || !img.naturalHeight) return 1;
   return Math.min(1, (img.naturalWidth / img.naturalHeight) / tightestAspect);
 }
 
-/** Lay the line, its grab handle and the two discarded bands over the painting.
- *  Pixel positions rather than percentages, because they are positioned against
- *  the painted rect and that is not the element they live in. */
+/** …and the mirror of it for WIDTH, against the NARROWEST hole — the tall
+ *  portrait crop, where `cover` fills the height and discards the sides. A hole
+ *  wider than the painting keeps every column, hence the same clamp. */
+function keptFractionX() {
+  const img = el("cardImg");
+  if (!img.naturalWidth || !img.naturalHeight) return 1;
+  return Math.min(1, tallestAspect / (img.naturalWidth / img.naturalHeight));
+}
+
+/** Lay the crosshair, its grab handle and the four discarded bands over the
+ *  painting. Pixel positions rather than percentages, because they are
+ *  positioned against the painted rect and that is not the element they live
+ *  in.
+ *
+ *  The bands come from two DIFFERENT holes — the widest throws the height away,
+ *  the tallest throws the sides away — so they are drawn as an L rather than a
+ *  frame: the top and bottom bands run the full width, and the side bands only
+ *  cover the strip of height that survived, which keeps them from stacking into
+ *  a double-dark corner that means nothing. */
 function layout() {
   const wrap = el("cardWrap");
   const r = paintedRect();
   const box = wrap.getBoundingClientRect();
   const left = r.left - box.left;
   const top = r.top - box.top;
-  const pct = focusOf(current) / 100;
+  const { x, y } = focusOf(current);
+  const px = x / 100;
+  const py = y / 100;
   const kept = keptFraction();
-  // Where the surviving window sits, as a fraction of the painting's height:
-  // `object-position: 50% p%` aligns the p point of the painting with the p
-  // point of the hole, which puts the window's top at p × (1 − kept).
-  const winTop = pct * (1 - kept);
+  const keptX = keptFractionX();
+  // Where the surviving window sits, as a fraction of the painting: `object
+  // position: p% q%` aligns the p/q point of the painting with the same point
+  // of the hole, which puts the window's edge at p × (1 − kept).
+  const winTop = py * (1 - kept);
+  const winLeft = px * (1 - keptX);
 
-  for (const id of ["focusLine", "focusGrab", "focusAbove", "focusBelow"]) {
+  for (const id of ["focusLine", "focusAbove", "focusBelow"]) {
     const node = el(id);
     node.style.left = `${left}px`;
     node.style.width = `${r.width}px`;
   }
-  el("focusLine").style.top = `${top + pct * r.height}px`;
-  el("focusGrab").style.top = `${top + pct * r.height}px`;
+  for (const id of ["focusColumn", "focusLeft", "focusRight"]) {
+    const node = el(id);
+    node.style.top = `${top}px`;
+    node.style.height = `${r.height}px`;
+  }
+  el("focusLine").style.top = `${top + py * r.height}px`;
+  el("focusColumn").style.left = `${left + px * r.width}px`;
+  el("focusGrab").style.top = `${top + py * r.height}px`;
+  el("focusGrab").style.left = `${left + px * r.width}px`;
   el("focusAbove").style.top = `${top}px`;
   el("focusAbove").style.height = `${winTop * r.height}px`;
   el("focusBelow").style.top = `${top + (winTop + kept) * r.height}px`;
   el("focusBelow").style.height = `${(1 - winTop - kept) * r.height}px`;
+  // The side bands are clipped to the surviving height, so what they dim is
+  // only ever the width the tall hole gives up.
+  for (const [id, bandLeft, bandWidth] of [
+    ["focusLeft", 0, winLeft],
+    ["focusRight", winLeft + keptX, 1 - winLeft - keptX],
+  ]) {
+    const node = el(id);
+    node.style.left = `${left + bandLeft * r.width}px`;
+    node.style.width = `${bandWidth * r.width}px`;
+    node.style.top = `${top + winTop * r.height}px`;
+    node.style.height = `${kept * r.height}px`;
+  }
 }
 
 // ------------------------------------------------------------------ painting
@@ -188,21 +274,24 @@ const holeId = (label) => `hole-${label.replace(/\W+/g, "")}`;
 
 function paint() {
   const key = current;
-  const pct = focusOf(key);
+  const { x, y } = focusOf(key);
   layout();
-  el("focusGrab").setAttribute("aria-valuenow", String(pct));
-  el("focusPct").textContent = `${pct.toFixed(1)}%`;
-  el("focusRange").value = String(pct);
-  el("focusOut").textContent = `${pct.toFixed(1)}%`;
-  el("resetBtn").disabled = !touched.has(key) && pct === cardFocus(key);
+  el("focusPct").textContent = `${x.toFixed(1)}% · ${y.toFixed(1)}%`;
+  el("focusGrab").setAttribute("aria-label",
+    `Crop focus point, ${x.toFixed(1)}% across and ${y.toFixed(1)}% down`);
+  el("focusRange").value = String(y);
+  el("focusOut").textContent = `${y.toFixed(1)}%`;
+  el("focusRangeX").value = String(x);
+  el("focusOutX").textContent = `${x.toFixed(1)}%`;
+  const committed = cardFocus(key);
+  el("resetBtn").disabled = !touched.has(key) && sameFocus({ x, y }, committed);
   for (const hole of HOLES) {
     const img = el(holeId(hole.label));
-    if (img) img.style.objectPosition = `50% ${pct}%`;
+    if (img) img.style.objectPosition = `${x}% ${y}%`;
   }
-  const committed = cardFocus(key);
   el("committed").textContent = CARD_FOCUS[key] === undefined
-    ? "not tuned yet — the game crops this card at the top"
-    : `committed: ${committed}%`;
+    ? "not tuned yet — the game crops this card at the top, centred"
+    : `committed: ${committed.x}% across · ${committed.y}% down`;
 }
 
 function select(key) {
@@ -234,7 +323,8 @@ function snapshot() {
       // because nobody touched it and a card deliberately SET to 0 export the
       // same number, and only the deliberate one belongs in the config.
       set: touched.has(key) || CARD_FOCUS[key] !== undefined,
-      focus: focusOf(key),
+      focus: focusOf(key).y,
+      focusX: focusOf(key).x,
       name: CHARACTERS[key]?.name || key,
     };
   }
@@ -244,8 +334,8 @@ function snapshot() {
     generatedBy: "JJK Brawler II card workbench (/workbench/?edit=cards) — nothing is persisted in the browser; this file is the only record of the session's edits.",
     generatedAt: new Date().toISOString(),
     applyTo: "src/config_cards.js — export const CARD_FOCUS",
-    howToApply: "node tools/apply_card_focus.mjs <this file>. Rebuilds CARD_FOCUS wholesale: an entry for every key whose `set` is true, dropping the rest. `focus` is a percentage from the painting's top edge and goes to CSS as the y half of object-position.",
-    defaults: { focus: 0 },
+    howToApply: "node tools/apply_card_focus.mjs <this file>. Rebuilds CARD_FOCUS wholesale: an entry for every key whose `set` is true, dropping the rest. `focus` is a percentage from the painting's top edge and `focusX` one from its left edge; together they are the object-position the game crops with. A card left at focusX 50 is written as the bare number it always was.",
+    defaults: { focus: 0, focusX: 50 },
     counts: {
       cards: WB_CARD_KEYS.length,
       set: WB_CARD_KEYS.filter((k) => touched.has(k) || CARD_FOCUS[k] !== undefined).length,
@@ -304,7 +394,7 @@ function shell() {
   return `
     <header class="bar">
       <strong>Card Workbench</strong>
-      <span class="hint">Where each painting is cropped — one line per fighter, previewed in every hole the game shows it in.</span>
+      <span class="hint">Where each painting is cropped — one point per fighter, previewed in every hole the game shows it in.</span>
       <nav class="modes">
         <a href="?edit=audio">Audio →</a>
         <a href="?edit=verification">Verification →</a>
@@ -324,18 +414,25 @@ function shell() {
             <img id="cardImg" class="cardwrap-img" alt="">
             <div id="focusAbove" class="focus-band"></div>
             <div id="focusBelow" class="focus-band"></div>
+            <div id="focusLeft" class="focus-band focus-band--side"></div>
+            <div id="focusRight" class="focus-band focus-band--side"></div>
             <div id="focusLine" class="focus-line"></div>
-            <div id="focusGrab" class="focus-grab" tabindex="0" role="slider"
-                 aria-label="Crop focus height" aria-valuemin="0" aria-valuemax="100">
-              <span id="focusPct" class="focus-pct">0%</span>
+            <div id="focusColumn" class="focus-column"></div>
+            <div id="focusGrab" class="focus-grab" tabindex="0"
+                 aria-label="Crop focus point">
+              <span id="focusPct" class="focus-pct">50% · 0%</span>
             </div>
           </div>
         </div>
         <p class="viewer-note">
-          <strong>Drag the line</strong> to the height that must survive a crop — usually the face.
+          <strong>Drag the point</strong> onto the spot that must survive a crop — usually the face.
           Click anywhere on the painting to send it there; arrow keys nudge by 0.5%, shift by 5%.
-          The dimmed band is what the <em>hardest</em> crop throws away — the widest roster
+          The bands top and bottom are what the <em>widest</em> hole throws away — the widest roster
           tile, the first preview on the right, and the one most of the game is seen through.
+          The bands left and right are what the <em>tallest</em> hole throws away instead — the VS
+          splash, whose panels get narrower with every extra fighter until a Battle Royal slat is
+          keeping barely a third of the painting's width. That is what the second axis is for; on a
+          1v1 it costs nothing, because that panel is wider than the painting.
           <b id="committed" class="committed"></b>
         </p>
       </section>
@@ -347,14 +444,21 @@ function shell() {
           </div>
           <div class="ctrls">
             <label class="ctrl">
-              <span class="ctrl-name">Focus</span>
-              <input id="focusRange" type="range" min="0" max="100" step="0.5" value="0">
+              <span class="ctrl-name">Down</span>
+              <input id="focusRange" type="range" min="0" max="100" step="0.5" value="0"
+                     aria-label="Crop focus height, from the painting's top edge">
               <output id="focusOut">0%</output>
+            </label>
+            <label class="ctrl">
+              <span class="ctrl-name">Across</span>
+              <input id="focusRangeX" type="range" min="0" max="100" step="0.5" value="50"
+                     aria-label="Crop focus width, from the painting's left edge">
+              <output id="focusOutX">50%</output>
             </label>
           </div>
           <div class="rail-actions">
             <button id="resetBtn" class="ghost" type="button">Reset this card</button>
-            <button id="centreBtn" class="ghost" type="button">Centre (50%)</button>
+            <button id="centreBtn" class="ghost" type="button">Centre (50% · 50%)</button>
           </div>
         </div>
         <h3 class="rail-head">Every hole the game crops this card into</h3>
@@ -374,7 +478,10 @@ function bindLine() {
 
   const fromEvent = (ev) => {
     const r = paintedRect();
-    return ((ev.clientY - r.top) / r.height) * 100;
+    return {
+      x: ((ev.clientX - r.left) / r.width) * 100,
+      y: ((ev.clientY - r.top) / r.height) * 100,
+    };
   };
 
   wrap.addEventListener("pointerdown", (ev) => {
@@ -396,8 +503,11 @@ function bindLine() {
 
   el("focusGrab").addEventListener("keydown", (ev) => {
     const step = ev.shiftKey ? 5 : 0.5;
-    if (ev.key === "ArrowUp") setFocus(current, focusOf(current) - step);
-    else if (ev.key === "ArrowDown") setFocus(current, focusOf(current) + step);
+    const at = focusOf(current);
+    if (ev.key === "ArrowUp") setFocus(current, { y: at.y - step });
+    else if (ev.key === "ArrowDown") setFocus(current, { y: at.y + step });
+    else if (ev.key === "ArrowLeft") setFocus(current, { x: at.x - step });
+    else if (ev.key === "ArrowRight") setFocus(current, { x: at.x + step });
     else return;
     ev.preventDefault();
   });
@@ -420,14 +530,15 @@ function boot(root) {
 
   bindLine();
 
-  el("focusRange").addEventListener("input", (ev) => setFocus(current, Number(ev.target.value)));
+  el("focusRange").addEventListener("input", (ev) => setFocus(current, { y: Number(ev.target.value) }));
+  el("focusRangeX").addEventListener("input", (ev) => setFocus(current, { x: Number(ev.target.value) }));
   el("resetBtn").addEventListener("click", () => {
     touched.delete(current);
     setFocus(current, cardFocus(current), { mark: false });
     el(`tile-${current}`).classList.remove("is-dirty");
     paint();
   });
-  el("centreBtn").addEventListener("click", () => setFocus(current, 50));
+  el("centreBtn").addEventListener("click", () => setFocus(current, { x: 50, y: 50 }));
   el("exportBtn").addEventListener("click", exportJSON);
   // Same escape hatch every bench here has: a URL nobody has fetched, so the
   // page and everything it imports miss the cache. See router.js.

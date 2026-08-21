@@ -77,6 +77,17 @@
   overflow: hidden;
 }
 
+/* The picture, and everything that floats over it. Sized by the flex column
+   above; the panels inside measure from ITS bottom, which is the bottom of the
+   picture rather than the bottom of the pane. */
+.viewer__stage {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
 .viewer canvas {
   flex: 1;
   min-height: 0;
@@ -101,7 +112,14 @@
 .viewer__foot {
   display: flex;
   align-items: center;
+  /* Wraps rather than running off the end. There are enough controls down here
+     now that a narrow window pushed the readouts past the pane's edge, and the
+     pane clips — a reading you cannot see is worse than a second row. The
+     floating panels measure from the picture (.viewer__stage), so the row is
+     free to be as tall as it needs. */
+  flex-wrap: wrap;
   gap: 14px;
+  row-gap: 7px;
   padding: 7px 12px;
   border-top: 1px solid #232838;
   font-size: 11px;
@@ -122,7 +140,7 @@
 .lights {
   position: absolute;
   left: 12px;
-  bottom: 46px;
+  bottom: 12px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -203,43 +221,56 @@
   font-family: ui-monospace, monospace;
   white-space: nowrap;
 }
-.lights.is-live /* The ledge drill. A button among the toggles rather than a light, because it
-   DOES something rather than reporting: it walks the fighter off the edge and
-   climbs them back, and says which part it is on while it runs. */
-.drill {
-  padding: 3px 10px;
-  background: #1c2231;
-  border: 1px solid #2a2f3e;
-  border-radius: 999px;
-  color: #9fb0d6;
-  font: inherit;
-  font-size: 11px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.drill:hover { background: #232a3c; color: #cbd5ef; }
-.drill.is-on { border-color: #3c6ea8; background: #1b2a41; color: #e8ecf8; }
-
-.lights__state { color: #d8b34a; }
-.lights.is-working /* The ledge drill. A button among the toggles rather than a light, because it
-   DOES something rather than reporting: it walks the fighter off the edge and
-   climbs them back, and says which part it is on while it runs. */
-.drill {
-  padding: 3px 10px;
-  background: #1c2231;
-  border: 1px solid #2a2f3e;
-  border-radius: 999px;
-  color: #9fb0d6;
-  font: inherit;
-  font-size: 11px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.drill:hover { background: #232a3c; color: #cbd5ef; }
-.drill.is-on { border-color: #3c6ea8; background: #1b2a41; color: #e8ecf8; }
-
-.lights__state { color: #9fd7ad; }
+.lights.is-live .lights__state { color: #d8b34a; }
+.lights.is-working .lights__state { color: #9fd7ad; }
 .lights.is-working { border-color: #3f7d55; }
+
+/* ----------------------------------------------------------- the two angles
+   The latched reading sits over the picture, just above the lights, because it
+   is read against the swing it describes. Its live twin — the raw stick — is
+   down in the foot bar with the other per-frame telemetry. */
+
+.aim {
+  position: absolute;
+  left: 12px;
+  bottom: 56px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: rgba(13, 16, 23, 0.78);
+  border: 1px solid #2a2f3e;
+  border-radius: 999px;
+  backdrop-filter: blur(3px);
+  font-size: 11px;
+  color: #7a839c;
+  white-space: nowrap;
+}
+.aim__name { color: #9fb0d6; }
+.aim__val { font-family: ui-monospace, monospace; color: #cbd5ef; }
+/* Aimed is the interesting case — an attack that took the angle — so it is the
+   one that stands out from a strip of numbers you are not currently reading. */
+.aim.is-aimed { border-color: #3c6ea8; }
+.aim.is-aimed .aim__val { color: #9ec8ff; }
+
+.viewer__stick { font-family: ui-monospace, monospace; }
+
+/* The dummy picker, beside the switch that decides whether there is a dummy at
+   all — so it is the same control in two parts rather than a setting somewhere
+   else that happens to be about the same fighter. */
+.dummyPick {
+  padding: 2px 6px;
+  background: #1c2231;
+  border: 1px solid #2a2f3e;
+  border-radius: 6px;
+  color: #cbd5ef;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  max-width: 150px;
+}
+.dummyPick:hover { border-color: #3c6ea8; }
+.dummyPick[hidden] { display: none; }
 
 @media (max-width: 820px) {
   .charbench { grid-template-columns: 1fr; height: auto; }

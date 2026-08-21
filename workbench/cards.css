@@ -148,7 +148,7 @@
   position: absolute;
   inset: 18px;
   touch-action: none;
-  cursor: ns-resize;
+  cursor: crosshair;
 }
 .cardwrap-img {
   width: 100%;
@@ -159,13 +159,17 @@
   border-radius: 6px;
 }
 
-/* The two bands the hardest crop throws away. Dimmed rather than hidden, so the
-   painting still reads as one picture and you can see what is being given up. */
+/* The bands the hardest crops throw away. Dimmed rather than hidden, so the
+   painting still reads as one picture and you can see what is being given up.
+   Top and bottom are the widest hole's loss; the sides are the TALLEST hole's,
+   a different crop entirely, so they are drawn fainter and clipped to the
+   surviving strip (cards.js layout) rather than stacking over the others. */
 .focus-band {
   position: absolute;
   background: rgba(7, 10, 18, 0.66);
   pointer-events: none;
 }
+.focus-band--side { background: rgba(7, 10, 18, 0.42); }
 .focus-line {
   position: absolute;
   height: 0;
@@ -173,18 +177,43 @@
   box-shadow: 0 0 0 1px rgba(7, 10, 18, 0.55);
   pointer-events: none;
 }
+/* The crosshair's other arm. Fainter than the height line, because the height
+   is still the half that decides almost every hole. */
+.focus-column {
+  position: absolute;
+  width: 0;
+  border-left: 1px solid var(--accent);
+  opacity: 0.6;
+  box-shadow: 0 0 0 1px rgba(7, 10, 18, 0.55);
+  pointer-events: none;
+}
+/* The handle sits ON the crossing rather than at the end of a line, so it is
+   translated back by half of itself and carries a dot to mark the exact spot. */
 .focus-grab {
   position: absolute;
+  width: 22px;
   height: 22px;
-  margin-top: -11px;
+  margin: -11px 0 0 -11px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  padding-right: 6px;
-  cursor: ns-resize;
+  justify-content: center;
+  cursor: crosshair;
+}
+.focus-grab::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px rgba(7, 10, 18, 0.6);
 }
 .focus-grab:focus-visible { outline: 1px solid var(--warn); outline-offset: 2px; }
+/* The readout hangs off the handle instead of sitting in it — the handle is a
+   dot on the picture now, and a label inside it would cover the spot. */
 .focus-pct {
+  position: absolute;
+  left: 16px;
+  white-space: nowrap;
   font-size: 10.5px;
   font-variant-numeric: tabular-nums;
   color: var(--bg);

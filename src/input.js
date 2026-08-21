@@ -330,6 +330,7 @@ export function padSnapshot(pad) {
     heavyP: padButtonPressed(pad, PAD_BUTTONS.heavy),
     heavyHeld: padButton(pad, PAD_BUTTONS.heavy),
     specialP: padButtonPressed(pad, PAD_BUTTONS.special),
+    specialHeld: padButton(pad, PAD_BUTTONS.special),
     grabP: padButtonPressed(pad, PAD_BUTTONS.grab),
     dashP: padButtonPressed(pad, PAD_BUTTONS.dash),
     domainP: padButtonPressed(pad, PAD_BUTTONS.domain),
@@ -369,6 +370,7 @@ function keysSnapshot(map) {
     heavyP: anyPressed(map.heavy),
     heavyHeld: anyHeld(map.heavy),
     specialP: anyPressed(map.special),
+    specialHeld: anyHeld(map.special),
     ultP: anyPressed(map.ult),
     shieldHeld: anyHeld(map.shield),
     dashP: anyPressed(map.dash || []),
@@ -388,7 +390,8 @@ export function blankInput() {
   return {
     left: false, right: false, up: false, down: false,
     jumpP: false, jumpHeld: false, lightP: false,
-    heavyP: false, heavyHeld: false, specialP: false, ultP: false,
+    heavyP: false, heavyHeld: false, specialP: false, specialHeld: false,
+    ultP: false,
     shieldHeld: false, pauseP: false, dirX: 0, dashP: false,
     // How far the stick is pushed sideways, -1..1, kept ALONGSIDE `dirX`
     // rather than replacing it: everything that only asks "which way" still

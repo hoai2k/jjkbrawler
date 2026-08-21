@@ -11,7 +11,7 @@ import { cycleRenderBackend, renderBackendMenuLabel, preloadChar } from "./rende
 import { previewCharacter, claimCharacter, previewStage, loadProgress, onLoadProgress } from "./assets.js";
 import { warmMenuArt } from "./menu_art.js";
 import { CHARACTER_QUOTES, RANDOM_GROUP, ROSTER_ASPECTS, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
-import { cardFocus } from "./config_cards.js";
+import { cardFocus, isDefaultFocus } from "./config_cards.js";
 import { CONTROL_ROWS, rowAtPad } from "./config_controls.js";
 import { domainStickFor, charDomainSpecialSlot } from "./domains.js";
 import { MATCH_MODES, MAX_FIGHTERS, matchPlan, modeLabel, HUMAN_TEAM } from "./modes.js";
@@ -369,22 +369,26 @@ function heroCardSrc(key) {
   return `assets/cards/${key}_card.jpg`;
 }
 
-/** A card's crop focus (src/config_cards.js) as an inline custom property.
- *  Eight differently-shaped holes crop these paintings and styles.css aims
- *  every one of them off this single number — `object-position: 50%
- *  var(--card-focus, 0%)`. Emitted only when it is not the 0 default, so a card
- *  nobody has tuned still produces exactly the markup it always did. */
+/** A card's crop focus point (src/config_cards.js) as inline custom
+ *  properties. Eight differently-shaped holes crop these paintings and
+ *  styles.css aims every one of them off this one point —
+ *  `object-position: var(--card-focus-x, 50%) var(--card-focus, 0%)`. Emitted
+ *  only when it is not the centred-and-top default, so a card nobody has tuned
+ *  still produces exactly the markup it always did. */
 function cardFocusStyle(key) {
   const focus = cardFocus(key);
-  return focus ? ` style="--card-focus:${focus}%"` : "";
+  if (isDefaultFocus(focus)) return "";
+  return ` style="--card-focus-x:${focus.x}%;--card-focus:${focus.y}%"`;
 }
 
-/** The same, for an <img> the caller already holds. Always writes, even for 0:
- *  these elements are REUSED as the fighter changes, so an unset property would
- *  leave the previous character's focus aiming this one's crop. */
+/** The same, for an <img> the caller already holds. Always writes, even for the
+ *  default: these elements are REUSED as the fighter changes, so an unset
+ *  property would leave the previous character's focus aiming this one's crop. */
 function setHeroCard(img, key) {
+  const focus = cardFocus(key);
   img.src = heroCardSrc(key);
-  img.style.setProperty("--card-focus", `${cardFocus(key)}%`);
+  img.style.setProperty("--card-focus-x", `${focus.x}%`);
+  img.style.setProperty("--card-focus", `${focus.y}%`);
 }
 
 /** A fighter's full-body victory pose, transparent PNG. The results screen
@@ -1942,11 +1946,44 @@ export function resetHudCache() {
   hudCache.clear();
 }
 
+// THE HUD SITS ON TOP OF THE PICTURE, SO THE CAMERA HAS TO KNOW HOW MUCH.
+//
+// The damage plates are absolutely positioned DOM chrome over the top edge of
+// the arena, painted in CSS pixels: their share of the picture depends on the
+// window size and on how many seats the match has (a Battle Royal's row is
+// shorter than a 1v1's). The camera reads the fraction they cover off
+// state.hudBand and frames the fight into what is left.
+//
+// Measured off the live boxes rather than hardcoded, and only when something
+// that could have moved them changed — a getBoundingClientRect every frame,
+// straight after the HUD's own style writes, is a forced reflow sixty times a
+// second for a number that changes when the window does.
+let hudBandKey = "";
+
+function measureHudBand() {
+  const hud = els.hud;
+  const wrap = hud?.parentElement;
+  if (!hud || !wrap) return;
+  const key = `${hud.className}|${state.fighters.length}|${wrap.clientWidth}x${wrap.clientHeight}`;
+  if (key === hudBandKey) return;
+  hudBandKey = key;
+  if (hud.classList.contains("hidden") || !wrap.clientHeight) {
+    state.hudBand = 0;
+    return;
+  }
+  const box = hud.getBoundingClientRect();
+  const arena = wrap.getBoundingClientRect();
+  // Cap it: a band this deep means something has gone wrong with the layout,
+  // and the camera should not respond by shooting the fight at the floor.
+  state.hudBand = clamp((box.bottom - arena.top) / arena.height, 0, 0.3);
+}
+
 export function updateHud() {
   els.hud.classList.toggle("hud--multiplayer", state.fighters.length > 2);
   // Five or more panels no longer fit at multiplayer size: portraits go and the
   // type shrinks so a Battle Royal still reads at a glance.
   els.hud.classList.toggle("hud--crowd", state.fighters.length > 4);
+  measureHudBand();
   updateMatchClock();
   const teamMatch = matchPlan().teams;
   for (const id of FIGHTER_IDS) {

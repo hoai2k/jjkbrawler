@@ -54,7 +54,7 @@ import { sharedAttack, paintedHeight } from "./shared_sprites.js";
 import { paintShared, ORIGIN } from "./shared_paint.js";
 import { drawCharFrame, currentFrame } from "./render_backend.js";
 import { SUMMON_ANIMS } from "./config_summons.js";
-import { MOTION } from "./config_tuning.js";
+import { MOTION, ART_SCALE } from "./config_tuning.js";
 import { METER_MAX } from "./constants.js";
 
 // Seconds of a centred stick before a piloted summon goes back to hunting on
@@ -960,8 +960,8 @@ export function spawnSummon(owner, cfg) {
       if (this.behavior === "bomber") {
         this.dead = true;
         this.attackT = 0.2;
-        burst(this.x, this.y - 50, cfg.color, 30, 1.3);
-        ring(this.x, this.y - 50, cfg.color, (cfg.attack.r || 90) * 1.3);
+        burst(this.x, this.y - 50 * ART_SCALE, cfg.color, 30, 1.3);
+        ring(this.x, this.y - 50 * ART_SCALE, cfg.color, (cfg.attack.r || 90) * 1.3);
         playSfx("summonAttack", 0.9);
         state.camera.shake = Math.max(state.camera.shake, 5);
         applyHit(owner, target, {
@@ -981,7 +981,7 @@ export function spawnSummon(owner, cfg) {
         angle: cfg.attack.angle, effect: cfg.attack.effect || null,
         label: cfg.label, sfx: cfg.attack.sfx || "slash",
       }, "script");
-      burst(target.x, target.y - 80, cfg.color, 10, 0.7);
+      burst(target.x, target.y - 80 * ART_SCALE, cfg.color, 10, 0.7);
     },
 
     updateSupport(dt, target) {
@@ -1183,6 +1183,6 @@ export function spawnSummon(owner, cfg) {
   // The caster's end of it, kept light: the summon's own arrival is the loud
   // part, and it announces itself when it lands (stepAppear).
   playSfx("summonAppear", 0.55, 1.15);
-  burst(owner.x, owner.y - 80, cfg.color, 8, 0.7);
+  burst(owner.x, owner.y - 80 * ART_SCALE, cfg.color, 8, 0.7);
   return s;
 }

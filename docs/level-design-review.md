@@ -6,6 +6,18 @@ variety as the reference point. Follow-up to the Phase 2 archetype work in
 [stage-variety-plan.md](stage-variety-plan.md) — this review takes the
 archetypes as given and asks whether the *proportions* serve them.
 
+**Status: implemented, and G1(a) taken a second step.** The roster is now 70%
+of the size it was after the first pass (`ART_SCALE` in `config_tuning.js`,
+`HEIGHT_BASE_PX` 149 → 104.3), with the camera zoomed in by the reciprocal so a
+fighter lands on screen exactly as large as before — what changed is the space
+around them, not the picture. Mains went 5.3 → 7.6 body heights, a full hop
+1.06 → 1.51, a double 1.95 → 2.78, tier steps 0.6–1.0 → 0.8–1.3. Smash, for
+scale: 11–14, 2.6, 5.2. Everything fighter-SIZED followed the bodies so the
+scale does not read as changed — the ground shadow, every particle, ring and
+popup, the platform slab's thickness, the camera's own pads — while everything
+BOARD-sized (platform lengths, blast zones, spawn spacing) deliberately did
+not. §1's measured baseline below is from before that step.
+
 **Status: implemented** (same branch, follow-up commit), with the user's two
 additions: G1 landed as (a) *and* a mild (b) — `HEIGHT_BASE_PX` 175.3 → 149
 and every jump impulse +10% (710–800 → 780–880, single rise 129–165 px) — and
