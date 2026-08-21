@@ -72,6 +72,11 @@ each hitbox from the point for THAT move plus a fixed grace margin
   move falls back to the scalar, `tools/audit_hitboxes.mjs` prints it, and
   `committed()` returns false so this queue asks again. One trips it today —
   Hakari's `light`, at x −34.
+* **The number is tempered before it ships.** `BODY.reachTrust` pulls each
+  fighter's distance from the roster median in a little, and `REACH_NUDGE` is a
+  per-character hand adjustment on top. Neither may reorder the roster and the
+  audit checks that. So the point you place decides where this fighter sits in
+  the order and roughly how far out; it is not the shipped px to the last digit.
 * **Only under the sprite backend.** `?render=3d` and `?render=billboard` draw
   rigs, so they measure rigs (`src/config_model_reach.js`). Each backend
   declares its `bodySource` in `src/render_backend.js`.

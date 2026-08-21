@@ -39,7 +39,7 @@ const { lightMove, heavyMove, visibleArtReach } = await import("../src/moves.js"
 const { bodyMetrics, rosterReach, reachSourceName } = await import("../src/silhouette.js");
 const { reachFaults, FORWARD_STATES } = await import("../src/strike_reach.js");
 const { HURTBOX } = await import("../src/constants.js");
-const { MELEE_GRACE } = await import("../src/config_tuning.js");
+const { MELEE_GRACE, BODY, REACH_NUDGE } = await import("../src/config_tuning.js");
 const { STAGES } = await import("../src/stages.js");
 
 const n0 = (v) => Math.round(v).toString();
@@ -74,11 +74,12 @@ const rows = CHARACTER_KEYS.map((key) => {
 });
 
 console.log(`\n=== reach, against the art it is drawn from (source: ${reachSourceName()}) ===`);
-console.log("char         drawnH  reach  from      jabArt  jabTip  smashArt  smashTip   grace"
+console.log("char         drawnH  drawn  reach  from      jabArt  jabTip  smashArt  smashTip   grace"
   + "  startup  upSmashTop  sweet");
 for (const r of [...rows].sort((a, b) => b.heavyTip - a.heavyTip)) {
   console.log(
-    r.key.padEnd(12), pad(n0(r.b.height), 6), pad(n0(r.art), 6), r.b.reachFrom.padEnd(9),
+    r.key.padEnd(12), pad(n0(r.b.height), 6),
+    pad(n0(r.b.reachMeasured), 6), pad(n0(r.art), 6), r.b.reachFrom.padEnd(9),
     pad(n0(r.lightArt), 6), pad(n0(r.lightTip), 7),
     pad(n0(r.heavyArt), 8), pad(n0(r.heavyTip), 9),
     pad(n0(r.heavyTip - r.heavyArt), 7), pad(n0(r.startup) + "ms", 8),
@@ -102,6 +103,39 @@ console.log(`\ngrace margin: ${n0(Math.min(...graces))}-${n0(Math.max(...graces)
 if (graceSpread > 2) {
   fail(`grace margin varies by ${n0(graceSpread)} px across the roster — it should be `
     + `identical, since MELEE_GRACE.sideHeavy is a constant`);
+}
+
+// --------------------------------------------- 1a: tempering, and the order
+//
+// The shipped range is the measured one pulled toward the roster median
+// (BODY.reachTrust) and then nudged by hand for anybody who needed it
+// (REACH_NUDGE). Both are deliberate distortions of the art, so both are shown,
+// and the one thing neither may do is change WHO reaches further than whom —
+// that part is the drawings' to decide.
+const tempered = rows.map((r) => ({
+  key: r.key, drawn: r.b.reachMeasured, shipped: r.b.reach,
+  moved: r.b.reach - r.b.reachMeasured,
+}));
+const biggest = [...tempered].sort((a, b) => Math.abs(b.moved) - Math.abs(a.moved))[0];
+console.log(`\ntempering: reachTrust ${BODY.reachTrust}, `
+  + `${Object.keys(REACH_NUDGE).length} hand nudge(s) — `
+  + `drawn spread ${n2(Math.max(...tempered.map((t) => t.drawn))
+    / Math.min(...tempered.map((t) => t.drawn)))}x `
+  + `-> shipped ${n2(Math.max(...tempered.map((t) => t.shipped))
+    / Math.min(...tempered.map((t) => t.shipped)))}x, `
+  + `largest single move ${n0(biggest.moved)} px (${biggest.key})`);
+
+// Order, both ways round: sort by what was drawn, and the shipped numbers must
+// come out sorted too. Ties are not inversions — two fighters drawn the same
+// length may land the same length.
+const byDrawn = [...tempered].sort((a, b) => a.drawn - b.drawn);
+for (let i = 1; i < byDrawn.length; i++) {
+  const lo = byDrawn[i - 1], hi = byDrawn[i];
+  if (lo.drawn < hi.drawn && lo.shipped > hi.shipped) {
+    fail(`tempering reordered the roster: ${hi.key} is drawn longer than ${lo.key} `
+      + `(${n0(hi.drawn)} vs ${n0(lo.drawn)}) but ships shorter `
+      + `(${n0(hi.shipped)} vs ${n0(lo.shipped)}) — a nudge in REACH_NUDGE is too big`);
+  }
 }
 
 // ------------------------------------------------- 1b: the points behind it

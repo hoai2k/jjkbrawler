@@ -26,6 +26,11 @@
 // measure and for everything that asks how long a fighter's arms are in
 // general.
 //
+// And the measurement is TEMPERED before it ships (`temper`): the ends of the
+// roster come in a few px toward the median, and a hand nudge can move an
+// individual. The drawings decide the order; the knobs decide how far apart the
+// order spreads. Neither may change the order, and the audit checks.
+//
 // ---------------------------------------------------------------------------
 // Resilience: the art is in flux, and gameplay must not be.
 //
@@ -61,7 +66,7 @@ import { spriteReach, verifiedReach, reachGuard } from "./strike_reach.js";
 import { resolvedAnim, frameFootY } from "../sprites/src/sprites.js";
 import { headHeightTarget, referenceSpan } from "./heights.js";
 import { CELL_W, HURTBOX } from "./constants.js";
-import { BODY } from "./config_tuning.js";
+import { BODY, REACH_NUDGE } from "./config_tuning.js";
 import { clamp } from "./utils.js";
 
 // The animation states whose frames show a committed swing. Named by state
@@ -195,7 +200,11 @@ export function moveReach(charKey, state) {
   const key = `${charKey}/${state}`;
   const hit = moveCache.get(key);
   if (hit !== undefined) return hit;
-  const raw = verifiedReach(charKey, state);
+  const measured = verifiedReach(charKey, state);
+  // The fighter's own tempering, applied to this move as well: their moves keep
+  // the proportions the drawings gave them, and only their standing against the
+  // rest of the roster moves. See temper().
+  const raw = measured == null ? null : measured * b.reachScale;
   const g = reachGuard(charKey);
   // Banded, so a nudge in the bench below the step is invisible to the game —
   // and held to the verified band rather than the scan's, since that is the
@@ -247,9 +256,9 @@ function measure(charKey, height) {
   // fighter shaped like the reference.
   const relative = height / BODY.fallbackHeight;
   const [reachLo, reachHi] = reachBounds(charKey, reachFrom, height);
-  const reach = band(
-    reachRaw ?? rosterReach() * relative, BODY.reachBand, reachLo, reachHi,
-  );
+  const measuredReach = reachRaw ?? rosterReach() * relative;
+  const tempered = temper(charKey, measuredReach);
+  const reach = band(tempered.value, BODY.reachBand, reachLo, reachHi);
   // Width is compressed toward a typical body before it is banded — see
   // BODY.widthTrust for why the measurement is evidence rather than truth.
   const typical = height * BODY.widthTypical;
@@ -281,6 +290,11 @@ function measure(charKey, height) {
     // where a range came from without re-deriving it.
     source: reachSource,
     reachFrom,
+    // What the art actually said, before the roster-wide compression and any
+    // hand nudge (BODY.reachTrust, REACH_NUDGE) — so the audit can print the
+    // two side by side and check that tempering has not reordered anybody.
+    reachMeasured: measuredReach,
+    reachScale: tempered.scale,
     // False means this character's numbers came from art nobody has sized or
     // positioned yet, so they will move once somebody does.
     placed: allPlaced(charKey, SWING_STATES),
@@ -402,6 +416,34 @@ function reachOf(charKey) {
   }
   const scan = rawReach(charKey, scaleOf(charKey));
   return scan != null ? { raw: scan, from: "art" } : { raw: null, from: "roster" };
+}
+
+/**
+ * The measurement, tempered into a range.
+ *
+ * Two steps, both of them deliberate distortions of what the art says, and both
+ * documented where their knobs live (BODY.reachTrust, REACH_NUDGE):
+ *
+ *   1. the fighter's distance from the roster median is compressed, so the ends
+ *      of the roster come in a few px toward the middle;
+ *   2. a hand-typed nudge is added for the individuals somebody has played and
+ *      found wrong anyway.
+ *
+ * Step 1 is a straight line through the median, so it cannot reorder the
+ * roster and a median fighter does not move. Step 2 can, which is why the audit
+ * checks that it has not.
+ *
+ * Returns a RATIO as well as the value, because a fighter's per-move reaches
+ * have to move with their scalar: the tempering is a statement about how long
+ * this fighter's arms are against everybody else's, not about how their own jab
+ * compares to their own spear. Scaling all their moves by the same factor keeps
+ * that second thing exactly as drawn.
+ */
+function temper(charKey, raw) {
+  if (raw == null || !(raw > 0)) return { value: raw, scale: 1 };
+  const ref = rosterReach() || raw;
+  const value = ref + (raw - ref) * BODY.reachTrust + (REACH_NUDGE[charKey] || 0);
+  return { value, scale: value / raw };
 }
 
 /**

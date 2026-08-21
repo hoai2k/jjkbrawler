@@ -423,7 +423,7 @@ function arcSpan(half, radius) {
  * facing +x and y running downward as canvas does (so the foot line is 0 and
  * the head is negative). The renderer mirrors the whole frame for facing.
  *
- * Each arc is `{ pivotY, radius, aim, span }`: a band of constant `radius`
+ * Each arc is `{ pivotY, radius, aim, span, minRadius }`: a band of constant `radius`
  * about a centre of curvature `pivotY` above the feet, covering `aim ± span`
  * where 0 points forward, -PI/2 straight up and +PI/2 straight down.
  *
@@ -434,6 +434,7 @@ function arcSpan(half, radius) {
  * @param {number} bodyH  the fighter's rendered height, foot line to head
  */
 export function strikeArcs(m, bodyH) {
+  const minRadius = STRIKE_ARC.minRadiusFrac * bodyH;
   const x0 = m.ox, x1 = m.ox + m.w;
   const y0 = m.oy, y1 = m.oy + m.h;
   const armY = -STRIKE_ARC.armHeight * bodyH;
@@ -445,13 +446,13 @@ export function strikeArcs(m, bodyH) {
   // box ends on.
   if (straddles && m.h > m.w * 1.2) {
     return y1 <= 0
-      ? vertical(armY, armY - y0, -Math.PI / 2, m.w / 2)
-      : vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2);
+      ? vertical(armY, armY - y0, -Math.PI / 2, m.w / 2, minRadius)
+      : vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2, minRadius);
   }
   // Straddling and hanging at or below the feet: a meteor, wider than it is
   // deep but still aimed straight down.
   if (straddles && y0 > -m.h * 0.3) {
-    return vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2);
+    return vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2, minRadius);
   }
 
   // Sideways. Arm height, unless the box sits low enough that the strike is
@@ -473,21 +474,21 @@ export function strikeArcs(m, bodyH) {
   // and only once a box had dropped far enough to trip that.
   const aim = m.aimTilt || 0;
   const arcs = [];
-  if (x1 >= STRIKE_ARC.minRadius) {
-    arcs.push({ pivotY, radius: x1, aim, span: arcSpan(half, x1) });
+  if (x1 >= minRadius) {
+    arcs.push({ pivotY, radius: x1, aim, span: arcSpan(half, x1), minRadius });
   }
   // Backward too, for the down-smash quakes whose box spans both sides.
-  if (-x0 >= STRIKE_ARC.minRadius) {
-    arcs.push({ pivotY, radius: -x0, aim: Math.PI, span: arcSpan(half, -x0) });
+  if (-x0 >= minRadius) {
+    arcs.push({ pivotY, radius: -x0, aim: Math.PI, span: arcSpan(half, -x0), minRadius });
   }
   return arcs;
 }
 
 /** The one-arc list for a straight-up or straight-down strike — empty when the
  *  arc would sit inside the fighter's own art. */
-function vertical(pivotY, radius, aim, half) {
-  if (radius < STRIKE_ARC.minRadius) return [];
-  return [{ pivotY, radius, aim, span: arcSpan(half, radius) }];
+function vertical(pivotY, radius, aim, half, minRadius) {
+  if (radius < minRadius) return [];
+  return [{ pivotY, radius, aim, span: arcSpan(half, radius), minRadius }];
 }
 
 /**

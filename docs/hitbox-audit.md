@@ -640,6 +640,19 @@ per character had them ending within a few px of each other. Moves struck along
 the centre line (up smash, quake) have no forward reach to measure and keep the
 fighter's scalar, which is the furthest they get in any forward attack.
 
+**And the measurement is tempered before it ships.** The drawings are right
+about the *order* and only roughly right about the *gaps*: a fighter caught
+mid-lunge measures longer than the same fighter drawn planted, which is framing
+rather than character, and taken literally it put 2.56× between the shortest
+arms on the roster and the longest. `BODY.reachTrust` (0.85) compresses each
+fighter's distance from the roster median, so the ends come in a few px and a
+median fighter does not move at all — a straight line through the median, so it
+cannot reorder anybody. `REACH_NUDGE` is the hand-typed escape hatch for an
+individual who still plays wrong (empty today). A fighter's *own* moves all
+scale by the same factor, so their jab-against-their-spear stays exactly as
+drawn; only their standing against the rest of the roster moves. The audit
+prints drawn beside shipped and **fails if tempering ever reorders a pair**.
+
 A point that cannot be read as a reach — behind the centre line, or further out
 than `STRIKE_REACH.max` of the fighter's own height — is **rejected, not
 clamped**: the move falls back to the scalar and the verification bench puts the
@@ -682,8 +695,8 @@ art that would let that number go up.
 | | Before | Now |
 |---|---|---|
 | Grace margin (hitbox past the art) | 62–113 px, varying per character | **34 px, identical for everyone** |
-| Heavy tip | 166–187 px (1.13× spread) | 76–178 px (**2.34×**) |
-| reach ↔ startup correlation | −0.08 | **+0.72** |
+| Heavy tip | 166–187 px (1.13× spread) | 76–172 px (**2.26×**) |
+| reach ↔ startup correlation | −0.08 | **+0.69** |
 | Where a range comes from | one hand-typed number × a global constant | the strike point a person placed on that move's drawing |
 | Hurtbox | 64×108 for the whole roster | 48–72 × 127–172, per character |
 | Hurtbox vertical coverage | 58–70% of the drawn figure | **86%**, everywhere |
@@ -742,6 +755,21 @@ dropped rather than carried onto a box that has moved.
 - **The CPU's melee spacing is derived** (`meleeRange` in `ai.js`). The authored
   `profile.range` numbers were calibrated against the old fixed hitboxes; a CPU
   still using them for melee would stand exactly out of its own range.
+
+### The arc floor follows the body now
+
+`STRIKE_ARC.minRadius` was a flat 46 px — about right for a reference-height
+fighter and too big for everybody shorter. It started biting once reach came off
+the drawings and short-armed fighters got the short attacks they are drawn with:
+`swingMove` scales an aimed box by `cos(tilt)`, so Gojo's side tilt aimed 60° up
+ended at 39 px, fell under the floor, and had **no crescent at all** — a live
+hitbox with nothing drawn on it, which is the one thing the arc must never be
+(`tools/smoke_combat.mjs` asserts the arc agrees with the box at every angle).
+
+It is `minRadiusFrac` now, 0.19 of the fighter's own drawn height — roughly half
+a typical body width, which is what "the arc would be inside their own art"
+actually means. The change is strictly additive: across every character × move ×
+tilt, 147 combinations gain a crescent they did not have and **none lose one**.
 
 ### Still open
 

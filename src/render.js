@@ -459,7 +459,7 @@ function strikeArc(ctx, x, y, facing, a, k, color, power = 1, hb = null, sweet =
     const eSpan = a.span * (1 - e * A.echoNarrow);
     const eFade = fade * A.echoFade ** e;
     const eHead = head - e * A.echoLag;
-    if (er < A.minRadius * 0.5) break;
+    if (er < a.minRadius * 0.5) break;
     for (let i = 0; i < STEPS; i++) {
       const t0 = -1 + 2 * (i / STEPS);
       const t1 = -1 + 2 * ((i + 1) / STEPS);
@@ -494,7 +494,7 @@ function strikeArc(ctx, x, y, facing, a, k, color, power = 1, hb = null, sweet =
   // it hits hardest. Drawn inside the arc's own frame, so it curves with the
   // swing and sits exactly where the band is tested. Only worth drawing on a
   // forward swing whose reach it actually falls inside.
-  if (sweet > A.minRadius * 0.5 && sweet <= a.radius * 1.02) {
+  if (sweet > a.minRadius * 0.5 && sweet <= a.radius * 1.02) {
     const sr = Math.min(sweet, radius);
     ctx.globalAlpha = fade * A.sweetAlpha;
     ctx.strokeStyle = "#ffffff";
