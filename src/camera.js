@@ -71,6 +71,61 @@ const smooth = (t) => t * t * (3 - 2 * t);
 const arriving = (f) => (f.dead || !f.respawnAt ? 0
   : smooth(1 - clamp(f.respawnTimer / RESPAWN_WAIT, 0, 1)));
 
+// A FIGHTER ON A LEDGE IS AT THE EDGE OF THE STAGE, NOT IN THE MIDDLE OF A
+// FIGHT — SO THE SHOT HOLDS THE EDGE.
+//
+// Ledge play is four or five fast, short movements inside 150 px: fall past the
+// lip, snap onto the hang, hold, climb or roll or jump, maybe drop and regrab.
+// Framed body-tight, each one moves the camera — and because they alternate
+// direction, the frame swims back and forth through the whole exchange. The
+// motion is real and the tracking is honest; it is just not worth following.
+// Nobody watching needs the hang centred, they need to SEE it, and the corner
+// it happens around does not move at all.
+//
+// So while the grip has the drawing (fighter.js hangGripW — in across the
+// catch, 1 on the hang, out across whichever exit they take), the point this
+// fighter contributes to the framing eases from their body onto the platform
+// corner, and their velocity stops leading it. The containment pass below is
+// untouched and still keeps the real body in frame with its full margin: this
+// decides what the shot is ABOUT, never what it is allowed to lose.
+function framePoint(f) {
+  const at = ledgeHold(f);
+  const lead = (v) => clamp((v || 0) * LOOKAHEAD_T, -LOOKAHEAD_MAX, LOOKAHEAD_MAX) * (1 - at.w);
+  return {
+    x: at.w ? lerp(f.x, at.x, at.w) : f.x,
+    y: at.w ? lerp(f.y, at.y, at.w) : f.y,
+    lx: lead(f.vx),
+    ly: lead(f.vy),
+  };
+}
+
+/** The corner a fighter's ledge business is happening around, and how much of
+ *  the shot it owns.
+ *
+ *  Full through the hang, and either side of it a ramp, so both edges of the
+ *  hold are movements rather than switches:
+ *
+ *    catching   the hands closing on the lip — the shot settles onto it over
+ *               the reach, so the last of the fall is followed and the arrival
+ *               is not
+ *    hanging    entirely the corner's; a hang does not move
+ *    leaving    the grip's own release (fighter.js hangGripW), which is
+ *               already the ramp the drawing is handed back on, so the frame
+ *               takes the fighter back exactly as the body does
+ *
+ *  Null weight for everyone else, which is almost everyone almost always. */
+function ledgeHold(f) {
+  const corner = f.ledge
+    ? { x: f.ledge.edgeX, y: f.ledge.plat.y }
+    : (f.hangGrip || null);
+  if (!corner) return { w: 0 };
+  const m = f.ledgeMove;
+  const w = m?.kind === "catch" ? smooth(clamp(m.t / m.dur, 0, 1))
+    : f.ledge ? 1
+      : clamp(f.hangGripW || 0, 0, 1);
+  return { x: corner.x, y: corner.y, w };
+}
+
 /** Where the shot should be holding them right now. */
 function returnPoint(f) {
   const r = f.respawnAt;
@@ -82,6 +137,20 @@ function returnPoint(f) {
 }
 
 const PAN_DAMP = 0.0009;
+// ...AND A SPEED LIMIT ON TOP OF IT, because an eased pan is proportional and
+// proportional is fastest exactly when the error is largest. A fighter coming
+// back from a ledge closes a 300 px framing error, and the first frame of that
+// ease is a third of it: the shot lurches, settles, and reads as the camera
+// having been startled. The ledge is where this bites hardest — going out and
+// coming back is four such errors in a few seconds — but nothing about it is
+// special, so this is not a ledge rule.
+//
+// 720 px/s is 12 px a frame: quicker than a fighter can run (468) and under a
+// fast fall (900), so the frame can still travel with anybody without ever
+// moving faster than the thing it is following. The containment pass below is
+// NOT limited and overrides this whenever it binds — a comfort rule must never
+// be the reason somebody leaves the frame.
+const PAN_MAX_SPEED = 720;
 // Settling into a tighter shot is slow and unnoticeable; opening up to keep
 // somebody in frame is near-instant. A single symmetric rate cannot do both,
 // and it was the slow one that let a launched fighter leave the frame.
@@ -119,12 +188,11 @@ export function updateCamera(dt) {
   if (framed >= 2) {
     let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
     for (const f of alive) {
-      const lx = clamp((f.vx || 0) * LOOKAHEAD_T, -LOOKAHEAD_MAX, LOOKAHEAD_MAX);
-      const ly = clamp((f.vy || 0) * LOOKAHEAD_T, -LOOKAHEAD_MAX, LOOKAHEAD_MAX);
-      left = Math.min(left, f.x, f.x + lx);
-      right = Math.max(right, f.x, f.x + lx);
-      top = Math.min(top, f.y, f.y + ly);
-      bottom = Math.max(bottom, f.y, f.y + ly);
+      const p = framePoint(f);
+      left = Math.min(left, p.x, p.x + p.lx);
+      right = Math.max(right, p.x, p.x + p.lx);
+      top = Math.min(top, p.y, p.y + p.ly);
+      bottom = Math.max(bottom, p.y, p.y + p.ly);
     }
     // No lookahead: this point's whole path is already known, so there is
     // nothing to anticipate.
@@ -145,9 +213,9 @@ export function updateCamera(dt) {
     cx = (left + right) / 2;
     cy = (top + bottom) / 2;
   } else if (framed === 1 && alive.length === 1) {
-    const f = alive[0];
-    cx = f.x + clamp((f.vx || 0) * LOOKAHEAD_T, -LOOKAHEAD_MAX, LOOKAHEAD_MAX) / 2;
-    cy = f.y - 90 + clamp((f.vy || 0) * LOOKAHEAD_T, -LOOKAHEAD_MAX, LOOKAHEAD_MAX) / 2;
+    const p = framePoint(alive[0]);
+    cx = p.x + p.lx / 2;
+    cy = p.y - 90 + p.ly / 2;
     zoomTarget = ZOOM_SOLO;
   }
 
@@ -162,8 +230,15 @@ export function updateCamera(dt) {
   const panHalfW = WORLD.w / 2 / cam.zoom;
   const panHalfH = WORLD.h / 2 / cam.zoom;
   const panT = 1 - Math.pow(PAN_DAMP, dt);
-  cam.x = lerp(cam.x, clampView(cx, panHalfW, WORLD.w, OVERSCAN_X), panT);
-  cam.y = lerp(cam.y, clampView(cy, panHalfH, WORLD.h, OVERSCAN_Y), panT);
+  const wantX = lerp(cam.x, clampView(cx, panHalfW, WORLD.w, OVERSCAN_X), panT);
+  const wantY = lerp(cam.y, clampView(cy, panHalfH, WORLD.h, OVERSCAN_Y), panT);
+  const dx = wantX - cam.x;
+  const dy = wantY - cam.y;
+  const step = Math.hypot(dx, dy);
+  const cap = PAN_MAX_SPEED * dt;
+  const k = step > cap ? cap / step : 1;
+  cam.x += dx * k;
+  cam.y += dy * k;
 
   // Containment. The eased pan above is what the shot WANTS; this is what it
   // owes. Anyone the easing (or a zoom that has not finished opening) would
