@@ -49,21 +49,40 @@ const known = new Set(CHARACTER_KEYS);
 const unknown = Object.keys(snap.cards || {}).filter((k) => !known.has(k));
 const missing = CHARACTER_KEYS.filter((k) => !(k in (snap.cards || {})));
 
+// A percentage, or the process stops: a card written out of range would crop to
+// an edge in eight places at once, and silently clamping it would hide which
+// export was wrong.
+const pct = (key, label, raw, fallback) => {
+  if (raw === undefined || raw === null) return fallback;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0 || n > 100) {
+    console.error(`${key}: ${label} ${raw} is not a percentage — refusing to write`);
+    process.exit(1);
+  }
+  return Math.round(n * 10) / 10;
+};
+
 const rows = [];
 for (const key of CHARACTER_KEYS) {
   const entry = snap.cards?.[key];
   if (!entry || !entry.set) continue;
-  const focus = Number(entry.focus);
-  if (!Number.isFinite(focus) || focus < 0 || focus > 100) {
-    console.error(`${key}: focus ${entry.focus} is not a percentage — refusing to write`);
-    process.exit(1);
-  }
-  rows.push({ key, focus: Math.round(focus * 10) / 10, name: CHARACTERS[key]?.name || key });
+  // `focusX` post-dates the line-only workbench, so an older export simply has
+  // no width in it — which is the centred 50% those sessions were tuning
+  // against anyway, not a missing value to complain about.
+  rows.push({
+    key,
+    focus: pct(key, "focus", entry.focus, 0),
+    focusX: pct(key, "focusX", entry.focusX, 50),
+    name: CHARACTERS[key]?.name || key,
+  });
 }
 
 const width = Math.max(0, ...rows.map((r) => r.key.length));
+// A card whose width is still centred is written as the bare number it has
+// always been — the pair is only spelled out where the second axis was moved.
+const valueOf = (r) => (r.focusX === 50 ? `${r.focus}` : `[${r.focusX}, ${r.focus}]`);
 const body = rows.length
-  ? rows.map((r) => `  ${(r.key + ":").padEnd(width + 1)} ${r.focus},`.padEnd(width + 9)
+  ? rows.map((r) => `  ${(r.key + ":").padEnd(width + 1)} ${valueOf(r)},`.padEnd(width + 9)
       + ` // ${r.name}`).join("\n")
   : "  // gojo: 18,";
 
@@ -76,13 +95,17 @@ if (open < 0 || close < 0) {
 }
 const next = `${source.slice(0, open + MARK_OPEN.length)}\n${body}\n${source.slice(close + 1)}`;
 
-// What actually changes, per card, against what is committed today.
+// What actually changes, per card, against what is committed today. Both forms
+// of an entry are read through the same lens so a card rewritten from `12` to
+// `[50, 12]` — the same crop, spelled differently — does not report as a change.
+const shown = (v) => (v === undefined ? null : (Array.isArray(v) ? `${v[0]}% · ${v[1]}%` : `50% · ${v}%`));
 const changes = [];
 for (const key of CHARACTER_KEYS) {
-  const was = CARD_FOCUS[key];
-  const now = rows.find((r) => r.key === key)?.focus;
+  const row = rows.find((r) => r.key === key);
+  const was = shown(CARD_FOCUS[key]);
+  const now = row ? `${row.focusX}% · ${row.focus}%` : null;
   if (was === now) continue;
-  changes.push(`  ${key.padEnd(width)}  ${was === undefined ? "—" : `${was}%`} -> ${now === undefined ? "— (dropped)" : `${now}%`}`);
+  changes.push(`  ${key.padEnd(width)}  ${was ?? "—"} -> ${now ?? "— (dropped)"}`);
 }
 
 console.log(`${file}`);
