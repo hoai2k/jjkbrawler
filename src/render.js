@@ -416,7 +416,15 @@ function strikeArc(ctx, x, y, facing, a, k, color, power = 1, hb = null, sweet =
   // A heavy swing cuts a heavier line. Both the band's weight and the length of
   // its trail come off the same power, so a jab and a charged smash are told
   // apart at a glance rather than by reading a damage popup afterwards.
-  const thick = clamp(radius * A.thickness, A.thicknessMin, A.thicknessMax)
+  //
+  // `thicknessMin` is held under a fraction of the radius as well as being a
+  // floor, because a short arc gets drawn now (STRIKE_ARC.hideInsideArt) and a
+  // 6 px band on a 12 px radius is a blob rather than a crescent — it would
+  // read as a bloom at the shoulder, which is a different thing than the mark
+  // on a swing's edge. Only the smallest handful of arcs on the roster are
+  // touched by it; everything from a jab upward is on the flat floor.
+  const floor = Math.min(A.thicknessMin, radius * A.thicknessOfRadius);
+  const thick = clamp(radius * A.thickness, floor, A.thicknessMax)
     * (1 + (power - 1) * A.powerThickness);
   // Settings > Strike Arcs. "Simple" drops the echo trail and coarsens the
   // step, which is most of the stroke count, and keeps every reading the arc

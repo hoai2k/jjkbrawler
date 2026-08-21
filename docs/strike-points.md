@@ -72,6 +72,12 @@ each hitbox from the point for THAT move plus a fixed grace margin
   move falls back to the scalar, `tools/audit_hitboxes.mjs` prints it, and
   `committed()` returns false so this queue asks again. One trips it today —
   Hakari's `light`, at x −34.
+* **The drawing still has a say.** A point is where the blow lands, not where
+  the picture stops, so `moves.js` also floors every forward hitbox
+  `ADDED_RANGE.pastArt` past the ink of the contact frame
+  (`silhouette.js paintedReach`). Place a point conservatively and the attack
+  still connects when the art overlaps; place it out on a glow and you have set
+  a range.
 * **The number is tempered before it ships.** `BODY.reachTrust` pulls each
   fighter's distance from the roster median in a little, and `REACH_NUDGE` is a
   per-character hand adjustment on top. Neither may reorder the roster and the

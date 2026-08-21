@@ -62,11 +62,13 @@
 
 import { spriteManifest, frameMeta } from "./assets.js";
 import { MODEL_REACH } from "./config_model_reach.js";
-import { spriteReach, verifiedReach, reachGuard } from "./strike_reach.js";
+import {
+  spriteReach, verifiedReach, reachGuard, contactFrame,
+} from "./strike_reach.js";
 import { resolvedAnim, frameFootY } from "../sprites/src/sprites.js";
 import { headHeightTarget, referenceSpan } from "./heights.js";
 import { CELL_W, HURTBOX } from "./constants.js";
-import { BODY, REACH_NUDGE } from "./config_tuning.js";
+import { BODY, REACH_NUDGE, STRIKE_REACH } from "./config_tuning.js";
 import { clamp } from "./utils.js";
 
 // The animation states whose frames show a committed swing. Named by state
@@ -99,7 +101,9 @@ const AIR_STATES = ["jump", "fall"];
 
 const cache = new Map();
 const moveCache = new Map();
+const paintedCache = new Map();
 let rosterCache = null;
+let rosterSpanCache = null;
 
 // ---------------------------------------------------------------- source
 //
@@ -147,7 +151,9 @@ export function refreshSilhouettes(charKey = null) {
   // refresh cannot just delete one entry — and there are a few hundred of
   // them at most, so rebuilding the lot costs nothing worth a smarter index.
   moveCache.clear();
+  paintedCache.clear();
   rosterCache = null;
+  rosterSpanCache = null;
 }
 
 /**
@@ -175,6 +181,54 @@ export function artReach(charKey) {
 /** How wide their body is at rest, world px. */
 export function bodyWidth(charKey) {
   return bodyMetrics(charKey).width;
+}
+
+/**
+ * How far the DRAWING for one attack reaches, world px — the outer edge of the
+ * ink on the frame that move strikes on, or null when there is no measurable
+ * art for it.
+ *
+ * The other half of "how far does this attack reach", and the half that decides
+ * whether a swing that LOOKS like it connected did. `moveReach` is where the
+ * blow lands, a fist's centre placed by a person; this is where the picture
+ * stops, sleeve and claw and weapon and smear included. It is the cruder
+ * measurement — it cannot tell a fist from the cursed energy around it, which
+ * is exactly why it does not set range — but for the question "was anything of
+ * this fighter drawn over that opponent" the ink is the honest answer, and
+ * moves.js floors every forward hitbox a little way past it.
+ *
+ * Held inside STRIKE_REACH.max of the fighter's own height, so one glow-heavy
+ * frame cannot hand somebody the stage through the floor.
+ */
+export function paintedReach(charKey, state) {
+  if (!state) return null;
+  const key = `${charKey}/${state}`;
+  const hit = paintedCache.get(key);
+  if (hit !== undefined) return hit;
+  const frame = contactFrame(charKey, state);
+  const raw = frame ? frameReach(charKey, frame, scaleOf(charKey)) : null;
+  const height = headHeightTarget(charKey) || BODY.fallbackHeight;
+  const out = raw == null ? null : Math.min(raw, height * STRIKE_REACH.max);
+  paintedCache.set(key, out);
+  return out;
+}
+
+/**
+ * The shortest and longest reach on the roster, for interpolating anything that
+ * treats the two ends differently (ADDED_RANGE). Cached beside the median,
+ * and off the same raw measurements, so all three move together.
+ */
+export function rosterReachSpan() {
+  if (rosterSpanCache) return rosterSpanCache;
+  const found = [];
+  for (const key of Object.keys(spriteManifest?.characters || {})) {
+    const { raw } = reachOf(key);
+    if (raw != null) found.push(raw);
+  }
+  rosterSpanCache = found.length
+    ? { min: Math.min(...found), max: Math.max(...found) }
+    : { min: BODY.fallbackReach, max: BODY.fallbackReach };
+  return rosterSpanCache;
 }
 
 /**

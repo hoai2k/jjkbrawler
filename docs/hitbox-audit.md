@@ -694,7 +694,8 @@ art that would let that number go up.
 
 | | Before | Now |
 |---|---|---|
-| Grace margin (hitbox past the art) | 62–113 px, varying per character | **34 px, identical for everyone** |
+| Grace margin (hitbox past the strike point) | 62–113 px, varying per character | 23–104 px: `MELEE_GRACE` per move + `ADDED_RANGE` by reach |
+| Attacks ending inside their own ink | not measured | **0 of 204** (floored at `ADDED_RANGE.pastArt`) |
 | Heavy tip | 166–187 px (1.13× spread) | 76–172 px (**2.26×**) |
 | reach ↔ startup correlation | −0.08 | **+0.69** |
 | Where a range comes from | one hand-typed number × a global constant | the strike point a person placed on that move's drawing |
@@ -755,6 +756,37 @@ dropped rather than carried onto a box that has moved.
 - **The CPU's melee spacing is derived** (`meleeRange` in `ai.js`). The authored
   `profile.range` numbers were calibrated against the old fixed hitboxes; a CPU
   still using them for melee would stand exactly out of its own range.
+
+### Two floors, because a swing that looks like it hit has to hit
+
+Reach off the strike points is reach off where the blow *lands* — a fist's
+centre, placed by a person. The drawing keeps going: a sleeve, a claw, the far
+half of a weapon, the sweep of the swing. So attacks could visually overlap an
+opponent and do nothing. Dagon's side smash ended **3 px inside his own ink**,
+and 77 of the roster's 204 forward attacks were within 8 px of theirs.
+
+`ADDED_RANGE` (config_tuning.js) is the fix and the knob:
+
+* **`short` / `long`** — extra px on top of the per-move `MELEE_GRACE`,
+  interpolated by where a fighter's reach sits between the shortest and longest
+  on the roster. More at the short end, because the fighters the change moved
+  *down* are the ones who lost hits they used to land, and a few px on the
+  shortest arms disturbs spacing far less than the same few px on the longest.
+* **`pastArt`** — the floor under all of it. Every forward attack connects at
+  least this far past the ink of the frame it is thrown on, whatever the
+  interpolation worked out to. Held inside `STRIKE_REACH.max` of the fighter's
+  height so a glow-heavy frame cannot hand somebody the stage.
+
+At the shipping 24 / 4 / 8, **0 of 204** forward attacks end inside their own
+ink, 13 are decided by the ink floor rather than the strike point, and the mean
+forward tip lands at 115.7 px — almost exactly halfway between the measured-only
+99.4 and the rig-derived 132.3 the change replaced. The config comment carries
+the whole sweep so the setting can be moved knowingly.
+
+`tools/audit_hitboxes.mjs` checks both floors on every forward attack and fails
+on either. It replaces the old "grace margin is identical for everyone" check,
+which stopped being the right question once the margin became two floors and a
+per-fighter taper.
 
 ### The arc floor follows the body now
 

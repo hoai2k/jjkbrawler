@@ -46,6 +46,7 @@
 
 import { bodyMetrics } from "./silhouette.js";
 import { MODEL_REACH } from "./config_model_reach.js";
+import { STRIKE_REACH } from "./config_tuning.js";
 import { STRIKE_POINT_META } from "./config_strike_points.js";
 import { comFrac } from "./body_points.js";
 // The READING half of this lives in strike_reach.js — which drawing a state
@@ -109,7 +110,7 @@ function solve(charKey, state) {
   // fighter's own reach, at the height their mass sits — which is where an
   // arm strike from a body that size would land.
   return {
-    x: Math.round(b.reach * 0.75),
+    x: Math.round(b.reach * STRIKE_REACH.derivedFrac),
     y: -Math.round(b.height * comFrac(charKey)),
     source: "derived",
   };
