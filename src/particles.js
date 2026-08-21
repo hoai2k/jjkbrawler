@@ -173,7 +173,9 @@ export function drawParticles(ctx) {
     if (want !== op) { op = want; ctx.globalCompositeOperation = op; }
     if (p.ringMax) {
       ctx.strokeStyle = p.color;
-      ctx.lineWidth = 3;
+      // The stroke is part of the ring's own drawing, so it scales with
+      // everything else the roster's size moves (S at the top of this file).
+      ctx.lineWidth = 3 * S;
       ctx.beginPath();
       // Floored: canvas throws on a negative radius, and an exception here
       // aborts the whole frame's rendering, not just this one ring.
@@ -183,7 +185,7 @@ export function drawParticles(ctx) {
       // A line along the velocity — the particle IS its own motion blur.
       const k = p.streakLen || 0.045;
       ctx.strokeStyle = liveColor(p);
-      ctx.lineWidth = Math.max(1, p.size / 2.5);
+      ctx.lineWidth = Math.max(1 * S, p.size / 2.5);
       ctx.lineCap = "round";
       ctx.beginPath();
       ctx.moveTo(p.x, p.y);
@@ -192,7 +194,7 @@ export function drawParticles(ctx) {
     } else if (p.shape === "fork" && p.forkPts) {
       // A jagged branch, fixed where it spawned — lightning, cracks.
       ctx.strokeStyle = liveColor(p);
-      ctx.lineWidth = Math.max(1.2, p.size / 3);
+      ctx.lineWidth = Math.max(1.2 * S, p.size / 3);
       ctx.lineJoin = "miter";
       ctx.beginPath();
       ctx.moveTo(p.x, p.y);
@@ -201,7 +203,7 @@ export function drawParticles(ctx) {
     } else {
       ctx.fillStyle = liveColor(p);
       ctx.beginPath();
-      ctx.arc(p.x, p.y, Math.max(0.5, p.size / 2), 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, Math.max(0.5 * S, p.size / 2), 0, Math.PI * 2);
       ctx.fill();
     }
   }
@@ -215,7 +217,9 @@ export function drawPopupsWorld(ctx) {
   for (const p of state.popups) {
     ctx.globalAlpha = clamp(p.life / 0.35, 0, 1);
     ctx.font = `900 ${p.size}px Inter, sans-serif`;
-    ctx.lineWidth = 4;
+    // The outline that keeps a damage number readable over a bright effect: a
+    // stroke on a glyph, so it scales with the glyph.
+    ctx.lineWidth = 4 * S;
     ctx.strokeStyle = "rgba(0,0,0,0.85)";
     ctx.strokeText(p.text, p.x, p.y);
     ctx.fillStyle = p.color;

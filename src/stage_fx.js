@@ -14,6 +14,7 @@
 // look, and a missing file changes nothing.
 
 import { state } from "./state.js";
+import { ART_SCALE } from "./config_tuning.js";
 import { getStage, mainPlatform } from "./stages.js";
 import { getImage } from "./assets.js";
 import { paintedHeight } from "./shared_sprites.js";
@@ -73,7 +74,7 @@ function stageHit(f, { dmg, vx = 0, vy = 0, color = "#ffd35a", label = "", ifram
     f.shield = Math.max(0, f.shield - dmg * 1.5);
     f.vx += vx * 0.35;
     playSfx("guardHit", 0.7);
-    burst(f.x, f.y - 90, "#cfe4ff", 10, 0.6);
+    burst(f.x, f.y - 90 * ART_SCALE, "#cfe4ff", 10, 0.6);
     if (f.shield <= 0) shieldBreak(f);
     return true;
   }
@@ -82,9 +83,9 @@ function stageHit(f, { dmg, vx = 0, vy = 0, color = "#ffd35a", label = "", ifram
   f.vx = vx;
   f.vy = vy;
   if (vy < 0) f.grounded = false;
-  if (label) popup(f.x, f.y - 175, label, color, 17);
-  popup(f.x, f.y - 150, `${dmg}%`, color, 21);
-  burst(f.x, f.y - 80, color, 14, 0.9);
+  if (label) popup(f.x, f.y - 175 * ART_SCALE, label, color, 17);
+  popup(f.x, f.y - 150 * ART_SCALE, `${dmg}%`, color, 21);
+  burst(f.x, f.y - 80 * ART_SCALE, color, 14, 0.9);
   playSfx("hitMedium", 0.8);
   state.camera.shake = Math.max(state.camera.shake, 4);
   return true;
@@ -203,7 +204,7 @@ const STAGE_FX = {
           for (const f of fighters()) {
             if (f.statuses.silence < left - 0.05) {
               f.statuses.silence = left;
-              popup(f.x, f.y - 150, "TECHNIQUE SEALED", "#a8aeb8", 15);
+              popup(f.x, f.y - 150 * ART_SCALE, "TECHNIQUE SEALED", "#a8aeb8", 15);
             }
           }
           if (!this.hushBanner || this.hushBanner !== Math.floor(state.matchTime / PERIOD) + 1) {
@@ -267,7 +268,7 @@ const STAGE_FX = {
               f.vx = wave.dir * 300;
               f.vy = -170;
               f.grounded = false;
-              popup(f.x, f.y - 150, "SWEPT", "#9fd8ff", 17);
+              popup(f.x, f.y - 150 * ART_SCALE, "SWEPT", "#9fd8ff", 17);
               dust(f.x, f.y, 12);
               playSfx("hazardWaterSurge", 0.4, 1.6);
             }
@@ -455,9 +456,9 @@ const STAGE_FX = {
           const near = Math.abs(f.x - bloom.x) < 42 && Math.abs(f.y - bloom.plat.y) < 30;
           if (near && f.grounded) {
             f.damage = Math.max(0, f.damage - 8);
-            popup(f.x, f.y - 150, "-8%", "#8fe6a4", 24);
-            burst(bloom.x, bloom.plat.y - 30, "#a4f0b6", 20, 1);
-            ring(bloom.x, bloom.plat.y - 20, "#8fe6a4", 70);
+            popup(f.x, f.y - 150 * ART_SCALE, "-8%", "#8fe6a4", 24);
+            burst(bloom.x, bloom.plat.y - 30 * ART_SCALE, "#a4f0b6", 20, 1);
+            ring(bloom.x, bloom.plat.y - 20 * ART_SCALE, "#8fe6a4", 70);
             playSfx("hazardBloom", 0.8);
             bloom = null;
             return;
@@ -543,7 +544,7 @@ const STAGE_FX = {
             const inPatch = f.grounded && Math.abs(f.x - lantern.x) < 58 && Math.abs(f.y - lantern.landY) < 26;
             if (inPatch && !f.statuses.burn) {
               f.statuses.burn = { t: 1.1, tick: 0.45, dmg: 1.0, from: f };
-              popup(f.x, f.y - 150, "SCORCHED", "#ff8c3a", 15);
+              popup(f.x, f.y - 150 * ART_SCALE, "SCORCHED", "#ff8c3a", 15);
             }
           }
         }
@@ -607,7 +608,7 @@ const STAGE_FX = {
         for (const f of fighters()) {
           if (f.grounded && Math.abs(f.vx) > 300 && rippleT <= 0) {
             rippleT = 0.22;
-            ring(f.x, f.y - 4, "#9fd8ff", 26);
+            ring(f.x, f.y - 4 * ART_SCALE, "#9fd8ff", 26);
           }
         }
       },
@@ -1070,7 +1071,7 @@ const STAGE_FX = {
             vx: (fromLeft ? 1 : -1) * 58,
             life: LIFE,
           };
-          popup(blob.x, plat.y - 90, "A CURSE CREEPS OUT", "#b06cff", 14);
+          popup(blob.x, plat.y - 90 * ART_SCALE, "A CURSE CREEPS OUT", "#b06cff", 14);
         }
         if (!blob) return;
         blob.life -= dt;

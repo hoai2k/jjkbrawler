@@ -38,6 +38,7 @@
 // there.
 
 import { CHARACTERS, CHARACTER_KEYS } from "./characters.js";
+import { ART_SCALE } from "./config_tuning.js";
 import { spriteManifest } from "./assets.js";
 
 /** How a kit node names a shared drawing, and which field holds the height that
@@ -336,7 +337,7 @@ export const AURA_PULSE = { base: 0.88, amp: 0.06, rate: 8 };
 
 /** The aura stands this many pixels BELOW the fighter's feet, so the glow skirts
  *  the floor they are standing on rather than being cut off by it. */
-export const AURA_FOOT_DY = 10;
+export const AURA_FOOT_DY = 10 * ART_SCALE;
 
 /** The height a STILL picture of an aura should use — the middle of the breath.
  *  The workbench renders on demand rather than every frame, so it has to pick a
