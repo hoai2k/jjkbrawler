@@ -1942,11 +1942,44 @@ export function resetHudCache() {
   hudCache.clear();
 }
 
+// THE HUD SITS ON TOP OF THE PICTURE, SO THE CAMERA HAS TO KNOW HOW MUCH.
+//
+// The damage plates are absolutely positioned DOM chrome over the top edge of
+// the arena, painted in CSS pixels: their share of the picture depends on the
+// window size and on how many seats the match has (a Battle Royal's row is
+// shorter than a 1v1's). The camera reads the fraction they cover off
+// state.hudBand and frames the fight into what is left.
+//
+// Measured off the live boxes rather than hardcoded, and only when something
+// that could have moved them changed — a getBoundingClientRect every frame,
+// straight after the HUD's own style writes, is a forced reflow sixty times a
+// second for a number that changes when the window does.
+let hudBandKey = "";
+
+function measureHudBand() {
+  const hud = els.hud;
+  const wrap = hud?.parentElement;
+  if (!hud || !wrap) return;
+  const key = `${hud.className}|${state.fighters.length}|${wrap.clientWidth}x${wrap.clientHeight}`;
+  if (key === hudBandKey) return;
+  hudBandKey = key;
+  if (hud.classList.contains("hidden") || !wrap.clientHeight) {
+    state.hudBand = 0;
+    return;
+  }
+  const box = hud.getBoundingClientRect();
+  const arena = wrap.getBoundingClientRect();
+  // Cap it: a band this deep means something has gone wrong with the layout,
+  // and the camera should not respond by shooting the fight at the floor.
+  state.hudBand = clamp((box.bottom - arena.top) / arena.height, 0, 0.3);
+}
+
 export function updateHud() {
   els.hud.classList.toggle("hud--multiplayer", state.fighters.length > 2);
   // Five or more panels no longer fit at multiplayer size: portraits go and the
   // type shrinks so a Battle Royal still reads at a glance.
   els.hud.classList.toggle("hud--crowd", state.fighters.length > 4);
+  measureHudBand();
   updateMatchClock();
   const teamMatch = matchPlan().teams;
   for (const id of FIGHTER_IDS) {
