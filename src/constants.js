@@ -202,7 +202,16 @@ export const LEDGE_CATCH_MAX = 0.40;    // s, for the far corner of the reach
 // now, this is the ramp that keeps it under the bar, and the same weight eases
 // the grip ON across the catch — where the drawing used to be pinned to the
 // corner for the whole reach and then jumped when the real grip took over.
-export const LEDGE_GRIP_RELEASE = 0.36;  // s to take the body onto the grip, and to hand it back
+export const LEDGE_GRIP_RELEASE = 0.36;  // s to hand the body back off the grip
+// ...and to take it ON, which wants to be quicker. Letting go is a body
+// falling away from a corner and can afford to be slow; taking hold is the
+// last of a reach, and the hang pose waits for it (fighter.js hangAnim), so
+// every frame of this ramp is a frame still drawn as the fall. 0.36 there was
+// twenty-two frames of a fighter drifting down onto a ledge they had already
+// caught. This is about ninety pixels of body over eight frames — 11px a
+// frame with room for the reach still settling under it, inside the step budget
+// smoke_ledge.mjs holds every ledge move to. 0.14 measured 15px and was over.
+export const LEDGE_GRIP_TAKE = 0.18;
 
 // LEDGE INTANGIBILITY, on Smash's terms. Two rules, both about the same thing:
 // a ledge is a place you recover THROUGH, not a place you live.
