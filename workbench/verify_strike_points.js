@@ -56,7 +56,7 @@
 // verify_common.js — a provider is meant to be the part that DIFFERS.
 
 import { resolvedAnim } from "../sprites/src/sprites.js";
-import { CHARACTER_KEYS } from "../src/characters.js";
+import { CHARACTER_KEYS, byCharacterName } from "../src/characters.js";
 import { MODEL_REACH, ENVELOPE_INPUTS } from "../src/config_model_reach.js";
 import { STRIKE_POINTS, STRIKE_POINT_META } from "../src/config_strike_points.js";
 import { contactFrame, imageToGame, gameToImage } from "../src/strike_points.js";
@@ -78,7 +78,10 @@ const STATES_TO_CHECK = [
 
 export async function provider() {
   const tasks = [];
-  for (const charKey of CHARACTER_KEYS) {
+  // Alphabetically, so a queue of 200 items can be navigated by name.
+  // The QUEUE's own order is its filters (to do / answered); the order
+  // inside them was only ever the select screen's grouping.
+  for (const charKey of [...CHARACTER_KEYS].sort(byCharacterName)) {
     for (const state of STATES_TO_CHECK) {
       // Only states this fighter actually draws: a character whose sheet has
       // no art for a state would be a blank canvas and an unanswerable

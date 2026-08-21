@@ -66,7 +66,7 @@ import { blitPose as bbBlitPose } from "../../billboards/src/blit.js";
 import { drawCharFrame as spriteDraw, currentFrame as spriteFrame }
   from "../../sprites/src/sprites.js";
 import { makeOrbit } from "./orbit.js";
-import { CHARACTER_KEYS, CHARACTERS, getActor } from "../../src/characters.js";
+import { CHARACTER_KEYS, CHARACTERS, getActor, byCharacterName } from "../../src/characters.js";
 import { STAGES } from "../../src/stages.js";
 import { state as gameState } from "../../src/state.js";
 import { loadCoreAssets, loadFrame } from "../../src/assets.js";
@@ -243,7 +243,9 @@ await rig.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS, []);
 const ROSTER = CHARACTER_KEYS.filter((k) => {
   const e = rig.rigManifest().characters?.[k];
   return !!(e?.model && e?.approved) && rig.inGame(k);
-});
+// Alphabetically: this pages eight at a time, so "which page is Nanami on" is
+// a question the order should answer rather than one you page through.
+}).sort(byCharacterName);
 
 const params = new URLSearchParams(location.search);
 

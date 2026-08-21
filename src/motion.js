@@ -220,6 +220,19 @@ export function fighterTransform(f) {
  *  afterimages. Trails are the cheapest possible "this is fast" signal. */
 export function trailStrength(f) {
   if (f.respawnTimer > 0 || f.dead) return 0;
+  // NOT WHILE THEY ARE ON THE LEDGE, and for two reasons that point the same
+  // way. An afterimage is a statement about SPEED, and a fighter holding a
+  // corner is the opposite of moving — Naoya's Projection Sorcery earns frames
+  // off a sustained sprint and `machRamp` takes the better part of a second to
+  // drain, so sprinting off the edge used to leave him trailing while he hung
+  // perfectly still.
+  //
+  // And a trail sample is drawn at the fighter's RAW position (render.js
+  // drawTrail), where a hang is drawn a grip-length away from it
+  // (hangGripShift). So those samples were not a faint echo of the body, they
+  // were a second hang ninety pixels off, holding nothing. Which is what gets
+  // reported: the ledge hang drawing two sprites at once.
+  if (f.ledge || f.ledgeMove) return 0;
   if (Math.abs(f.spin) > 1) return TRAIL_STRENGTH.tumble;
   if (f.action?.kind === "dodge") return TRAIL_STRENGTH.dodge;
   if (f.dashT > 0) return TRAIL_STRENGTH.dash;

@@ -199,11 +199,16 @@ export function aimable(state) {
  * between an up attack and a side attack is for.
  */
 export const AIM_ELEVATIONS = {
-  // The side attacks carry the DIAGONALS (constants.ATTACK_DIAG_DEG): a stick
-  // pushed into a corner throws this same move angled 45°, with its hitbox
-  // swung to match (moves.swingMove), so the limb has to be allowed to follow
-  // it there. Level stays an anchor of its own, so a neutral press is still
-  // dead ahead rather than drifting toward whichever diagonal is nearer.
+  // The side attacks carry the DIAGONALS: a stick held off horizontal throws
+  // this same move angled to match it, with its hitbox swung to match
+  // (moves.swingMove, fighter.attackTilt), so the limb has to be allowed to
+  // follow it there. Level stays an anchor of its own, so a neutral press is
+  // still dead ahead rather than drifting toward whichever diagonal is nearer.
+  //
+  // The tilt is CONTINUOUS now rather than a step to 45, which these anchors
+  // already accommodate: they are anchors with a ±AIM_BAND_DEG band, so 0 and
+  // 45 between them cover everything from level to 65 with about three degrees
+  // of snap in the gap around 22. Points would have needed a longer list.
   light:          [-45, 0, 45],
   sideHeavy:      [-45, 0, 45],
   airLight:       [-45, 0, 45],

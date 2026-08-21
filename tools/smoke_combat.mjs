@@ -171,6 +171,70 @@ async function probe() {
 }
 
 const layeredResult = await probe();
+// ---- an aimed attack lands where the stick was pointed, and the arc agrees
+//
+// The tilt follows the STICK's angle rather than stepping to a fixed diagonal
+// (fighter.js attackTilt). Two things have to hold for that to be worth having.
+//
+// The swing has to track the stick — it used to be 45 degrees or nothing,
+// inside a 20-degree band that needed three-quarter deflection, which is why
+// the diagonal read as unreachable.
+//
+// And the DRAWN ARC has to agree with the hitbox at every angle, because an arc
+// that lies about where a blow is going is worse than no arc. It cannot drift
+// by construction — `swingMove` rotates the box and records the tilt,
+// `strikeArcs` turns the crescent by the same recorded number — but "by
+// construction" is exactly the kind of claim that stops being true quietly.
+const aimed = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { updateFighter } = await import("/src/fighter.js");
+  const { blankInput } = await import("/src/input.js");
+  const { strikeArcs } = await import("/src/moves.js");
+  const { bodyMetrics } = await import("/src/silhouette.js");
+
+  const f = state.fighters[0];
+  const main = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+  const key = f.spriteChar || f.charKey;
+  const dt = 1 / 60;
+
+  const fire = (deg) => {
+    const r = (deg * Math.PI) / 180;
+    const ax = Math.cos(r), ay = -Math.sin(r);
+    Object.assign(f, {
+      x: main.x + main.w / 2, y: main.y, vx: 0, vy: 0, grounded: true,
+      hitstun: 0, action: null, charging: false, crouching: false, dashT: 0,
+      walking: false, facing: 1, facingVis: 1, aimPoint: null, jabStep: 0,
+      jabResetT: 0, dead: false, respawnTimer: 0,
+      // `hitPause` especially: this runs after a full match, and updateFighter
+      // returns early while a freeze is left over — so the first attack of the
+      // sweep never started and read as "this angle does not tilt".
+      hitPause: 0, shielding: false, ledge: null, ledgeMove: null, prone: 0,
+    });
+    state.hitboxes.length = 0;
+    const stick = {
+      right: ax > 0.28, left: ax < -0.28, up: ay < -0.5, down: ay > 0.5,
+      dirX: Math.sign(ax), moveX: ax, moveY: ay,
+    };
+    updateFighter(f, dt, { ...blankInput(), ...stick, lightP: true });
+    for (let i = 0; i < 40; i++) {
+      updateFighter(f, dt, { ...blankInput(), ...stick });
+      if (state.hitboxes.some((h) => h.owner === f)) {
+        const arcs = strikeArcs(f.action?.move || {}, bodyMetrics(key).height);
+        return {
+          tilt: Math.round(((f.action?.move?.aimTilt || 0) * 180) / Math.PI),
+          arc: arcs.length ? Math.round((arcs[0].aim * 180) / Math.PI) : null,
+        };
+      }
+    }
+    return { tilt: null, arc: null };
+  };
+
+  const rows = [];
+  for (const deg of [15, 25, 35, 45, 55, 60]) rows.push({ deg, ...fire(deg) });
+  return rows;
+});
+
+
 await browser.close();
 
 // ------------------------------------------------------------------ checks
@@ -300,6 +364,17 @@ check("weak hits keep the victim grounded", layered.weakStayedDown,
 check("strong hits still launch", layered.strongLaunched,
   layered.strongLaunched ? `launched at ${Math.round(-layered.strongVy)} px/s`
     : `applyHit returned "${layered.strong}", vy ${Math.round(layered.strongVy)}`);
+
+const tracks = aimed.filter((r) => Math.abs((-r.tilt) - r.deg) <= 2);
+const agree = aimed.filter((r) => r.tilt === r.arc);
+check("an aimed attack swings where the stick is pointed",
+  tracks.length === aimed.length,
+  aimed.map((r) => `${r.deg}°->${-r.tilt}°`).join(" ")
+    + " — it used to be 45 or nothing, in a band you had to find");
+check("...and the drawn arc agrees with the hitbox at every angle",
+  agree.length === aimed.length,
+  `${agree.length}/${aimed.length} match; `
+    + aimed.map((r) => `${r.tilt}/${r.arc}`).join(" "));
 
 console.log(`\n${samples.length} samples over ${samples.at(-1).t.toFixed(1)}s of match time`);
 console.log(failed ? `${failed} check(s) failed` : "all checks passed");

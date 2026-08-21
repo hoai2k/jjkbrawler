@@ -46,7 +46,7 @@
 // 153 px Momo throws an up smash whose box floats 73 px above her own head.
 
 import { STRIKE_ARC, MELEE_GRACE, REACH_PRICE, SWEETSPOT, HEIGHT_BASE_PX } from "./config_tuning.js";
-import { SAKURAI, SMASH_TILT_ANGLE } from "./constants.js";
+import { SAKURAI, SMASH_TILT_ANGLE, DASH_LUNGE_DRAG } from "./constants.js";
 import { artReach, bodyWidth, bodyMetrics, moveReach, rosterReach } from "./silhouette.js";
 import { clamp } from "./utils.js";
 
@@ -240,7 +240,7 @@ export function lightMove(char, variant, jabStep = 0) {
         dmg: round1(p.dmg * 1.1), baseKb: 330, growth: 6.2, angle: p.angle,
         critBand: p.critBand || tipBand(g, tip),
         label: "Dash " + p.label,
-        lungeVx: 88, lunge: true,
+        lungeVx: 44, lunge: true, lungeDrag: DASH_LUNGE_DRAG,
       };
     }
     case "up":
@@ -341,7 +341,7 @@ export function heavyMove(char, variant, charge = 0) {
         dmg: round1(p.dmg * 0.95), baseKb: 420, growth: 8.0, angle: p.angle,
         critBand: p.critBand || tipBand(g, tip),
         label: "Charging " + p.label,
-        lungeVx: 124, lunge: true,
+        lungeVx: 62, lunge: true, lungeDrag: DASH_LUNGE_DRAG,
       };
     }
     case "up":

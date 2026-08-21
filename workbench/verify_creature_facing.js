@@ -21,7 +21,7 @@
 //
 // Provider contract: see verification.js and verify_strike_points.js.
 
-import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
+import { CHARACTERS, CHARACTER_KEYS, byCharacterName } from "../src/characters.js";
 import { getImage, loadSharedImage, spriteManifest } from "../src/assets.js";
 import { GROUND_Y, caption } from "./verify_common.js";
 
@@ -37,7 +37,8 @@ const STAGE_X = 300;
  */
 function creatures() {
   const out = new Map();
-  for (const charKey of CHARACTER_KEYS) {
+  // Alphabetically by their owner, which is how a creature is looked up.
+  for (const charKey of [...CHARACTER_KEYS].sort(byCharacterName)) {
     const c = CHARACTERS[charKey];
     const slots = Object.entries(c?.specials || {});
     if (c?.ultimate) slots.push(["ult", c.ultimate]);

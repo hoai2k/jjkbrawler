@@ -100,6 +100,28 @@ export const MOVE_DEADZONE = 0.28;
 // longest travelling move in the game, now visibly running out.
 export const LUNGE_DRAG = 4;
 
+// THE DASH ATTACK'S OWN DRAG, and why it is not the number above.
+//
+// A dashStrike SETS a big speed and is the move's whole point; a dash attack
+// is the run you were already doing, carried through a swing. Measured across
+// the roster (`node tools/audit_dash_slide.mjs`), the light one covered 2.15
+// body heights and the heavy 3.04 — against roughly one body height in Smash
+// Ultimate, where a dash attack coasts on run speed and the character's own
+// traction takes it back (Mario 15.2u of slide against a ~14u body, ~10% of a
+// 160u stage). Ours was double that on the body, and four times it on the
+// stage: our main platform is 5.5 body heights wide where Battlefield is 11.
+//
+// The lunge was the smaller half of it. At the old rate the run momentum ALONE
+// carried 210px — 1.5 heights — through the move's 0.55s with no lunge at all,
+// because a drag tuned for a half-second special is nearly nothing over that
+// time. So both halves moved: the boost is halved (moves.js `lungeVx`, 88 -> 44
+// light and 124 -> 62 heavy) and the decay is this. Measured after: 1.11 body
+// heights for the light dash attack and 1.35 for the heavy, medians across the
+// roster — Smash's own figure for the light one, with the heavy carrying
+// further because a running shoulder-charge should. It also visibly runs out
+// now instead of gliding to a stop.
+export const DASH_LUNGE_DRAG = 14;
+
 // shield
 export const SHIELD_MAX = 100;
 export const SHIELD_DRAIN = 22;
@@ -202,7 +224,16 @@ export const LEDGE_CATCH_MAX = 0.40;    // s, for the far corner of the reach
 // now, this is the ramp that keeps it under the bar, and the same weight eases
 // the grip ON across the catch — where the drawing used to be pinned to the
 // corner for the whole reach and then jumped when the real grip took over.
-export const LEDGE_GRIP_RELEASE = 0.36;  // s to take the body onto the grip, and to hand it back
+export const LEDGE_GRIP_RELEASE = 0.36;  // s to hand the body back off the grip
+// ...and to take it ON, which wants to be quicker. Letting go is a body
+// falling away from a corner and can afford to be slow; taking hold is the
+// last of a reach, and the hang pose waits for it (fighter.js hangAnim), so
+// every frame of this ramp is a frame still drawn as the fall. 0.36 there was
+// twenty-two frames of a fighter drifting down onto a ledge they had already
+// caught. This is about ninety pixels of body over eight frames — 11px a
+// frame with room for the reach still settling under it, inside the step budget
+// smoke_ledge.mjs holds every ledge move to. 0.14 measured 15px and was over.
+export const LEDGE_GRIP_TAKE = 0.18;
 
 // LEDGE INTANGIBILITY, on Smash's terms. Two rules, both about the same thing:
 // a ledge is a place you recover THROUGH, not a place you live.
@@ -344,7 +375,25 @@ export const SAKURAI_KB = 620;        // where one becomes the other
  *  every direction a fighter can point is then either a distinct move or one
  *  diagonal away from one. fighter.js attackTilt picks it; moves.swingMove
  *  swings the hitbox by it and the pose is aimed along the same line. */
-export const ATTACK_DIAG_DEG = 45;
+// THE BAND AN AIMED ATTACK OWNS, in degrees off horizontal, and the stick
+// deflection it takes to mean it.
+//
+// The tilt used to be a fixed 45 degrees whenever `up` and `right` were both
+// true — two independent 0.5 thresholds, so the diagonal was the intersection
+// of two half-planes: a 20-degree band needing three-quarter deflection, which
+// most players never find. Measured, not guessed (tools/debug_attack_angle.mjs
+// sweeps the stick round its circle).
+//
+// It follows the stick now, so these are the two hand-offs rather than a
+// snap. Under LEVEL the swing is a plain side attack, because a stick a few
+// degrees off horizontal means "forward" and the arc should not wobble with
+// it. Over CARDINAL the dedicated up or down attack takes over — those are
+// different moves with geometry drawn for a vertical, where a side attack
+// rotated that far is mostly gone: `swingMove` scales its reach by the cosine,
+// so 60 degrees already costs half of it.
+export const ATTACK_TILT_LEVEL_DEG = 12;
+export const ATTACK_TILT_CARDINAL_DEG = 62;
+export const ATTACK_TILT_MIN_MAG = 0.42;
 
 export const SMASH_TILT = 0.42;
 export const SMASH_TILT_ANGLE = 0.6;

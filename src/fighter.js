@@ -13,7 +13,7 @@ import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop, noteFir
 import { rumbleEvent } from "./rumble.js";
 import { counterShimmerFx, healMotesFx } from "./fx.js";
 import {
-  GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME, CROUCH_GRACE,
+  WORLD, GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME, CROUCH_GRACE,
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
   DASH_MULT, ACTION_BUFFER, AERIAL_LAND_LAG_MULT, AERIAL_LAND_LAG_MIN, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
   SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
@@ -22,9 +22,11 @@ import {
   LEDGE_GRAB_X, LEDGE_GRAB_Y_ABOVE, LEDGE_GRAB_Y_BELOW, LEDGE_HANG_X, LEDGE_HANG_Y,
   LEDGE_CLIMB_TIME, LEDGE_ROLL_TIME, LEDGE_ATTACK_TIME,
   LEDGE_CATCH_SPEED, LEDGE_CATCH_MIN, LEDGE_CATCH_MAX, LEDGE_GRIP_RELEASE,
+  LEDGE_GRIP_TAKE,
   LEDGE_INVULN_TRAVEL, LEDGE_REGRAB_SCALE, LEDGE_HANG_INVULN, LEDGE_JUMP_INVULN,
   TEETER_EDGE, TEETER_DELAY,
-  RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE, ATTACK_DIAG_DEG,
+  RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE,
+  ATTACK_TILT_LEVEL_DEG, ATTACK_TILT_CARDINAL_DEG, ATTACK_TILT_MIN_MAG,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
 import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE } from "./config_tuning.js";
@@ -85,6 +87,10 @@ export function makeFighter(id, charKey, x, facing) {
     // dropped the frame somebody presses a direction.
     hangGrip: null, hangGripW: 0,
     respawnTimer: 0, dead: false,
+    // Where this fighter will come back, set the moment they are rung out so
+    // the camera can start moving there while they are still off screen
+    // (camera.js). Null whenever they are on the stage.
+    respawnAt: null,
     // The revival platform this fighter is currently standing on, or null.
     // {x, y, t} — see stepRespawnPlatform.
     respawnPlat: null,
@@ -188,7 +194,13 @@ function executeMove(f, move, opts = {}) {
   // speed off the moment it locks movement, which is right for a tilt thrown on
   // the spot and wrong for a dash attack, whose whole idea is the run carrying
   // through the swing.
-  beginAction(f, "attack", total, move.anim, { move, keepMomentum: move.keepMomentum, lunge: move.lunge });
+  beginAction(f, "attack", total, move.anim, {
+    move, keepMomentum: move.keepMomentum, lunge: move.lunge,
+    // A lunge that wants its own decay says so. Absent means LUNGE_DRAG, which
+    // is the dashStrike specials' number — see constants.js for why a dash
+    // attack is not those.
+    lungeDrag: move.lungeDrag,
+  });
   if (move.lungeVx && f.grounded) f.vx += f.facing * move.lungeVx * 3;
   spawnMelee(f, {
     ...move,
@@ -224,15 +236,38 @@ function executeMove(f, move, opts = {}) {
 // pushed into a corner already reports (input.js) and what Up+Right already is
 // on a keyboard. Nothing new to press.
 
-/** The tilt this input asks for, in radians, positive DOWNWARD as y is. Zero
- *  unless a diagonal is held. */
+/** The tilt this input asks for, in radians, positive DOWNWARD as y is — the
+ *  angle the STICK is actually held at, not a step to a fixed diagonal.
+ *
+ *  It used to be `ATTACK_DIAG_DEG` whenever `up` and `right` were both true,
+ *  and those are two independent 0.5 thresholds: a diagonal was the
+ *  intersection of two half-planes, a 20-degree band needing three-quarter
+ *  deflection. Which is why it read as binary — the band is there, it is just
+ *  narrow enough to miss. Sweeping a stick round its circle finds it between
+ *  40 and 60 degrees and nowhere else (tools/debug_attack_angle.mjs).
+ *
+ *  Reading the angle instead makes the whole quadrant live and the swing land
+ *  where it was pointed. The drawn arc comes along for free and cannot drift:
+ *  `swingMove` rotates the hitbox by this and records it, and `strikeArcs`
+ *  turns the crescent by the same recorded number, so one value drives both.
+ *
+ *  HORIZONTAL IS TAKEN AS A MAGNITUDE, so holding back-and-up still throws an
+ *  upward-tilted attack the way it always has — the swing is aimed along the
+ *  facing regardless (aimAlong), and the stick's vertical is the part being
+ *  asked about.
+ *
+ *  Zero outside the band: a stick near level means "forward" and an arc should
+ *  not wobble a few degrees with it, and a stick near vertical belongs to the
+ *  up or down attack, which are their own moves. */
 function attackTilt(f, input) {
-  const forward = input.left || input.right;
-  if (!forward) return 0;
-  const diag = (ATTACK_DIAG_DEG * Math.PI) / 180;
-  if (input.up) return -diag;
-  if (input.down) return diag;
-  return 0;
+  const h = Math.abs(input.moveX ?? ((input.right ? 1 : 0) - (input.left ? 1 : 0)));
+  const v = -(input.moveY ?? ((input.down ? 1 : 0) - (input.up ? 1 : 0)));
+  if (Math.hypot(h, v) < ATTACK_TILT_MIN_MAG) return 0;
+  if (h <= 0) return 0;                       // straight up or down: not a tilt
+  const up = Math.atan2(v, h);                // radians above horizontal
+  const deg = Math.abs(up) * (180 / Math.PI);
+  if (deg < ATTACK_TILT_LEVEL_DEG || deg > ATTACK_TILT_CARDINAL_DEG) return 0;
+  return -up;                                 // positive downward, as y is
 }
 
 /** Point the BODY along `tilt` (radians, positive downward) for this attack,
@@ -502,11 +537,19 @@ function updateHangGrip(f, dt) {
   // what used to nail the drawing to the corner for the whole reach, so the
   // body did not move at all while the fighter crossed up to 200 px, and then
   // jumped when the hang pose brought the real grip with it.
+  //
+  // Ramping it ACROSS the catch instead was tried and does not work either:
+  // the drawn body is the simulated position plus this offset, the position is
+  // already travelling on `ease`, and ninety more pixels in the same window
+  // takes the worst frame from 11px to 22px — over the step budget
+  // smoke_ledge.mjs holds the reach to. Sharing the curve makes it 27px, since
+  // then both move fastest at the same moment. The grip needs its own time,
+  // and the pose waits for it instead (see updateLedge).
   const to = f.ledge && !f.ledgeMove ? 1 : 0;
   // LINEAR, in both directions and at one rate: a constant weight per frame is
   // a constant number of pixels per frame, which is the quantity being kept
   // under the step bar. An eased ramp would spend its middle frames over it.
-  const step = dt / LEDGE_GRIP_RELEASE;
+  const step = dt / (to ? LEDGE_GRIP_TAKE : LEDGE_GRIP_RELEASE);
   f.hangGripW = clamp((f.hangGripW || 0) + (to ? step : -step), 0, 1);
   // Forgotten only once the ledge is behind them AND the body is back on its
   // own feet. Dropping it on weight alone would throw the corner away during
@@ -531,6 +574,28 @@ function ledgeMoveAnim(m) {
   return k < 0.7 ? "jump" : "land";
 }
 
+/** THE HANG POSE WAITS FOR THE HAND — `ledge` once the grip is home, the fall
+ *  it still visually is until then.
+ *
+ *  `f.ledge` is set the moment the catch lands, but the DRAWING is still ninety
+ *  pixels from the corner at that point: the grip takes the body over its own
+ *  ramp (updateHangGrip), and until it is home a hang pose is a fighter
+ *  gripping air. Which is what was reported — the hang showing "way too early",
+ *  hands nowhere near the ledge.
+ *
+ *  Both places that put a fighter on the hang ask this, because they are one
+ *  frame apart and only one of them was ever the obvious one: `updateLedge`
+ *  every frame of the hang, and `updateLedgeMove` on the frame a catch
+ *  completes. Fixing only the first left exactly one frame of hang-gripping-air
+ *  behind, which is the bug in miniature.
+ *
+ *  Nothing about timing moves. The ledge is held from the first frame either
+ *  way; every option, every timer and the hurtbox are on `f.ledge`, not on
+ *  this. */
+function hangAnim(f) {
+  return (f.hangGripW || 0) >= 1 ? "ledge" : "fall";
+}
+
 /** Step one transition. Returns true while it is still running, so the caller
  *  knows the fighter is not doing anything else this frame. */
 function updateLedgeMove(f, dt) {
@@ -544,8 +609,9 @@ function updateLedgeMove(f, dt) {
   if (!done) return true;
   f.ledgeMove = null;
   if (m.kind === "catch") {
-    // Arrived on the hang: from here the ledge options are live.
-    setAnim(f, "ledge");
+    // Arrived on the hang: from here the ledge options are live. The POSE
+    // still waits for the grip — see hangAnim.
+    setAnim(f, hangAnim(f));
     f.ledgeTimer = 0;
     return true;
   }
@@ -648,7 +714,7 @@ function updateLedge(f, dt, input) {
     return;
   }
   f.ledgeTimer += dt;
-  setAnim(f, "ledge");
+  setAnim(f, hangAnim(f));
   const inward = l.side === -1 ? input.right : input.left;
   const outward = l.side === -1 ? input.left : input.right;
   const inX = (to) => l.edgeX + (l.side === -1 ? to : -to);
@@ -944,9 +1010,24 @@ export function ringOut(f) {
   if (f.stocks <= 0) {
     f.dead = true;
     f.x = -9999;
+    f.respawnAt = null;
     return;
   }
   f.respawnTimer = RESPAWN_WAIT;
+  // WHERE THEY ARE COMING BACK, decided now rather than at the end of the
+  // wait. Nothing about it changes in the meantime — it is a function of the
+  // slot and how many fighters are in the match — and knowing it early is what
+  // lets the camera open toward the spot over the whole blackout instead of
+  // discovering it the frame a body appears there (camera.js).
+  // ...and WHERE THEY WENT OUT, so the camera has a path rather than a
+  // destination: the shot carries the eye from the body it just lost to the
+  // spot the next one appears in, instead of letting go of one and finding the
+  // other. Clamped to the world because a blast-zone position is off the map
+  // and the frame does not go there.
+  f.respawnAt = {
+    x: respawnX(f), y: RESPAWN_PLATFORM_Y,
+    fromX: clamp(f.x, 0, WORLD.w), fromY: clamp(f.y, 0, WORLD.h),
+  };
 }
 
 // Every path that moves a fighter has to run this. A branch that integrates
@@ -981,7 +1062,8 @@ export function respawnX(f) {
 function respawn(f) {
   f.respawnTimer = 0;
   playSfx("respawn");
-  f.x = respawnX(f);
+  f.x = f.respawnAt?.x ?? respawnX(f);
+  f.respawnAt = null;
   // Standing ON the revival platform, in control from this frame. Smash's rule,
   // and the reason respawning does not feel like a second punishment: the
   // platform is protection you spend, not a wait you serve.
@@ -1607,7 +1689,8 @@ export function updateFighter(f, dt, input) {
     // and at no rate at all it slid the width of a quarter of the stage at a
     // flat 520 px/s before stopping dead. Decaying is what makes it read as a
     // lunge that ran out rather than a fighter being dragged.
-    f.vx *= Math.pow(friction, dt * (f.action?.lunge ? LUNGE_DRAG : 40));
+    f.vx *= Math.pow(friction, dt * (f.action?.lunge
+      ? (f.action.lungeDrag ?? LUNGE_DRAG) : 40));
     if (Math.abs(f.vx) < 8) f.vx = 0;
   }
 

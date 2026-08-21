@@ -55,7 +55,7 @@ import * as THREE from "../../vendor/three/three.module.js";
 import { GLTFLoader } from "../../vendor/three/loaders/GLTFLoader.js";
 import * as rigs from "../src/loader.js";
 import { initPose } from "../src/pose.js";
-import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
+import { CHARACTER_KEYS, CHARACTERS, byCharacterName } from "../../src/characters.js";
 import { makeOrbit } from "./orbit.js";
 import { matchedPose, MATCHED_FRAMES } from "../src/battle_poses.js";
 import { poseEntry } from "../src/sprite_poses.js";
@@ -1811,7 +1811,8 @@ function download(name, obj) {
 // --------------------------------------------------------------------- boot
 
 function shell() {
-  const chars = CHARACTER_KEYS.filter((c) => c !== "effects");
+  // Alphabetically — a picker you arrive at with a name in mind.
+  const chars = CHARACTER_KEYS.filter((c) => c !== "effects").sort(byCharacterName);
   document.body.dataset.mode = "pose";
   // The page's own header belongs to the other two benches — its hints and
   // its mode links are theirs, and their show/hide rules key off a body class

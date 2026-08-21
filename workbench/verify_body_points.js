@@ -42,7 +42,7 @@
 // would drift, and nothing would say which one the game believed.
 
 import { resolvedAnim } from "../sprites/src/sprites.js";
-import { CHARACTER_KEYS, CHARACTERS } from "../src/characters.js";
+import { CHARACTER_KEYS, CHARACTERS, byCharacterName } from "../src/characters.js";
 import { BODY_POINTS } from "../src/config_body_points.js";
 import { muzzleOf } from "../src/muzzle.js";
 import { bodyMetrics } from "../src/silhouette.js";
@@ -68,8 +68,10 @@ function fingerprint() {
   return `body-${n.toString(36)}`;
 }
 
-const roster = (state) => CHARACTER_KEYS.filter(
-  (k) => resolvedAnim(k, state)?.frames?.length);
+// Alphabetically — see the note in verify_hurtbox_fit.js.
+const roster = (state) => CHARACTER_KEYS
+  .filter((k) => resolvedAnim(k, state)?.frames?.length)
+  .sort(byCharacterName);
 
 // ------------------------------------------------------------ centre of mass
 

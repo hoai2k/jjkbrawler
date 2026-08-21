@@ -36,7 +36,7 @@ import { makeFighter } from "../src/fighter.js";
 import { draw, smoothingActivity } from "../src/render.js";
 import { getStage } from "../src/stages.js";
 import { initStageFx } from "../src/stage_fx.js";
-import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
+import { CHARACTERS, CHARACTER_KEYS, characterName, byCharacterName } from "../src/characters.js";
 import { applyAllHeightScales } from "../src/heights.js";
 import { setSmoothing, smoothingState } from "../src/flags.js";
 import { WORLD } from "../src/constants.js";
@@ -154,21 +154,34 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 
 // -------------------------------------------------------------------- the list
+// BY THE NAME THEY ARE CALLED, IN THE ORDER YOU WOULD LOOK THEM UP.
+//
+// This showed `fullName` in roster order — "Kokichi Muta", thirteen rows down
+// — and the select screen calls him Mechamaru. Two costs, one line: a name to
+// translate, at a position you can only find by scanning. The canonical name
+// leads and the list is alphabetical by it; the full name stays as the row's
+// tooltip, and the key stays under the name because it is what `?char=` takes.
 const roster = CHARACTER_KEYS.map((key) => ({
-  key, name: CHARACTERS[key]?.fullName || CHARACTERS[key]?.name || key,
-}));
+  key,
+  name: characterName(key),
+  full: CHARACTERS[key]?.fullName || "",
+})).sort((a, b) => byCharacterName(a.key, b.key));
 
 function visibleRoster() {
   const q = (filterEl.value || "").trim().toLowerCase();
   if (!q) return roster;
-  return roster.filter((r) => r.key.includes(q) || r.name.toLowerCase().includes(q));
+  // The full name still FINDS them: somebody who knows him as Kokichi Muta
+  // should not have to know he is filed under Mechamaru to type it.
+  return roster.filter((r) => r.key.includes(q) || r.name.toLowerCase().includes(q)
+    || r.full.toLowerCase().includes(q));
 }
 
 function renderList() {
   const rows = visibleRoster();
   listEl.innerHTML = rows.map((r) => `
     <li role="option" data-key="${r.key}" aria-selected="${r.key === bench.char}"
-        class="${r.key === bench.char ? "is-on" : ""}">
+        class="${r.key === bench.char ? "is-on" : ""}"
+        title="${r.full && r.full !== r.name ? r.full : r.name}">
       <span class="roster__name">${r.name}</span>
       <span class="roster__key">${r.key}</span>
     </li>`).join("");

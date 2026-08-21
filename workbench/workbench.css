@@ -13,6 +13,35 @@
 
 * { box-sizing: border-box; }
 
+/* SCROLLBARS, the same ones the game has (styles.css).
+ *
+ * The browser default is a bright grey slab with arrow buttons that sits on
+ * top of a dark panel rather than in it — on the character bench's roster,
+ * which is a tall list against a #171a24 card, it was the loudest thing on
+ * the page. `scrollbar-color` inherits so `body` covers every scroller;
+ * `scrollbar-width` does not, hence the `*`. The webkit block is the same
+ * thing for engines that predate both: a rounded thumb inset from a
+ * transparent track, no buttons.
+ *
+ * Values match the game's exactly. Four benches answer at this address and
+ * three more live elsewhere in the repo; the point of the shared palette is
+ * that none of them reads as a different program. */
+body { scrollbar-color: rgba(120, 140, 200, 0.34) transparent; }
+* { scrollbar-width: thin; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(120, 140, 200, 0.34);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(150, 180, 245, 0.55);
+  background-clip: content-box;
+}
+
 body {
   margin: 0;
   background: var(--bg);

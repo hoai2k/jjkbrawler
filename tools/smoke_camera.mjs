@@ -13,7 +13,7 @@ import { updateCamera } from "../src/camera.js";
 import { updateRig, resetRig, worldToScreen, overlayTransform, dollyFor, camera } from "../src/camera3d/rig.js";
 import { cameraCue } from "../src/camera_mode.js";
 import { CAMERA, BOARD_CAMERA, CUES } from "../src/config_camera.js";
-import { WORLD } from "../src/constants.js";
+import { WORLD, BLAST } from "../src/constants.js";
 
 const DT = 1 / 60;
 let failures = 0;
@@ -115,6 +115,82 @@ state.fighters[1].y = 250; // back on the revival platform
 run(0.5);
 frameInvariants("after respawn");
 pass("KO / respawn transitions");
+
+// ---- 3b. A RING-OUT IS A MOVE, NOT A CUT.
+//
+// The camera used to drop a KO'd fighter from the framing outright: the frame
+// closed on whoever was left — the wrong way — and then the blackout ended, a
+// body appeared on a revival platform most of a stage away, and the containment
+// pass opened the shot in ONE frame to catch it. Measured on this exact script,
+// that arrival frame moved the camera 150.6 px, nearly all of it vertical.
+//
+// fighter.js now records where they went out and where they come back, and the
+// shot tracks a point travelling between the two (camera.js). Both ends are
+// then free: nothing is let go of at the ring-out, nothing is discovered at the
+// arrival.
+//
+// Measured from the ring-out onward, because that is what changed — the launch
+// before it is an ordinary chase and moves the camera as fast as any launch
+// does. The bars are a frame of ordinary play, not a frame of stillness.
+{
+  resetState();
+  run(0.6);
+  const ko = state.fighters[1];
+  let worstPan = 0, worstZoom = 0, watching = false;
+  const watch = () => {
+    const before = { x: state.camera.x, y: state.camera.y, z: state.camera.zoom };
+    updateCamera(DT);
+    updateRig(state, DT);
+    if (!watching) return;
+    worstPan = Math.max(worstPan, Math.hypot(state.camera.x - before.x, state.camera.y - before.y));
+    worstZoom = Math.max(worstZoom, Math.abs(state.camera.zoom - before.z));
+  };
+  // LAUNCHED, not teleported: the camera follows a body out to the blast line,
+  // and letting go of THAT frame is half of what used to cut. A fighter set
+  // down at the blast line in one step would measure the placement instead.
+  ko.vx = 1500; ko.vy = -260;
+  while (ko.x < BLAST.right) {
+    ko.x += ko.vx * DT;
+    ko.y += ko.vy * DT;
+    watch();
+  }
+  // Rung out where they crossed, coming back at the far side — the record
+  // fighter.js ringOut() writes.
+  watching = true;
+  ko.respawnTimer = 0.65;
+  ko.respawnAt = { x: 850, y: 250, fromX: Math.min(ko.x, WORLD.w), fromY: Math.max(0, ko.y) };
+  ko.vx = 0; ko.vy = 0;
+  let arrival = null;
+  // The blackout, then the arrival ON THE SAME FRAME the timer runs out —
+  // fighter.js respawn() moves the body and clears the timer together, and a
+  // harness that did it in two steps would measure a fighter standing in the
+  // blast zone for a frame rather than anything the game does.
+  for (let i = 0; i < Math.round(0.9 / DT); i++) {
+    if (ko.respawnTimer > 0) {
+      ko.respawnTimer -= DT;
+      if (ko.respawnTimer <= 0) {
+        ko.respawnTimer = 0;
+        ko.x = ko.respawnAt.x;
+        ko.y = ko.respawnAt.y;
+        ko.respawnAt = null;
+        arrival = { x: state.camera.x, y: state.camera.y };
+      }
+    }
+    watch();
+  }
+  const settle = Math.hypot(state.camera.x - arrival.x, state.camera.y - arrival.y);
+  check(worstPan < 16, "a ring-out and a respawn never cut the camera",
+    `worst frame ${worstPan.toFixed(1)}px, against 150.6px before the trip existed`);
+  // 0.02 is a fifth of the 0.10 the arrival used to cost and half what the
+  // launch just before it spends chasing the body out — a zoom that moves,
+  // against one that cuts.
+  check(worstZoom < 0.02, "...and never snap the zoom",
+    `worst frame ${worstZoom.toFixed(4)}x, against 0.1016x before`);
+  check(settle < 90, "...so the arrival is the end of the move, not the start",
+    `${settle.toFixed(1)}px of camera travel after the body lands`);
+  frameInvariants("respawn arrival");
+  pass("ring-out framing");
+}
 
 // ---- 4. ult cast dollies in on the caster, then releases
 resetState();
