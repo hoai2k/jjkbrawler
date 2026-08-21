@@ -15,7 +15,7 @@ import {
   drawCharFrame, currentFrame, warmAnchors, anchorScreenPos, resolvedAnim, animsOf,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../../src/render.js";
-import { CHARACTERS, CHARACTER_KEYS } from "../../src/characters.js";
+import { CHARACTERS, CHARACTER_KEYS, byCharacterName } from "../../src/characters.js";
 import { lightMove, heavyMove } from "../../src/moves.js";
 import { fighterTransform } from "../../src/motion.js";
 import { initTooltips } from "./tooltip.js";
@@ -1015,7 +1015,9 @@ async function boot() {
   fitStageCanvas(canvas);
 
   const sel = $("aChar");
-  for (const key of CHARACTER_KEYS) {
+  // Alphabetically. The sprite bench's own dropdown next door has sorted this
+  // way for the same reason: you come to this list with a name in mind.
+  for (const key of [...CHARACTER_KEYS].sort(byCharacterName)) {
     const o = document.createElement("option");
     o.value = key; o.textContent = CHARACTERS[key].name;
     sel.appendChild(o);

@@ -39,7 +39,7 @@
 // exact.
 
 import { resolvedAnim } from "../sprites/src/sprites.js";
-import { CHARACTER_KEYS } from "../src/characters.js";
+import { CHARACTER_KEYS, byCharacterName } from "../src/characters.js";
 import { HURTBOX_FIT } from "../src/config_body_points.js";
 import {
   HURTBOX_CASES, hurtboxArtToken, fitState, derivedBox,
@@ -73,7 +73,10 @@ const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, n));
 
 export async function provider() {
   const tasks = [];
-  for (const charKey of CHARACTER_KEYS) {
+  // Alphabetically, so a queue of 200 items can be navigated by name.
+  // The QUEUE's own order is its filters (to do / answered); the order
+  // inside them was only ever the select screen's grouping.
+  for (const charKey of [...CHARACTER_KEYS].sort(byCharacterName)) {
     const b = bodyMetrics(charKey);
     for (const c of CASES) {
       if (!resolvedAnim(charKey, c.state)?.frames?.length) continue;
