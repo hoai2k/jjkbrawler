@@ -117,6 +117,28 @@ export const BODY = {
   fallbackWidth: 74,
 };
 
+// How far from the centre line a VERIFIED STRIKE POINT may sit and still be
+// read as that move's reach, as a fraction of the fighter's own drawn height.
+//
+// Deliberately far looser than BODY.reachMin/reachMax above, because it is
+// guarding something else. Those bound a SCAN of the ink, which has no idea
+// what it is looking at and needs holding to a plausible body. These bound a
+// DECISION: somebody opened the drawing and put the point on the blade. The
+// guard's whole job is to catch a misclick or a point left on art that has
+// since been redrawn — not to argue with the reviewer about how long a
+// naginata is. Maki's side smash lands at 1.10x her own height and that is
+// simply what is drawn.
+//
+// A point outside the band is not clamped into it. It is reported as a fault
+// (src/strike_reach.js reachFaults), the move falls back to the fighter's
+// scalar reach, and the verification bench puts the item back in the queue —
+// so a bad point costs a re-review rather than quietly setting a range at
+// whatever the guard happened to be. One point on the roster trips it today.
+export const STRIKE_REACH = {
+  min: 0.10,
+  max: 1.20,
+};
+
 // FALLBACK ONLY. Characters whose idle carries a measured `bodyTop` are scaled
 // so the top of the art lands exactly on the target (see idleSpan in
 // heights.js); this approximates it from the detected body box for frames

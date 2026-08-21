@@ -4,6 +4,17 @@
 // beat, with the measured strike point on it, and the question "is that where
 // the blow is?". Approve it, drag it, or flag the ones no nudge can fix.
 //
+// WHAT THEY NOW DECIDE. These points started as a place to put the impact
+// spark. They are also the sprite game's RANGE: `src/strike_reach.js` reads the
+// `x` of each forward attack's point as how far that attack reaches, and
+// moves.js builds the hitbox from it plus a fixed grace margin. So dragging a
+// point on a jab moves the jab's hitbox and the crescent drawn around it, and a
+// point the reach system cannot read — behind the centre line, or halfway
+// across the stage — is rejected rather than clamped, which puts the item back
+// in this queue with the reason on it. The queue is where a range gets set now,
+// which is the point: a person can see the cursed energy and the smear and
+// place the point on the fist instead.
+//
 // WHY A HUMAN AT ALL. The measurement (src/config_model_reach.js, baked by
 // tools/derive_attack_envelopes.mjs) poses the rig at the beat and reports the
 // end of the striking limb, or the weapon's far end when a weapon leads. That
@@ -49,6 +60,7 @@ import { CHARACTER_KEYS } from "../src/characters.js";
 import { MODEL_REACH, ENVELOPE_INPUTS } from "../src/config_model_reach.js";
 import { STRIKE_POINTS, STRIKE_POINT_META } from "../src/config_strike_points.js";
 import { contactFrame, imageToGame, gameToImage } from "../src/strike_points.js";
+import { reachFault } from "../src/strike_reach.js";
 import { bodyMetrics } from "../src/silhouette.js";
 import { frameMeta } from "../src/assets.js";
 import { STATES, clipNameFor } from "../render3d/src/states.js";
@@ -101,21 +113,34 @@ export async function provider() {
  *
  * A point committed to src/config_strike_points.js on an earlier pass is
  * settled — the queue should not ask again, which is the whole reason the
- * engine consults this. A point whose FILE has since changed does not count:
- * the drawing was replaced, so the decision is about a picture that is no
- * longer there and somebody has to look at it afresh.
+ * engine consults this. Two things unsettle one:
+ *
+ *   * its FILE has changed. The drawing was replaced, so the decision is about
+ *     a picture that is no longer there.
+ *   * the game CANNOT USE IT. Since reach came off these points
+ *     (src/strike_reach.js), a forward attack's point is also the number its
+ *     hitbox is built from, and one that lands behind the fighter or halfway
+ *     across the stage is rejected rather than clamped. The move falls back to
+ *     the fighter's scalar reach and the item comes back here, which is the
+ *     whole reason the rejection is not silent: something is wrong with this
+ *     point and only a person looking at the drawing can say what.
  */
 function committed(task) {
   const frame = contactFrame(task.charKey, task.state);
   const held = frame ? STRIKE_POINTS[task.charKey]?.[frame] : null;
   if (!held) return false;
   const file = frameMeta(task.charKey, frame)?.file;
-  return !held.file || !file || held.file === file;
+  if (held.file && file && held.file !== file) return false;
+  return !reachFault(task.charKey, task.state);
 }
 
 /** Where the value on screen came from before anybody touched it. */
 function sourceOf(charKey, state) {
   const frame = contactFrame(charKey, state);
+  // A point the reach system threw out leads with that, because it is the
+  // reason the item is in the queue at all.
+  const fault = reachFault(charKey, state);
+  if (fault) return `REJECTED (x ${fault.x}) — ${fault.why}`;
   if (frame && STRIKE_POINTS[charKey]?.[frame]) return "already verified in config";
   const m = MODEL_REACH[charKey]?.states?.[state];
   if (m && Number.isFinite(m.sx)) return m.via === "prop" ? "measured — weapon" : "measured — limb";
@@ -142,8 +167,16 @@ function describe(task, value) {
   const b = bodyMetrics(task.charKey);
   const upFrac = (-value.y / b.height * 100).toFixed(0);
   const reachFrac = (value.x / Math.max(1, b.reach) * 100).toFixed(0);
+  const fault = reachFault(task.charKey, task.state);
+  // What the point DOES, for a forward attack: x is the reach the game builds
+  // this move's hitbox from, so the reviewer should know they are setting a
+  // range and not only placing a spark.
+  const band = fault
+    ? ` · <b>rejected as a reach</b> — usable band ${fault.lo}-${fault.hi} px, `
+      + `so this move is falling back to ${Math.round(b.reach)} px`
+    : "";
   return `${sourceOf(task.charKey, task.state)} · <b>x ${value.x}</b>, <b>y ${value.y}</b>`
-    + ` — ${upFrac}% of height up, ${reachFrac}% of measured reach out`;
+    + ` — ${upFrac}% of height up, ${reachFrac}% of measured reach out${band}`;
 }
 
 function renderEditor(task, { container, value, onChange, redraw, bindSync }) {

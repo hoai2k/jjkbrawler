@@ -35,8 +35,9 @@ await loadCoreAssets();
 
 const { CHARACTERS, CHARACTER_KEYS } = await import("../src/characters.js");
 const { spriteManifest } = await import("../src/assets.js");
-const { lightMove, heavyMove } = await import("../src/moves.js");
-const { bodyMetrics, rosterReach } = await import("../src/silhouette.js");
+const { lightMove, heavyMove, visibleArtReach } = await import("../src/moves.js");
+const { bodyMetrics, rosterReach, reachSourceName } = await import("../src/silhouette.js");
+const { reachFaults, FORWARD_STATES } = await import("../src/strike_reach.js");
 const { HURTBOX } = await import("../src/constants.js");
 const { MELEE_GRACE } = await import("../src/config_tuning.js");
 const { STAGES } = await import("../src/stages.js");
@@ -59,6 +60,10 @@ const rows = CHARACTER_KEYS.map((key) => {
   return {
     key, b,
     art: b.reach,
+    // The art each of those two is BUILT from, which is per move now: a jab
+    // and a spear thrust are different drawings and no longer share a number.
+    lightArt: visibleArtReach(char, light.anim),
+    heavyArt: visibleArtReach(char, heavy.anim),
     lightTip: light.ox + light.w,
     heavyTip: heavy.ox + heavy.w,
     startup: heavy.delay * 1000,
@@ -68,12 +73,15 @@ const rows = CHARACTER_KEYS.map((key) => {
   };
 });
 
-console.log("\n=== reach, against the art it is drawn from ===");
-console.log("char         drawnH  artReach  lightTip  heavyTip   grace  startup  upSmashTop  sweet");
+console.log(`\n=== reach, against the art it is drawn from (source: ${reachSourceName()}) ===`);
+console.log("char         drawnH  reach  from      jabArt  jabTip  smashArt  smashTip   grace"
+  + "  startup  upSmashTop  sweet");
 for (const r of [...rows].sort((a, b) => b.heavyTip - a.heavyTip)) {
   console.log(
-    r.key.padEnd(12), pad(n0(r.b.height), 6), pad(n0(r.art), 9), pad(n0(r.lightTip), 9),
-    pad(n0(r.heavyTip), 9), pad(n0(r.heavyTip - r.art), 7), pad(n0(r.startup) + "ms", 8),
+    r.key.padEnd(12), pad(n0(r.b.height), 6), pad(n0(r.art), 6), r.b.reachFrom.padEnd(9),
+    pad(n0(r.lightArt), 6), pad(n0(r.lightTip), 7),
+    pad(n0(r.heavyArt), 8), pad(n0(r.heavyTip), 9),
+    pad(n0(r.heavyTip - r.heavyArt), 7), pad(n0(r.startup) + "ms", 8),
     pad(n0(r.upTop), 11), pad(r.sweet ? n0(r.sweet) : "-", 6),
     r.measured ? "" : "  (unmeasured art)");
 }
@@ -81,13 +89,44 @@ for (const r of [...rows].sort((a, b) => b.heavyTip - a.heavyTip)) {
 // The whole point of deriving reach from the art: the invisible part of a swing
 // is a fixed margin, so it is the same for everybody. It used to run 62-113 px
 // depending on the character.
-const graces = rows.map((r) => r.heavyTip - r.art);
+//
+// Measured per MOVE against the art THAT move is built from, which is the only
+// way to ask the question now that reach is per move. Against the fighter's
+// scalar it would report a spread of 36 px on a roster where every single
+// margin is exactly MELEE_GRACE.sideHeavy — because a fighter with one long
+// attack has a scalar their short attacks do not use.
+const graces = rows.map((r) => r.heavyTip - r.heavyArt);
 const graceSpread = Math.max(...graces) - Math.min(...graces);
 console.log(`\ngrace margin: ${n0(Math.min(...graces))}-${n0(Math.max(...graces))} px `
   + `(spread ${n0(graceSpread)}, was 62-113 before hitboxes came off the art)`);
 if (graceSpread > 2) {
   fail(`grace margin varies by ${n0(graceSpread)} px across the roster — it should be `
     + `identical, since MELEE_GRACE.sideHeavy is a constant`);
+}
+
+// ------------------------------------------------- 1b: the points behind it
+//
+// Under the sprite source a fighter's range is the strike points a person
+// placed on their drawings (src/strike_reach.js). A point that cannot be read
+// as a reach is not used and not clamped — the move falls back to the
+// fighter's scalar and the verification bench reopens the item — but a silent
+// fallback is a range nobody can explain, so it is said out loud here.
+const faults = CHARACTER_KEYS
+  .flatMap((key) => reachFaults(key).map((f) => ({ key, ...f })));
+if (faults.length) {
+  console.log(`\nstrike points that cannot be read as a reach (${faults.length}) — `
+    + `these moves fall back to the fighter's scalar, and the verification bench `
+    + `lists them as work:`);
+  for (const f of faults) {
+    console.log(`  ${f.key} · ${f.state} (${f.frame}): x ${f.x} — ${f.why} `
+      + `(usable band ${f.lo}-${f.hi} px)`);
+  }
+}
+const unreviewed = CHARACTER_KEYS.filter((key) => bodyMetrics(key).reachFrom !== "verified");
+if (unreviewed.length) {
+  console.log(`\nno usable verified point in any forward attack `
+    + `(${FORWARD_STATES.join(", ")}), so range comes off the silhouette scan: `
+    + unreviewed.join(", "));
 }
 
 // Which characters are being measured off art nobody has sized yet, and which
