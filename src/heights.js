@@ -26,6 +26,10 @@ import {
   HEIGHT_REFERENCE, HEIGHT_COMPRESSION, HEIGHT_MIN_RATIO, HEIGHT_MAX_RATIO,
   HEIGHT_BASE_PX, HEIGHT_UNKNOWN_RATIO, HEAD_ABOVE_BODY,
 } from "./config_tuning.js";
+import { FIGHTER_SCALE, setFighterScaleRaw } from "./flags.js";
+import { refreshSilhouettes } from "./silhouette.js";
+import { refreshStrikePoints } from "./strike_points.js";
+import { refreshMuzzles } from "./muzzle.js";
 
 /** The frame a character's height is measured from — their standing idle. */
 const HEIGHT_FRAME = ["idle_a", "r0c0"];
@@ -67,8 +71,13 @@ export function heightRatio(charKey) {
  *  otherwise the value derived from canon. */
 export function headHeightTarget(charKey) {
   const override = spriteManifest?.headHeights?.[charKey];
-  if (Number.isFinite(override) && override > 0) return override;
-  return heightRatio(charKey) * HEIGHT_BASE_PX;
+  const base = Number.isFinite(override) && override > 0
+    ? override
+    : heightRatio(charKey) * HEIGHT_BASE_PX;
+  // The bench's roster-scale knob rides on top of BOTH routes, so a hand-set
+  // height shrinks with the rest of the roster instead of standing out at full
+  // size while everyone around it changes (flags.js FIGHTER_SCALE).
+  return base * FIGHTER_SCALE;
 }
 
 /** True when the target came from a hand edit rather than from canon. */
@@ -147,3 +156,33 @@ export function applyAllHeightScales() {
     applyHeightScale(charKey);
   }
 }
+
+/**
+ * RESIZE THE WHOLE ROSTER, live.
+ *
+ * Every measurement the game makes about a body — the hurtbox, the reach, the
+ * strike point, the muzzle — is derived from the drawn art and then CACHED,
+ * because in a match none of it ever changes. Moving the size is therefore not
+ * one assignment but four: set the multiplier, re-solve each character's render
+ * scale against it, and drop every cache that was measured at the old size.
+ * Miss one and the fighter shrinks while their hurtbox stays where it was,
+ * which reads as a body being hit through thin air.
+ *
+ * NOTHING ELSE MOVES. Jump impulses, gravity, run speeds, knockback and the
+ * platforms are absolute pixels and stay exactly as they are — which is the
+ * point of the experiment rather than an oversight: at half size a fighter
+ * reaches the same platforms with the same jump, and that jump is suddenly
+ * worth two body heights instead of one. docs/level-design-review.md is where
+ * the ratios being chased are written down.
+ */
+export function setRosterScale(scale) {
+  const s = setFighterScaleRaw(scale);
+  applyAllHeightScales();
+  refreshSilhouettes();
+  refreshStrikePoints();
+  refreshMuzzles();
+  return s;
+}
+
+/** What the roster is scaled to right now. */
+export const rosterScale = () => FIGHTER_SCALE;
