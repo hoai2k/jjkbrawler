@@ -5,6 +5,7 @@
 // are generated from. Nothing in this module hard-codes a button.
 
 import { KEY_BINDS, PAD_BUTTONS, PAD_AXES } from "./config_controls.js";
+import { MOVE_DEADZONE, VERT_CARDINAL, STICK_NOISE } from "./constants.js";
 import { noteGamepadGesture } from "./audio.js";
 
 const held = new Set();
@@ -262,18 +263,49 @@ function dashFlick(pad, x) {
   return dir;
 }
 
-function padSnapshot(pad) {
-  const axX = Math.abs(pad.axes[PAD_AXES.moveX] || 0) > 0.28 ? pad.axes[PAD_AXES.moveX] : 0;
-  // Kept at the deadzone the crouch and the up-attack were tuned against; the
-  // aimed attack reads it too, and reads it as an ANGLE rather than a
-  // threshold. `up`/`down` below cannot tell 20 degrees from 44, which is why
-  // the diagonal used to be a narrow band you had to find — fighter.js
-  // attackTilt takes the angle off `moveX`/`moveY` instead.
-  const axY = Math.abs(pad.axes[PAD_AXES.moveY] || 0) > 0.42 ? pad.axes[PAD_AXES.moveY] : 0;
-  const left = axX < -0.28;
-  const right = axX > 0.28;
-  const up = axY < -0.5;
-  const down = axY > 0.5;
+/**
+ * THE STICK IS REPORTED AS IT IS HELD.
+ *
+ * `moveX`/`moveY` are the thumbstick, full precision, past nothing but the
+ * hardware's own noise floor (STICK_NOISE, radial). Every real threshold —
+ * what counts as walking, what counts as a crouch, how far a stick has to be
+ * pushed before an attack is aimed at all — belongs to the feature that has an
+ * opinion about it, applied where that feature reads the stick.
+ *
+ * WHY, because it used to be the other way round and the cost was invisible.
+ * This function applied a SQUARE deadzone — x zeroed under 0.28, y under 0.42 —
+ * and handed the result to everybody. That is fine for a threshold question
+ * ("is the stick pushed right?") and quietly wrong for an angle one, because
+ * zeroing one axis does not attenuate the angle, it DESTROYS it: with x pinned
+ * to zero, every stick position from straight up to 16 degrees off it reports
+ * as exactly 90 degrees, and the first position that survives the deadzone
+ * reports as 73.8. Sweeping the stick through a quarter turn, the angles
+ * 0-24.9 and 73.7-90 could not be expressed at all.
+ *
+ * The aimed attack (fighter.js attackTilt) reads the angle and takes tilts
+ * between 12 and 62 degrees, so a third of its own range was unreachable on a
+ * pad — a shallow angled attack was not a hard input, it was an impossible
+ * one. Nothing said so, because the feature that broke it was three files away
+ * and reported a plausible number.
+ *
+ * The digital reads below keep their exact thresholds and take them off the RAW
+ * axes, which is bit-identical to what they did before: each threshold is at or
+ * above the deadzone it used to sit behind, so it could never see a value that
+ * deadzone had zeroed. `tools/check_stick_angles.mjs` asserts both halves of
+ * that — every angle inside the aimed attack's band reachable, and every
+ * digital read identical to the old square-deadzone formula — which is why
+ * this is exported.
+ */
+export function padSnapshot(pad) {
+  const rawX = pad.axes[PAD_AXES.moveX] || 0;
+  const rawY = pad.axes[PAD_AXES.moveY] || 0;
+  const live = Math.hypot(rawX, rawY) > STICK_NOISE;
+  const axX = live ? rawX : 0;
+  const axY = live ? rawY : 0;
+  const left = rawX < -MOVE_DEADZONE;
+  const right = rawX > MOVE_DEADZONE;
+  const up = rawY < -VERT_CARDINAL;
+  const down = rawY > VERT_CARDINAL;
   const tx = pad.axes[PAD_AXES.tiltX] || 0;
   const ty = pad.axes[PAD_AXES.tiltY] || 0;
   const dLeft = padButton(pad, PAD_BUTTONS.dpadLeft);
@@ -282,6 +314,8 @@ function padSnapshot(pad) {
   const dDown = padButton(pad, PAD_BUTTONS.dpadDown);
   return {
     left, right, up, down,
+    // The stick as held. See the note above: a consumer that wants a threshold
+    // applies its own.
     moveX: axX,
     moveY: axY,
     aimX: (dRight ? 1 : 0) - (dLeft ? 1 : 0),
@@ -362,10 +396,12 @@ export function blankInput() {
     // How far the stick is pushed sideways, -1..1, kept ALONGSIDE `dirX`
     // rather than replacing it: everything that only asks "which way" still
     // reads dirX, while the movement code reads this to tell a walk from a
-    // run (constants.js RUN_TILT). A keyboard reports ±1, so it runs.
+    // run (constants.js RUN_TILT, MOVE_DEADZONE). A keyboard reports ±1, so it
+    // runs. Unfiltered beyond the stick's noise floor — see padSnapshot.
     moveX: 0,
-    // How far the stick is pushed VERTICALLY, -1..1, up negative as y is. Only
-    // the aimed attack reads it; movement has no use for a vertical.
+    // How far the stick is pushed VERTICALLY, -1..1, up negative as y is. Read
+    // as an ANGLE alongside moveX by the aimed attack; movement has no use for
+    // a vertical of its own.
     moveY: 0,
     // Grab (?throw=true). Bound to nothing when the flag is off, so it simply
     // never reads true there.

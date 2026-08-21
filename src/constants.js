@@ -86,8 +86,27 @@ export const RUN_TILT = 0.72;
  *  sit around half of a run; these are the slowest and fastest ends of it. */
 export const WALK_MIN = 0.34;
 export const WALK_MAX = 0.62;
-/** Below this the stick is at rest — the same deadzone input.js reads. */
+/** Below this the stick is at rest, as far as WALKING is concerned — the walk
+ *  band above starts here (fighter.js moveTilt), and `left`/`right` are the
+ *  same threshold, so a stick inside it neither steers nor strolls.
+ *
+ *  It is applied where it is USED, not in input.js. A deadzone is one feature's
+ *  opinion about what counts as "pushed", and baking it into the reported axis
+ *  imposes that opinion on every other feature — which is how the aimed attack
+ *  lost a third of its range. See the note over `padSnapshot`. */
 export const MOVE_DEADZONE = 0.28;
+
+/** And how far up or down the stick has to go to read as a CARDINAL: what
+ *  picks a crouch, an up attack and their aerials. Higher than the sideways
+ *  one because up and down are the deliberate inputs — a thumb resting toward
+ *  the bottom of its travel should not crouch. */
+export const VERT_CARDINAL = 0.5;
+
+/** The stick's own noise floor, radial. NOT a gameplay deadzone: it is the few
+ *  percent a centred thumbstick reports because it is a physical object, and
+ *  the only filtering input.js does. Every real threshold lives with the
+ *  feature that wants it. */
+export const STICK_NOISE = 0.16;
 
 // How hard a dashStrike special's lunge bleeds off, as a rate against the
 // character's own friction (the locked-action rate is 40, ordinary ground
