@@ -68,6 +68,13 @@
   --p2-theme: #ff4c55;
   --p3-theme: #8cff65;
   --p4-theme: #ffd35a;
+  /* Seats 5-8. A match seats eight players, and every one of them needs a
+     colour distinct from the other seven at a glance — these are spaced around
+     the wheel from the first four rather than being lighter versions of them. */
+  --p5-theme: #c48cff;
+  --p6-theme: #ff8f4c;
+  --p7-theme: #4cffd0;
+  --p8-theme: #ff6fd0;
   font-size: 16px;
 
   /* Scrollbars, wherever one turns up — the move list, the controls screen,
@@ -1025,10 +1032,27 @@ html, body {
   color: #04060d;
 }
 
+/* Tags stack down the two edges of the card, odd seats left and even right, so
+   eight players sharing Random still each get a legible plate. */
 .char-card .pick-tag--p1 { left: 5px; background: var(--p1-theme); }
 .char-card .pick-tag--p2 { right: 5px; background: var(--p2-theme); }
 .char-card .pick-tag--p3 { left: 5px; top: 25px; background: var(--p3-theme); }
 .char-card .pick-tag--p4 { right: 5px; top: 25px; background: var(--p4-theme); }
+.char-card .pick-tag--p5 { left: 5px; top: 45px; background: var(--p5-theme); }
+.char-card .pick-tag--p6 { right: 5px; top: 45px; background: var(--p6-theme); }
+.char-card .pick-tag--p7 { left: 5px; top: 65px; background: var(--p7-theme); }
+.char-card .pick-tag--p8 { right: 5px; top: 65px; background: var(--p8-theme); }
+
+/* Claimed by another player: locking a fighter in takes them off the roster for
+   everybody else (ui.js claimedKeys). Every cursor STEPS OVER these, so the
+   card has to look like something that cannot be chosen rather than merely
+   something that is already spoken for — hence the desaturation as well as the
+   dimming. The owner's own ring and tag still sit on top, which is what says
+   who took them. */
+.char-card.is-taken img,
+.char-card.is-taken .random-glyph { filter: grayscale(1) brightness(0.4); }
+.char-card.is-taken span { color: var(--text-dim); }
+.char-card.is-taken { cursor: not-allowed; }
 
 /* ---------- Matchup bar (hero cards) ---------- */
 
@@ -1119,14 +1143,62 @@ html, body {
   font-size: clamp(0.68rem, 0.55vw + 0.2rem, 0.82rem);
 }
 
+/* Five seats and up. The bar has run out of room for a card that describes a
+   fighter, so the cards stop trying: the stat bars and the ultimate line go,
+   and what is left is the portrait, the seat chip and the name — the three
+   things a crowded select screen has to answer (whose card is this, who are
+   they on, are they locked in). */
+/* Eight cards need more of the window than a duel does, and less air between
+   them — otherwise the row overflows the bar and spills out of both ends of the
+   centred column. */
+.matchup-bar[data-slots="5"],
+.matchup-bar[data-slots="6"],
+.matchup-bar[data-slots="7"],
+.matchup-bar[data-slots="8"] {
+  width: min(98%, 1500px);
+  gap: 8px;
+}
+
+.matchup-bar[data-slots="5"] .matchup-side,
+.matchup-bar[data-slots="6"] .matchup-side,
+.matchup-bar[data-slots="7"] .matchup-side,
+.matchup-bar[data-slots="8"] .matchup-side {
+  width: auto;
+  min-width: 84px;
+  padding: 7px 8px 6px;
+  --hero-art-h: clamp(58px, 9vh, 82px);
+  --hero-furniture: 46px;
+}
+
+.matchup-bar[data-slots="5"] .hero-info,
+.matchup-bar[data-slots="6"] .hero-info,
+.matchup-bar[data-slots="7"] .hero-info,
+.matchup-bar[data-slots="8"] .hero-info { display: none; }
+
+.matchup-bar[data-slots="5"] .matchup-side strong,
+.matchup-bar[data-slots="6"] .matchup-side strong,
+.matchup-bar[data-slots="7"] .matchup-side strong,
+.matchup-bar[data-slots="8"] .matchup-side strong {
+  font-size: clamp(0.6rem, 0.45vw + 0.16rem, 0.74rem);
+}
+
+.matchup-bar[data-slots="5"] .hero-ready,
+.matchup-bar[data-slots="6"] .hero-ready,
+.matchup-bar[data-slots="7"] .hero-ready,
+.matchup-bar[data-slots="8"] .hero-ready { top: 26px; right: 6px; }
+
 /* Every seat carries its own colour, so a slot is identifiable at a glance
    whether it is currently choosing OR already locked in. Previously only the
    ACTIVE card was tinted, so the moment a player committed, their card fell
    back to neutral grey and the screen stopped saying who was who. */
-#p1PickCard { --seat: var(--p1-theme); }
-#p2PickCard { --seat: var(--p2-theme); }
-#p3PickCard { --seat: var(--p3-theme); }
-#p4PickCard { --seat: var(--p4-theme); }
+.matchup-side[data-seat="1"] { --seat: var(--p1-theme); }
+.matchup-side[data-seat="2"] { --seat: var(--p2-theme); }
+.matchup-side[data-seat="3"] { --seat: var(--p3-theme); }
+.matchup-side[data-seat="4"] { --seat: var(--p4-theme); }
+.matchup-side[data-seat="5"] { --seat: var(--p5-theme); }
+.matchup-side[data-seat="6"] { --seat: var(--p6-theme); }
+.matchup-side[data-seat="7"] { --seat: var(--p7-theme); }
+.matchup-side[data-seat="8"] { --seat: var(--p8-theme); }
 
 .matchup-side.is-active {
   border-color: var(--seat);
@@ -1760,12 +1832,11 @@ html, body {
 .moves-panel--split .controller-tips { gap: 4px; }
 /* Three or four kits cannot share a screen with the diagram as well. The tips
    row survives because it is the part that is not already on the pad itself. */
-.moves-panel--split[data-players="3"] .xbox-controller,
-.moves-panel--split[data-players="4"] .xbox-controller { display: none; }
-.moves-panel--split[data-players="3"] .controller-guide,
-.moves-panel--split[data-players="4"] .controller-guide { grid-template-columns: 1fr; }
-.moves-panel--split[data-players="3"] .controller-tips,
-.moves-panel--split[data-players="4"] .controller-tips { grid-template-columns: repeat(5, 1fr); }
+/* Three columns and up: the shared controller diagram gives way entirely so
+   each player's Domain Expansion still lands above the fold. */
+.moves-panel--split:not([data-players="1"]):not([data-players="2"]) .xbox-controller { display: none; }
+.moves-panel--split:not([data-players="1"]):not([data-players="2"]) .controller-guide { grid-template-columns: 1fr; }
+.moves-panel--split:not([data-players="1"]):not([data-players="2"]) .controller-tips { grid-template-columns: repeat(5, 1fr); }
 .moves-panel--split .controller-tips span { padding: 4px 8px; font-size: 0.72rem; }
 
 .moves-players {
@@ -1775,6 +1846,12 @@ html, body {
 }
 .moves-players[data-count="3"] { --player-cols: 3; }
 .moves-players[data-count="4"] { --player-cols: 4; }
+/* Five columns and up would be unreadable side by side, so the eight-player
+   move list wraps into two rows of four instead. */
+.moves-players[data-count="5"],
+.moves-players[data-count="6"],
+.moves-players[data-count="7"],
+.moves-players[data-count="8"] { --player-cols: 4; }
 
 .moves-player {
   border: 1px solid var(--line);
@@ -1788,6 +1865,10 @@ html, body {
 .moves-player[data-player="2"] { --seat: var(--p2-theme); }
 .moves-player[data-player="3"] { --seat: var(--p3-theme); }
 .moves-player[data-player="4"] { --seat: var(--p4-theme); }
+.moves-player[data-player="5"] { --seat: var(--p5-theme); }
+.moves-player[data-player="6"] { --seat: var(--p6-theme); }
+.moves-player[data-player="7"] { --seat: var(--p7-theme); }
+.moves-player[data-player="8"] { --seat: var(--p8-theme); }
 
 .moves-player-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
 .moves-player-badge {

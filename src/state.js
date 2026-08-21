@@ -31,17 +31,23 @@ export const state = {
   // resolves to a different fighter every match. The CPU defaults to random.
   // P1 starts empty on purpose: the player picks their own fighter rather than
   // inheriting one. The other slots keep defaults so a 1P game is one click.
-  selection: { 1: null, 2: "__random", 3: "megumi", 4: "nobara" },
+  // Eight seats: the engine tops out at eight fighters, and every one of them
+  // can now be a person (src/input.js MAX_SEATS).
+  selection: { 1: null, 2: "__random", 3: "megumi", 4: "nobara", 5: "todo", 6: "toji", 7: "nanami", 8: "maki" },
   // Concrete fighter each slot is actually using this match, after RANDOM_KEY
   // has been resolved. This is what fighters are built from.
-  roster: { 1: "gojo", 2: "sukuna", 3: "megumi", 4: "nobara" },
+  roster: { 1: "gojo", 2: "sukuna", 3: "megumi", 4: "nobara", 5: "todo", 6: "toji", 7: "nanami", 8: "maki" },
   // The CPU's random draw, rolled the moment the humans lock in so the select
   // screen can show who they are about to face. Cleared once a match consumes
   // it, so every rematch faces a fresh opponent.
   cpuRoll: null,
   // Per-player lock-in on the fighter select screen. A player who is ready has
   // committed a fighter; the match can start once every human slot is ready.
-  ready: { 1: false, 2: false, 3: false, 4: false },
+  ready: { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false, 8: false },
+  // Which human seats have a controller in them right now (src/input.js). The
+  // numbering has holes on purpose: player 2 unplugging leaves players 1 and 3
+  // where they are, and the next pad to join takes the empty seat 2 back.
+  seats: [1],
   activePicker: 1,
   stageKey: "trainingBridge",
 

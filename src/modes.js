@@ -9,8 +9,9 @@ import { TEXT } from "./config_menus.js";
 
 export const MATCH_MODES = ["versus", "playersVsCpus", "royal1", "royal2"];
 
-// Slots 1..4 are the human seats; the engine tops out at eight fighters, which
-// is exactly four players and their four CPU opponents.
+// Every slot up to MAX_FIGHTERS can be a human seat (src/input.js MAX_SEATS):
+// the engine tops out at eight fighters, and that is either eight players, or
+// four players and their four CPU opponents, or anything between.
 export const MAX_FIGHTERS = 8;
 
 export const HUMAN_TEAM = 0;

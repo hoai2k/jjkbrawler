@@ -1,6 +1,6 @@
 import { state } from "./state.js";
 import { loadCoreAssets, startBackgroundLoad, ensureMatchAssets, matchAssetsPending } from "./assets.js";
-import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, joinedPlayerCount, blankInput, clearHeldKeys, disconnectedSeats, freezePadSeats } from "./input.js";
+import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, padForPlayer, joinedPlayerCount, occupiedSeats, blankInput, clearHeldKeys, disconnectedSeats, freezePadSeats } from "./input.js";
 import { initAudio, playSfx, setBattleStage, syncMusic, stepAudio, stopDomainLoop, stopShieldLoop, setAudioSuspended, setMatchLive } from "./audio.js";
 import { updateRumble } from "./rumble.js";
 import { makeFighter } from "./fighter.js";
@@ -69,13 +69,18 @@ function beginMatch(stageKey) {
   return started.catch((err) => reportError("Could not start the match", err));
 }
 
-// Slot 1/2 have keyboard maps; slot 3/4 need a connected gamepad to be human.
-// A slot the mode added (`plan.cpuFrom` and up) is a CPU whatever is plugged in.
+// Which seats a PERSON is playing. A slot the mode added (`plan.cpuFrom` and
+// up) is a CPU whatever is plugged in, and so is a seat in the middle of the
+// numbering that nobody is sitting in — players 1 and 3 with an empty 2.
 function isHumanSlot(id, plan) {
   if (id >= plan.cpuFrom) return false;
   if (state.playerCount === 1) return id === 1;
-  if (id <= 2) return id <= state.playerCount;
-  return id <= state.playerCount && connectedPadCount() >= id;
+  if (id > state.playerCount) return false;
+  // Past one player the seating is entirely pad-driven (playerCount only ever
+  // rises above 1 because a controller joined), so a seat with no pad in it is
+  // a seat nobody is sitting in — the hole players 1 and 3 leave at 2 — and it
+  // goes to the CPU rather than to a keyboard nobody is at.
+  return !!padForPlayer(id);
 }
 
 // Turn each slot's selection into the concrete fighter for this match. Random
@@ -484,7 +489,7 @@ function loop(time) {
   }
 
   const padCount = connectedPadCount();
-  syncControllerPlayers(joinedPlayerCount());
+  syncControllerPlayers(joinedPlayerCount(), occupiedSeats());
   updateControllerStatus(padCount);
 
   if (!["playing", "loading"].includes(state.phase)) {

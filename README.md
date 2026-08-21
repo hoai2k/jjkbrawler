@@ -41,9 +41,12 @@ Or double-click `play-mac.command` (macOS) / `play-windows.bat` (Windows).
 | Pause | Start |
 <!-- controls-table:end -->
 
-**The game is played on controllers** — one gamepad per player, up to four, on
-a desktop browser. That is what the roster, the four-way select screen and the
-in-game diagram are all built around.
+**The game is played on controllers** — one gamepad per player, up to eight, on
+a desktop browser. That is what the roster, the eight-seat select screen and the
+in-game diagram are all built around. Seats are numbered Player 1 upward and
+hold their number: a pad that drops out leaves its seat empty rather than
+renumbering everyone after it, and the next pad to join takes the empty seat
+back.
 
 Every binding above comes from `src/config_controls.js`; this table is
 generated from it, so a rebinding updates the game, the in-game move list and
