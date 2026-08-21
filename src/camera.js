@@ -186,6 +186,34 @@ function contain(c, half, lo, hi) {
   return clamp(c, hi - half, lo + half);
 }
 
+// THE SHOT IS FRAMED INTO WHAT THE HUD LEAVES, NOT INTO THE WHOLE CANVAS.
+//
+// The damage plates are painted over the top of the picture, so the strip of
+// frame beneath them is the only part a player is actually watching the fight
+// in — and centring the fight in the canvas puts it half a HUD too high in
+// that strip, with the headroom a launch needs hidden behind the readouts and
+// a matching band of empty floor going spare at the bottom.
+//
+// So everything vertical here works in the VISIBLE window: the framing target
+// is pushed down by half the band (which moves the fight down the screen by
+// exactly the amount the HUD took), the zoom fits the box into the shorter
+// height, and containment holds bodies under the band rather than under the
+// canvas edge. `state.hudBand` is the fraction of the arena's height the HUD
+// covers, measured off the live layout by ui.js; at 0 every line below is the
+// arithmetic that was here before.
+const bandFrac = () => clamp(state.hudBand || 0, 0, 0.3);
+
+/** The HUD band in world px at a given zoom. */
+const bandWorld = (zoom) => bandFrac() * WORLD.h / zoom;
+
+/** Vertical containment, in the window under the HUD: the smallest move that
+ *  puts [lo, hi] between the band's lower edge and the bottom of the frame. */
+function containY(c, half, band, lo, hi) {
+  // The visible strip is the frame minus the band, and its centre sits half a
+  // band below the camera's own.
+  return contain(c + band / 2, half - band / 2, lo, hi) - band / 2;
+}
+
 export function updateCamera(dt) {
   const cam = state.camera;
   const alive = state.fighters.filter((f) => !f.dead && f.respawnTimer <= 0);
@@ -221,7 +249,7 @@ export function updateCamera(dt) {
     top -= FRAME_PAD_TOP;
     bottom += FRAME_PAD_BOTTOM;
     zoomTarget = clamp(
-      Math.min(WORLD.w / (right - left), WORLD.h / (bottom - top)),
+      Math.min(WORLD.w / (right - left), WORLD.h * (1 - bandFrac()) / (bottom - top)),
       ZOOM_MIN, ZOOM_MAX,
     );
     cx = (left + right) / 2;
@@ -232,6 +260,10 @@ export function updateCamera(dt) {
     cy = p.y - 90 + p.ly / 2;
     zoomTarget = ZOOM_SOLO;
   }
+
+  // Down by half the band: the fight lands in the middle of the strip under
+  // the HUD instead of the middle of the canvas.
+  cy -= bandWorld(clamp(zoomTarget, ZOOM_MIN, ZOOM_MAX)) / 2;
 
   if (cam.kick > 0) {
     cam.kick = Math.max(0, cam.kick - dt);
@@ -282,12 +314,15 @@ export function updateCamera(dt) {
     // Zoom out NOW if the eased zoom has not opened far enough — the shot may
     // lag on the way in, never on the way out. A 2000 px/s launch outruns any
     // easing, and a frame of snap reads far better than a lost fighter.
-    const fit = Math.min(WORLD.w / (right - left), WORLD.h / (bottom - top));
+    const fit = Math.min(
+      WORLD.w / (right - left),
+      WORLD.h * (1 - bandFrac()) / (bottom - top),
+    );
     if (fit < cam.zoom) cam.zoom = Math.max(ZOOM_MIN, fit);
     halfW = WORLD.w / 2 / cam.zoom;
     halfH = WORLD.h / 2 / cam.zoom;
     cam.x = contain(cam.x, halfW, left, right);
-    cam.y = contain(cam.y, halfH, top, bottom);
+    cam.y = containY(cam.y, halfH, bandWorld(cam.zoom), top, bottom);
   }
 
   // Whatever the containment asked for, the frame still stops at the gutter:
