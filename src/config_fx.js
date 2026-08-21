@@ -150,3 +150,13 @@ export const DASH_FX = {
   trailTime: 0.3,      // seconds of boosted afterimages after launch
   trailStrength: 0.65, // afterimage strength during it (a plain dash is 0.6)
 };
+
+// ------------------------------------------------------- projection sorcery
+//
+// Naoya's frameRush leaves a still where each planned frame was. They were
+// drawn faint and fading from the first instant, which made the technique's
+// one readable idea — six frames, executed at once — a smudge down the lane.
+// Solid, held, then cut.
+export const FRAME_RUSH = {
+  alpha: 0.85,   // opacity of a planned still while it is held
+};

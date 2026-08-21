@@ -29,7 +29,7 @@ import {
   ATTACK_TILT_LEVEL_DEG, ATTACK_TILT_CARDINAL_DEG, ATTACK_TILT_MIN_MAG,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
-import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE, ART_SCALE } from "./config_tuning.js";
+import { TRAIL_LEN, TRAIL_STEP, MACH, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE, ART_SCALE } from "./config_tuning.js";
 import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame, sweepsTurns } from "./render_backend.js";
@@ -104,7 +104,7 @@ export function makeFighter(id, charKey, x, facing) {
     // "at whoever is nearest" (render.js). Set by fighter.js aimAlong for an
     // angled attack and dropped with the action.
     aimPoint: null,
-    landT: 0, takeoffT: 0, trail: [], trailTick: 0, fxTrailT: 0,
+    landT: 0, takeoffT: 0, trail: [], trailTick: 0, fxTrailT: 0, machSprint: false,
     aiState: null,
     // The input this fighter last acted on, written by the sim loop. Summons
     // read it to find their owner's aim pad (see summons.js).
@@ -156,6 +156,10 @@ function speedMul(f) {
   if (f.char.passive.id === "projection" && f.machRamp > 0) {
     m *= 1 + Math.min(0.24, f.machRamp * 0.12);
   }
+  // ...and holding the technique's own button down while running is the rest
+  // of it: the frames he is trailing are frames he PLANNED, so they cost an
+  // input rather than arriving with any long enough sprint. See `machSprint`.
+  if (f.machSprint) m *= MACH.speedMul;
   return m;
 }
 
@@ -734,6 +738,15 @@ function tryGrabLedge(f) {
   }
 }
 
+/** The animation clock, for the two paths that return before the one at the
+ *  end of `updateFighter`. A frozen playhead is not a still pose — the fade,
+ *  the frame pick and the stride rate all read it — so the ledge keeps time
+ *  like everywhere else. `setAnim` rewinds it on a state change exactly as it
+ *  does for every other state, so this cannot run a pose past its own cut. */
+function ledgeClock(f, dt) {
+  f.animTime += dt;
+}
+
 function updateLedge(f, dt, input) {
   const l = f.ledge;
   // The reach onto the ledge, and the climb off it, are trips rather than
@@ -1247,6 +1260,17 @@ export function updateFighter(f, dt, input) {
     const sprinting = f.grounded && f.hitstun <= 0 &&
       Math.abs(f.vx) > stats(f).speed * 0.7;
     f.machRamp = clamp((f.machRamp || 0) + (sprinting ? dt : -dt * 2.5), 0, 2);
+    // HELD B ON A RUN IS THE TECHNIQUE. Not a new button — B is special, and a
+    // special is a PRESS: tapping it still throws the special it always threw,
+    // and what this reads is the thumb that stayed down afterwards. Which is
+    // the honest shape of it, since holding B through a run is otherwise an
+    // input that does nothing at all.
+    //
+    // Read by `speedMul` (he runs faster) and by `trailStrength` (and only
+    // then does he trail). Not while he is acting, shielding or off the
+    // ground: those are not runs.
+    f.machSprint = sprinting && !f.action && !f.shielding &&
+      !f.ledge && !f.ledgeMove && !!input.specialHeld;
   }
 
   // Miracles (Haruta): the bank refills itself — one small miracle every nine
@@ -1452,6 +1476,17 @@ export function updateFighter(f, dt, input) {
     // its final frame and must keep it — repairing anything wider would take
     // that away.
     if (f.animKey === "ledge" && !f.ledge && !f.ledgeMove) pickAnim(f, input);
+    // AND THE ANIMATION CLOCK STILL RUNS. This branch returns before the
+    // `animTime += dt` every other path ends on, so a hang froze the playhead
+    // at zero for as long as it lasted — and the cross-fade reads that clock:
+    // `animTime < SPRITE_XFADE` was true for the entire hang, so the pose the
+    // fighter arrived in (the fall) was painted under the hang at full
+    // strength and never faded out. That is the SECOND SPRITE on the ledge,
+    // and it lasted as long as the grip did rather than the 0.08s a fade is.
+    //
+    // A hang is a held loop like any other; it has no reason to be the one
+    // state whose clock stops.
+    ledgeClock(f, dt);
     return;
   }
 
@@ -1466,6 +1501,7 @@ export function updateFighter(f, dt, input) {
   if (f.ledgeMove) {
     if (f.hitstun <= 0) {
       updateLedgeMove(f, dt);
+      ledgeClock(f, dt);
       return;
     }
     f.ledgeMove = null;
@@ -1964,10 +2000,16 @@ function updatePresentation(f, dt) {
   // Afterimage samples. Recorded on the sim clock so the tail length is the
   // same distance regardless of display refresh rate.
   if (trailStrength(f) > 0) {
-    if (++f.trailTick >= TRAIL_STEP) {
+    // A BLUR IS SAMPLED CLOSE, A HISTORY IS SAMPLED APART. Every other trail
+    // in the game is a fast body smeared, and dense samples are what makes
+    // that read. Naoya's are snapshots of where he has been, so they are taken
+    // further apart — far enough that each one is a separate figure you can
+    // count, which is the difference between a smear and a plan.
+    const mach = f.machSprint;
+    if (++f.trailTick >= (mach ? MACH.step : TRAIL_STEP)) {
       f.trailTick = 0;
       f.trail.push({ x: f.x, y: f.y, facing: f.facingVis, frame: currentFrame(f.charKey, f.animKey, f.animTime), rot: f.spinAngle });
-      if (f.trail.length > TRAIL_LEN) f.trail.shift();
+      if (f.trail.length > (mach ? MACH.len : TRAIL_LEN)) f.trail.shift();
     }
   } else if (f.trail.length) {
     f.trail.shift();

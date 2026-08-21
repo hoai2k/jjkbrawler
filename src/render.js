@@ -8,7 +8,7 @@ import { fighterTransform, trailStrength } from "./motion.js";
 import { bodyMetrics } from "./silhouette.js";
 import { comFrac } from "./body_points.js";
 import {
-  TRAIL_ALPHA, STRIKE_ARC, COM_HOLD_MAX_FRAC, XFADE_COM_MAX_FRAC, MOTION, ART_SCALE,
+  TRAIL_ALPHA, MACH, STRIKE_ARC, COM_HOLD_MAX_FRAC, XFADE_COM_MAX_FRAC, MOTION, ART_SCALE,
 } from "./config_tuning.js";
 
 // EVERY DRAWN LENGTH IN THIS FILE IS EITHER BODY OR BOARD.
@@ -865,6 +865,29 @@ function drawFighters(ctx, { bodies = true } = {}) {
           ? NO_SHIFT : comFadeShift(spriteKey, ghost.frame, frameKey, drawOpts);
         const base = drawOpts.offsetX || 0;
 
+        // THE LEDGE IS THE ONE CUT WITH A VERTICAL IN IT.
+        //
+        // Every other pose swap happens between two drawings standing on the
+        // same floor, so x is the only axis two bodies can disagree about and
+        // the alignment above is deliberately flat. The hang is not: the fall
+        // arriving is drawn on its feet and the hang is drawn hanging off a
+        // corner a body-length lower, and the fade between them paints both at
+        // once — which is the SECOND SPRITE reported at the ledge. It is the
+        // same drawing twice, 30 px apart, for the length of a fade.
+        //
+        // So while the grip owns the placement, the ghost is dissolved on both
+        // axes: the outgoing pose's mass travels onto the incoming pose's mass
+        // as it fades out, and the two read as one body changing shape rather
+        // than two bodies. Capped like the x slide, and off the moment the
+        // ledge lets go, because a vertical alignment anywhere else would be
+        // lifting a fighter off the floor.
+        // For the whole ledge episode, not just the frames the grip is at full
+        // weight: the catch is deliberately ungripped and its fade into the
+        // hang is one of the two cuts with a body-length in it.
+        const gripY = (f.hangGrip && !drawOpts.anchorTo)
+          ? comFadeShiftY(spriteKey, ghost.frame, frameKey, drawOpts) : 0;
+        const baseY = drawOpts.offsetY || 0;
+
         // HOW FAR TO DISSOLVE, AND WHY IT IS NOT ALWAYS ALL THE WAY.
         //
         // Ramping the incoming drawing up as the outgoing one ramps down is
@@ -895,10 +918,16 @@ function drawFighters(ctx, { bodies = true } = {}) {
           ...drawOpts,
           alpha: (drawOpts.alpha ?? 1) * (1 - ghost.k),
           offsetX: base + shift.x * ghost.k,
+          offsetY: baseY + gripY * ghost.k,
           glow: null,
           prevAnim: null,
         });
         drawOpts.offsetX = base - shift.x * (1 - ghost.k);
+        // And the incoming meets it, exactly as on x: the two drawings walk
+        // onto each other's mass rather than one chasing the other, so there
+        // is no point in the fade where a body is a body-length from where the
+        // other one is. Zero off the ledge, so nothing else moves.
+        drawOpts.offsetY = baseY - gripY * (1 - ghost.k);
         drawOpts.alpha = (drawOpts.alpha ?? 1) * dissolve;
 
         // What a bench light reads. `xfade` reports how far through the fade
@@ -1026,6 +1055,22 @@ function comFadeShift(spriteKey, fromFrame, toFrame, opts) {
 
 const NO_SHIFT = { x: 0, depth: 0 };
 
+/** The same alignment on the Y axis, in world px, for the one cut that needs
+ *  it — see the note at the ledge call. Separate from `comFadeShift` rather
+ *  than a second field on it so that nothing can pick a vertical up by
+ *  accident: this is asked for by name, at one call site, under a condition
+ *  that names the ledge. Same guards, same cap. */
+function comFadeShiftY(spriteKey, fromFrame, toFrame, opts) {
+  if (!SMOOTH_COM_FADE) return 0;
+  const from = anchorOffset(spriteKey, fromFrame, "com", opts);
+  const to = anchorOffset(spriteKey, toFrame, "com", opts);
+  if (!from?.measured || !to?.measured) return 0;
+  // A body-length of hang is what this has to be able to cross, so the cap is
+  // the whole body rather than the 12% a same-floor cut is allowed.
+  const cap = bodyMetrics(spriteKey).height;
+  return clamp(to.y - from.y, -cap, cap);
+}
+
 // The instant this fighter's current attack turns its hitbox on, in seconds
 // from action start, or undefined outside an attack (or when the anim has
 // already moved on — a landed jab cut into hitstun must not carry its beat).
@@ -1062,12 +1107,16 @@ function drawTrail(ctx, f) {
   // a strip of film laid along the path he choreographed. No glow: the soft
   // shadow is exactly the smear the 24-fps read exists to refuse.
   if (f.char.frameTrail) {
-    for (let i = f.trail.length % 2; i < f.trail.length; i += 2) {
-      const g = f.trail[i];
+    // EVERY sample, not every other one: they are already taken far enough
+    // apart to stand as separate figures (fighter.js, MACH.step), and dropping
+    // half of what is left is how a strip of five became a pair of smudges.
+    // And drawn HARD — a planned frame you can barely see is a plan nobody can
+    // read, which is what the faint 0.34 of a blur ghost made of them.
+    for (const g of f.trail) {
       drawCharFrame(ctx, f.charKey, g.frame, g.x, g.y, {
         scale: f.char.scale,
         facing: g.facing,
-        alpha: 0.34 * strength,
+        alpha: MACH.alpha * strength,
         rotation: g.rot,
       });
     }

@@ -153,10 +153,20 @@ ok(live.lit === live.any, "the indicator agrees with the switches",
 // frozen exactly where they were drawn, for the life of the page. The frame is
 // `sim.js advanceWorld` now — shared with the game, so the bench cannot leave a
 // piece of it out — and this is the assertion that says so out loud.
-await page.keyboard.press("KeyL");
-await page.waitForTimeout(400);
+// THE PARTICLES ARE ASKED FOR DIRECTLY, because what is being tested is that
+// they EXPIRE — that the bench steps the presentation and not just the world.
+// Reading them off a special tested a character's kit instead: the roster walk
+// above lands on whoever it lands on, and Yuki's neutral throws no particles at
+// all, which read as a frozen presentation when nothing was frozen. That the
+// keys reach the fighter is already asserted further up.
+await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { burst } = await import("/src/particles.js");
+  const f = state.fighters[0];
+  burst(f.x, f.y - 60, "#ffffff", 24);
+});
 const busy = await read();
-ok(busy.particles > 0, "a special throws particles", `${busy.particles} alive`);
+ok(busy.particles > 0, "particles land on the stage", `${busy.particles} alive`);
 // Long enough for anything a special throws to live out its life.
 await page.waitForTimeout(4000);
 const settled = await read();
@@ -185,7 +195,7 @@ const green = await page.evaluate(async () => {
   const { setSmoothing } = await import("/src/flags.js");
   // The loop above left the switches wherever its last toggle put them, and a
   // fade that is switched off cannot light anything.
-  setSmoothing({ com: true, xfade: true });
+  setSmoothing({ stride: true, xfade: true });
   const seen = {};
   const a = state.fighters[0];
   for (let i = 0; i < 240; i++) {
@@ -195,7 +205,7 @@ const green = await page.evaluate(async () => {
   }
   return seen;
 });
-ok(green.xfade || green.com,
+ok(green.xfade || green.stride,
    "a fade lights its own lamp while it is running", Object.keys(green).join(", "));
 
 // --- the speed control slows the SIMULATION
