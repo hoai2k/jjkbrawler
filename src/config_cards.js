@@ -52,34 +52,39 @@
 // tuned is never worse than it was.
 
 export const CARD_FOCUS = {
-  yuji:       26.3, // Yuji
-  nobara:     11.4, // Nobara
-  megumi:     8.3,  // Megumi
-  yuta:       9.8,  // Yuta
-  maki:       2.3,  // Maki
-  inumaki:    10.6, // Inumaki
-  panda:      2.7,  // Panda
-  mechamaru:  0.5,  // Mechamaru
-  momo:       9.5,  // Momo
-  kirara:     0,    // Kirara
-  gojo:       7.8,  // Gojo
-  nanami:     3.4,  // Nanami
-  meimei:     7.6,  // Mei Mei
-  gakuganji:  2.4,  // Gakuganji
-  tengen:     59.7, // Tengen
-  toji:       1.4,  // Toji
-  yuki:       3.8,  // Yuki
-  hakari:     0.2,  // Hakari
-  uro:        38.3, // Uro
-  reggie:     4.1,  // Reggie Star
-  mahito:     0,    // Mahito
-  jogo:       12.4, // Jogo
-  hanami:     3.5,  // Hanami
-  dagon:      6.1,  // Dagon
-  kurourushi: 6.6,  // Kurourushi
-  geto:       7,    // Geto
-  choso:      19,   // Choso
-  sukuna:     2.6,  // Sukuna
+  yuji:       [56.9, 26.3], // Yuji
+  nobara:     [57.5, 11.4], // Nobara
+  megumi:     [55.6, 8.3],  // Megumi
+  yuta:       9.8,          // Yuta
+  maki:       [61.2, 2.3],  // Maki
+  inumaki:    [59.6, 10.6], // Inumaki
+  panda:      [55.7, 2.7],  // Panda
+  mechamaru:  [53.9, 0.5],  // Mechamaru
+  todo:       [36.7, 0.1],  // Todo
+  momo:       [64, 9.5],    // Momo
+  miwa:       [38, 0.2],    // Miwa
+  kirara:     [40.6, 0],    // Kirara
+  gojo:       [52.9, 7.8],  // Gojo
+  nanami:     [65.1, 3.4],  // Nanami
+  meimei:     [53.2, 7.6],  // Mei Mei
+  gakuganji:  [45.7, 2.4],  // Gakuganji
+  tengen:     [49.7, 59.7], // Tengen
+  toji:       [60.7, 1.4],  // Toji
+  yuki:       [59.4, 3.8],  // Yuki
+  hakari:     0.2,          // Hakari
+  uro:        [64.3, 38.3], // Uro
+  reggie:     4.1,          // Reggie Star
+  kashimo:    [65.4, 0],    // Kashimo
+  naoya:      [55.1, 0],    // Naoya
+  mahito:     [60.2, 0],    // Mahito
+  jogo:       [72.3, 12.4], // Jogo
+  hanami:     3.5,          // Hanami
+  dagon:      [53.9, 6.1],  // Dagon
+  kurourushi: [52.6, 6.6],  // Kurourushi
+  haruta:     [25.1, 0.8],  // Haruta
+  geto:       [42.6, 7],    // Geto
+  choso:      [53.1, 19],   // Choso
+  sukuna:     2.6,          // Sukuna
 };
 
 /** The crop focus for `key`: `{ x, y }` percentages from the painting's

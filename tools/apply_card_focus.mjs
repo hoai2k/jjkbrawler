@@ -81,8 +81,12 @@ const width = Math.max(0, ...rows.map((r) => r.key.length));
 // A card whose width is still centred is written as the bare number it has
 // always been — the pair is only spelled out where the second axis was moved.
 const valueOf = (r) => (r.focusX === 50 ? `${r.focus}` : `[${r.focusX}, ${r.focus}]`);
+// The name comments line up in one column, which is what makes the table
+// scannable — and a pair is wider than a bare number, so the column is measured
+// off the widest entry rather than assumed.
+const valueWidth = Math.max(0, ...rows.map((r) => valueOf(r).length + 1));
 const body = rows.length
-  ? rows.map((r) => `  ${(r.key + ":").padEnd(width + 1)} ${valueOf(r)},`.padEnd(width + 9)
+  ? rows.map((r) => `  ${(r.key + ":").padEnd(width + 1)} ${`${valueOf(r)},`.padEnd(valueWidth)}`
       + ` // ${r.name}`).join("\n")
   : "  // gojo: 18,";
 
