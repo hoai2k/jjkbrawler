@@ -153,24 +153,12 @@ ok(live.lit === live.any, "the indicator agrees with the switches",
 // frozen exactly where they were drawn, for the life of the page. The frame is
 // `sim.js advanceWorld` now — shared with the game, so the bench cannot leave a
 // piece of it out — and this is the assertion that says so out loud.
-// The switches above are BUTTONS, and clicking one leaves the focus on it —
-// so a key pressed next goes to a control rather than to the fighter. The
-// viewer has to be handed the keyboard back first, exactly as the header tells
-// a human to do.
-await page.evaluate(() => document.querySelector("canvas")?.focus());
-await page.keyboard.press("KeyL");
-await page.waitForTimeout(400);
-const cast = await page.evaluate(async () => {
-  const { state } = await import("/src/state.js");
-  return state.fighters[0].animKey;
-});
-ok(cast === "specialNeutral", "the viewer takes the keyboard and throws a special", cast);
-
-// AND THE PARTICLES ARE ASKED FOR DIRECTLY, because what is being tested is
-// that they EXPIRE — that the bench steps the presentation and not just the
-// world. Reading them off whatever special the roster walk happened to land on
-// tested a character's kit instead: Yuki's neutral throws none at all, which
-// read as a frozen presentation when nothing was frozen.
+// THE PARTICLES ARE ASKED FOR DIRECTLY, because what is being tested is that
+// they EXPIRE — that the bench steps the presentation and not just the world.
+// Reading them off a special tested a character's kit instead: the roster walk
+// above lands on whoever it lands on, and Yuki's neutral throws no particles at
+// all, which read as a frozen presentation when nothing was frozen. That the
+// keys reach the fighter is already asserted further up.
 await page.evaluate(async () => {
   const { state } = await import("/src/state.js");
   const { burst } = await import("/src/particles.js");
