@@ -9,11 +9,12 @@
 //
 // Run: node tools/smoke_camera.mjs
 import { state } from "../src/state.js";
+import { ART_SCALE } from "../src/config_tuning.js";
 import { updateCamera } from "../src/camera.js";
 import { updateRig, resetRig, worldToScreen, overlayTransform, dollyFor, camera } from "../src/camera3d/rig.js";
 import { cameraCue } from "../src/camera_mode.js";
 import { CAMERA, BOARD_CAMERA, CUES } from "../src/config_camera.js";
-import { WORLD } from "../src/constants.js";
+import { WORLD, BLAST } from "../src/constants.js";
 
 const DT = 1 / 60;
 let failures = 0;
@@ -116,6 +117,84 @@ run(0.5);
 frameInvariants("after respawn");
 pass("KO / respawn transitions");
 
+// ---- 3b. A RING-OUT IS A MOVE, NOT A CUT.
+//
+// The camera used to drop a KO'd fighter from the framing outright: the frame
+// closed on whoever was left — the wrong way — and then the blackout ended, a
+// body appeared on a revival platform most of a stage away, and the containment
+// pass opened the shot in ONE frame to catch it. Measured on this exact script,
+// that arrival frame moved the camera 150.6 px, nearly all of it vertical.
+//
+// fighter.js now records where they went out and where they come back, and the
+// shot tracks a point travelling between the two (camera.js). Both ends are
+// then free: nothing is let go of at the ring-out, nothing is discovered at the
+// arrival.
+//
+// Measured from the ring-out onward, because that is what changed — the launch
+// before it is an ordinary chase and moves the camera as fast as any launch
+// does. The bars are a frame of ordinary play, not a frame of stillness.
+{
+  resetState();
+  run(0.6);
+  const ko = state.fighters[1];
+  let worstPan = 0, worstZoom = 0, watching = false;
+  const watch = () => {
+    const before = { x: state.camera.x, y: state.camera.y, z: state.camera.zoom };
+    updateCamera(DT);
+    updateRig(state, DT);
+    if (!watching) return;
+    worstPan = Math.max(worstPan, Math.hypot(state.camera.x - before.x, state.camera.y - before.y));
+    worstZoom = Math.max(worstZoom, Math.abs(state.camera.zoom - before.z));
+  };
+  // LAUNCHED, not teleported: the camera follows a body out to the blast line,
+  // and letting go of THAT frame is half of what used to cut. A fighter set
+  // down at the blast line in one step would measure the placement instead.
+  ko.vx = 1500; ko.vy = -260;
+  while (ko.x < BLAST.right) {
+    ko.x += ko.vx * DT;
+    ko.y += ko.vy * DT;
+    watch();
+  }
+  // Rung out where they crossed, coming back at the far side — the record
+  // fighter.js ringOut() writes.
+  watching = true;
+  ko.respawnTimer = 0.65;
+  ko.respawnAt = { x: 850, y: 250, fromX: Math.min(ko.x, WORLD.w), fromY: Math.max(0, ko.y) };
+  ko.vx = 0; ko.vy = 0;
+  let arrival = null;
+  // The blackout, then the arrival ON THE SAME FRAME the timer runs out —
+  // fighter.js respawn() moves the body and clears the timer together, and a
+  // harness that did it in two steps would measure a fighter standing in the
+  // blast zone for a frame rather than anything the game does.
+  for (let i = 0; i < Math.round(0.9 / DT); i++) {
+    if (ko.respawnTimer > 0) {
+      ko.respawnTimer -= DT;
+      if (ko.respawnTimer <= 0) {
+        ko.respawnTimer = 0;
+        ko.x = ko.respawnAt.x;
+        ko.y = ko.respawnAt.y;
+        ko.respawnAt = null;
+        arrival = { x: state.camera.x, y: state.camera.y };
+      }
+    }
+    watch();
+  }
+  const settle = Math.hypot(state.camera.x - arrival.x, state.camera.y - arrival.y);
+  check(worstPan < 13, "a ring-out and a respawn never cut the camera",
+    `worst frame ${worstPan.toFixed(1)}px, against 150.6px before the trip existed`);
+  // 0.02 is a fifth of the 0.10 the arrival used to cost and half what the
+  // launch just before it spends chasing the body out — a zoom that moves,
+  // against one that cuts.
+  // In ZOOM UNITS, and the zoom itself is now 1/ART_SCALE larger — so the same
+  // proportional move costs proportionally more of them.
+  check(worstZoom < 0.02 / ART_SCALE, "...and never snap the zoom",
+    `worst frame ${worstZoom.toFixed(4)}x, against 0.1016x before`);
+  check(settle < 90, "...so the arrival is the end of the move, not the start",
+    `${settle.toFixed(1)}px of camera travel after the body lands`);
+  frameInvariants("respawn arrival");
+  pass("ring-out framing");
+}
+
 // ---- 4. ult cast dollies in on the caster, then releases
 resetState();
 state.fighters[0].action = { kind: "ult", t: 0, dur: 1.2 };
@@ -193,15 +272,23 @@ const probe = (x, y) => ({ x: T.a * x + T.c * y + T.e, y: T.b * x + T.d * y + T.
 // things that must land exactly (hitbox debug, particles, popups riding the
 // fighters) are at the anchor; a free-standing stage-FX drawing 400 px from
 // the fight may sit a few px off its GL counterpart, which nothing overlaps.
-// Tolerances are calibrated at the dynamic camera's tightest shot (ZOOM_MAX
-// 1.32, camera.js): a closer dolly both magnifies the error in screen px and
-// steepens the perspective the affine cannot carry — and at that zoom the far
-// probes sit at or beyond the frame edge, where nothing aligned is drawn.
-for (const [x, y, tol] of [[640, 568, 0.75], [500, 480, 0.75], [300, 400, 4], [1000, 250, 12]]) {
+// Tolerances are calibrated at the dynamic camera's tightest shot (camera.js
+// ZOOM_MAX): a closer dolly both magnifies the error in screen px and steepens
+// the perspective the affine cannot carry — and at that zoom the far probes sit
+// at or beyond the frame edge, where nothing aligned is drawn.
+//
+// So they follow the zoom rather than being written down for one. The roster
+// shrank to ART_SCALE and the camera zoomed in by its reciprocal to hold
+// fighters the same size on screen (config_tuning.js), which magnifies AND
+// steepens — both linear in zoom, so the error a fixed tolerance has to admit
+// goes as the square. The numbers below are the 1.32-shot's, carried across.
+const TOL = 1 / (ART_SCALE * ART_SCALE);
+for (const [x, y, tol] of [[640, 568, 0.75 * TOL], [500, 480, 0.75 * TOL],
+                           [300, 400, 4 * TOL], [1000, 250, 12 * TOL]]) {
   const direct = worldToScreen(x, y);
   const affine = probe(x, y);
   const err = Math.hypot(direct.x - affine.x, direct.y - affine.y);
-  check(err < tol, `affine fit within ${tol} px of true projection`, `err=${err.toFixed(3)} at (${x},${y})`);
+  check(err < tol, `affine fit within ${tol.toFixed(2)} px of true projection`, `err=${err.toFixed(3)} at (${x},${y})`);
 }
 pass(`overlay affine fit (fov=${CAMERA.fov}, yawMax=${CAMERA.yawMax})`);
 
@@ -222,16 +309,20 @@ function checkFramed(label) {
     // deliberately stops following rather than showing the void.
     if (f.x < -170 || f.x > WORLD.w + 170 || f.y < -90 || f.y > WORLD.h + 90) continue;
     const inWorld = f.x >= 0 && f.x <= WORLD.w && f.y >= 0 && f.y <= WORLD.h;
-    // Body box around the foot point: widest fighter ~76 px, tallest ~200.
-    // Inside the world we demand slack on top of that; out in the gutter,
-    // where the shot is already at its widest, the body itself is the bar.
-    const slack = inWorld ? 30 : 0;
-    const halfBody = 45;
+    // Body box around the foot point — and a BODY is whatever the roster's
+    // scale says it is (config_tuning.js ART_SCALE). Written as the widest
+    // fighter's ~76px and the tallest's ~200 at full size, then scaled, so
+    // this asks the camera to frame the fighters the game actually draws
+    // rather than the ones it drew when the numbers were typed.
+    const slack = inWorld ? 30 * ART_SCALE : 0;
+    const halfBody = 45 * ART_SCALE;
+    const bodyTop = 200 * ART_SCALE;
+    const bodyFoot = 20 * ART_SCALE;
     check(Math.abs(f.x - v.x) + halfBody + slack <= v.halfW,
       `${label}: fighter ${f.id} framed horizontally`,
       `x=${f.x.toFixed(0)} cx=${v.x.toFixed(0)} half=${v.halfW.toFixed(0)}`);
-    check(f.y - 200 >= v.y - v.halfH - (inWorld ? 0 : 40) + slack &&
-          f.y + 20 <= v.y + v.halfH - slack,
+    check(f.y - bodyTop >= v.y - v.halfH - (inWorld ? 0 : 40 * ART_SCALE) + slack &&
+          f.y + bodyFoot <= v.y + v.halfH - slack,
       `${label}: fighter ${f.id} framed vertically`,
       `y=${f.y.toFixed(0)} cy=${v.y.toFixed(0)} half=${v.halfH.toFixed(0)}`);
   }
@@ -255,6 +346,40 @@ for (const [vx0, vy0] of [[1900, -1500], [-2100, -900], [400, 2000], [-2600, -24
   }
 }
 pass("launches stay framed");
+
+// ---- 10b. THE SHOT NEVER OUTRUNS THE FIGHTERS.
+//
+// The pan is eased, and an eased pan is proportional: fastest exactly when the
+// error is largest. Coming back from a ledge closes a ~300 px framing error and
+// the first frame of that ease used to be a third of it — the shot lurched,
+// settled, and read as the camera having been startled. It is speed-limited now
+// (camera.js PAN_MAX_SPEED, 720 px/s = 12 px a frame), and the containment pass
+// is deliberately NOT limited, so this measures the two together: a launch is
+// the case where containment SHOULD override, and it is also the case where the
+// old proportional whip was worst.
+{
+  resetState();
+  run(1);
+  const f = state.fighters[1];
+  f.vx = 2400; f.vy = -1800;
+  let worst = 0, worstAt = "";
+  for (let i = 0; i < 90; i++) {
+    f.vy += 2350 * DT;
+    f.x += f.vx * DT;
+    f.y += f.vy * DT;
+    const before = { x: state.camera.x, y: state.camera.y };
+    updateCamera(DT);
+    const step = Math.hypot(state.camera.x - before.x, state.camera.y - before.y);
+    // Containment is allowed to move the frame as far as it must; what is
+    // measured here is the frames where it is NOT binding, which is where the
+    // comfort rule owns the motion.
+    const fitting = Math.abs(f.x - state.camera.x) + 155 < WORLD.w / 2 / state.camera.zoom;
+    if (fitting && step > worst) { worst = step; worstAt = `frame ${i}`; }
+  }
+  check(worst <= 12.2, "the pan never outruns a running fighter",
+    `worst unforced frame ${worst.toFixed(1)}px ${worstAt}, cap 12.0px`);
+  pass("pan speed limit");
+}
 
 // Both fighters at opposite gutters at once — the widest legal shot.
 resetState();

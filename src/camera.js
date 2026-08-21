@@ -1,6 +1,7 @@
 import { state } from "./state.js";
 import { clamp, lerp } from "./utils.js";
-import { WORLD } from "./constants.js";
+import { WORLD, RESPAWN_WAIT } from "./constants.js";
+import { ART_SCALE } from "./config_tuning.js";
 
 // Smash-style framing: fit the alive fighters' bounding box, padded, and zoom
 // to whatever makes that box fill the frame — tight duels are shot tight, a
@@ -8,19 +9,32 @@ import { WORLD } from "./constants.js";
 // The pads are sized for the fighters plus the space a fight needs around
 // them: heads and jumps above (fighter y is the foot line), attack reach and
 // a beat of lookahead to the sides, a strip of ground below.
-const FRAME_PAD_X = 240;
-const FRAME_PAD_TOP = 280;
-const FRAME_PAD_BOTTOM = 120;
+// The pads are body-sized, so they shrink with the bodies: the room a fight
+// needs around two fighters is a fact about the fighters, and holding 240px
+// beside a 104px body frames a duel like a wide shot of an empty stage.
+const FRAME_PAD_X = 240 * ART_SCALE;
+const FRAME_PAD_TOP = 280 * ART_SCALE;
+const FRAME_PAD_BOTTOM = 120 * ART_SCALE;
 // 1.32 restores the on-screen size fighters had before the roster shrank 15%
 // (docs/level-design-review.md G1a): close fights read as large as ever, and
 // the zoom-out is what buys the bigger boards their room.
-const ZOOM_MAX = 1.32;
-const ZOOM_SOLO = 1.12;
+// ...and the zoom goes the other way by exactly as much, so a fighter lands on
+// screen the size they always were. This is the half of the roster shrink that
+// makes it invisible: the bodies are 70% of what they were in WORLD pixels and
+// 100% of what they were in SCREEN pixels, and what actually changed is how
+// much board fits around them.
+const ZOOM_MAX = 1.32 / ART_SCALE;
+const ZOOM_SOLO = 1.12 / ART_SCALE;
 // Below 1 the view reaches past the painted world, into the strip of blast
 // zone where recoveries actually happen: at 0.78 the shot is 1641 × 923, wide
 // enough to hold two fighters hanging off opposite ledges at once. Everything
 // painted world-wide bleeds out to match (VIEW_BLEED, render.js). Lower than
 // this and the fighters stop reading.
+// NOT scaled with the roster, deliberately. This is the floor that lets the
+// shot reach into the blast zone after somebody who is recovering, and the
+// blast zone did not move when the bodies shrank — it is board, not body. Held
+// at 0.78 the frame still covers 1641 x 923 world px, which is what holding two
+// fighters off opposite ledges actually costs.
 const ZOOM_MIN = 0.78;
 // How far off the world the view centre may push the frame, so a fighter
 // scrapping for a ledge from off-stage stays on screen. Generous on purpose:
@@ -41,11 +55,116 @@ const LOOKAHEAD_MAX = 260;
 // body width (~76 px at the widest) and a strip of ground. These only ever
 // bind in the moments the eased framing would have lost somebody — in normal
 // play the frame is wider than they ask for.
-const KEEP_PAD_X = 110;
-const KEEP_PAD_TOP = 250;
-const KEEP_PAD_BOTTOM = 70;
+const KEEP_PAD_X = 110 * ART_SCALE;
+const KEEP_PAD_TOP = 250 * ART_SCALE;
+const KEEP_PAD_BOTTOM = 70 * ART_SCALE;
+
+// A FIGHTER WHO IS COMING BACK IS STILL IN THE SHOT — ON THEIR WAY BACK.
+//
+// A ring-out used to take them out of the framing outright. Two cuts came of
+// that, in the same second: the frame let go of the body it had been holding at
+// the blast line and whipped in toward whoever was left, and then the blackout
+// ended, a body appeared on a revival platform most of a stage away, and the
+// containment pass below — which must open the frame the instant somebody is
+// outside it — snapped the zoom in ONE frame to catch it.
+//
+// Both ends are known in advance. fighter.js records where they went out and
+// where they are coming back the moment they are rung out (`respawnAt`), so
+// what the camera tracks through the blackout is a POINT TRAVELLING BETWEEN
+// THEM: at the ring-out it is exactly where the fighter was, so nothing is let
+// go of; at the arrival it is exactly where the body appears, so nothing is
+// discovered. In between the shot carries the eye across, which is the move a
+// human operator would make.
+//
+// Eased rather than linear, because the ends are what matter: it leaves the
+// blast line gently and settles onto the platform gently, and the middle —
+// empty stage nobody is looking at — is where the speed goes.
+const smooth = (t) => t * t * (3 - 2 * t);
+
+/** How far through the trip back a rung-out fighter is, 0..1. */
+const arriving = (f) => (f.dead || !f.respawnAt ? 0
+  : smooth(1 - clamp(f.respawnTimer / RESPAWN_WAIT, 0, 1)));
+
+// A FIGHTER ON A LEDGE IS AT THE EDGE OF THE STAGE, NOT IN THE MIDDLE OF A
+// FIGHT — SO THE SHOT HOLDS THE EDGE.
+//
+// Ledge play is four or five fast, short movements inside 150 px: fall past the
+// lip, snap onto the hang, hold, climb or roll or jump, maybe drop and regrab.
+// Framed body-tight, each one moves the camera — and because they alternate
+// direction, the frame swims back and forth through the whole exchange. The
+// motion is real and the tracking is honest; it is just not worth following.
+// Nobody watching needs the hang centred, they need to SEE it, and the corner
+// it happens around does not move at all.
+//
+// So while the grip has the drawing (fighter.js hangGripW — in across the
+// catch, 1 on the hang, out across whichever exit they take), the point this
+// fighter contributes to the framing eases from their body onto the platform
+// corner, and their velocity stops leading it. The containment pass below is
+// untouched and still keeps the real body in frame with its full margin: this
+// decides what the shot is ABOUT, never what it is allowed to lose.
+function framePoint(f) {
+  const at = ledgeHold(f);
+  const lead = (v) => clamp((v || 0) * LOOKAHEAD_T, -LOOKAHEAD_MAX, LOOKAHEAD_MAX) * (1 - at.w);
+  return {
+    x: at.w ? lerp(f.x, at.x, at.w) : f.x,
+    y: at.w ? lerp(f.y, at.y, at.w) : f.y,
+    lx: lead(f.vx),
+    ly: lead(f.vy),
+  };
+}
+
+/** The corner a fighter's ledge business is happening around, and how much of
+ *  the shot it owns.
+ *
+ *  Full through the hang, and either side of it a ramp, so both edges of the
+ *  hold are movements rather than switches:
+ *
+ *    catching   the hands closing on the lip — the shot settles onto it over
+ *               the reach, so the last of the fall is followed and the arrival
+ *               is not
+ *    hanging    entirely the corner's; a hang does not move
+ *    leaving    the grip's own release (fighter.js hangGripW), which is
+ *               already the ramp the drawing is handed back on, so the frame
+ *               takes the fighter back exactly as the body does
+ *
+ *  Null weight for everyone else, which is almost everyone almost always. */
+function ledgeHold(f) {
+  const corner = f.ledge
+    ? { x: f.ledge.edgeX, y: f.ledge.plat.y }
+    : (f.hangGrip || null);
+  if (!corner) return { w: 0 };
+  const m = f.ledgeMove;
+  const w = m?.kind === "catch" ? smooth(clamp(m.t / m.dur, 0, 1))
+    : f.ledge ? 1
+      : clamp(f.hangGripW || 0, 0, 1);
+  return { x: corner.x, y: corner.y, w };
+}
+
+/** Where the shot should be holding them right now. */
+function returnPoint(f) {
+  const r = f.respawnAt;
+  const k = arriving(f);
+  return {
+    x: lerp(r.fromX ?? r.x, r.x, k),
+    y: lerp(r.fromY ?? r.y, r.y, k),
+  };
+}
 
 const PAN_DAMP = 0.0009;
+// ...AND A SPEED LIMIT ON TOP OF IT, because an eased pan is proportional and
+// proportional is fastest exactly when the error is largest. A fighter coming
+// back from a ledge closes a 300 px framing error, and the first frame of that
+// ease is a third of it: the shot lurches, settles, and reads as the camera
+// having been startled. The ledge is where this bites hardest — going out and
+// coming back is four such errors in a few seconds — but nothing about it is
+// special, so this is not a ledge rule.
+//
+// 720 px/s is 12 px a frame: quicker than a fighter can run (468) and under a
+// fast fall (900), so the frame can still travel with anybody without ever
+// moving faster than the thing it is following. The containment pass below is
+// NOT limited and overrides this whenever it binds — a comfort rule must never
+// be the reason somebody leaves the frame.
+const PAN_MAX_SPEED = 720;
 // Settling into a tighter shot is slow and unnoticeable; opening up to keep
 // somebody in frame is near-instant. A single symmetric rate cannot do both,
 // and it was the slow one that let a launched fighter leave the frame.
@@ -70,20 +189,32 @@ function contain(c, half, lo, hi) {
 export function updateCamera(dt) {
   const cam = state.camera;
   const alive = state.fighters.filter((f) => !f.dead && f.respawnTimer <= 0);
+  // The bodies that are not on the stage yet, at the point they will appear.
+  const incoming = state.fighters
+    .filter((f) => f.respawnTimer > 0 && f.respawnAt && !f.dead)
+    .map(returnPoint);
+  const framed = alive.length + incoming.length;
 
   let cx = WORLD.w / 2;
   let cy = WORLD.h / 2;
   let zoomTarget = 1;
 
-  if (alive.length >= 2) {
+  if (framed >= 2) {
     let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
     for (const f of alive) {
-      const lx = clamp((f.vx || 0) * LOOKAHEAD_T, -LOOKAHEAD_MAX, LOOKAHEAD_MAX);
-      const ly = clamp((f.vy || 0) * LOOKAHEAD_T, -LOOKAHEAD_MAX, LOOKAHEAD_MAX);
-      left = Math.min(left, f.x, f.x + lx);
-      right = Math.max(right, f.x, f.x + lx);
-      top = Math.min(top, f.y, f.y + ly);
-      bottom = Math.max(bottom, f.y, f.y + ly);
+      const p = framePoint(f);
+      left = Math.min(left, p.x, p.x + p.lx);
+      right = Math.max(right, p.x, p.x + p.lx);
+      top = Math.min(top, p.y, p.y + p.ly);
+      bottom = Math.max(bottom, p.y, p.y + p.ly);
+    }
+    // No lookahead: this point's whole path is already known, so there is
+    // nothing to anticipate.
+    for (const p of incoming) {
+      left = Math.min(left, p.x);
+      right = Math.max(right, p.x);
+      top = Math.min(top, p.y);
+      bottom = Math.max(bottom, p.y);
     }
     left -= FRAME_PAD_X;
     right += FRAME_PAD_X;
@@ -95,10 +226,10 @@ export function updateCamera(dt) {
     );
     cx = (left + right) / 2;
     cy = (top + bottom) / 2;
-  } else if (alive.length === 1) {
-    const f = alive[0];
-    cx = f.x + clamp((f.vx || 0) * LOOKAHEAD_T, -LOOKAHEAD_MAX, LOOKAHEAD_MAX) / 2;
-    cy = f.y - 90 + clamp((f.vy || 0) * LOOKAHEAD_T, -LOOKAHEAD_MAX, LOOKAHEAD_MAX) / 2;
+  } else if (framed === 1 && alive.length === 1) {
+    const p = framePoint(alive[0]);
+    cx = p.x + p.lx / 2;
+    cy = p.y - 90 + p.ly / 2;
     zoomTarget = ZOOM_SOLO;
   }
 
@@ -113,8 +244,15 @@ export function updateCamera(dt) {
   const panHalfW = WORLD.w / 2 / cam.zoom;
   const panHalfH = WORLD.h / 2 / cam.zoom;
   const panT = 1 - Math.pow(PAN_DAMP, dt);
-  cam.x = lerp(cam.x, clampView(cx, panHalfW, WORLD.w, OVERSCAN_X), panT);
-  cam.y = lerp(cam.y, clampView(cy, panHalfH, WORLD.h, OVERSCAN_Y), panT);
+  const wantX = lerp(cam.x, clampView(cx, panHalfW, WORLD.w, OVERSCAN_X), panT);
+  const wantY = lerp(cam.y, clampView(cy, panHalfH, WORLD.h, OVERSCAN_Y), panT);
+  const dx = wantX - cam.x;
+  const dy = wantY - cam.y;
+  const step = Math.hypot(dx, dy);
+  const cap = PAN_MAX_SPEED * dt;
+  const k = step > cap ? cap / step : 1;
+  cam.x += dx * k;
+  cam.y += dy * k;
 
   // Containment. The eased pan above is what the shot WANTS; this is what it
   // owes. Anyone the easing (or a zoom that has not finished opening) would
@@ -122,7 +260,7 @@ export function updateCamera(dt) {
   // it — including the shake amplitude, which is applied after this.
   let halfW = WORLD.w / 2 / cam.zoom;
   let halfH = WORLD.h / 2 / cam.zoom;
-  if (alive.length) {
+  if (alive.length || incoming.length) {
     const m = cam.shake * 0.5;
     let left = Infinity, right = -Infinity, top = Infinity, bottom = -Infinity;
     for (const f of alive) {
@@ -130,6 +268,16 @@ export function updateCamera(dt) {
       right = Math.max(right, f.x + KEEP_PAD_X + m);
       top = Math.min(top, f.y - KEEP_PAD_TOP - m);
       bottom = Math.max(bottom, f.y + KEEP_PAD_BOTTOM + m);
+    }
+    // ...and the travelling point, held exactly as a body is. It is where the
+    // fighter was when the frame last owed them anything and where the next one
+    // appears, so honouring it throughout is what makes both ends free: nothing
+    // is dropped at the ring-out and nothing is found at the arrival.
+    for (const p of incoming) {
+      left = Math.min(left, p.x - KEEP_PAD_X - m);
+      right = Math.max(right, p.x + KEEP_PAD_X + m);
+      top = Math.min(top, p.y - KEEP_PAD_TOP - m);
+      bottom = Math.max(bottom, p.y + KEEP_PAD_BOTTOM + m);
     }
     // Zoom out NOW if the eased zoom has not opened far enough — the shot may
     // lag on the way in, never on the way out. A 2000 px/s launch outruns any

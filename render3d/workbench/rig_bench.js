@@ -47,7 +47,7 @@ import { initPose, poseRig, captureCleanPose, RIG_CHECK_POSES } from "../src/pos
 import { buildMannequin, MANNEQUIN_HEIGHT_M } from "../src/mannequin.js";
 import { RIG_FIXES, MODEL_FIXES, SYMMETRISE, symmetrises, pendingFixes, setModelFixesEnabled } from "../src/rig_fixes.js";
 import { setWorldWidth } from "../src/outline.js";
-import { CHARACTER_KEYS, CHARACTERS } from "../../src/characters.js";
+import { CHARACTER_KEYS, CHARACTERS, byCharacterName } from "../../src/characters.js";
 
 const $ = (id) => document.getElementById(id);
 const DEG = Math.PI / 180;
@@ -153,7 +153,11 @@ await rig.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS,
 
 /** Characters with a real delivered model. A mannequin is built to spec and
  *  has nothing wrong with it, so there is nothing here to fix. */
-const DELIVERED = CHARACTER_KEYS.filter((k) => rig.rigManifest().characters?.[k]?.model);
+// Alphabetically, like the 3D bench's own picker next door: which fighters have
+// a model is the distinction worth keeping, and roster order inside it is not.
+const DELIVERED = CHARACTER_KEYS
+  .filter((k) => rig.rigManifest().characters?.[k]?.model)
+  .sort(byCharacterName);
 
 const state = {
   char: DELIVERED.includes(params.get("char")) ? params.get("char") : DELIVERED[0],

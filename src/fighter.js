@@ -13,7 +13,7 @@ import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop, noteFir
 import { rumbleEvent } from "./rumble.js";
 import { counterShimmerFx, healMotesFx } from "./fx.js";
 import {
-  GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME, CROUCH_GRACE,
+  WORLD, GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME, CROUCH_GRACE,
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
   DASH_MULT, ACTION_BUFFER, AERIAL_LAND_LAG_MULT, AERIAL_LAND_LAG_MIN, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
   SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
@@ -29,7 +29,7 @@ import {
   ATTACK_TILT_LEVEL_DEG, ATTACK_TILT_CARDINAL_DEG, ATTACK_TILT_MIN_MAG,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
-import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE } from "./config_tuning.js";
+import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE, ART_SCALE } from "./config_tuning.js";
 import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame, sweepsTurns } from "./render_backend.js";
@@ -87,6 +87,10 @@ export function makeFighter(id, charKey, x, facing) {
     // dropped the frame somebody presses a direction.
     hangGrip: null, hangGripW: 0,
     respawnTimer: 0, dead: false,
+    // Where this fighter will come back, set the moment they are rung out so
+    // the camera can start moving there while they are still off screen
+    // (camera.js). Null whenever they are on the stage.
+    respawnAt: null,
     // The revival platform this fighter is currently standing on, or null.
     // {x, y, t} — see stepRespawnPlatform.
     respawnPlat: null,
@@ -190,7 +194,13 @@ function executeMove(f, move, opts = {}) {
   // speed off the moment it locks movement, which is right for a tilt thrown on
   // the spot and wrong for a dash attack, whose whole idea is the run carrying
   // through the swing.
-  beginAction(f, "attack", total, move.anim, { move, keepMomentum: move.keepMomentum, lunge: move.lunge });
+  beginAction(f, "attack", total, move.anim, {
+    move, keepMomentum: move.keepMomentum, lunge: move.lunge,
+    // A lunge that wants its own decay says so. Absent means LUNGE_DRAG, which
+    // is the dashStrike specials' number — see constants.js for why a dash
+    // attack is not those.
+    lungeDrag: move.lungeDrag,
+  });
   if (move.lungeVx && f.grounded) f.vx += f.facing * move.lungeVx * 3;
   spawnMelee(f, {
     ...move,
@@ -439,7 +449,7 @@ function releaseHeavy(f, input) {
   }
   executeMove(f, move, { grunt: charge > 0.5 });
   if (charge > 0.25) {
-    burst(f.x, f.y - 90, f.char.theme, 14 + charge * 16, 1 + charge);
+    burst(f.x, f.y - 90 * ART_SCALE, f.char.theme, 14 + charge * 16, 1 + charge);
     state.camera.shake = Math.max(state.camera.shake, 3 + charge * 4);
   }
 }
@@ -683,7 +693,7 @@ function tryGrabLedge(f) {
         occupant.vx = side * 170;
         occupant.vy = -240;
         occupant.invuln = Math.max(occupant.invuln, 0.3);
-        dust(occupant.x, occupant.y - 40, 6);
+        dust(occupant.x, occupant.y - 40 * ART_SCALE, 6);
         playSfx("whoosh", 0.6);
       }
       f.ledge = { side, edgeX, plat };
@@ -1073,9 +1083,24 @@ export function ringOut(f) {
   if (f.stocks <= 0) {
     f.dead = true;
     f.x = -9999;
+    f.respawnAt = null;
     return;
   }
   f.respawnTimer = RESPAWN_WAIT;
+  // WHERE THEY ARE COMING BACK, decided now rather than at the end of the
+  // wait. Nothing about it changes in the meantime — it is a function of the
+  // slot and how many fighters are in the match — and knowing it early is what
+  // lets the camera open toward the spot over the whole blackout instead of
+  // discovering it the frame a body appears there (camera.js).
+  // ...and WHERE THEY WENT OUT, so the camera has a path rather than a
+  // destination: the shot carries the eye from the body it just lost to the
+  // spot the next one appears in, instead of letting go of one and finding the
+  // other. Clamped to the world because a blast-zone position is off the map
+  // and the frame does not go there.
+  f.respawnAt = {
+    x: respawnX(f), y: RESPAWN_PLATFORM_Y,
+    fromX: clamp(f.x, 0, WORLD.w), fromY: clamp(f.y, 0, WORLD.h),
+  };
 }
 
 // Every path that moves a fighter has to run this. A branch that integrates
@@ -1110,7 +1135,8 @@ export function respawnX(f) {
 function respawn(f) {
   f.respawnTimer = 0;
   playSfx("respawn");
-  f.x = respawnX(f);
+  f.x = f.respawnAt?.x ?? respawnX(f);
+  f.respawnAt = null;
   // Standing ON the revival platform, in control from this frame. Smash's rule,
   // and the reason respawning does not feel like a second punishment: the
   // platform is protection you spend, not a wait you serve.
@@ -1132,10 +1158,10 @@ function respawn(f) {
   // Everything Has a Price (Mei Mei): each stock opens with an advance payment
   if (f.char.passive.id === "warCompensation" && f.meter < 25) {
     f.meter = clamp(25, 0, METER_MAX);
-    popup(f.x, f.y - 40, "ADVANCE PAID", "#ffd35a", 16);
+    popup(f.x, f.y - 40 * ART_SCALE, "ADVANCE PAID", "#ffd35a", 16);
   }
   dust(f.x, f.y, 20);
-  ring(f.x, f.y - 40, f.char.theme, 120);
+  ring(f.x, f.y - 40 * ART_SCALE, f.char.theme, 120);
 }
 
 /**
@@ -1232,7 +1258,7 @@ export function updateFighter(f, dt, input) {
       f.miracleT = 0;
       if (f.miracleStock < 3) {
         f.miracleStock += 1;
-        popup(f.x, f.y - 160, `a miracle banked (${f.miracleStock})`, "#c8a8e0", 13);
+        popup(f.x, f.y - 160 * ART_SCALE, `a miracle banked (${f.miracleStock})`, "#c8a8e0", 13);
       }
     }
   }
@@ -1265,8 +1291,8 @@ export function updateFighter(f, dt, input) {
       if (dist < radius && sign(f.vx) === toward && Math.abs(f.vx) > 30) {
         f.vx -= toward * 2600 * dt * (1 - dist / radius);
         if (dist < 130 && Math.random() < 4 * dt) {
-          popup(f.x, f.y - 150, "REPELLED", "#d9a8ff", 15);
-          burst(f.x + toward * 30, f.y - 90, "#d9a8ff", 6, 0.5);
+          popup(f.x, f.y - 150 * ART_SCALE, "REPELLED", "#d9a8ff", 15);
+          burst(f.x + toward * 30, f.y - 90 * ART_SCALE, "#d9a8ff", 6, 0.5);
           playSfx("starRepel", 0.7);
         }
       }
@@ -1293,7 +1319,7 @@ export function updateFighter(f, dt, input) {
     // Flowing Red Scale (Choso): overclocked blood burns him while it's held
     if (f.installs.selfDrainPerSec) f.damage = Math.min(999, f.damage + f.installs.selfDrainPerSec * dt);
     if (f.installs.t <= 0) {
-      popup(f.x, f.y - 170, `${f.installs.label} FADED`, "#9aa4c0", 16);
+      popup(f.x, f.y - 170 * ART_SCALE, `${f.installs.label} FADED`, "#9aa4c0", 16);
       // A transformation ends with the install that carried it: back to your
       // own body (config_transform.js).
       if (f.installs.spriteChar) f.spriteChar = null;
@@ -1482,7 +1508,7 @@ export function updateFighter(f, dt, input) {
     } else {
       f.charging.t += dt;
       if (!input.heavyHeld || f.charging.t >= 0.8) releaseHeavy(f, input);
-      else if (Math.random() < 0.3) burst(f.x, f.y - 90, f.char.theme, 1, 0.5);
+      else if (Math.random() < 0.3) burst(f.x, f.y - 90 * ART_SCALE, f.char.theme, 1, 0.5);
     }
   }
 
@@ -1603,17 +1629,17 @@ export function updateFighter(f, dt, input) {
     } else if (openSlot >= 0 && f.char.domains?.[openSlot]) {
       f.bufferedAction = null;
       if (canOpenDomain(f, openSlot)) performDomain(f, openSlot);
-      else if (f.meter < DOMAIN_METER_COST) popup(f.x, f.y - 160, "NEEDS A FULL BAR", "#9aa4c0", 15);
+      else if (f.meter < DOMAIN_METER_COST) popup(f.x, f.y - 160 * ART_SCALE, "NEEDS A FULL BAR", "#9aa4c0", 15);
     } else if (domainSpecial) {
       f.bufferedAction = null;
       performSpecial(f, domainSpecial);
     } else if (input.domainP) {
-      popup(f.x, f.y - 160, "NO DOMAIN", "#9aa4c0", 15);
+      popup(f.x, f.y - 160 * ART_SCALE, "NO DOMAIN", "#9aa4c0", 15);
     } else if (input.ultP && f.meter >= ULT_METER_COST) {
       performUltimate(f);
     } else if (input.ultP && f.meter < ULT_METER_COST) {
       // Same wording as the domain refusal — they cost the same thing now.
-      popup(f.x, f.y - 160, "NEEDS A FULL BAR", "#9aa4c0", 15);
+      popup(f.x, f.y - 160 * ART_SCALE, "NEEDS A FULL BAR", "#9aa4c0", 15);
     } else {
       // A fresh press wins over a buffered one; the buffer only covers inputs
       // that arrived while the fighter was busy.
@@ -1623,6 +1649,15 @@ export function updateFighter(f, dt, input) {
         : input.lightP ? "light"
         : input.tiltDir ? "tilt"
         : f.bufferedAction?.kind;
+      // TURN INTO THE ATTACK. Nothing faces the fighter for them any more, so
+      // an attack thrown with a direction held is thrown THAT way — the rule
+      // the tilt stick already had ("a tilt aimed behind you is a tilt behind
+      // you", beginTilt) applied to the buttons too. Not at a run: the dash
+      // attack belongs to the direction the run is already going, and turning
+      // it around mid-stride is not a thing anybody was asking for.
+      if (f.grounded && input.dirX && act && act !== "tilt" && !isRunning(f)) {
+        f.facing = input.dirX;
+      }
       if (act === "grab") {
         // Grounded only, like Smash: the air already belongs to aerials, and
         // an air grab would be a fifth aerial nobody asked for. A press in the
@@ -1736,7 +1771,8 @@ export function updateFighter(f, dt, input) {
     // and at no rate at all it slid the width of a quarter of the stage at a
     // flat 520 px/s before stopping dead. Decaying is what makes it read as a
     // lunge that ran out rather than a fighter being dragged.
-    f.vx *= Math.pow(friction, dt * (f.action?.lunge ? LUNGE_DRAG : 40));
+    f.vx *= Math.pow(friction, dt * (f.action?.lunge
+      ? (f.action.lungeDrag ?? LUNGE_DRAG) : 40));
     if (Math.abs(f.vx) < 8) f.vx = 0;
   }
 
@@ -1745,11 +1781,14 @@ export function updateFighter(f, dt, input) {
     if (input.dirX === -f.dashDir) f.dashT = 0;
   }
 
-  // face the opponent when standing still
-  if (f.grounded && !f.action && !inHitstun && input.dirX === 0 && Math.abs(f.vx) < 40) {
-    const opp = opponentOf(f);
-    if (opp && !opp.dead) f.facing = opp.x >= f.x ? 1 : -1;
-  }
+  // WHICH WAY A FIGHTER LOOKS IS THEIRS. A standing fighter used to snap
+  // around to face the nearest opponent the moment the stick came back to
+  // centre, which meant a turn could not be HELD: walk away, let go, and the
+  // idle drawing spun back. That is a 2D fighter's rule (Street Fighter locks
+  // both players' facing to each other); a platform fighter's is that facing
+  // is spent, like a jump or a dash, and holds until the player spends it
+  // again. Turning is the tap below, the tilt stick (beginTilt), or throwing
+  // an attack with a direction held (the attack routing above).
   f.prevLeft = input.left;
   f.prevRight = input.right;
 

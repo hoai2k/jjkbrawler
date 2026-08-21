@@ -50,12 +50,40 @@ export function setContactTier(on) {
   return CONTACT_TIER;
 }
 
-/** THE COM-ALIGNED CROSS-FADE — ON, because it is the game now.
+/** THE ROSTER'S SIZE, as a multiplier on `HEIGHT_BASE_PX` (config_tuning.js).
  *
- *  It shipped dark while it was being judged, which is what a dark flag is
- *  for: the same fight, twice, one URL apart. It has been judged. `?smooth=`
- *  still reads, so `?smooth=` on its own turns it off for a comparison, but
- *  the default is on and the character bench is where it gets switched.
+ *  1 is the game. Anything else is somebody asking the question the level
+ *  design keeps running into: our fighters are about twice the size Smash's
+ *  are relative to their board, so a main platform is 5.7 body heights where
+ *  Battlefield is 11-14, and a full hop clears 1.03 of a body where Mario's
+ *  clears 2.6. Every one of those ratios moves together when this one number
+ *  does, which is what makes it worth a knob rather than an argument.
+ *
+ *  DELIBERATELY NOT A URL FLAG. It is not a mechanic that could ship dark — it
+ *  is a measuring instrument for a decision about art, and the only place it
+ *  can be judged is the character bench with a fighter under your thumb.
+ *  `setRosterScale` (heights.js) is the way to move it, because moving it means
+ *  re-deriving every cached measurement of every body. */
+export let FIGHTER_SCALE = 1;
+
+/** Set by heights.js setRosterScale — call that, not this. */
+export function setFighterScaleRaw(s) {
+  FIGHTER_SCALE = Math.max(0.05, Number(s) || 1);
+  return FIGHTER_SCALE;
+}
+
+/** THE COM-ALIGNED CROSS-FADE — ON, and no longer a switch of its own.
+ *
+ *  It is part of what the fade IS: a fade that does not line its two drawings
+ *  up by their mass is a double exposure of one man in two places, which is the
+ *  thing the alignment was written to stop. The bench used to carry a lamp for
+ *  it beside the fade's own and there was no answer to "why would you turn this
+ *  off while leaving the fade on" — so `setSmoothing` turns it on with the fade
+ *  and the lamp is gone.
+ *
+ *  The URL still reads, and that is the whole reason this binding survives:
+ *  tools/debug_com_fade.mjs sweeps a match with and without it, and a
+ *  measurement tool needs the comparison the game no longer offers.
  *
  *  It had a companion, `?smooth=holds`, which extended the fade to frame steps
  *  inside the slow held loops. That is gone rather than defaulted off: on two
@@ -91,17 +119,39 @@ export let SMOOTH_COM_FADE = params.has("smooth")
  *  show the bare cut the alignment is an improvement on. */
 export let SPRITE_XFADE_ON = true;
 
+/** THE STRIDE SMOOTHING — ON, because it is the art now, and a switch because
+ *  it is the kind of change you can only judge by watching it come and go.
+ *
+ *  A four-frame run is two identical strides on opposite legs, and the two
+ *  halves disagreed about how far the body drops — a median 5% of body height,
+ *  up to 25%, at six and a half footfalls a second. tools/smooth_cycles.py
+ *  brought each pair to its mean by moving `renderScale`, which the renderer
+ *  applies about the frame's own foot line, so the head moved and the feet
+ *  stayed planted (sprites/docs/sprite-motion.md).
+ *
+ *  That is a BAKE — the numbers are in the sprite manifest — so the switch does
+ *  not undo it. Every frame it touched kept what it replaced, under `smoothed`,
+ *  and turning this off draws from those instead. Presentation only: the
+ *  hurtbox is measured off a banded whole-set aggregate (silhouette.js) and
+ *  does not move either way. */
+export let STRIDE_SMOOTH = true;
 
-/** Move any of the three. Absent keys are left alone, so a caller can flip one
+/** Move any of them. Absent keys are left alone, so a caller can flip one
  *  switch without stating the others. Returns the resulting state, which is
- *  what an indicator light wants to render. */
-export function setSmoothing({ com, xfade } = {}) {
-  if (com !== undefined) SMOOTH_COM_FADE = !!com;
-  if (xfade !== undefined) SPRITE_XFADE_ON = !!xfade;
+ *  what an indicator light wants to render.
+ *
+ *  `xfade` carries the alignment with it — see the note above. */
+export function setSmoothing({ xfade, stride } = {}) {
+  if (xfade !== undefined) {
+    SPRITE_XFADE_ON = !!xfade;
+    SMOOTH_COM_FADE = !!xfade;
+  }
+  if (stride !== undefined) STRIDE_SMOOTH = !!stride;
   return smoothingState();
 }
 
-/** What is on right now. */
+/** What is on right now — the switches a bench draws lamps for. The alignment
+ *  is not among them: it is the fade's, not its own. */
 export function smoothingState() {
-  return { com: SMOOTH_COM_FADE, xfade: SPRITE_XFADE_ON };
+  return { xfade: SPRITE_XFADE_ON, stride: STRIDE_SMOOTH };
 }

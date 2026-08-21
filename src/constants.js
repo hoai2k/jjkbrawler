@@ -100,6 +100,28 @@ export const MOVE_DEADZONE = 0.28;
 // longest travelling move in the game, now visibly running out.
 export const LUNGE_DRAG = 4;
 
+// THE DASH ATTACK'S OWN DRAG, and why it is not the number above.
+//
+// A dashStrike SETS a big speed and is the move's whole point; a dash attack
+// is the run you were already doing, carried through a swing. Measured across
+// the roster (`node tools/audit_dash_slide.mjs`), the light one covered 2.15
+// body heights and the heavy 3.04 — against roughly one body height in Smash
+// Ultimate, where a dash attack coasts on run speed and the character's own
+// traction takes it back (Mario 15.2u of slide against a ~14u body, ~10% of a
+// 160u stage). Ours was double that on the body, and four times it on the
+// stage: our main platform is 5.5 body heights wide where Battlefield is 11.
+//
+// The lunge was the smaller half of it. At the old rate the run momentum ALONE
+// carried 210px — 1.5 heights — through the move's 0.55s with no lunge at all,
+// because a drag tuned for a half-second special is nearly nothing over that
+// time. So both halves moved: the boost is halved (moves.js `lungeVx`, 88 -> 44
+// light and 124 -> 62 heavy) and the decay is this. Measured after: 1.11 body
+// heights for the light dash attack and 1.35 for the heavy, medians across the
+// roster — Smash's own figure for the light one, with the heavy carrying
+// further because a running shoulder-charge should. It also visibly runs out
+// now instead of gliding to a stop.
+export const DASH_LUNGE_DRAG = 14;
+
 // shield
 export const SHIELD_MAX = 100;
 export const SHIELD_DRAIN = 22;

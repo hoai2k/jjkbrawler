@@ -15,12 +15,16 @@
 // WHY THE SWITCHES ARE HERE
 //
 // Two smoothing mechanisms sit between the animation data and the screen
-// (src/flags.js): the shipped cross-fade and `com` alignment. Judging either
+// (src/flags.js): the cross-fade a state change ships with, and the stride
+// smoothing that took the limp out of the run and walk cycles. Judging either
 // means seeing the same fighter do the same thing with the thing on and off,
 // and until this bench existed that meant editing a URL and reloading — which
 // loses the pose, the position and your place in the comparison. The flags are
 // live bindings, so these toggles change the next frame while you hold the
 // stick.
+//
+// The COM alignment used to be a third lamp and is not one any more: it is
+// part of what the fade is, so it goes on and off with it.
 //
 // There were four. `?smooth=holds` faded the frame steps inside slow held
 // loops and the facing sweep squashed a sprite through side-on; both were
@@ -32,14 +36,15 @@ import { loadCoreAssets, ensureMatchAssets, startBackgroundLoad,
 import { initInput, readGamepads, endInputFrame, playerInput, blankInput,
          connectedPadCount } from "../src/input.js";
 import { stepWorld, makeLatch, advanceWorld, resetFrameClock } from "../src/sim.js";
-import { makeFighter } from "../src/fighter.js";
+import { makeFighter, updateFighter } from "../src/fighter.js";
 import { draw, smoothingActivity } from "../src/render.js";
 import { getStage } from "../src/stages.js";
 import { initStageFx } from "../src/stage_fx.js";
-import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
-import { applyAllHeightScales } from "../src/heights.js";
+import { CHARACTERS, CHARACTER_KEYS, characterName, byCharacterName } from "../src/characters.js";
+import { applyAllHeightScales, setRosterScale, rosterScale } from "../src/heights.js";
+import { bodyMetrics } from "../src/silhouette.js";
 import { setSmoothing, smoothingState } from "../src/flags.js";
-import { WORLD } from "../src/constants.js";
+import { WORLD, FIXED_DT } from "../src/constants.js";
 
 const root = document.getElementById("characterRoot");
 const url = new URL(window.location.href);
@@ -64,6 +69,11 @@ const bench = {
   // The camera's own zoom is what a match uses, and a match is framed for two
   // people fighting. A bench is one person LOOKING, so this multiplies it.
   zoom: Number(url.searchParams.get("zoom")) || 1,
+  // THE ROSTER'S SIZE, as a multiplier (heights.js setRosterScale). A bench
+  // knob rather than a URL flag: the thing being judged is how a fighter LOOKS
+  // and PLAYS against a board built for a bigger one, and that is a question
+  // you answer by holding the stick and moving the slider, not by reloading.
+  scale: Number(url.searchParams.get("size")) || 1,
   // SLOW MOTION. A fade is 0.08s and a hold fade 0.07s — four or five frames,
   // which is not long enough to see what a mechanism is doing, only long
   // enough to know something happened. This scales how much simulated time a
@@ -111,8 +121,8 @@ root.innerHTML = `
         <button class="light" data-mode="xfade" type="button" title="The cross-fade the game ships: the outgoing drawing lingers 0.08s under the new one on a state change">
           <span class="light__dot"></span><span class="light__name">cross-fade</span>
         </button>
-        <button class="light" data-mode="com" type="button" title="?smooth=com — a fade lines its two drawings up by their centre of mass and slides it between them">
-          <span class="light__dot"></span><span class="light__name">com align</span>
+        <button class="light" data-mode="stride" type="button" title="The limp taken out of the run and walk cycles: matching stride frames brought to one size, so the body stops bobbing between the two halves of a step. Off draws the sizes the art shipped with (tools/smooth_cycles.py).">
+          <span class="light__dot"></span><span class="light__name">stride</span>
         </button>
         <span class="lights__state" id="lightsState"></span>
       </div>
@@ -130,6 +140,10 @@ root.innerHTML = `
         <label class="toggle zoom">zoom
           <input type="range" id="zoomRange" min="0.6" max="3" step="0.05">
           <span id="zoomValue"></span>
+        </label>
+        <label class="toggle zoom" title="Resizes the WHOLE ROSTER and nothing else. Jumps, gravity, run speed, knockback and the platforms are absolute pixels and do not move, so at half size a fighter reaches the same platforms with the same jump — and that jump is worth twice as many body heights. The readout is what the ratios become; Smash is ~2.6 heights for a full hop and 11-14 for a main platform.">size
+          <input type="range" id="scaleRange" min="0.3" max="1.2" step="0.05">
+          <span id="scaleValue"></span>
         </label>
         <label class="toggle zoom" title="Slows the SIMULATION, not the frame rate — the game keeps stepping at its fixed step, just fewer of them per second, so every mechanism here plays out in the same order at 1/10th speed.">speed
           <input type="range" id="speedRange" min="0.05" max="1" step="0.05">
@@ -155,6 +169,8 @@ const dummyCharEl = document.getElementById("dummyChar");
 const zoomEl = document.getElementById("zoomRange");
 const zoomValueEl = document.getElementById("zoomValue");
 const speedEl = document.getElementById("speedRange");
+const scaleEl = document.getElementById("scaleRange");
+const scaleValueEl = document.getElementById("scaleValue");
 const speedValueEl = document.getElementById("speedValue");
 const drillEl = document.getElementById("ledgeDrill");
 const aimReadEl = document.getElementById("aimRead");
@@ -176,21 +192,34 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 
 // -------------------------------------------------------------------- the list
+// BY THE NAME THEY ARE CALLED, IN THE ORDER YOU WOULD LOOK THEM UP.
+//
+// This showed `fullName` in roster order — "Kokichi Muta", thirteen rows down
+// — and the select screen calls him Mechamaru. Two costs, one line: a name to
+// translate, at a position you can only find by scanning. The canonical name
+// leads and the list is alphabetical by it; the full name stays as the row's
+// tooltip, and the key stays under the name because it is what `?char=` takes.
 const roster = CHARACTER_KEYS.map((key) => ({
-  key, name: CHARACTERS[key]?.fullName || CHARACTERS[key]?.name || key,
-}));
+  key,
+  name: characterName(key),
+  full: CHARACTERS[key]?.fullName || "",
+})).sort((a, b) => byCharacterName(a.key, b.key));
 
 function visibleRoster() {
   const q = (filterEl.value || "").trim().toLowerCase();
   if (!q) return roster;
-  return roster.filter((r) => r.key.includes(q) || r.name.toLowerCase().includes(q));
+  // The full name still FINDS them: somebody who knows him as Kokichi Muta
+  // should not have to know he is filed under Mechamaru to type it.
+  return roster.filter((r) => r.key.includes(q) || r.name.toLowerCase().includes(q)
+    || r.full.toLowerCase().includes(q));
 }
 
 function renderList() {
   const rows = visibleRoster();
   listEl.innerHTML = rows.map((r) => `
     <li role="option" data-key="${r.key}" aria-selected="${r.key === bench.char}"
-        class="${r.key === bench.char ? "is-on" : ""}">
+        class="${r.key === bench.char ? "is-on" : ""}"
+        title="${r.full && r.full !== r.name ? r.full : r.name}">
       <span class="roster__name">${r.name}</span>
       <span class="roster__key">${r.key}</span>
     </li>`).join("");
@@ -271,7 +300,10 @@ async function select(charKey) {
     // De-duplicated because self is the usual case and asking for one fighter
     // twice is a wasted queue entry.
     await ensureMatchAssets([...new Set([charKey, dummyKey(charKey)])], state.stageKey);
-    applyAllHeightScales();
+    // Newly loaded art arrives at its shipped size; setRosterScale re-solves it
+    // against the slider AND drops the caches measured at the old size, which
+    // applyAllHeightScales on its own does not.
+    setRosterScale(bench.scale);
     spawn(charKey);
   } catch (err) {
     overlayEl.textContent = `Could not load ${charKey}: ${err.message}`;
@@ -345,6 +377,86 @@ speedEl.addEventListener("input", () => {
   speedValueEl.textContent = bench.speed === 1 ? "1x" : `${bench.speed.toFixed(2)}x`;
   url.searchParams.set("speed", String(bench.speed));
   history.replaceState(null, "", url);
+});
+
+/**
+ * THE PLATFORMS' THICKNESS FOLLOWS THE ROSTER.
+ *
+ * A main platform is a 42px slab, which reads as a kerb under a 142px fighter
+ * and as a wall under a 71px one — and it is the one piece of stage geometry
+ * whose size is a drawing decision rather than a play one. So it scales with
+ * the bodies, from the TOP DOWN: the walking surface stays exactly where it
+ * was, so nothing about where a fighter stands, lands or grabs a ledge moves.
+ * Only the slab hanging below it gets thinner.
+ *
+ * The bench holds its own copy of the stage's platforms, so this is a local
+ * change to a local object — the stage table is untouched.
+ */
+function scalePlatforms() {
+  for (const p of state.platforms) {
+    if (p.h0 === undefined) p.h0 = p.h;
+    p.h = Math.max(6, p.h0 * bench.scale);
+  }
+}
+
+/** The ratios the slider exists to move, measured rather than derived: a real
+ *  fighter, jumped by the real `updateFighter`, at the size now on screen. */
+function sizeReadout() {
+  const key = bench.char;
+  const h = bodyMetrics(key).height;
+  const rise = (mode) => {
+    const f = makeFighter(98, key, state.fighters[0]?.x ?? 640, 1);
+    f.grounded = true;
+    f.y = state.fighters[0]?.y ?? f.y;
+    f.vy = 0;
+    const y0 = f.y;
+    let peak = 0, spent = false;
+    for (let i = 0; i < 240; i++) {
+      const input = { ...blankInput(), jumpHeld: true, jumpP: i === 0 };
+      if (mode === "double" && !spent && !f.grounded && f.vy > -30) { input.jumpP = true; spent = true; }
+      stepFighterOnce(f, input);
+      peak = Math.max(peak, y0 - f.y);
+      if (f.grounded && i > 5) break;
+    }
+    return peak;
+  };
+  const main = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+  return {
+    h: Math.round(h),
+    single: rise("single") / h,
+    double: rise("double") / h,
+    board: main ? main.w / h : 0,
+  };
+}
+
+/** One fixed step of one fighter, off to the side of the bench's own loop —
+ *  the measurement must not advance the fight you are watching. */
+function stepFighterOnce(f, input) {
+  updateFighter(f, FIXED_DT, input);
+}
+
+function paintScale() {
+  scaleEl.value = String(bench.scale);
+  const r = sizeReadout();
+  scaleValueEl.textContent = `${Math.round(bench.scale * 100)}% · ${r.h}px · `
+    + `jump ${r.single.toFixed(2)}/${r.double.toFixed(2)}h · board ${r.board.toFixed(1)}h`;
+  scaleValueEl.title = "body height · single and double jump in body heights · "
+    + "main platform in body heights. Smash: ~2.6 and ~5.2, board 11-14.";
+}
+
+scaleEl.addEventListener("input", () => {
+  bench.scale = Number(scaleEl.value);
+  setRosterScale(bench.scale);
+  scalePlatforms();
+  // The fighters were placed by their old feet; put them back on the floor so
+  // a shrink does not leave anybody standing in the air or buried in the slab.
+  for (const f of state.fighters) {
+    const plat = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+    if (plat && f.grounded) f.y = plat.y;
+  }
+  url.searchParams.set("size", String(bench.scale));
+  history.replaceState(null, "", url);
+  paintScale();
 });
 
 zoomEl.addEventListener("input", () => {
@@ -762,9 +874,14 @@ async function boot() {
   zoomValueEl.textContent = `${bench.zoom.toFixed(2)}x`;
   speedEl.value = String(bench.speed);
   speedValueEl.textContent = bench.speed === 1 ? "1x" : `${bench.speed.toFixed(2)}x`;
+  setRosterScale(bench.scale);
+  scalePlatforms();
   camZoom = state.camera.zoom;
   paintLights();
   await select(bench.char);
+  // After the art, not before: the readout MEASURES a body, and a body with no
+  // drawing loaded measures zero.
+  paintScale();
   requestAnimationFrame((t) => { previous = t; fpsAt = t; loop(t); });
 }
 

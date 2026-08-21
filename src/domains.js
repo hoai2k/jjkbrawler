@@ -18,6 +18,7 @@
 // see domainSpecialSlot below and the routing in fighter.js.
 
 import { state } from "./state.js";
+import { ART_SCALE } from "./config_tuning.js";
 import { foesOf } from "./teams.js";
 import { clamp, sign, rand, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
@@ -85,11 +86,11 @@ export function performDomain(f, slot = 0) {
   if (!def) return;
   if (domainOpen()) {
     playSfx("domainRejected", 1);
-    popup(f.x, f.y - 170, "A DOMAIN IS ALREADY OPEN", "#9aa4c0", 15);
+    popup(f.x, f.y - 170 * ART_SCALE, "A DOMAIN IS ALREADY OPEN", "#9aa4c0", 15);
     return;
   }
   if (f.meter < DOMAIN_METER_COST) {
-    popup(f.x, f.y - 160, "NEEDS A FULL BAR", "#9aa4c0", 15);
+    popup(f.x, f.y - 160 * ART_SCALE, "NEEDS A FULL BAR", "#9aa4c0", 15);
     return;
   }
   // The bar is NOT spent here. It is spent when the barrier actually lands —
@@ -164,8 +165,8 @@ export function performDomain(f, slot = 0) {
     playSfx(DOMAIN_STING[p.bg], 1);
     playSfx("domainBarrier", 1);
     startDomainLoop();
-    ring(f.x, f.y - 90, color, 260);
-    burst(f.x, f.y - 90, color, 60, 2.2);
+    ring(f.x, f.y - 90 * ART_SCALE, color, 260);
+    burst(f.x, f.y - 90 * ART_SCALE, color, 60, 2.2);
 
     // The barrier itself: a full-screen environment swap that the renderer
     // already knows how to draw (state.domainOverlay), plus the live entity.
@@ -208,7 +209,7 @@ function makeDomain(owner, def, p, color) {
         // this is the one place both the sting and the loop stop belong.
         stopDomainLoop();
         playSfx("domainCollapse", 1);
-        popup(owner.x, owner.y - 176, "DOMAIN CLOSED", "#9aa4c0", 16);
+        popup(owner.x, owner.y - 176 * ART_SCALE, "DOMAIN CLOSED", "#9aa4c0", 16);
         return;
       }
       if (handler.update) handler.update(this, owner, dt);
@@ -386,7 +387,7 @@ const HANDLERS = {
           t.hitstun = Math.max(t.hitstun, 0.12);
           const sx = t.x + rand(-60, 60), sy = t.y - rand(20, 150);
           burst(sx, sy, dom.color, 6, 0.8);
-          popup(t.x, t.y - 150, `${dom.p.rainDmg}%`, dom.color, 13);
+          popup(t.x, t.y - 150 * ART_SCALE, `${dom.p.rainDmg}%`, dom.color, 13);
         }
         playSfx("slash", 0.3, 1.4);
       });
@@ -395,9 +396,9 @@ const HANDLERS = {
       if (input.specialP && !dom.s.held && dom.s.blades > 0) {
         dom.s.held = true;
         dom.s.blades -= 1;
-        popup(f.x, f.y - 180, "BLADE TAKEN", dom.color, 20);
+        popup(f.x, f.y - 180 * ART_SCALE, "BLADE TAKEN", dom.color, 20);
         playSfx("slash", 0.8, 0.8);
-        burst(f.x + f.facing * 50, f.y - 110, dom.color, 14, 1);
+        burst(f.x + f.facing * 50, f.y - 110 * ART_SCALE, dom.color, 14, 1);
         return true;
       }
       if ((input.lightP || input.heavyP) && dom.s.held) {
@@ -410,7 +411,7 @@ const HANDLERS = {
           growth: dom.p.cleaveGrowth, angle: 0.45,
           label: "CLEAVE", sfx: "slashHeavy", unblockable: true, heavy: true,
         });
-        popup(f.x, f.y - 190, `CLEAVE ×${mul.toFixed(2)}`, dom.color, 24);
+        popup(f.x, f.y - 190 * ART_SCALE, `CLEAVE ×${mul.toFixed(2)}`, dom.color, 24);
         state.camera.shake = Math.max(state.camera.shake, 10);
         state.slowMo = Math.max(state.slowMo, 0.14);
         return true;
@@ -484,13 +485,13 @@ const HANDLERS = {
       const opp = opponentOf(f);
       if (!opp) return false;
       const side = f.x < opp.x ? 1 : -1;         // resurface on their far side
-      burst(f.x, f.y - 70, dom.color, 20, 1);
+      burst(f.x, f.y - 70 * ART_SCALE, dom.color, 20, 1);
       f.x = clamp(opp.x + side * 78, 80, 1200);
       f.y = opp.y;
       f.facing = -side;
       f.grounded = false;
       f.invuln = Math.max(f.invuln, 0.22);
-      burst(f.x, f.y - 70, dom.color, 22, 1.1);
+      burst(f.x, f.y - 70 * ART_SCALE, dom.color, 22, 1.1);
       playSfx("whoosh", 0.9, 0.75);
       spawnMelee(f, {
         delay: 0.04, dur: 0.14, ox: 26, oy: -110, w: 190, h: 130,
@@ -529,7 +530,7 @@ const HANDLERS = {
         const prev = dom.s.last.get(t) ?? t.damage;
         if (t.damage > prev + 0.01) {
           dom.s.stacks += 1;
-          popup(t.x, t.y - 165, `DISTORTION ${dom.s.stacks}/${dom.p.stacksToBurst}`, dom.color, 17);
+          popup(t.x, t.y - 165 * ART_SCALE, `DISTORTION ${dom.s.stacks}/${dom.p.stacksToBurst}`, dom.color, 17);
           if (dom.s.stacks >= dom.p.stacksToBurst) {
             dom.s.stacks = 0;
             applyHit(f, t, {
@@ -537,8 +538,8 @@ const HANDLERS = {
               angle: 0.6, label: "SOUL COLLAPSE", sfx: "blast",
               unblockable: true, heavy: true,
             }, "script");
-            ring(t.x, t.y - 90, dom.color, 200);
-            burst(t.x, t.y - 90, dom.color, 44, 1.7);
+            ring(t.x, t.y - 90 * ART_SCALE, dom.color, 200);
+            burst(t.x, t.y - 90 * ART_SCALE, dom.color, 44, 1.7);
             state.camera.shake = Math.max(state.camera.shake, 14);
             state.slowMo = Math.max(state.slowMo, 0.22);
           }
@@ -646,8 +647,8 @@ const HANDLERS = {
       if (i < 0) return false;
       dom.s.stopped[i] = Math.floor(dom.s.spin[i]) % dom.p.symbols;
       playSfx("blast", 0.5, 1.5);
-      burst(f.x, f.y - 150, dom.color, 12, 0.8);
-      popup(f.x, f.y - 190, `REEL ${i + 1}`, dom.color, 20);
+      burst(f.x, f.y - 150 * ART_SCALE, dom.color, 12, 0.8);
+      popup(f.x, f.y - 190 * ART_SCALE, `REEL ${i + 1}`, dom.color, 20);
       return true;
     },
     draw(dom, f, ctx) {
@@ -697,7 +698,7 @@ const HANDLERS = {
           t.hitstun = Math.max(t.hitstun, 0.1);
           applyStatus("drench", f, t);
           burst(t.x + rand(-50, 50), t.y - rand(30, 130), dom.color, 7, 0.8);
-          popup(t.x, t.y - 150, `${dom.p.biteDmg}%`, dom.color, 13);
+          popup(t.x, t.y - 150 * ART_SCALE, `${dom.p.biteDmg}%`, dom.color, 13);
         }
         playSfx("slash", 0.28, 1.7);
       });
@@ -707,11 +708,11 @@ const HANDLERS = {
       const opp = opponentOf(f);
       if (!opp) return false;
       dom.s.cd = dom.p.surgeCd;
-      popup(f.x, f.y - 186, "DEATH SWARM", dom.color, 22);
+      popup(f.x, f.y - 186 * ART_SCALE, "DEATH SWARM", dom.color, 22);
       playSfx("blast", 0.9, 0.7);
       state.camera.shake = Math.max(state.camera.shake, 10);
-      burst(opp.x, opp.y - 100, dom.color, 40, 1.6);
-      ring(opp.x, opp.y - 100, dom.color, 200);
+      burst(opp.x, opp.y - 100 * ART_SCALE, dom.color, 40, 1.6);
+      ring(opp.x, opp.y - 100 * ART_SCALE, dom.color, 200);
       applyHit(f, opp, {
         dmg: dom.p.surgeDmg, baseKb: dom.p.surgeBase, growth: dom.p.surgeGrowth,
         angle: 0.5, label: "DEATH SWARM", sfx: "blast",
@@ -773,8 +774,8 @@ const HANDLERS = {
       const opp = opponentOf(f);
       if (!opp) return false;
       dom.s.cd = dom.p.biteCd;
-      burst(opp.x, opp.y - 100, dom.color, 30, 1.5);
-      ring(opp.x, opp.y - 100, dom.color, 170);
+      burst(opp.x, opp.y - 100 * ART_SCALE, dom.color, 30, 1.5);
+      ring(opp.x, opp.y - 100 * ART_SCALE, dom.color, 170);
       playSfx("slashHeavy", 0.95, 0.8);
       state.camera.shake = Math.max(state.camera.shake, 9);
       applyHit(f, opp, {
@@ -821,7 +822,7 @@ const HANDLERS = {
           t.vx *= 0.6;
           if (!t.grounded) t.vy = Math.min(t.vy, 40);
           if (Math.random() < 5 * dt) {
-            burst(t.x, t.y - 90, "#ffffff", 2, 0.35);
+            burst(t.x, t.y - 90 * ART_SCALE, "#ffffff", 2, 0.35);
           }
         }
       }
@@ -832,14 +833,14 @@ const HANDLERS = {
       if (!opp) return false;
       dom.s.blinkCd = dom.p.blinkCd || 0.9;
       const side = f.x < opp.x ? 1 : -1;          // arrive on their far side
-      burst(f.x, f.y - 70, dom.color, 14, 0.8);
+      burst(f.x, f.y - 70 * ART_SCALE, dom.color, 14, 0.8);
       f.x = clamp(opp.x + side * 76, 80, 1200);
       f.y = opp.y;
       f.facing = -side;
       f.grounded = false;
       f.invuln = Math.max(f.invuln, 0.2);
       f.fxTrailT = Math.max(f.fxTrailT, 0.25);    // the blink leaves its frames
-      burst(f.x, f.y - 70, dom.color, 16, 0.9);
+      burst(f.x, f.y - 70 * ART_SCALE, dom.color, 16, 0.9);
       playSfx("whoosh", 0.9, 1.3);
       spawnMelee(f, {
         delay: 0.04, dur: 0.12, ox: 24, oy: -104, w: 170, h: 120,

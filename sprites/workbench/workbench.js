@@ -1084,15 +1084,22 @@ function drawRangeTargets(cx) {
   drawHurtbox(cx);
   ctx.textAlign = "left";
 
-  // Where this character's art currently reaches, measured from their own
-  // attack frames (src/silhouette.js) rather than assumed from a single global
-  // constant. It is the number the game builds their hitboxes from, so the gap
-  // between this line and a range target IS that move's grace margin — and it
-  // should look about the same on every fighter. Past it the reach is carried
-  // by the swing's strike arc (drawStrikeArcs in render.js), so art stopping
-  // short of a far target is fine.
-  if (shapes.some((s) => s.box.kind === "forward" || s.box.kind === "sweep")) {
-    const capX = wx(visibleArtReach(char));
+  // Where THIS MOVE is drawn to reach — whichever art bound the game actually
+  // built the box from (src/moves.js tipOf): the verified strike point on this
+  // drawing, or the outer edge of the ink when the drawing carries on past
+  // where the blow lands. The gap between this line and the range target beside
+  // it is that move's margin, and it is never zero: an attack always connects a
+  // little past the picture, or a swing that visually overlapped would do
+  // nothing. Past the target the reach is carried by the swing's strike arc
+  // (drawStrikeArcs in render.js).
+  //
+  // Taken off the move rather than the character because reach is per move now:
+  // a cap drawn at the fighter's longest swing would sit past a jab's box on
+  // everybody who has one long attack, and read as a grace margin gone
+  // negative.
+  const capMove = shapes.find((s) => s.box.kind === "forward" || s.box.kind === "sweep");
+  if (capMove) {
+    const capX = wx(visibleArtReach(char, capMove.move.anim));
     ctx.strokeStyle = "rgba(150, 160, 190, 0.5)";
     ctx.setLineDash([3, 5]);
     ctx.beginPath(); ctx.moveTo(capX, GROUND_Y - 190 * z); ctx.lineTo(capX, GROUND_Y); ctx.stroke();

@@ -19,7 +19,7 @@
 // The cast list is derived from the call tables rather than written down here.
 // A fighter given a line tomorrow shows up on this page with no edit to it.
 
-import { CHARACTERS } from "../src/characters.js";
+import { CHARACTERS, byCharacterName } from "../src/characters.js";
 import {
   playSfx, playSfxEntry, cutSfx, sfxUrl, spokenLead, spokenCommitAt, audioSettings,
   GRUNT_GROUPS, KO_FOR_GROUP,
@@ -265,9 +265,12 @@ const STAND_INS = {};
 // move, belonging to one fighter — exactly the thing this bench exists to let
 // somebody hear on demand. Any fighter with one of those is in the list now,
 // and the list says which kind of entry they are.
+// Alphabetically, by the name on the button. `Object.keys` order is the order
+// somebody typed the kits into characters.js, which is not an order anybody
+// browsing a cast list is holding in their head.
 const CAST = Object.keys(CHARACTERS).filter(
   (k) => SPEAKERS.includes(k) || STAND_INS[k] || effectTracks(k).length
-);
+).sort(byCharacterName);
 
 // --------------------------------------------------------------- rendering
 

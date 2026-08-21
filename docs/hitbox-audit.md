@@ -597,16 +597,69 @@ the result. Both fail loudly rather than printing a wrong number quietly.
 
 ```
 sprite art
+  -> verification bench        a person places the strike point on each attack
+  -> src/config_strike_points.js
+  -> src/strike_reach.js       reach PER MOVE, off the point somebody verified
+  -> src/silhouette.js         reach / width / height / crouch, per character
+  -> src/moves.js              hitboxes  = that move's reach + MELEE_GRACE
+     src/combat.js             hurtboxes = measured body × HURTBOX fractions
+
+sprite art                     (fallback: nobody has reviewed this fighter yet)
   -> tools/bake_anchors.py     bodyLeft/bodyRight  how far a frame REACHES
                                coreLeft/coreRight  how wide the BODY is
-  -> src/silhouette.js         reach / width / height / crouch, per character
-  -> src/moves.js              hitboxes  = art reach + MELEE_GRACE
-     src/combat.js             hurtboxes = measured body × HURTBOX fractions
+  -> src/silhouette.js         ...as above
 ```
 
 `REACH_SCALE` and the per-character `reach` numbers in `characters.js` are gone.
-`VISIBLE_ART_REACH` is now `visibleArtReach(char)` — a measurement, not a
-constant.
+`VISIBLE_ART_REACH` is now `visibleArtReach(char, state)` — a measurement, not a
+constant, and per move rather than per fighter.
+
+### Reach is per move, and comes off the art on screen
+
+Two corrections landed after the first pass, and both are about *whose* art a
+range is measured from.
+
+**The backend picks the source.** Reach came off `src/config_model_reach.js` —
+a number baked from a posed GLB — for every character that had a rig, whichever
+renderer was drawing. The sprite game is the game; the rigs are a second way to
+draw it, and a secondary renderer setting the primary one's hitboxes is
+backwards. It was also measurably wrong for the sprite: 36 px long on Mahito,
+30 px long on Nanami, 30 px short on Sukuna, with the strike arc — drawn at the
+hitbox's own far edge — floating that far off the end of the drawing it exists
+to mark. Each backend now declares `bodySource` (`src/render_backend.js`) and
+`src/silhouette.js` measures off that: sprites under `?render=sprite`, rigs
+under `?render=3d` and `?render=billboard`. The same fighter reaches slightly
+differently in the two, because in the two they are different shapes.
+
+**The sprite source is the verified strike points.** A silhouette scan cannot
+tell a fist from the cursed energy around it; a person can, and 204 of 204
+points are committed. `x` is already the number — forward from the centre line,
+in game px — so `src/strike_reach.js` reads it straight. Which means reach is
+per MOVE: Toji's side smash lands 132 px out and his jab 66, where one scalar
+per character had them ending within a few px of each other. Moves struck along
+the centre line (up smash, quake) have no forward reach to measure and keep the
+fighter's scalar, which is the furthest they get in any forward attack.
+
+**And the measurement is tempered before it ships.** The drawings are right
+about the *order* and only roughly right about the *gaps*: a fighter caught
+mid-lunge measures longer than the same fighter drawn planted, which is framing
+rather than character, and taken literally it put 2.56× between the shortest
+arms on the roster and the longest. `BODY.reachTrust` (0.85) compresses each
+fighter's distance from the roster median, so the ends come in a few px and a
+median fighter does not move at all — a straight line through the median, so it
+cannot reorder anybody. `REACH_NUDGE` is the hand-typed escape hatch for an
+individual who still plays wrong (empty today). A fighter's *own* moves all
+scale by the same factor, so their jab-against-their-spear stays exactly as
+drawn; only their standing against the rest of the roster moves. The audit
+prints drawn beside shipped and **fails if tempering ever reorders a pair**.
+
+A point that cannot be read as a reach — behind the centre line, or further out
+than `STRIKE_REACH.max` of the fighter's own height — is **rejected, not
+clamped**: the move falls back to the scalar and the verification bench puts the
+item back in its queue with the reason attached. One point on the roster trips
+it today (Hakari's jab, at x −34). Clamping instead is what quietly cut Maki —
+the longest weapon on the roster — down to below the median, which is why the
+guard on a human decision is a misclick net and not a balance dial.
 
 ### Resilience, because the art is in flux
 
@@ -641,9 +694,11 @@ art that would let that number go up.
 
 | | Before | Now |
 |---|---|---|
-| Grace margin (hitbox past the art) | 62–113 px, varying per character | **34 px, identical for everyone** |
-| Heavy tip | 166–187 px (1.13× spread) | 100–142 px (**1.42×**) |
-| reach ↔ startup correlation | −0.08 | **+0.89** |
+| Grace margin (hitbox past the strike point) | 62–113 px, varying per character | 23–104 px: `MELEE_GRACE` per move + `ADDED_RANGE` by reach |
+| Attacks ending inside their own ink | not measured | **0 of 204** (floored at `ADDED_RANGE.pastArt`) |
+| Heavy tip | 166–187 px (1.13× spread) | 76–172 px (**2.26×**) |
+| reach ↔ startup correlation | −0.08 | **+0.69** |
+| Where a range comes from | one hand-typed number × a global constant | the strike point a person placed on that move's drawing |
 | Hurtbox | 64×108 for the whole roster | 48–72 × 127–172, per character |
 | Hurtbox vertical coverage | 58–70% of the drawn figure | **86%**, everywhere |
 | Drawn height spread | 1.25× (compressed 0.6) | 1.36× (compression 1.0, clamps do the work) |
@@ -701,6 +756,52 @@ dropped rather than carried onto a box that has moved.
 - **The CPU's melee spacing is derived** (`meleeRange` in `ai.js`). The authored
   `profile.range` numbers were calibrated against the old fixed hitboxes; a CPU
   still using them for melee would stand exactly out of its own range.
+
+### Two floors, because a swing that looks like it hit has to hit
+
+Reach off the strike points is reach off where the blow *lands* — a fist's
+centre, placed by a person. The drawing keeps going: a sleeve, a claw, the far
+half of a weapon, the sweep of the swing. So attacks could visually overlap an
+opponent and do nothing. Dagon's side smash ended **3 px inside his own ink**,
+and 77 of the roster's 204 forward attacks were within 8 px of theirs.
+
+`ADDED_RANGE` (config_tuning.js) is the fix and the knob:
+
+* **`short` / `long`** — extra px on top of the per-move `MELEE_GRACE`,
+  interpolated by where a fighter's reach sits between the shortest and longest
+  on the roster. More at the short end, because the fighters the change moved
+  *down* are the ones who lost hits they used to land, and a few px on the
+  shortest arms disturbs spacing far less than the same few px on the longest.
+* **`pastArt`** — the floor under all of it. Every forward attack connects at
+  least this far past the ink of the frame it is thrown on, whatever the
+  interpolation worked out to. Held inside `STRIKE_REACH.max` of the fighter's
+  height so a glow-heavy frame cannot hand somebody the stage.
+
+At the shipping 24 / 4 / 8, **0 of 204** forward attacks end inside their own
+ink, 13 are decided by the ink floor rather than the strike point, and the mean
+forward tip lands at 115.7 px — almost exactly halfway between the measured-only
+99.4 and the rig-derived 132.3 the change replaced. The config comment carries
+the whole sweep so the setting can be moved knowingly.
+
+`tools/audit_hitboxes.mjs` checks both floors on every forward attack and fails
+on either. It replaces the old "grace margin is identical for everyone" check,
+which stopped being the right question once the margin became two floors and a
+per-fighter taper.
+
+### The arc floor follows the body now
+
+`STRIKE_ARC.minRadius` was a flat 46 px — about right for a reference-height
+fighter and too big for everybody shorter. It started biting once reach came off
+the drawings and short-armed fighters got the short attacks they are drawn with:
+`swingMove` scales an aimed box by `cos(tilt)`, so Gojo's side tilt aimed 60° up
+ended at 39 px, fell under the floor, and had **no crescent at all** — a live
+hitbox with nothing drawn on it, which is the one thing the arc must never be
+(`tools/smoke_combat.mjs` asserts the arc agrees with the box at every angle).
+
+It is `minRadiusFrac` now, 0.19 of the fighter's own drawn height — roughly half
+a typical body width, which is what "the arc would be inside their own art"
+actually means. The change is strictly additive: across every character × move ×
+tilt, 147 combinations gain a crescent they did not have and **none lose one**.
 
 ### Still open
 

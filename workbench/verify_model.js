@@ -45,7 +45,7 @@
 import {
   resolvedAnim, currentFrame as spriteFrame, drawCharFrame as spriteDraw,
 } from "../sprites/src/sprites.js";
-import { CHARACTER_KEYS } from "../src/characters.js";
+import { CHARACTER_KEYS, byCharacterName } from "../src/characters.js";
 import { rigManifest, setRigSettings } from "../render3d/src/loader.js";
 import { clearCache, setOrbit } from "../render3d/src/scene.js";
 import * as render3d from "../render3d/src/backend.js";
@@ -74,7 +74,7 @@ const SPRITE_X = 110;  // the drawing's, left half
 
 async function rigged() {
   await startEngine();
-  return CHARACTER_KEYS.filter((k) => render3d.hasModel(k));
+  return CHARACTER_KEYS.filter((k) => render3d.hasModel(k)).sort(byCharacterName);
 }
 
 /** A manifest-derived fingerprint: these sets are about the DELIVERED bodies,

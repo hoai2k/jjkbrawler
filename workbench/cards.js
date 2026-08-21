@@ -26,7 +26,7 @@
 // src/ui.js and the note in src/config_cards.js on why the focus means the
 // paintings.
 
-import { CHARACTERS, CHARACTER_KEYS, STAGED_CHARACTER_KEYS } from "../src/characters.js";
+import { CHARACTERS, CHARACTER_KEYS, STAGED_CHARACTER_KEYS, byCharacterName } from "../src/characters.js";
 
 // Cards the workbench crops: the roster, plus the fighters still staged. Same
 // reasoning as the sprite workbench's WB_FIGHTERS — a staged fighter's hero
@@ -35,7 +35,15 @@ import { CHARACTERS, CHARACTER_KEYS, STAGED_CHARACTER_KEYS } from "../src/charac
 // not be looked at until the fighter was already live. Their tiles are
 // labelled rather than hidden; a card that has not been delivered yet simply
 // shows the broken-image placeholder until it lands in assets/cards/.
-const WB_CARD_KEYS = [...CHARACTER_KEYS, ...STAGED_CHARACTER_KEYS];
+// Alphabetically, and the staged fighters after the roster — the split is a
+// real distinction (a staged card decides what the art will be, a roster one
+// decides what a player sees) and the labels already say which is which.
+// Within each half, roster order was a decision about the select screen's grid
+// and means nothing in a grid of thumbnails you scan for a name.
+const WB_CARD_KEYS = [
+  [...CHARACTER_KEYS].sort(byCharacterName),
+  [...STAGED_CHARACTER_KEYS].sort(byCharacterName),
+].flat();
 const isStaged = (key) => STAGED_CHARACTER_KEYS.includes(key);
 import { CARD_FOCUS, cardFocus } from "../src/config_cards.js";
 import { ROSTER_ASPECTS, USE_SIMPLE_CARDS } from "../src/config_menus.js";

@@ -115,9 +115,15 @@ ok(after.fighters > 0, "and the new fighter loads and stands up", after.char);
 // the RENDERER sees, not just the button's colour. Reading them back through
 // `smoothingState()` is reading the same binding render.js imports.
 const start = (await read()).smoothing;
-ok(start.xfade === true && start.com === true,
-   "the switches start where the game ships — both on now", JSON.stringify(start));
-for (const mode of ["com", "xfade"]) {
+// The lamps are whatever the bench offers, not a list written down twice: the
+// com-aligned fade stopped being a switch of its own when it became part of
+// what the fade IS, and this test went on clicking a button that no longer
+// existed. Read the row instead, and assert every lamp it shows.
+const lamps = await page.$$eval(".light[data-mode]", (els) => els.map((e) => e.dataset.mode));
+ok(lamps.length > 0 && lamps.every((m) => start[m] === true),
+   "the switches start where the game ships — all on now",
+   `${lamps.join(", ")} = ${JSON.stringify(start)}`);
+for (const mode of lamps) {
   await page.click(`.light[data-mode="${mode}"]`);
   const now = (await read()).smoothing;
   ok(now[mode] !== start[mode], `the ${mode} switch moves its flag`,
