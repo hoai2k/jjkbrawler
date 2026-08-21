@@ -15,12 +15,16 @@
 // WHY THE SWITCHES ARE HERE
 //
 // Two smoothing mechanisms sit between the animation data and the screen
-// (src/flags.js): the shipped cross-fade and `com` alignment. Judging either
+// (src/flags.js): the cross-fade a state change ships with, and the stride
+// smoothing that took the limp out of the run and walk cycles. Judging either
 // means seeing the same fighter do the same thing with the thing on and off,
 // and until this bench existed that meant editing a URL and reloading — which
 // loses the pose, the position and your place in the comparison. The flags are
 // live bindings, so these toggles change the next frame while you hold the
 // stick.
+//
+// The COM alignment used to be a third lamp and is not one any more: it is
+// part of what the fade is, so it goes on and off with it.
 //
 // There were four. `?smooth=holds` faded the frame steps inside slow held
 // loops and the facing sweep squashed a sprite through side-on; both were
@@ -103,8 +107,8 @@ root.innerHTML = `
         <button class="light" data-mode="xfade" type="button" title="The cross-fade the game ships: the outgoing drawing lingers 0.08s under the new one on a state change">
           <span class="light__dot"></span><span class="light__name">cross-fade</span>
         </button>
-        <button class="light" data-mode="com" type="button" title="?smooth=com — a fade lines its two drawings up by their centre of mass and slides it between them">
-          <span class="light__dot"></span><span class="light__name">com align</span>
+        <button class="light" data-mode="stride" type="button" title="The limp taken out of the run and walk cycles: matching stride frames brought to one size, so the body stops bobbing between the two halves of a step. Off draws the sizes the art shipped with (tools/smooth_cycles.py).">
+          <span class="light__dot"></span><span class="light__name">stride</span>
         </button>
         <span class="lights__state" id="lightsState"></span>
       </div>
