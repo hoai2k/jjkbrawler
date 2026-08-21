@@ -765,15 +765,21 @@ function updateLedge(f, dt, input) {
 /** How hard the stick is being pushed sideways, 0..1 — what tells a walk from
  *  a run (constants.js RUN_TILT).
  *
- *  An absent axis means FULL deflection, not none. Only a real pad reports
- *  `moveX`; the CPU builds its input from `dirX` alone (ai.js), as do the
+ *  An absent axis, or one inside the deadzone, means FULL deflection — not
+ *  none. Only a real pad reports `moveX`; the CPU builds its input from
+ *  `dirX` alone (ai.js), as do the
  *  smokes, and a keyboard is filled in by playerInput. Reading a missing axis
  *  as zero made those callers walk as far as the ledge brake was concerned and
  *  run as far as the movement was — so the CPU moved at full speed and could
  *  not leave a platform, which is a stuck fighter rather than a careful one. */
 function moveTilt(input) {
+  // WALKING'S OWN DEADZONE, applied here rather than in input.js, which now
+  // reports the stick as held (see the note over `padSnapshot`). This is the
+  // feature with an opinion about what counts as "pushed", so this is where the
+  // opinion lives — and it is the same 0.28 the axis used to arrive
+  // pre-filtered with, so a walk begins exactly where it always did.
   const ax = Math.abs(input.moveX || 0);
-  return ax > 0 ? Math.min(1, ax) : Math.abs(input.dirX || 0);
+  return ax > MOVE_DEADZONE ? Math.min(1, ax) : Math.abs(input.dirX || 0);
 }
 
 /** How far past a platform's lip a fighter can stand before they are off it.
