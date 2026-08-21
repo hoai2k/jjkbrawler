@@ -1981,6 +1981,7 @@ export function getCharacter(key) {
   return CHARACTERS[key];
 }
 
+
 // Drawable actors that are NOT fighters: nobody selects them, they have no kit
 // and no card, but they own a full sprite set so anything that draws a fighter
 // can draw them instead. Mahoraga is one because Megumi's ultimate turns into
@@ -2018,6 +2019,27 @@ for (const [key, actor] of Object.entries(SPRITE_ACTORS)) actor.key = key;
  *  (Megumi's Mahoraga). Named on the move's `p.actor`, and gathered here so the
  *  loader can fetch that art alongside the fighter's own: an actor summon whose
  *  set was never downloaded would draw nothing at all. */
+/** WHAT A FIGHTER IS CALLED, for anything that lists them.
+ *
+ *  `name` is the canonical one — "Mechamaru", "Gojo" — and `fullName` is the
+ *  legal one nobody says out loud. The select screen shows the canonical name,
+ *  so a bench that showed "Kokichi Muta" was asking somebody to translate. */
+export const characterName = (key) => CHARACTERS[key]?.name || SPRITE_ACTORS?.[key]?.name || key;
+
+/**
+ * THE ORDER A LIST OF FIGHTERS GOES IN, unless it has a reason of its own.
+ *
+ * CHARACTER_KEYS is in CHARACTER_GROUPS order, which is a decision about the
+ * SELECT SCREEN — who sits next to whom in the grid, which category reads
+ * first. It means nothing anywhere else, and every bench that inherited it made
+ * finding a known name a scan of thirty-four rows.
+ *
+ * So a picker sorts by the canonical name. A list with a real order of its own
+ * keeps it — models delivered before models not yet delivered, newest work
+ * first, the queue's own priority — and sorts by this WITHIN that order.
+ */
+export const byCharacterName = (a, b) => characterName(a).localeCompare(characterName(b));
+
 export function actorsFor(fighterKey) {
   const char = CHARACTERS[fighterKey];
   if (!char) return [];
