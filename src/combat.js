@@ -1140,6 +1140,12 @@ export function applyHit(owner, target, hit, source) {
       state.entities.some((e) => e.kind === "summon" && e.owner === target && !e.dead && e.vanishT <= 0)) {
     dmg *= 0.9;
   }
+  // Ino's mask: the seance is the ONLY thing raising him above a good pair of
+  // hands, and it only runs while his face is covered. `silence` is the state
+  // of having lost it (shieldBreak below, and Toji's spear does it too), so the
+  // bonus reads the same flag the specials themselves are gated on.
+  if (owner.char.passive.id === "beastMask" && source !== "melee"
+      && owner.statuses.silence <= 0) dmg *= 1.12;
   // Mechamaru's Heavenly Restriction is output, not muscle: it pays out on
   // everything that is NOT his own fists, and the puppet frame pays for it.
   if (owner.char.passive.id === "heavenlyOutput" && source !== "melee") dmg *= 1.15;
@@ -1422,6 +1428,11 @@ function interruptActions(target) {
   target.reflect = null;
 }
 
+// How long Ino is without his technique after a shield break (his `beastMask`
+// passive). Longer than the 3.0 s a sealing HIT gives, because this one is his
+// own guard failing rather than somebody landing a specific move on him.
+const MASK_OFF_SEAL = 4.5;
+
 export function shieldBreak(target) {
   target.shield = 0;
   target.shielding = false;
@@ -1430,6 +1441,15 @@ export function shieldBreak(target) {
   target.grounded = false;
   banner("SHIELD BREAK!", "#ff8a8a", { y: 180, size: 44, life: 1.2 });
   playSfx("guardBreak", 0.9);
+  // Ino — the guard coming apart takes the mask with it, and Auspicious Beasts
+  // Summon simply stops. Set directly rather than through applyStatus: there is
+  // no attacker to attribute it to, and the duration is his passive's, not the
+  // 3.0 s a sealing hit gives.
+  if (target.char.passive.id === "beastMask") {
+    target.statuses.silence = Math.max(target.statuses.silence || 0, MASK_OFF_SEAL);
+    if (target.installs && target.installs.label === "KIRIN") target.installs = null;
+    popup(target.x, target.y - 150 * ART_SCALE, "MASK OFF", "#c9a24a", 22);
+  }
   burst(target.x, target.y - 90 * ART_SCALE, "#cfe4ff", 40, 1.4);
   state.camera.shake = Math.max(state.camera.shake, 12);
   rumbleEvent(target, "shieldBreak");

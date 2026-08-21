@@ -1,4 +1,5 @@
-// All 34 fighters — stats, sprite-frame mappings, attack profiles,
+// All 35 fighters — 34 on the roster and one staged — stats, sprite-frame
+// mappings, attack profiles,
 // specials, ultimates, passives. Design rationale for every kit lives in
 // docs/characters.md.
 //
@@ -67,7 +68,12 @@ import { SHIKIGAMI_POOL, TRANSFIGURED_POOL, CURSE_POOL, INVENTORY_POOL } from ".
 // the fighter does have. `node tools/check_pose_coverage.mjs` (in `npm run
 // check`) is what asks the question now: it fails on a pose that is undrawn
 // and unasked-for, so the next promotion says what it owes.
-export const STAGED_CHARACTER_KEYS = [];
+//
+// Round 25 stages ONE: Takuma Ino, whose Auspicious Beasts Summon needed a new
+// `serpent` ultimate director, the `endSnare` install field and the `beastMask`
+// passive before the kit could resolve. His art — 36 poses, a card, and the two
+// effect drawings his kit names — is outstanding; see docs/asset-requests.md.
+export const STAGED_CHARACTER_KEYS = ["ino"];
 
 // Sentinel selection meaning "draw a fresh fighter at the start of every match"
 // rather than naming one. Never a key in CHARACTERS — resolve it through
@@ -1918,6 +1924,62 @@ export const CHARACTERS = {
     },
     passive: { id: "battoSense", name: "Iai", desc: "The first cut is the whole art: a strike begun from stillness — half a second without moving her feet — lands 20% harder." },
     ai: { style: "balanced", range: 240 },
+  },
+
+  // ---------------------------------------------------------------- INO
+  // Auspicious Beasts Summon (来訪瑞獣) is a SEANCE, not a summoning: the four
+  // beasts are channelled THROUGH his body, one at a time, and none of them
+  // ever stands on the field as its own actor. So he is a stance-ish fighter
+  // built entirely out of self-buffs and one projectile — deliberately NOT a
+  // summoner, and nothing in summons.js knows his name.
+  //
+  // The mask is the whole technique's precondition ("the moment it comes off,
+  // everything shuts down"), which is what his passive is: an upside for
+  // wearing it and a hard shutdown when it is knocked off.
+  ino: {
+    name: "Ino",
+    fullName: "Takuma Ino",
+    epithet: "The Medium",
+    heightCm: 178,     // cited (character database; no official fanbook figure)
+    theme: "#a8582f",
+    shadow: "rgba(168, 88, 47, 0.36)",
+    scale: 0.60,
+    // Reiki is the only beast that shows on the outside, and it shows as water.
+    fxElement: "water",
+    // Deliberately unremarkable: a grade 2 who is a genuinely good hand-to-hand
+    // fighter and nothing more until a beast is riding him. Low friction is
+    // Reiki bleeding into the base kit — he slides a little further than the
+    // roster when he stops.
+    stats: { speed: 410, airSpeed: 316, accel: 2560, jump: 830, airJumps: 1, weight: 1.0, friction: 0.78 },
+    anims: SEMANTIC_ANIMS,
+    light: { dmg: 8, speed: 1.04, angle: 0.3, effect: null, label: "Close Quarters", sfx: "punch" },
+    // Nanami's blunt sword, which he carries in the final battle. The weight is
+    // the point — it is a bar of steel with no edge.
+    heavy: { dmg: 15.5, speed: 0.95, angle: 0.44, effect: null, label: "Blunt Sword", sfx: "slashHeavy", shieldMul: 1.7 },
+    specials: {
+      neutral: {
+        name: "Auspicious Beast: Kaichi", type: "projectile", cooldown: 1.4,
+        desc: "The horn of the judgement beast, spiralling out sheathed in cursed energy. It does not stop travelling until it has hit what it was aimed at.",
+        p: { speed: 500, vy: -6, r: 28, dur: 1.6, dmg: 11, base: 350, growth: 6.6, angle: 0.34, color: "#a8582f", homing: 215, fxElement: "shadow", ox: 78, oy: -104, label: "Kaichi", sprite: "effect:kaichi_horn", spriteH: 78 },
+      },
+      side: {
+        name: "Auspicious Beast: Reiki", type: "dashStrike", cooldown: 1.7,
+        desc: "Cursed water sheets over him and the floor stops holding him back — he glides through the swing rather than stepping into it, and the attack that was going to land goes past.",
+        p: { vel: 610, iframes: 0.15, delay: 0.05, dur: 0.22, ox: 72, oy: -92, w: 212, h: 104, dmg: 13, base: 420, growth: 7.0, angle: 0.32, color: "#6fc7e0", fxElement: "water", label: "Reiki", sfx: "punch" },
+      },
+      down: {
+        name: "Auspicious Beast: Kirin", type: "install", cooldown: 8.5,
+        desc: "Doping from inside his own skull: pain stops arriving, so nothing staggers him. It is running on his body rather than his cursed energy, and when it lifts he cannot make his legs work for a moment.",
+        p: { duration: 4.2, armor: true, dmgTakenMul: 0.9, selfDrainPerSec: 2.4, endSnare: 1.1, color: "#c9a24a", label: "KIRIN" },
+      },
+    },
+    ultimate: {
+      name: "Auspicious Beast: Ryu", type: "serpent",
+      desc: "The fourth beast, the one his mask came off before he ever got to use: a serpentine dragon surges out of his hands and coils through whatever it catches.",
+      p: { charge: 0.55, speed: 660, dur: 2.3, r: 52, dmg: 9.5, base: 300, growth: 6.0, angle: 0.42, homing: 360, pull: 170, weave: 250, rehit: 0.24, color: "#a8582f", label: "RYU", sprite: "effect:ryu_dragon", spriteH: 190 },
+    },
+    passive: { id: "beastMask", name: "The Mask", desc: "The seance only runs while his face is covered: beast techniques hit 12% harder with the mask on — and a shield break tears it off, sealing all three for 4.5 s." },
+    ai: { style: "balanced", range: 300 },
   },
 };
 

@@ -56,6 +56,15 @@ export const ULT_SHOT = {
       p: { ...p, speed: 620, ox: 70, oy: -86, r: 30, dur: 1.4, homing: p.homing ?? 260,
            spriteH: (p.spriteH || 90) * 1.8 } },
   ],
+  // Ino's RYU: one shot, but the handler owns everything about it — the kit
+  // says speed/dur/r and the director adds the offsets, the pierce and the
+  // homing. The weave and the hit-set re-arm are not reproduced here; neither
+  // moves the drawing, and this table exists to show the drawing.
+  serpent: (p) => [
+    { sprite: p.sprite,
+      p: { ...p, speed: p.speed ?? 660, ox: 84, oy: -96, r: p.r ?? 52,
+           dur: p.dur ?? 2.3, homing: p.homing ?? 360 } },
+  ],
   cannonade: (p) => [
     { sprite: p.sprite,
       p: { ...p, speed: 940, ox: 71, oy: -83, r: (p.width || 170) / 2,

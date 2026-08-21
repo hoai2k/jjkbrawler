@@ -116,6 +116,79 @@ export function performUltimate(f) {
 }
 
 const DIRECTORS = {
+  // Ino — Auspicious Beast: Ryu. The one beast the manga never got to show in
+  // use (his mask came off first); what IS described is a serpentine dragon
+  // surging out of his hands into the enemy, and that is what this is.
+  //
+  // Deliberately NOT `beam`. A beam is one pass of one hit box travelling in a
+  // straight line, and a snake is the opposite of both: it weaves, and the
+  // damage is the whole length of it going past you. So the shot pierces, its
+  // hit set is cleared on a timer — that re-arm is what turns one projectile
+  // into a body with segments — and a controller entity flies it in a sine
+  // while the projectile's own homing keeps the head pointed at the target.
+  // Nothing else in the file needed changing to get it.
+  serpent(f, p) {
+    const charge = p.charge ?? 0.55;
+    beginUltAction(f, charge + 0.35);
+    const color = p.color || f.char.theme;
+    state.entities.push({
+      owner: f, t: 0, dead: false, shot: null, rehitT: 0,
+      update(dt) {
+        this.t += dt;
+        if (!this.shot && this.t >= charge) {
+          this.shot = spawnProjectile(f, {
+            speed: p.speed ?? 660, ox: 84, oy: -96,
+            r: p.r ?? 52, dur: p.dur ?? 2.3,
+            dmg: p.dmg, base: p.base, growth: p.growth, angle: p.angle ?? 0.42,
+            color, pierce: true, homing: p.homing ?? 360, pull: p.pull ?? 0,
+            shieldMul: p.shieldMul ?? 2.2, stunBonus: 0.06,
+            fxElement: "water", label: p.label || "Ryu",
+            sprite: p.sprite, spriteH: p.spriteH,
+          });
+          playSfx("blast", 1, 0.72);
+          state.camera.shake = Math.max(state.camera.shake, 12);
+          burst(f.x + f.facing * 84, f.y - 96 * ART_SCALE, color, 26, 1.1);
+        }
+        if (this.shot) {
+          // Dead or expired: the projectile list owns its lifetime, so the
+          // controller follows it out rather than guessing at the duration.
+          if (!state.projectiles.includes(this.shot)) { this.dead = true; return; }
+          // The weave. An impulse rather than a set, so the shot's own homing
+          // still wins the argument about where the head is going — a snake
+          // that tracks you is a snake, one that ignores you is a sine wave.
+          this.shot.vy += Math.cos(this.shot.age * 11) * (p.weave ?? 250) * dt * 8;
+          // Every segment of it that goes past is its own hit. Without the
+          // re-arm a piercing shot touches each fighter exactly once and the
+          // whole dragon is worth one 9% poke.
+          this.rehitT -= dt;
+          if (this.rehitT <= 0) {
+            this.rehitT = p.rehit ?? 0.24;
+            this.shot.hit.clear();
+          }
+        } else if (this.t > charge + 0.5) this.dead = true;
+      },
+      draw(ctx) {
+        if (this.shot || this.t >= charge) return;
+        // The coil gathering in his hands before it leaves them.
+        const g = Math.min(1, this.t / charge);
+        const cx = f.x + f.facing * 84;
+        const cy = f.y - 96 * ART_SCALE;
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = 0.7 * g;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3 + g * 4;
+        for (let i = 0; i < 3; i++) {
+          const r = (10 + g * 46) * (1 - i * 0.22);
+          ctx.beginPath();
+          ctx.ellipse(cx, cy, r, r * 0.42, this.t * 5 + i * 1.1, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      },
+    });
+  },
+
   // Gojo — Hollow Purple: a massive erasing mass that crosses the stage.
   beam(f, p) {
     beginUltAction(f, 0.9);

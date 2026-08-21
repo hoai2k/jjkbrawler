@@ -15,14 +15,16 @@ different reach/speed/damage/effects), three specials (neutral, side, down),
 one ultimate, and one always-on passive. Eight of them also have a **Domain
 Expansion** — see the section at the end — and Naoya carries a ninth.
 
-**The roster is 34, and nothing is staged.** Round 15's four late additions —
+**The roster is 34, and one fighter is staged.** Round 15's four late additions —
 Mechamaru, Yuki Tsukumo, Dagon and Kurourushi — were built in full in
 `src/characters.js` before any of their art existed, held off the select screen
 by `STAGED_CHARACTER_KEYS` while it was drawn, and all four shipped that way.
 Round 23's three — **Hajime Kashimo, Masamichi Yaga and Naoya Zen'in** — and
 round 24's four — **Kirara Hoshi, Haruta Shigemo, Master Tengen and Kasumi
 Miwa** — went the same route and are now selectable alongside everyone else
-(see their sections below).
+(see their sections below). Round 25 stages one — **Takuma Ino** — whose kit,
+`serpent` ultimate, `endSnare` install field and `beastMask` passive are all
+live in code and whose art has not been drawn.
 
 The staging machinery is how they were built, and it is idle rather than gone:
 `node tools/smoke_staged.mjs` plays every staged kit's moves in a real match,
@@ -966,6 +968,58 @@ on the roster, and the only one cast by its actual student.
   harder. She is at her best the moment before she moves, which is the most
   swordswoman sentence in the game.
 
+## Takuma Ino — "The Medium"
+**Canon:** Grade 2 sorcerer out of Tokyo Jujutsu High, assigned under Kento
+Nanami in Shibuya and, by the end, carrying Nanami's blunt sword. His technique
+is **Auspicious Beasts Summon** (来訪瑞獣, *Raihō Zuijū*), and the name is a
+trap: it is a **séance**, not a summoning. Covering his face turns him into a
+medium and he channels one of four beasts **through his own body** — nothing is
+ever manifested beside him. **Kaichi** produces a horn sheathed in cursed
+energy that homes and does not stop until it lands. **Reiki** sheets him in
+cursed water that protects him and cuts his friction to nothing, so he glides
+away from a swing and into his own. **Kirin** nullifies pain through what the
+manga calls intracerebral doping — it runs on his stamina rather than his
+cursed energy, and leaves him unable to move once it lifts. **Ryu**, described
+as a serpentine dragon surging out of his hands, is the one he never got to
+use: Granny Ogami's grandson — wearing Toji Fushiguro's body — simply pulled
+his mask off, which shuts the entire technique down, and Ino lost his right eye
+in that fight. Personality: genuinely cheerful, humble, the most
+straightforwardly decent adult on the roster. He does not think he is the
+smartest man in the room; when he is stuck he asks himself what Nanami would do.
+
+**Design mapping:** A séance is not a summon, so nothing about him is built out
+of `summons.js` — every beast lands on his own body, and the one that leaves
+him is a projectile. He is a plain, good hand-to-hand fighter wearing a
+technique, and the technique has an off switch.
+- *Stats:* 410 / 1.00 — the most ordinary line in the game, deliberately.
+  Friction 0.78, the lowest on the roster: Reiki bleeds into the base kit and
+  he slides a little further than anyone else when he stops.
+- **Auspicious Beast: Kaichi** (neutral): the horn — a hard-homing shot with a
+  long life. His only ranged option, and the one thing he has against a zoner.
+- **Auspicious Beast: Reiki** (side): the glide — a gliding dash strike with
+  i-frames through the middle of it. Canon says it lets him dodge and land
+  blows at once; the i-frames ARE that sentence.
+- **Auspicious Beast: Kirin** (down): an install with `armor` — nothing
+  staggers him for 4.2 s. It is paid for out of his own body (2.4%/s of self
+  damage, ~10% over the ride) and it **snares him for 1.1 s when it ends**,
+  which is the manga's "he cannot move afterwards" written as a field
+  (`endSnare`) rather than as a special case.
+- **Ultimate — Auspicious Beast: Ryu:** the fourth beast, on a new `serpent`
+  director. Not the `beam` shape: a beam is one hit box in a straight line and
+  a snake is neither, so the shot pierces, weaves, and has its hit set re-armed
+  every 0.24 s — which is what turns one projectile into a body with segments
+  going past you. ~29% on a fresh cast.
+- *Passive — The Mask:* the technique's actual rule. Beast damage is 12% higher
+  while the mask is on, and **a shield break tears it off**, sealing all three
+  beasts for 4.5 s (the `silence` status Toji's spear already used) and
+  cancelling Kirin outright. He is the only fighter in the game whose guard
+  breaking costs him his whole kit rather than a stock's worth of position.
+
+**What was NOT invented:** all four beasts, their effects, the séance rule, the
+mask dependency and the blunt sword are canon. Ryu's *numbers* are invented —
+the manga describes its shape and never its output — and so is the pairing of
+the mask rule to a shield break specifically; canon has it pulled off by hand.
+
 ---
 
 ## Roster balance at a glance
@@ -996,7 +1050,8 @@ on the roster, and the only one cast by its actual student.
 | Reggie | Wildcard zoner | ★★★☆ | Mid | Area denial, falling appliances |
 | Gakuganji | Sound fortress | ★☆ | Heavy | Walls of sound, unflinching trades |
 
-All 34 fighters are live. The six round-7 additions (Choso, Mei Mei, Uro, Yuji,
+All 34 fighters on the roster are live, and Takuma Ino is staged behind them.
+The six round-7 additions (Choso, Mei Mei, Uro, Yuji,
 Reggie, Gakuganji) were built and balanced in code before their art existed, and
 round 15's four and rounds 23-24's seven did the same; that history is in
 [asset-requests-history.md](asset-requests-history.md).
@@ -1095,6 +1150,18 @@ Round 15 (the four late additions):
 - [Jujutsu Kaisen Wiki — Yuki Tsukumo](https://jujutsu-kaisen.fandom.com/wiki/Yuki_Tsukumo) / [Star Rage](https://jujutsu-kaisen.fandom.com/wiki/Star_Rage) (virtual mass, "Bombaye") / [Garuda](https://jujutsu-kaisen.fandom.com/wiki/Garuda) (shikigami and cursed tool in one; fights independently)
 - [Jujutsu Kaisen Wiki — Dagon](https://jujutsu-kaisen.fandom.com/wiki/Dagon) (Disaster Tides, the shikigami menagerie, evolution from cursed womb) / [Horizon of the Captivating Skandha](https://jujutsu-kaisen.fandom.com/wiki/Horizon_of_the_Captivating_Skandha) / [Death Swarm](https://jujutsu-kaisen.fandom.com/wiki/Death_Swarm)
 - [Jujutsu Kaisen Wiki — Kurourushi](https://jujutsu-kaisen.fandom.com/wiki/Kurourushi) (cursed cockroaches, parthenogenesis, Earthen Insect Trance) / [Festering Life Sword](https://jujutsu-kaisen.fandom.com/wiki/Festering_Life_Sword) (six barrels, eggs that hatch in the wound)
+
+Round 25 (Ino):
+
+- [Jujutsu Kaisen Wiki — Auspicious Beasts Summon](https://jujutsu-kaisen.fandom.com/wiki/Auspicious_Beasts_Summon) / [JJK Guide — Auspicious Beasts Summon](https://www.jjk.guide/techniques/auspicious-beasts-summon) (来訪瑞獣; a séance, one mask, the beasts channelled through the body rather than manifested — "no shikigami, no projectiles")
+- [Gamerant — Takuma Ino's Cursed Technique, Explained](https://gamerant.com/jujutsu-kaisen-takuma-inos-cursed-technique-explained/) (Kaichi's homing horn, Reiki's cursed-water glide, Kirin's intracerebral doping, Ryu undemonstrated; mask removed = technique gone)
+- [ComingSoon — Who Is Ino & What's His Cursed Technique?](https://www.comingsoon.net/guides/news/1667539-jujutsu-kaisen-who-is-ino-cursed-technique-how-strong-jjk) (grade 2, expert hand-to-hand, Ryu as a serpentine dragon from the hands, Nanami's blunt sword in the final battle)
+- [Animated Character Database — Takuma Ino](https://animated-character-database.fandom.com/wiki/Takuma_Ino) (178 cm; disheveled brown hair under a ski mask rolled into a beanie; wide-collared black sweatshirt, black trousers, high-top sneakers)
+
+**On the masks:** he has **one**, not four. The technique needs his face
+covered; which beast he channels is his choice, not the mask's. Anything
+describing a set of four ritual masks is describing something the manga does
+not contain.
 
 **On the spelling:** the curse is written **Kurourushi** (黒沐死) on the wiki and
 in the subtitles, and that is the key used in code (`kurourushi`). "Kuroroshi"
