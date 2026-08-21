@@ -1,3 +1,4 @@
+import { ART_SCALE } from "./config_tuning.js";
 // 20 stages. Each is one "main" platform (solid ground, grabbable ledges, the
 // lowest surface) plus 2–6 drop-through platforms in a deliberate archetype —
 // arenas, skylines, galleries, towers, staircases, orbit fields (see
@@ -84,6 +85,23 @@ export const STAGES = [
     { x: 196, y: 578, w: 888, h: 42, kind: "main" }, { x: 240, y: 458, w: 180, h: 15, kind: "side" }, { x: 860, y: 458, w: 180, h: 15, kind: "side" }, { x: 430, y: 338, w: 170, h: 15, kind: "side" }, { x: 680, y: 338, w: 170, h: 15, kind: "side" }
   ] }
 ];
+
+// THE SLAB THINS WITH THE ROSTER.
+//
+// A platform's LENGTH is a play decision — it is how much ground there is to
+// fight over, and it deliberately did not move when the fighters got smaller.
+// Its THICKNESS is a drawing decision: 42px reads as a kerb under a 149px
+// fighter and as a wall under a 104px one, and nothing in the game tests the
+// underside of a main platform for anything a player would notice.
+//
+// So thickness follows the bodies, and only thickness. The TOP EDGE — `y`, the
+// surface everything stands, lands and grabs on — is untouched, so no spawn,
+// no ledge and no tier step moves by a pixel. The authored numbers stay in the
+// table above as the numbers somebody chose; this is the one place they are
+// bent, so `git blame` still leads to the decision rather than to a rescale.
+for (const stage of STAGES) {
+  for (const p of stage.platforms) p.h = Math.max(6, Math.round(p.h * ART_SCALE));
+}
 
 export function getStage(key) {
   return STAGES.find((s) => s.key === key) || STAGES[0];

@@ -8,7 +8,7 @@ import { fighterTransform, trailStrength } from "./motion.js";
 import { bodyMetrics } from "./silhouette.js";
 import { comFrac } from "./body_points.js";
 import {
-  TRAIL_ALPHA, STRIKE_ARC, COM_HOLD_MAX_FRAC, XFADE_COM_MAX_FRAC, MOTION,
+  TRAIL_ALPHA, STRIKE_ARC, COM_HOLD_MAX_FRAC, XFADE_COM_MAX_FRAC, MOTION, ART_SCALE,
 } from "./config_tuning.js";
 import { paintShared } from "./shared_paint.js";
 import { drawParticles, drawPopupsWorld, drawBannersScreen } from "./particles.js";
@@ -1072,7 +1072,11 @@ function drawShadow(ctx, f) {
   ctx.globalAlpha = clamp(0.42 - (groundY - f.y) / 900, 0.08, 0.42);
   ctx.fillStyle = "#020308";
   ctx.beginPath();
-  ctx.ellipse(f.x, groundY + 8, 34, 8, 0, 0, Math.PI * 2);
+  // The pool a BODY casts, so it is body-sized: it follows the roster's scale
+  // like the body does, and the two stay the same picture (config_tuning.js
+  // ART_SCALE). Its distance below the feet scales too — a shadow sitting the
+  // old 8px out from a 30% smaller pair of boots reads as a fighter hovering.
+  ctx.ellipse(f.x, groundY + 8 * ART_SCALE, 34 * ART_SCALE, 8 * ART_SCALE, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 }
@@ -1124,7 +1128,7 @@ export function paintProceduralAura(ctx, f, cx, cy) {
   ctx.globalAlpha = 0.24 + 0.1 * Math.sin(state.matchTime * 8);
   ctx.fillStyle = f.installs.color;
   ctx.beginPath();
-  ctx.ellipse(cx, cy, 56, 96, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx, cy, 56 * ART_SCALE, 96 * ART_SCALE, 0, 0, Math.PI * 2);
   ctx.fill();
   // Distortion Solo: the aura's edge clips like an overdriven signal — a
   // square-wave ring stepping between two radii, not a smooth ellipse.
@@ -1297,8 +1301,9 @@ function drawBlindSplatter(ctx, f) {
   for (let i = 0; i < 5; i++) {
     const a = i * 1.7 + Math.floor(state.matchTime * 3) * 0.6;
     ctx.beginPath();
-    ctx.ellipse(f.x - 22 + i * 11, f.y - 150 + Math.sin(a) * 4,
-                7 + (i % 3) * 3, 5 + (i % 2) * 3, a, 0, Math.PI * 2);
+    // Painted on a face, so every number here is body-sized.
+    ctx.ellipse(f.x + (-22 + i * 11) * ART_SCALE, f.y + (-150 + Math.sin(a) * 4) * ART_SCALE,
+                (7 + (i % 3) * 3) * ART_SCALE, (5 + (i % 2) * 3) * ART_SCALE, a, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();

@@ -1,6 +1,7 @@
 import { state } from "./state.js";
 import { clamp, lerp } from "./utils.js";
 import { WORLD, RESPAWN_WAIT } from "./constants.js";
+import { ART_SCALE } from "./config_tuning.js";
 
 // Smash-style framing: fit the alive fighters' bounding box, padded, and zoom
 // to whatever makes that box fill the frame — tight duels are shot tight, a
@@ -8,19 +9,32 @@ import { WORLD, RESPAWN_WAIT } from "./constants.js";
 // The pads are sized for the fighters plus the space a fight needs around
 // them: heads and jumps above (fighter y is the foot line), attack reach and
 // a beat of lookahead to the sides, a strip of ground below.
-const FRAME_PAD_X = 240;
-const FRAME_PAD_TOP = 280;
-const FRAME_PAD_BOTTOM = 120;
+// The pads are body-sized, so they shrink with the bodies: the room a fight
+// needs around two fighters is a fact about the fighters, and holding 240px
+// beside a 104px body frames a duel like a wide shot of an empty stage.
+const FRAME_PAD_X = 240 * ART_SCALE;
+const FRAME_PAD_TOP = 280 * ART_SCALE;
+const FRAME_PAD_BOTTOM = 120 * ART_SCALE;
 // 1.32 restores the on-screen size fighters had before the roster shrank 15%
 // (docs/level-design-review.md G1a): close fights read as large as ever, and
 // the zoom-out is what buys the bigger boards their room.
-const ZOOM_MAX = 1.32;
-const ZOOM_SOLO = 1.12;
+// ...and the zoom goes the other way by exactly as much, so a fighter lands on
+// screen the size they always were. This is the half of the roster shrink that
+// makes it invisible: the bodies are 70% of what they were in WORLD pixels and
+// 100% of what they were in SCREEN pixels, and what actually changed is how
+// much board fits around them.
+const ZOOM_MAX = 1.32 / ART_SCALE;
+const ZOOM_SOLO = 1.12 / ART_SCALE;
 // Below 1 the view reaches past the painted world, into the strip of blast
 // zone where recoveries actually happen: at 0.78 the shot is 1641 × 923, wide
 // enough to hold two fighters hanging off opposite ledges at once. Everything
 // painted world-wide bleeds out to match (VIEW_BLEED, render.js). Lower than
 // this and the fighters stop reading.
+// NOT scaled with the roster, deliberately. This is the floor that lets the
+// shot reach into the blast zone after somebody who is recovering, and the
+// blast zone did not move when the bodies shrank — it is board, not body. Held
+// at 0.78 the frame still covers 1641 x 923 world px, which is what holding two
+// fighters off opposite ledges actually costs.
 const ZOOM_MIN = 0.78;
 // How far off the world the view centre may push the frame, so a fighter
 // scrapping for a ledge from off-stage stays on screen. Generous on purpose:
@@ -41,9 +55,9 @@ const LOOKAHEAD_MAX = 260;
 // body width (~76 px at the widest) and a strip of ground. These only ever
 // bind in the moments the eased framing would have lost somebody — in normal
 // play the frame is wider than they ask for.
-const KEEP_PAD_X = 110;
-const KEEP_PAD_TOP = 250;
-const KEEP_PAD_BOTTOM = 70;
+const KEEP_PAD_X = 110 * ART_SCALE;
+const KEEP_PAD_TOP = 250 * ART_SCALE;
+const KEEP_PAD_BOTTOM = 70 * ART_SCALE;
 
 // A FIGHTER WHO IS COMING BACK IS STILL IN THE SHOT — ON THEIR WAY BACK.
 //

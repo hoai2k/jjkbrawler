@@ -47,7 +47,7 @@
 
 import {
   STRIKE_ARC, MELEE_GRACE, MELEE_SPAN, ADDED_RANGE, REACH_PRICE, SWEETSPOT,
-  HEIGHT_BASE_PX,
+  HEIGHT_BASE_PX, ART_SCALE,
 } from "./config_tuning.js";
 import { SAKURAI, SMASH_TILT_ANGLE, DASH_LUNGE_DRAG } from "./constants.js";
 import {
@@ -278,7 +278,7 @@ export function lightMove(char, variant, jabStep = 0) {
         dmg: round1(p.dmg * 1.1), baseKb: 330, growth: 6.2, angle: p.angle,
         critBand: p.critBand || tipBand(g, tip),
         label: "Dash " + p.label,
-        lungeVx: 44, lunge: true, lungeDrag: DASH_LUNGE_DRAG,
+        lungeVx: 44 * ART_SCALE, lunge: true, lungeDrag: DASH_LUNGE_DRAG,
       };
     }
     case "up":
@@ -379,7 +379,7 @@ export function heavyMove(char, variant, charge = 0) {
         dmg: round1(p.dmg * 0.95), baseKb: 420, growth: 8.0, angle: p.angle,
         critBand: p.critBand || tipBand(g, tip),
         label: "Charging " + p.label,
-        lungeVx: 62, lunge: true, lungeDrag: DASH_LUNGE_DRAG,
+        lungeVx: 62 * ART_SCALE, lunge: true, lungeDrag: DASH_LUNGE_DRAG,
       };
     }
     case "up":

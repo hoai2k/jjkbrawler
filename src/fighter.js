@@ -29,7 +29,7 @@ import {
   ATTACK_TILT_LEVEL_DEG, ATTACK_TILT_CARDINAL_DEG, ATTACK_TILT_MIN_MAG,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
-import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE } from "./config_tuning.js";
+import { TRAIL_LEN, TRAIL_STEP, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE, ART_SCALE } from "./config_tuning.js";
 import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame, sweepsTurns } from "./render_backend.js";
@@ -443,7 +443,7 @@ function releaseHeavy(f, input) {
   }
   executeMove(f, move, { grunt: charge > 0.5 });
   if (charge > 0.25) {
-    burst(f.x, f.y - 90, f.char.theme, 14 + charge * 16, 1 + charge);
+    burst(f.x, f.y - 90 * ART_SCALE, f.char.theme, 14 + charge * 16, 1 + charge);
     state.camera.shake = Math.max(state.camera.shake, 3 + charge * 4);
   }
 }
@@ -687,7 +687,7 @@ function tryGrabLedge(f) {
         occupant.vx = side * 170;
         occupant.vy = -240;
         occupant.invuln = Math.max(occupant.invuln, 0.3);
-        dust(occupant.x, occupant.y - 40, 6);
+        dust(occupant.x, occupant.y - 40 * ART_SCALE, 6);
         playSfx("whoosh", 0.6);
       }
       f.ledge = { side, edgeX, plat };
@@ -1109,10 +1109,10 @@ function respawn(f) {
   // Everything Has a Price (Mei Mei): each stock opens with an advance payment
   if (f.char.passive.id === "warCompensation" && f.meter < 25) {
     f.meter = clamp(25, 0, METER_MAX);
-    popup(f.x, f.y - 40, "ADVANCE PAID", "#ffd35a", 16);
+    popup(f.x, f.y - 40 * ART_SCALE, "ADVANCE PAID", "#ffd35a", 16);
   }
   dust(f.x, f.y, 20);
-  ring(f.x, f.y - 40, f.char.theme, 120);
+  ring(f.x, f.y - 40 * ART_SCALE, f.char.theme, 120);
 }
 
 /**
@@ -1209,7 +1209,7 @@ export function updateFighter(f, dt, input) {
       f.miracleT = 0;
       if (f.miracleStock < 3) {
         f.miracleStock += 1;
-        popup(f.x, f.y - 160, `a miracle banked (${f.miracleStock})`, "#c8a8e0", 13);
+        popup(f.x, f.y - 160 * ART_SCALE, `a miracle banked (${f.miracleStock})`, "#c8a8e0", 13);
       }
     }
   }
@@ -1242,8 +1242,8 @@ export function updateFighter(f, dt, input) {
       if (dist < radius && sign(f.vx) === toward && Math.abs(f.vx) > 30) {
         f.vx -= toward * 2600 * dt * (1 - dist / radius);
         if (dist < 130 && Math.random() < 4 * dt) {
-          popup(f.x, f.y - 150, "REPELLED", "#d9a8ff", 15);
-          burst(f.x + toward * 30, f.y - 90, "#d9a8ff", 6, 0.5);
+          popup(f.x, f.y - 150 * ART_SCALE, "REPELLED", "#d9a8ff", 15);
+          burst(f.x + toward * 30, f.y - 90 * ART_SCALE, "#d9a8ff", 6, 0.5);
           playSfx("starRepel", 0.7);
         }
       }
@@ -1270,7 +1270,7 @@ export function updateFighter(f, dt, input) {
     // Flowing Red Scale (Choso): overclocked blood burns him while it's held
     if (f.installs.selfDrainPerSec) f.damage = Math.min(999, f.damage + f.installs.selfDrainPerSec * dt);
     if (f.installs.t <= 0) {
-      popup(f.x, f.y - 170, `${f.installs.label} FADED`, "#9aa4c0", 16);
+      popup(f.x, f.y - 170 * ART_SCALE, `${f.installs.label} FADED`, "#9aa4c0", 16);
       // A transformation ends with the install that carried it: back to your
       // own body (config_transform.js).
       if (f.installs.spriteChar) f.spriteChar = null;
@@ -1459,7 +1459,7 @@ export function updateFighter(f, dt, input) {
     } else {
       f.charging.t += dt;
       if (!input.heavyHeld || f.charging.t >= 0.8) releaseHeavy(f, input);
-      else if (Math.random() < 0.3) burst(f.x, f.y - 90, f.char.theme, 1, 0.5);
+      else if (Math.random() < 0.3) burst(f.x, f.y - 90 * ART_SCALE, f.char.theme, 1, 0.5);
     }
   }
 
@@ -1580,17 +1580,17 @@ export function updateFighter(f, dt, input) {
     } else if (openSlot >= 0 && f.char.domains?.[openSlot]) {
       f.bufferedAction = null;
       if (canOpenDomain(f, openSlot)) performDomain(f, openSlot);
-      else if (f.meter < DOMAIN_METER_COST) popup(f.x, f.y - 160, "NEEDS A FULL BAR", "#9aa4c0", 15);
+      else if (f.meter < DOMAIN_METER_COST) popup(f.x, f.y - 160 * ART_SCALE, "NEEDS A FULL BAR", "#9aa4c0", 15);
     } else if (domainSpecial) {
       f.bufferedAction = null;
       performSpecial(f, domainSpecial);
     } else if (input.domainP) {
-      popup(f.x, f.y - 160, "NO DOMAIN", "#9aa4c0", 15);
+      popup(f.x, f.y - 160 * ART_SCALE, "NO DOMAIN", "#9aa4c0", 15);
     } else if (input.ultP && f.meter >= ULT_METER_COST) {
       performUltimate(f);
     } else if (input.ultP && f.meter < ULT_METER_COST) {
       // Same wording as the domain refusal — they cost the same thing now.
-      popup(f.x, f.y - 160, "NEEDS A FULL BAR", "#9aa4c0", 15);
+      popup(f.x, f.y - 160 * ART_SCALE, "NEEDS A FULL BAR", "#9aa4c0", 15);
     } else {
       // A fresh press wins over a buffered one; the buffer only covers inputs
       // that arrived while the fighter was busy.
