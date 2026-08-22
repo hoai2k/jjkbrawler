@@ -17,6 +17,8 @@
 //   2. Is a state resolving to nothing at all? That is a hole on screen.
 //   3. Is a pose flagged `needsReplacement` when the art that replaces it has
 //      already landed? That is a stale request that would be re-issued.
+//   4. Is a drawing tagged for deletion still on screen? That tag is an
+//      instruction to throw the file away, and the game is drawing it.
 //
 // Run directly, or from intake_import.py, which calls it after every import so
 // a delivery reports its own unfinished business.
@@ -93,6 +95,34 @@ for (const char of keys) {
     if (!drawnBy.length) stale.push(`${key}: flagged '${replacementKind(meta)}', drawn by nothing`);
   }
   if (stale.length) findings.push({ char, kind: "stale flag", lines: stale });
+
+  // 4. A drawing tagged for deletion that the game is still putting on screen.
+  //    The tag says "throw this file away at the next cleanup", so a cleanup
+  //    that acts on it would take the art out from under a pose that is
+  //    drawing it. The workbench will not let a tag be written on art in play
+  //    (bench_picker.js), which leaves a hand-edited export as the way in —
+  //    and this is where that gets caught.
+  //
+  //    Asked of the FILE, not the pose it is tagged under: a drawing can be
+  //    the art of several poses, and deleting it takes it away from all of
+  //    them.
+  const live = new Map();          // file -> the poses drawing it
+  for (const [key, meta] of Object.entries(man.characters?.[char] || {})) {
+    if (!meta?.file) continue;
+    if (!Object.keys(anims).some((s) => resolvedAnim(char, s).frames.includes(key))) continue;
+    live.set(meta.file, [...(live.get(meta.file) || []), key]);
+  }
+  const doomed = [];
+  for (const [key, entry] of Object.entries(man.variants?.[char] || {})) {
+    for (const opt of entry.options || []) {
+      if (opt.needsReplacement !== "delete") continue;
+      const drawnBy = live.get(opt.file);
+      if (drawnBy) {
+        doomed.push(`${key}: ${opt.file} is tagged for deletion and ${drawnBy.join(", ")} draws it`);
+      }
+    }
+  }
+  if (doomed.length) findings.push({ char, kind: "doomed art", lines: doomed });
 }
 
 if (!findings.length) {
@@ -104,8 +134,9 @@ const HEAD = {
   "re-point": "STILL ON GRID CELLS — the art exists; src/characters.js has to name it",
   "no art": "NOTHING TO DRAW — these states resolve to no file",
   "stale flag": "STALE REQUESTS — flagged art that nothing draws any more",
+  "doomed art": "TAGGED FOR DELETION BUT STILL DRAWN — point the pose elsewhere or clear the tag",
 };
-for (const kind of ["no art", "re-point", "stale flag"]) {
+for (const kind of ["no art", "doomed art", "re-point", "stale flag"]) {
   const group = findings.filter((f) => f.kind === kind);
   if (!group.length) continue;
   console.log(`\n${HEAD[kind]}`);

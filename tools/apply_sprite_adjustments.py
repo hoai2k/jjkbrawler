@@ -162,6 +162,13 @@ VARIANT_ORIGIN = ["borrowedFrom"]
 VARIANT_PROVENANCE = ["smoothed"]
 VARIANT_BANKED = VARIANT_PLACEMENT + VARIANT_REVIEW + VARIANT_ORIGIN + VARIANT_PROVENANCE
 
+# Measured off the image rather than decided by a person: bake_anchors.py owns
+# these, and they describe THE FILE. They are not banked on a variant option
+# (a person did not choose them), so switching a pose's drawing has to clear
+# them or they go on describing the drawing that left. `bodyTop` is not here —
+# it IS banked, so a switch already replaces it.
+MEASURED_FIELDS = ["bodyLeft", "bodyRight", "coreLeft", "coreRight"]
+
 # Kinds that only mean something about an option, never about the pose.
 # Mirrors VARIANT_ONLY_KINDS in sprites/src/sprites.js.
 VARIANT_ONLY_KINDS = {"delete"}
@@ -274,6 +281,15 @@ def main():
 
     man = json.load(open(MANIFEST))
     applied, skipped = [], []
+    # Characters whose measured spans were dropped because a pose changed
+    # drawing. Said at the end rather than buried in the change list: the
+    # manifest is CORRECT without them (every consumer falls back), but it is
+    # not complete until bake_anchors has read the new pixels.
+    remeasure = set()
+    # Characters that gained a delete tag this run. See the note printed at the
+    # end: this tool writes the tag, check_pointing.mjs is what can tell whether
+    # the drawing it names is still on screen.
+    tagged_delete = set()
 
     for payload in load_payloads(args.sources):
         char = payload.get("character")
@@ -382,6 +398,8 @@ def main():
                         before = target.get(field)
                         if value:
                             target[field] = value
+                            if value == "delete":
+                                tagged_delete.add(char)
                             applied.append(f"{char}/{pose} [{opt['file']}]: tagged {value}")
                         elif before:
                             target.pop(field, None)
@@ -402,6 +420,19 @@ def main():
             before = meta.get("file")
             for field in VARIANT_BANKED:
                 meta.pop(field, None)
+            # AND THE MEASUREMENTS, which are not banked because they are not
+            # decisions — they are read off the pixels (tools/bake_anchors.py).
+            # A pose that switches to a different drawing keeps whatever was
+            # measured from the old one, and those numbers are then simply
+            # wrong: jogo/attack_up pointed at a 262px-wide drawing while still
+            # claiming bodyRight 873, which is silhouette.js's idea of how wide
+            # the fighter is and com_review's idea of where the body's core is.
+            # Dropped rather than guessed at — every consumer falls back for a
+            # frame that has none, and `bake_anchors.py` puts them back for real.
+            if before != file:
+                for field in MEASURED_FIELDS:
+                    meta.pop(field, None)
+                remeasure.add(char)
             for field, value in chosen.items():
                 if field == "label":
                     continue
@@ -614,6 +645,15 @@ def main():
 
     for line in applied:
         print("  " + line)
+    if tagged_delete:
+        # Written from a hand-edited export as easily as from the workbench,
+        # and the workbench is the half that knows what the game is drawing.
+        # So the tool that cannot tell says which one can.
+        print("  delete tag(s) written — confirm nothing tagged is still on "
+              f"screen: node ../tools/check_pointing.mjs {' '.join(sorted(tagged_delete))}")
+    if remeasure:
+        print("  measured spans dropped where a pose changed drawing — "
+              f"run: python3 bake_anchors.py --only {' '.join(sorted(remeasure))}")
     for line in skipped:
         print("  SKIP " + line)
 

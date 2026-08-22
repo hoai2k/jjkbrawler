@@ -17,9 +17,20 @@ import {
 } from "../../src/assets.js";
 import { $, canvas, state } from "./bench_state.js";
 import {
-  frameLabel, statesUsing, allFramesOf, poseVariants, variantEntry, poseView,
-  variantFlagEdits, remember,
+  frameLabel, statesUsing, allFramesOf, variantEntry, poseView,
+  variantFlagEdits, remember, drawnFiles, ensureVariantOption,
 } from "./bench_model.js";
+
+/** THE DRAWINGS THE GAME IS CURRENTLY SHOWING, as of the moment this grid
+ *  opened. What the delete option is gated on: anything else — an alternate,
+ *  a superseded delivery, a sheet cell no animation has ever reached — is by
+ *  definition safe to throw away, and those are the likeliest to be junk.
+ *
+ *  A snapshot rather than a live question because it is asked of every tile
+ *  and the answer walks every animation state; the set cannot change while a
+ *  modal grid is up, since changing it means picking a drawing, which closes
+ *  the grid. */
+let pickerDrawn = new Set();
 
 /** Repaint the pose list and the panel after a flag written from a tile. Set
  *  once at boot by workbench.js; the picker never imports it, so this module
@@ -44,6 +55,7 @@ export function openSpritePicker({ title, sub, current, currentPose = null, onPi
   $("pickerTitle").textContent = title;
   $("pickerSub").textContent = sub;
   grid.innerHTML = "";
+  pickerDrawn = drawnFiles(state.char);
   closePickerMenu();
   pickerPage = null;
   // Scrolling takes the tile out from under the pointer, so whatever it was
@@ -279,16 +291,24 @@ export function openPickerMenu(e, d, tile, choose, repaint) {
   menu.id = "pickerMenu";
   menu.className = "picker-menu";
   const doomed = d.option?.needsReplacement === "delete";
-  // Deleting the only drawing a pose has would leave a hole where a sprite
-  // should be, so it is offered on a drawing that has somewhere to fall back
-  // to — the same rule the panel's own delete tag follows.
-  const spare = d.pose ? poseVariants(state.char, d.pose).length > 1 : false;
+  // ANY DRAWING THE GAME IS NOT SHOWING can be thrown away; one it IS showing
+  // cannot, whatever else the pose has banked beside it.
+  //
+  // The rule used to be "this pose has a spare to fall back to", which got
+  // both ends wrong. A sheet cell no animation reaches has no spare and no
+  // hole to leave — nothing draws it — and those are precisely the drawings
+  // most likely to be junk, so the one delete that should always be allowed
+  // was the one that never was. And a drawing in play WITH a spare was
+  // offered, which leaves the game pointed at a file marked for deletion until
+  // somebody remembers to repoint the pose. Pick the replacement first and the
+  // old drawing becomes deletable by the same rule.
+  const inUse = pickerDrawn.has(d.file);
   const items = doomed
     ? [["Restore this sprite", () => setDrawingDoomed(d, false, tile, repaint)]]
     : [
       ["Choose this sprite", choose],
-      ["Delete this sprite", spare && d.option ? () => setDrawingDoomed(d, true, tile, repaint) : null,
-       "the only drawing this pose has — deleting it would leave a hole"],
+      ["Delete this sprite", inUse ? null : () => setDrawingDoomed(d, true, tile, repaint),
+       "the game draws this one — point the pose at another drawing first"],
     ];
   for (const [label, action, why] of items) {
     const b = document.createElement("button");
@@ -319,9 +339,17 @@ export function onMenuOutside(e) {
  *  pose is not using, which is where a bad alternate actually lives. */
 export function setDrawingDoomed(d, doomed, tile, repaint) {
   if (!d.pose || !d.file) return;
+  // Asked again here rather than trusted from the menu: this is the write, and
+  // the one thing that must never happen is a delete tag on art the game is
+  // showing.
+  if (doomed && drawnFiles(state.char).has(d.file)) return;
   // Resolved from the manifest at the moment of writing, so the tag lands on
-  // the drawing rather than on whatever object built the tile.
-  const option = variantEntry(state.char, d.pose)?.options.find((o) => o.file === d.file);
+  // the drawing rather than on whatever object built the tile. Created if the
+  // pose has never had options — a drawing nobody has ever compared against
+  // anything still has to be refusable.
+  const option = variantEntry(state.char, d.pose)?.options.find((o) => o.file === d.file)
+    || (doomed ? ensureVariantOption(state.char, d.pose, d.file,
+                                     d.label || (d.primary ? "Delivered" : null)) : null);
   if (!option) return;
   d.option = option;
   if (doomed) option.needsReplacement = "delete";
