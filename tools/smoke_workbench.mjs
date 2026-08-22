@@ -592,6 +592,54 @@ check(await page.evaluate(() => {
     || `${leaked.length} reassigned pose(s) still asked for: ${leaked[0].char}/${leaked[0].frame}`;
 }) === true, "a pose pointed at a drawing that works is not asked for again");
 
+// ---- WHICH DRAWINGS CAN BE THROWN AWAY
+//
+// One rule, in two places: a drawing the game is SHOWING cannot be deleted, and
+// anything else can. It used to be "this pose has a spare to fall back to",
+// which refused exactly the drawings most likely to be junk — a sheet cell no
+// animation reaches has no spare and no hole to leave — while allowing a tag on
+// art in play, leaving the game pointed at a file marked for deletion.
+//
+// Both halves are checked against a pose the game DOES draw and one it does
+// not, found from the manifest rather than named, so the test does not go red
+// the day somebody re-points a fighter.
+const DEL = await page.evaluate(async () => {
+  const { spriteManifest } = await import("/src/assets.js");
+  const { statesUsingFrame } = await import("/sprites/src/sprites.js");
+  const frames = spriteManifest.characters.jogo;
+  const drawn = Object.keys(frames).find((k) => statesUsingFrame("jogo", k).length);
+  const idle = Object.keys(frames).find((k) => !statesUsingFrame("jogo", k).length);
+  return { drawn, idle };
+});
+check(!!DEL.drawn && !!DEL.idle, "found a drawn pose and an undrawn one to test against",
+  JSON.stringify(DEL));
+
+for (const [frame, expect] of [[DEL.idle, false], [DEL.drawn, true]]) {
+  await page.goto(`${BASE}/sprites/workbench/?char=jogo&frame=${frame}`, { waitUntil: "domcontentloaded" });
+  await until(() => /loaded/.test(document.getElementById("loadState").textContent), null, 120000);
+  await page.waitForTimeout(1200);
+  await page.check("#replaceBox");
+  await page.waitForTimeout(200);
+  const hidden = await page.$eval("#replaceKind option[value=delete]", (o) => o.hidden);
+  check(hidden === expect,
+    expect ? "a drawing the game shows cannot be tagged for deletion"
+           : "a drawing nothing draws can be",
+    `${frame}: delete ${hidden ? "hidden" : "offered"}`);
+  if (expect) continue;
+  // And the tag reaches the export, on a pose that never had a variants entry
+  // to keep one in — which is the case the old rule could not express at all.
+  await page.selectOption("#replaceKind", "delete");
+  await page.waitForTimeout(250);
+  await page.click("#exportBtn");
+  await page.waitForTimeout(300);
+  let out = null;
+  try { out = JSON.parse(await page.inputValue("#exportOut")); } catch { /* below */ }
+  const one = (Array.isArray(out) ? out : [out]).find((x) => x?.character === "jogo");
+  const opts = one?.variantPlacement?.[frame] || [];
+  check(opts.some((o) => o.needsReplacement === "delete"),
+    "...and the tag travels in the export", JSON.stringify(opts.map((o) => [o.file, o.needsReplacement])));
+}
+
 check(!errors.length, "no page errors", errors.slice(0, 2).join(" | "));
 await browser.close();
 console.log(fails ? `\n${fails} check(s) failed` : "\nAll checks pass");

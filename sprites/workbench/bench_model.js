@@ -767,6 +767,59 @@ export function hasDeleteTag(charKey, frameKey) {
   return !!entry?.options.some((o) => o.needsReplacement === "delete");
 }
 
+/**
+ * EVERY DRAWING THE GAME IS CURRENTLY PUTTING ON SCREEN for this character.
+ *
+ * The one question a delete tag has to be able to answer. It is asked of the
+ * FILE rather than of the pose in front of you: one drawing can be the art of
+ * several poses, so "this pose does not draw it" is not the same sentence as
+ * "nothing draws it", and only the second one makes a drawing safe to throw
+ * away.
+ *
+ * Resolved through `statesUsing`, which follows a state's `fallback` — a pose
+ * no animation names by hand can still be the drawing every match shows.
+ *
+ * A set, built once per ask: the caller is about to test it against a hundred
+ * tiles, and `statesUsing` walks every animation state each time it is called.
+ */
+export function drawnFiles(charKey) {
+  const out = new Set();
+  if (isOther(charKey)) return out;
+  for (const key of allFramesOf(charKey)) {
+    if (!statesUsing(charKey, key).length) continue;
+    const file = peekMeta(charKey, key)?.file;
+    if (file) out.add(file);
+  }
+  return out;
+}
+
+/**
+ * The variant option that holds what is known about one drawing of one pose,
+ * brought into being if the pose has never had options.
+ *
+ * A delete tag is a statement about an IMAGE, and the variants list is where
+ * statements about images live. Most drawings already have somewhere to put
+ * one; a pose that was delivered once and never compared against anything has
+ * no entry at all, and that is exactly the pose whose art is most likely to be
+ * junk nobody wants. Rather than refuse the tag, the entry is created — the
+ * same entry `apply_sprite_adjustments.py` creates on the other side when the
+ * export arrives, seeded with what is already known about the drawing so it
+ * reads like every other option rather than like a bare file name.
+ */
+export function ensureVariantOption(charKey, frameKey, file, label) {
+  if (!spriteManifest || isOther(charKey) || !file) return null;
+  const entry = ((spriteManifest.variants ??= {})[charKey] ??= {})[frameKey]
+    ??= { options: [] };
+  entry.options ??= [];
+  let option = entry.options.find((o) => o.file === file);
+  if (option) return option;
+  const meta = peekMeta(charKey, frameKey);
+  option = { file, ...(label ? { label } : {}),
+             ...(meta?.file === file ? takeBanked(meta) : {}) };
+  entry.options.push(option);
+  return option;
+}
+
 /** The RAW manifest object the renderer reads. `frameMeta` may hand back a
  *  copy, so all mutation must go through this or edits would be discarded. */
 export function rawMeta(charKey, frameKey) {

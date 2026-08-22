@@ -62,7 +62,8 @@ import {
   TODO_MARK, NO_TODO_PAD, charTodo, updatesCleared, isUpdateReviewed, recentUpdates,
   flaggedPoses, allFlagBearingPoses, updateSummary, autoTuneSummary, poseVariants,
   variantEntry, takeBanked, poseView, variantPicks, variantFlagEdits, currentOption,
-  isDeleteTagged, hasDeleteTag, rawMeta, headHeight, setHeadHeight, clearHeadHeight,
+  isDeleteTagged, hasDeleteTag, drawnFiles, ensureVariantOption,
+  rawMeta, headHeight, setHeadHeight, clearHeadHeight,
   pinHeightSpan, rememberSpan, rememberHead, snapshot, restore, ANCHOR_META, anchorNames,
   anchorValue, setAnchor, isAnchorShown, remember, isDirty, drawableSharedKey, hasSavedEdits,
   needsReplacement, kindLabel, redrawPending, wantsImprovement, dirtyFrames, pushHeadHistory,
@@ -1854,12 +1855,15 @@ function refreshControls() {
   noteBox.placeholder = kind === ALTERNATE_KIND
     ? "What should the alternate try instead? (optional)"
     : "What is wrong with it? (optional)";
-  // Deleting the only drawing a pose has would leave a hole where a sprite
-  // should be, so the option is not offered until there is something to fall
-  // back to.
-  const alternatives = poseVariants(state.char, state.frame).length > 1;
+  // A drawing the game is SHOWING cannot be thrown away; anything else can.
+  // The same rule the picker's tile menu follows (bench_picker.js), and the
+  // reason it is asked of the file rather than of the pose: one drawing can be
+  // the art of several poses, and only "nothing draws it" makes it safe.
+  const showing = drawnFiles(state.char).has(meta.file);
   for (const opt of $("replaceKind").options) {
-    if (VARIANT_ONLY_KINDS.has(opt.value)) opt.hidden = !alternatives;
+    if (!VARIANT_ONLY_KINDS.has(opt.value)) continue;
+    opt.hidden = showing && !deleting;
+    opt.title = showing ? "the game draws this one — point the pose at another drawing first" : "";
   }
 
   const want = improvementKind(meta);
@@ -2918,7 +2922,13 @@ function applyGround(dy, commit) {
 function applyNeedsReplacement(kind) {
   pushHistory(state.char, state.frame);
   const meta = rawMeta(state.char, state.frame);
-  const option = currentOption(state.char, state.frame);
+  // Created if this drawing has never been an option — the tag belongs to the
+  // image, and a pose delivered once and never compared against anything has
+  // nowhere to keep one. Only for the tag itself: clearing works off whatever
+  // option already exists.
+  const option = currentOption(state.char, state.frame)
+    || (kind === "delete"
+        ? ensureVariantOption(state.char, state.frame, meta?.file, "Delivered") : null);
 
   // "Delete variant" is a statement about one DRAWING, so it is stored on the
   // variant option. The other kinds are statements about the pose's art in

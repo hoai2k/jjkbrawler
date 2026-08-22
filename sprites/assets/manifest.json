@@ -13730,31 +13730,38 @@
     "coreRight": 527.0
    },
    "attack_up": {
-    "file": "jogo/attack_up.png",
-    "w": 888,
+    "file": "jogo/ledge_hang.png",
+    "borrowedFrom": "ledge_hang",
+    "w": 262,
     "h": 1016,
-    "ox": -186.2,
-    "oy": -691,
-    "bodyBottom": 267.5,
-    "bodyH": 314.8,
-    "centroidX": 110.1,
-    "renderScale": 0.2935,
+    "ox": 25.8,
+    "oy": -693,
+    "bodyBottom": 310,
+    "bodyH": 299.0,
+    "bodyTop": 13,
+    "centroidX": 162,
+    "renderScale": 0.4545,
     "anchors": {
      "com": [
-      343.8,
-      468.3
+      135.9,
+      427.2
+     ],
+     "ledge": [
+      143.3,
+      40.0
      ]
     },
-    "bodyTop": 15,
     "edited": {
-     "renderScale": 0.319,
-     "ox": -287.2,
+     "renderScale": 0.303,
+     "ox": 25.8,
      "bodyBottom": 310
     },
-    "bodyLeft": 15,
-    "bodyRight": 873,
-    "coreLeft": 76.2,
-    "coreRight": 825.5
+    "replacementNote": "We need a sprite with Jogo attacking directly upward.",
+    "needsReplacement": "pose",
+    "bodyLeft": 13,
+    "bodyRight": 249,
+    "coreLeft": 38.1,
+    "coreRight": 228.6
    },
    "attack_air": {
     "file": "jogo/attack_air.png",
@@ -62346,13 +62353,14 @@
       "bodyBottom": 311,
       "bodyH": 194,
       "bodyTop": 0,
-      "centroidX": 141.0,
+      "centroidX": 141,
       "anchors": {
        "com": [
         141.5,
         82.2
        ]
-      }
+      },
+      "needsReplacement": "delete"
      }
     ]
    },
@@ -62417,9 +62425,9 @@
       "ox": -297.8,
       "oy": -1064,
       "bodyBottom": 247.9,
-      "bodyH": 363.0,
+      "bodyH": 363,
       "bodyTop": 0,
-      "centroidX": 166.0,
+      "centroidX": 166,
       "renderScale": 0.2059,
       "anchors": {
        "com": [
@@ -62455,7 +62463,8 @@
         83.9,
         81.8
        ]
-      }
+      },
+      "needsReplacement": "delete"
      },
      {
       "file": "jogo/r4c1.png",
@@ -62473,7 +62482,8 @@
         76.7,
         81.2
        ]
-      }
+      },
+      "needsReplacement": "delete"
      }
     ]
    },
@@ -62553,7 +62563,7 @@
       "label": "Delivered",
       "w": 996,
       "h": 1006,
-      "ox": -341.2,
+      "ox": -429.2,
       "oy": -695,
       "bodyBottom": 243.4,
       "bodyH": 265.6,
@@ -62570,7 +62580,8 @@
       "edited": {
        "renderScale": 0.264,
        "bodyBottom": 310.4,
-       "rotationDeg": null
+       "rotationDeg": null,
+       "ox": -341.2
       },
       "bodyLeft": 0,
       "bodyRight": 996,
@@ -62587,13 +62598,14 @@
       "bodyBottom": 310,
       "bodyH": 163,
       "bodyTop": 0,
-      "centroidX": 105.0,
+      "centroidX": 105,
       "anchors": {
        "com": [
         103.6,
         78.6
        ]
-      }
+      },
+      "needsReplacement": "delete"
      },
      {
       "file": "jogo/r4c3.png",
@@ -62611,7 +62623,8 @@
         123.7,
         92.1
        ]
-      }
+      },
+      "needsReplacement": "delete"
      }
     ]
    },
@@ -62691,7 +62704,7 @@
       "label": "Delivered",
       "w": 978,
       "h": 1283,
-      "ox": -434.7,
+      "ox": -406.7,
       "oy": -972,
       "bodyBottom": 246.4,
       "bodyH": 338.7,
@@ -62700,8 +62713,8 @@
       "renderScale": 0.2244,
       "anchors": {
        "com": [
-        587.0,
-        523.0
+        587,
+        523
        ]
       },
       "faceLeft": true,
@@ -62732,7 +62745,8 @@
         95.5,
         97.9
        ]
-      }
+      },
+      "needsReplacement": "delete"
      },
      {
       "file": "jogo/r0c3.png",
@@ -62750,7 +62764,8 @@
         118.3,
         119.5
        ]
-      }
+      },
+      "needsReplacement": "delete"
      }
     ]
    },
@@ -62862,7 +62877,7 @@
       "ox": -315.2,
       "oy": -829,
       "bodyBottom": 207.9,
-      "bodyH": 301.0,
+      "bodyH": 301,
       "bodyTop": 0,
       "centroidX": 186.6,
       "renderScale": 0.2152,
@@ -62891,13 +62906,14 @@
       "bodyBottom": 272,
       "bodyH": 199,
       "bodyTop": 0,
-      "centroidX": 125.0,
+      "centroidX": 125,
       "anchors": {
        "com": [
         125.5,
         106.4
        ]
-      }
+      },
+      "needsReplacement": "delete"
      }
     ]
    },
@@ -63049,10 +63065,11 @@
       "centroidX": 127.5,
       "anchors": {
        "com": [
-        128.0,
-        98.0
+        128,
+        98
        ]
-      }
+      },
+      "needsReplacement": "delete"
      },
      {
       "file": "jogo/r3c3.png",
@@ -63292,6 +63309,69 @@
       "file": "jogo/archive/idle_b_3.png",
       "label": "Superseded",
       "supersededAt": "2026-08-09T22:59:19+00:00"
+     }
+    ]
+   },
+   "attack_up": {
+    "options": [
+     {
+      "file": "jogo/attack_up.png",
+      "label": "Delivered",
+      "w": 888,
+      "h": 1016,
+      "ox": -186.2,
+      "oy": -691,
+      "bodyBottom": 267.5,
+      "bodyH": 314.8,
+      "bodyTop": 15,
+      "centroidX": 110.1,
+      "renderScale": 0.2935,
+      "anchors": {
+       "com": [
+        343.8,
+        468.3
+       ]
+      },
+      "needsReplacement": "quality",
+      "edited": {
+       "renderScale": 0.319,
+       "ox": -287.2,
+       "bodyBottom": 310
+      }
+     },
+     {
+      "file": "jogo/ledge_hang.png",
+      "label": "From ledge_hang",
+      "borrowedFrom": "ledge_hang",
+      "w": 262,
+      "h": 1016,
+      "ox": 25.8,
+      "oy": -693,
+      "bodyBottom": 310,
+      "bodyH": 299,
+      "bodyTop": 13,
+      "centroidX": 162,
+      "renderScale": 0.4545,
+      "anchors": {
+       "com": [
+        135.9,
+        427.2
+       ],
+       "ledge": [
+        143.3,
+        40.0
+       ]
+      },
+      "edited": {
+       "renderScale": 0.303,
+       "ox": 25.8,
+       "bodyBottom": 310
+      },
+      "replacementNote": "We need a sprite with Jogo attacking directly upward.",
+      "bodyLeft": 13,
+      "bodyRight": 249,
+      "coreLeft": 38.1,
+      "coreRight": 228.6
      }
     ]
    }
