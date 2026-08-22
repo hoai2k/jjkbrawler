@@ -149,8 +149,25 @@ export const RECENT_LABEL = "All Recently Updated Poses";
 export const FLAGGED_KEY = "__flagged";
 export const FLAGGED_LABEL = "All Needing Regeneration";
 
+// THE INVERSE OF THE WHOLE PANEL: one pose, every character.
+//
+// The dropdown normally asks "which character", and the grid then asks "which
+// of their poses" — which is the right way round for placing a delivery and
+// the wrong way round for judging one. Is everybody's `attack_light_b` a punch
+// thrown with the near arm? Are the crouches all crouching to the same height?
+// Those are questions about ONE POSE ACROSS THE ROSTER, and answering them
+// meant opening thirty-five characters in turn and remembering what you saw.
+//
+// So this entry swaps the two axes: the pose select above the grid becomes the
+// list of poses the game draws, and the grid becomes the characters that have
+// the one you picked. Everything below the grid is unchanged — each cell still
+// selects a real character's real pose, and every control goes on editing it.
+export const ACTIONS_KEY = "__actions";
+export const ACTIONS_LABEL = "Actions";
+
 export const isOther = (charKey) => charKey === OTHER_KEY;
 export const isActor = (charKey) => ACTOR_KEYS.includes(charKey);
+export const inActions = () => state.group === ACTIONS_KEY;
 export const inRecent = () => state.group === RECENT_KEY;
 export const inFlagged = () => state.group === FLAGGED_KEY;
 /** Either cross-character work list — neither is a sprite set. */
@@ -193,6 +210,10 @@ export const state = {
   // kit and belongs to the fighter. Null whenever the list is not open.
   effectsOwner: null,
   view: "unedited",    // key into VIEWS
+  // The pose the Actions view is showing across the roster. Only meaningful
+  // while that view is open; kept out of `frame`, which is always the pose
+  // being edited on the character in `char`.
+  action: "idle_a",
   // The secondary action being previewed: the canvas shows the sprite it is
   // pointed at now, and the saved choice stands where the size benchmark does,
   // so a reassignment can be read as a before/after rather than from memory.
