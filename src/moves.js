@@ -169,8 +169,16 @@ function forward(g, tip, oy, h, nearMul = 1) {
 
 /** A box centred on the fighter, reaching out `span` in both directions —
  *  rising, falling and quaking attacks. */
-function straddle(g, span, oy, h) {
-  return { ox: -span / 2, w: span, oy: g.vy(oy), h: g.vy(h) };
+/**
+ * A box centred on the fighter, spanning `span` across them — how every attack
+ * thrown along their own centre line is shaped.
+ *
+ * `sweep` is the move SAYING which way it comes out, because the rectangle
+ * cannot: a rising strike, a meteor and a ground quake are all a wide box
+ * straddling a fighter, and they are three different pictures. See strikeArcs.
+ */
+function straddle(g, span, oy, h, sweep) {
+  return { ox: -span / 2, w: span, oy: g.vy(oy), h: g.vy(h), sweep };
 }
 
 /**
@@ -286,7 +294,7 @@ export function lightMove(char, variant, jabStep = 0) {
         ...base,
         anim: "upHeavy",
         delay: 0.06 / s, dur: 0.13, recover: 0.2 * priceOf(g),
-        ...straddle(g, tipOf(g, "up") * MELEE_SPAN.up, -196, 130),
+        ...straddle(g, tipOf(g, "up") * MELEE_SPAN.up, -196, 130, "up"),
         dmg: round1(p.dmg * 0.9), baseKb: 300, growth: 6.0, angle: 1.15,
         label: "Rising " + p.label,
       };
@@ -317,7 +325,7 @@ export function lightMove(char, variant, jabStep = 0) {
         ...base,
         anim: "airLight",
         delay: 0.05 / s, dur: 0.15, recover: 0.14 * priceOf(g),
-        ...straddle(g, tipOf(g, "up") * MELEE_SPAN.up, -210, 120),
+        ...straddle(g, tipOf(g, "up") * MELEE_SPAN.up, -210, 120, "up"),
         dmg: round1(p.dmg * 0.9), baseKb: 280, growth: 6.1, angle: 1.3,
         label: "Air Rising " + p.label,
       };
@@ -326,7 +334,7 @@ export function lightMove(char, variant, jabStep = 0) {
         ...base,
         anim: "airLight",
         delay: 0.07 / s, dur: 0.15, recover: 0.18 * priceOf(g),
-        ...straddle(g, tipOf(g, "down") * MELEE_SPAN.down, -8, 96),
+        ...straddle(g, tipOf(g, "down") * MELEE_SPAN.down, -8, 96, "down"),
         dmg: round1(p.dmg * 1.05), baseKb: 240, growth: 6.6, angle: -1.25,
         label: "Meteor " + p.label, spike: true,
       };
@@ -387,7 +395,7 @@ export function heavyMove(char, variant, charge = 0) {
         ...base,
         anim: "upHeavy",
         delay: 0.14 / s, dur: 0.16, recover: 0.32 * price,
-        ...straddle(g, tipOf(g, "upHeavy") * MELEE_SPAN.upHeavy, -226, 160),
+        ...straddle(g, tipOf(g, "upHeavy") * MELEE_SPAN.upHeavy, -226, 160, "up"),
         dmg: round1(p.dmg * 0.95 * chargeMul), baseKb: 440 * (1 + 0.25 * charge), growth: 8.8, angle: 1.35,
         critBand: p.critBand || null,
         label: "Skyward " + p.label,
@@ -397,7 +405,7 @@ export function heavyMove(char, variant, charge = 0) {
         ...base,
         anim: "downHeavy",
         delay: 0.17 / s, dur: 0.15, recover: 0.34 * price,
-        ...straddle(g, tipOf(g, "downHeavy") * MELEE_SPAN.downHeavy, -64, 78),
+        ...straddle(g, tipOf(g, "downHeavy") * MELEE_SPAN.downHeavy, -64, 78, "sides"),
         dmg: round1(p.dmg * 0.9 * chargeMul), baseKb: 400 * (1 + 0.25 * charge), growth: 7.8, angle: 0.9,
         critBand: p.critBand || null,
         label: "Quake " + p.label, quake: true,
@@ -486,19 +494,32 @@ export function strikeArcs(m, bodyH) {
   const hipY = -STRIKE_ARC.hipHeight * bodyH;
   const straddles = x0 < 0;
 
-  // Straddling the fighter and taller than it is wide: the reach is upward or
-  // downward, not forward. Which one is settled by the side of the feet the
-  // box ends on.
-  if (straddles && m.h > m.w * 1.2) {
-    return y1 <= 0
-      ? vertical(armY, armY - y0, -Math.PI / 2, m.w / 2, minRadius, drawable)
-      : vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2, minRadius, drawable);
+  // WHICH WAY THE SWING COMES OUT, and the move is asked before the box is.
+  //
+  // A rising strike, a meteor and a ground quake are all one wide box centred
+  // on a fighter. The rectangle cannot tell them apart, so this used to guess
+  // from its aspect ratio — "taller than it is wide, so it must be vertical" —
+  // and the width of an up attack's box is the fighter's own REACH. That made
+  // the picture a fact about arm length: Maki's up attack drew as two arcs at
+  // her sides where Gojo's drew as one over his head, for the same move. It
+  // was never stable either. Across the roster, nineteen of thirty-four
+  // fighters sat within 20 px of the line, five of them within 5 — Toji was
+  // one pixel from reading as a different attack, and a nudge in the sprite
+  // workbench would have moved him across it.
+  //
+  // It is the same lesson `aimTilt` already carries thirty lines below: a
+  // box's own geometry cannot tell you what the swing MEANT. So `straddle`
+  // labels the move and this reads the label.
+  const sweep = m.sweep || guessSweep(m, straddles);
+  if (sweep === "up") {
+    return vertical(armY, armY - y0, -Math.PI / 2, m.w / 2, minRadius, drawable);
   }
-  // Straddling and hanging at or below the feet: a meteor, wider than it is
-  // deep but still aimed straight down.
-  if (straddles && y0 > -m.h * 0.3) {
+  if (sweep === "down") {
     return vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2, minRadius, drawable);
   }
+  // "sides", and everything else, falls through: a quake really does come out
+  // both ways along the floor, and so the two-armed branch below is its
+  // picture rather than a fallback it lands in.
 
   // Sideways. Arm height, unless the box sits low enough that the strike is
   // plainly a low one — a crouch poke, a ground quake — in which case it draws
@@ -527,6 +548,21 @@ export function strikeArcs(m, bodyH) {
     arcs.push({ pivotY, radius: -x0, aim: Math.PI, span: arcSpan(half, -x0), minRadius });
   }
   return arcs;
+}
+
+/**
+ * The old aspect-ratio guess, kept for boxes nobody labelled.
+ *
+ * Every melee move built here says what it is. Projectiles, specials, summon
+ * strikes and anything a character kit spawns by hand do not, and they still
+ * need a crescent — so the guess stays as the fallback it always should have
+ * been, rather than as the rule.
+ */
+function guessSweep(m, straddles) {
+  if (!straddles) return "sides";
+  if (m.h > m.w * 1.2) return m.oy + m.h <= 0 ? "up" : "down";
+  if (m.oy > -m.h * 0.3) return "down";       // hanging at or below the feet
+  return "sides";
 }
 
 /** The one-arc list for a straight-up or straight-down strike — empty when the
