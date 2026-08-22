@@ -87,6 +87,10 @@ export const GRUNT_GROUPS = {
   // their gender unstated — the female group is a voice choice, not a ruling);
   // Haruta is a whine in his twenties; Tengen is a thousand years past human,
   // which is what the monster group sounds like; Miwa is the Kyoto second-year.
+  // Staged (round 25). Ino is a cheerful man in his twenties who idolises
+  // Nanami — the young-male group, not Nanami's own adult one, which is the
+  // joke of him.
+  ino: "gruntYoungMale",
   kirara: "gruntFemale", haruta: "gruntYoungMale",
   tengen: "gruntMonster", miwa: "gruntFemale",
 };

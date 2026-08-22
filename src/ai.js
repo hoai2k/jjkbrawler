@@ -180,7 +180,17 @@ function makePlan(f, opp, lvl) {
     }
     if (opp.y < f.y - 50) input.up = true;
   } else if (chance(lvl.special)) {
-    if (profile.style === "zoner" && mid) {
+    // Ino — Kirin is his comeback button, and a CPU driven only by `style`
+    // never reaches for a down special that buffs rather than attacks, so he
+    // would play as a two-special character. Cornered and hurt, he puts the
+    // beast on and stops flinching. Gated on there being no install already,
+    // so he does not spend the input re-casting one he is wearing, and on the
+    // mask being ON — while it is off the input is refused anyway.
+    if (f.charKey === "ino" && f.damage > 70 && !f.installs
+        && f.statuses.silence <= 0 && chance(0.45)) {
+      input.specialP = true;
+      input.down = true;
+    } else if (profile.style === "zoner" && mid) {
       input.specialP = true; // neutral projectile
     } else if (profile.style === "rush" && mid) {
       input.specialP = true;

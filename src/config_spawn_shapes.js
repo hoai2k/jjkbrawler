@@ -96,6 +96,15 @@ export const SPAWN_SHAPES = {
     // OWN, written into the handler rather than into the kit.
     launch: () => ({ forward: 90, y: -96, scaled: true }), play: "ultShot",
   },
+  // Ino's Ryu, the same shape as `beam` and for the same reason: the director
+  // charges in his hands and then hands a real projectile to the projectile
+  // system, with launch offsets written into the handler rather than the kit.
+  // It weaves and re-arms after that, but neither of those moves the point it
+  // leaves from, which is all this table is describing.
+  serpent: {
+    site: "serpent (src/ultimates.js)", anchor: "centre", travels: true,
+    launch: () => ({ forward: 84, y: -96, scaled: true }), play: "ultShot",
+  },
   cannonade: {
     site: "cannonade (src/ultimates.js)", anchor: "centre", travels: true, play: "ultShot",
   },

@@ -1350,6 +1350,13 @@ export function updateFighter(f, dt, input) {
     if (f.installs.selfDrainPerSec) f.damage = Math.min(999, f.damage + f.installs.selfDrainPerSec * dt);
     if (f.installs.t <= 0) {
       popup(f.x, f.y - 170 * ART_SCALE, `${f.installs.label} FADED`, "#9aa4c0", 16);
+      // The hangover an install can leave behind (Ino's Kirin). Written onto
+      // the snare the movement code already reads rather than through
+      // applyStatus, which wants an attacker to attribute the effect to.
+      if (f.installs.endSnare) {
+        f.statuses.snare = Math.max(f.statuses.snare || 0, f.installs.endSnare);
+        popup(f.x, f.y - 148 * ART_SCALE, "CAN'T MOVE", "#c9a24a", 18);
+      }
       // A transformation ends with the install that carried it: back to your
       // own body (config_transform.js).
       if (f.installs.spriteChar) f.spriteChar = null;

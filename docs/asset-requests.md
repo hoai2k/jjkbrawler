@@ -22,7 +22,8 @@ numbered DI1, DI2… — so the tracks never collide. All of them are gathered i
 [image-requests.md](image-requests.md), which is what to read to draw any of
 them; these files are where each is written.)
 
-**Current status: rounds 1–23 and 22L delivered. NOTHING IS OUTSTANDING.**
+**Current status: rounds 1–24 and 22L delivered. ROUND 25 IS OPEN** — the
+staged fighter Takuma Ino owes a 36-pose set, two effects and a card.
 **Every fighter on the select screen has every pose the game asks of them** —
 `node tools/check_pose_coverage.mjs` reports 34 fighters and 0 undrawn poses,
 the first time that has been true. Round 22 delivered its three 36-pose sets
@@ -254,6 +255,7 @@ and a recipe for fetching more in that directory's README.
 | haruta | "Haruta Shigemo from Jujutsu Kaisen, a short lean young man with slicked blond hair pulled into a long side ponytail tied on the left, thin eyebrows, drooping purple eyes with a lilac teardrop marking under each eye, a faint smug pout, bare-chested under a black one-shoulder jumpsuit with loose trousers gathered at the calves, a pale lilac glove on his sword hand, brown loafers worn barefoot, carrying a single-edged sword whose hilt is a sculpted human hand" *(grey key)* |
 | tengen | "Master Tengen from Jujutsu Kaisen, an inhuman robed figure with a tall smooth cylindrical hairless head, four narrow eyes stacked in two pairs down the face, a small stern mouth, pale grey-white skin, draped floor-length grey-white layered robes with a cowled folded neck and wide sleeves, long-fingered pale hands held open at the sides, bare feet with long toes" |
 | miwa | "Kasumi Miwa from Jujutsu Kaisen, a young woman with long light-blue hair falling past her shoulders with blunt bangs, dark blue eyes and an earnest expression, wearing the dark navy Kyoto Jujutsu High uniform — a fitted suit-style jacket over a white collared shirt and navy tie, matching navy trousers, brown loafers — with a katana in a brown scabbard at her hip" |
+| ino | "Takuma Ino from Jujutsu Kaisen, a cheerful adult man of average height and lean athletic build, dishevelled dark brown hair, wearing his black ski mask rolled up on his head as a beanie with the eye-hole opening visible at the brow, a wide-collared black long-sleeve sweatshirt and matching black trousers tucked into black-and-white high-top sneakers, carrying a blunt-tipped cleaver sword" *(grey key)*
 
 *(The 17 above are the launch roster; the six below shipped in round 7. The
 `uro`, `reggie` and `gakuganji` rows were rewritten from the anime reference in
@@ -404,6 +406,98 @@ round's numbers are not mistaken for the whole outstanding list.
 
 If a redelivery is ever easier than a cut, the spec is the standard one with a
 single addition: **no drawn shadow of any kind** — the game casts its own.
+
+---
+
+# Round 25 — open
+
+**Takuma Ino is staged.** His kit, his `serpent` ultimate director, the
+`endSnare` install field and his `beastMask` passive are all live in
+`src/characters.js` and play correctly (`node tools/smoke_staged.mjs` and
+`node tools/smoke_ino.mjs`); he is held off the select screen by
+`STAGED_CHARACTER_KEYS` because none of his art exists. This round is that art,
+and promoting him is the two edits `src/characters.js` describes — nothing else
+is blocking him.
+
+**Read the note under 25A before drawing his face.** The design description here
+was assembled from written sources; nobody on this end has seen a full-body
+render of him, and that is a hole this round has and previous character rounds
+did not.
+
+## 25A. Takuma Ino — the 36-pose set — 36 sprites
+
+The standard set, to [pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md) and the
+[delivery spec](#delivery-spec) above, on the grey key. Same 36 poses every
+other fighter ships: `idle_a/idle_b`, `teeter`, `walk_a/walk_b`, the four-frame
+run cycle, `jump_rise`, `fall`, `land`, `crouch_a/crouch_b`, `guard`,
+`ledge_hang`, `dodge_roll`, `dodge_air`, `dash`, `attack_light_a/_b`,
+`attack_heavy_a/_b`, `attack_up`, `attack_down`, `attack_air_a/_b`,
+`crouch_attack_a/_b`, `special_neutral`, `special_side`, `special_down`,
+`ult_a/ult_b`, `hurt`, `dizzy`, `prone`, `victory`, and the three grab poses.
+
+`[CHARACTER BLOCK]` for `ino` is in the table above. The design notes that
+matter and are not in one line of prompt:
+
+- **Build and height.** 178 cm, so a shade under Yuta and well under Nanami
+  (184) — mid-roster, lean and athletic rather than heavy. He is a good
+  hand-to-hand fighter and should be drawn as one; he is not a bruiser.
+- **The mask is the character, and it has two states.** A black ski mask,
+  normally **rolled up on his head like a beanie** with the eye opening
+  bunched at the brow. It is only pulled DOWN over his face when he is using
+  his technique, which is what `special_neutral`, `special_side`,
+  `special_down` and both `ult` frames should show: mask down, face covered.
+  Every other pose is mask up. This is not a costume detail — his cursed
+  technique only functions while his face is hidden, and the game reads a
+  shield break as the mask coming off, so a player has to be able to see at a
+  glance which state he is in.
+- **Hair.** Dishevelled dark brown, escaping around the rolled hem of the
+  mask. On the mask-down poses the hair still shows above it.
+- **No sunglasses.** He does not wear them; if a reference shows tinted
+  glasses it is not him.
+- **The weapon.** He carries Nanami's blunt-tipped cleaver sword — the same
+  cursed tool drawn in Nanami's own set, no edge, a bar of steel. Present in
+  `attack_heavy_a/_b`, `victory` and the grab poses; his light string is bare
+  hands.
+- **Manner.** The one genuinely cheerful adult on the roster. His idle should
+  be relaxed and open rather than braced, and `victory` should be
+  uncomplicatedly pleased — he is not smug about it, which is what separates
+  him from Reggie two rows up.
+
+**The hole in this request, stated plainly:** the fandom wiki's character page
+would not serve to whoever wrote this round, so the description above comes from
+several text sources agreeing with each other rather than from looking at the
+art. The costume, the mask-as-beanie, the hair and the absence of sunglasses are
+all corroborated across sources and should be safe; the **face** is not
+described anywhere in that material beyond "dishevelled brown hair". Open the
+**(Anime)** full-body render on
+[jujutsu-kaisen.fandom.com](https://jujutsu-kaisen.fandom.com/wiki/Takuma_Ino)
+before drawing, exactly as the Character blocks section instructs, and correct
+this block from it — this is the first character round where that instruction is
+load-bearing rather than a double-check.
+
+## 25B. Ino's two technique drawings — 2 sprites
+
+Effects, on the grey key, to the same spec as the roster's other technique art.
+
+- **`effect:kaichi_horn`** — the horn of Kaichi, thrown as a projectile.
+  Painted height 78 px, travelling and mirrored to its heading, so draw it
+  pointing RIGHT. A single curved beast's horn, dark, carrying the fine
+  engraved pattern the manga gives it, sheathed in a thin skin of cursed
+  energy. It is a small fast poke, not a spectacle — it has to read at
+  fighting-game distance as one recognisable object, not as a smear.
+- **`effect:ryu_dragon`** — Ryu, his ultimate. Painted height 190 px,
+  travelling and mirrored, so draw it heading RIGHT. A serpentine eastern
+  dragon — long body, no wings, a maned head — drawn as a length rather than a
+  ball, because the move re-arms its hit box every 0.20 s specifically so that
+  the whole body of it counts as it goes past. Cursed water, so it wants the
+  same blue-white the `water` element already uses, not his own ochre.
+
+## 25C. Ino's hero card and roster tile — 2 images
+
+The card to the same spec as the roster's other hero cards
+(`assets/cards/`), the tile to the simplified-tile spec. Mask **up** on both —
+the card is who he is, not what he does. His `config_cards.js` focus entry is
+written once the painting exists, the same as everyone else's.
 
 ---
 
