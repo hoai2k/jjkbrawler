@@ -132,7 +132,6 @@ export const CHARACTER_QUOTES = {
   hakari: "The reels are already spinning my way.",
   uro: "The sky belongs to me.",
   reggie: "Everything's a trump card if you play it right.",
-  ino: "What would Nanami-san do here? …Right. That.",
   mahito: "Your soul is mine to reshape.",
   jogo: "Learn the fear of curses. Burn.",
   hanami: "The earth cries out — I answer.",

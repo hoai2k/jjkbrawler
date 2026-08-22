@@ -375,10 +375,6 @@ const HANDLERS = {
       unblockable: p.unblockable, healPerSec: p.healPerSec,
       contactBurn: p.contactBurn, dmgTakenMul: p.dmgTakenMul, aura: p.aura,
       ampUp: p.ampUp, selfDrainPerSec: p.selfDrainPerSec,
-      // Ino's Kirin: the install is doping, so it does not end cleanly — the
-      // legs stop answering for a moment when it lifts. fighter.js applies it
-      // on expiry; an install without the field expires exactly as before.
-      endSnare: p.endSnare,
     });
     if (!ok) return;
     banner(p.label || cfg.name, p.color || f.char.theme, { y: 240, size: 38, life: 1.0 });

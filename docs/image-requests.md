@@ -12,9 +12,9 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**48 images outstanding.** Every one of them is listed below, with a full URL for anything you need to look at.
+**8 images outstanding.** Every one of them is listed below, with a full URL for anything you need to look at.
 
-- **The sprite game** — 48 images: 40 asked for by round 25, plus [8 flagged in the workbench](#outstanding-by-manifest-not-by-request) as art that exists and is wrong
+- **The sprite game** — 8 images: [8 flagged in the workbench](#outstanding-by-manifest-not-by-request) as art that exists and is wrong
 - **The live-3D anime path** — 0 images
 - Separately, 23 poses are drawing another pose's file. Not counted above: those are substitutions somebody chose, not images anybody is owed.
 
@@ -55,131 +55,7 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**48 images outstanding for this mode.** 40 asked for by round 25, authored in
-[docs/asset-requests.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests.md) and reproduced whole below, and 8 flagged in the workbench and listed in [Outstanding by manifest, not by request](#outstanding-by-manifest-not-by-request).
-
-- **25A** — Takuma Ino — the 36-pose set (36 sprites)
-- **25B** — Ino's two technique drawings (2 sprites)
-- **25C** — Ino's hero card and roster tile (2 images)
-
-## 25A. Takuma Ino — the 36-pose set — 36 sprites
-
-The standard set, to [pose-brief.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/docs/pose-brief.md) and the
-[delivery spec](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests.md#delivery-spec) above, on the grey key. Same 36 poses every
-other fighter ships: `idle_a/idle_b`, `teeter`, `walk_a/walk_b`, the four-frame
-run cycle, `jump_rise`, `fall`, `land`, `crouch_a/crouch_b`, `guard`,
-`ledge_hang`, `dodge_roll`, `dodge_air`, `dash`, `attack_light_a/_b`,
-`attack_heavy_a/_b`, `attack_up`, `attack_down`, `attack_air_a/_b`,
-`crouch_attack_a/_b`, `special_neutral`, `special_side`, `special_down`,
-`ult_a/ult_b`, `hurt`, `dizzy`, `prone`, `victory`, and the three grab poses.
-
-`[CHARACTER BLOCK]` for `ino` is in the table above. The design notes that
-matter and are not in one line of prompt:
-
-- **Build and height.** 178 cm, so a shade under Yuta and well under Nanami
-  (184) — mid-roster, lean and athletic rather than heavy. He is a good
-  hand-to-hand fighter and should be drawn as one; he is not a bruiser.
-- **The mask is the character, and it has two states.** A black ski mask,
-  normally **rolled up on his head like a beanie** with the eye opening
-  bunched at the brow. It is only pulled DOWN over his face when he is using
-  his technique, which is what `special_neutral`, `special_side`,
-  `special_down` and both `ult` frames should show: mask down, face covered.
-  Every other pose is mask up. This is not a costume detail — his cursed
-  technique only functions while his face is hidden, and the game reads a
-  shield break as the mask coming off, so a player has to be able to see at a
-  glance which state he is in.
-- **Hair.** Dishevelled dark brown, escaping around the rolled hem of the
-  mask. On the mask-down poses the hair still shows above it.
-- **No sunglasses.** He does not wear them; if a reference shows tinted
-  glasses it is not him.
-- **The weapon.** He carries Nanami's blunt-tipped cleaver sword — the same
-  cursed tool drawn in Nanami's own set, no edge, a bar of steel. Present in
-  `attack_heavy_a/_b`, `victory` and the grab poses; his light string is bare
-  hands.
-- **Manner.** The one genuinely cheerful adult on the roster. His idle should
-  be relaxed and open rather than braced, and `victory` should be
-  uncomplicatedly pleased — he is not smug about it, which is what separates
-  him from Reggie two rows up.
-
-**The hole in this request, stated plainly:** the fandom wiki's character page
-would not serve to whoever wrote this round, so the description above comes from
-several text sources agreeing with each other rather than from looking at the
-art. The costume, the mask-as-beanie, the hair and the absence of sunglasses are
-all corroborated across sources and should be safe; the **face** is not
-described anywhere in that material beyond "dishevelled brown hair". Open the
-**(Anime)** full-body render on
-[jujutsu-kaisen.fandom.com](https://jujutsu-kaisen.fandom.com/wiki/Takuma_Ino)
-before drawing, exactly as the Character blocks section instructs, and correct
-this block from it — this is the first character round where that instruction is
-load-bearing rather than a double-check.
-
-## 25B. Ino's two technique drawings — 2 sprites
-
-Effects, on the grey key, to the same spec as the roster's other technique art.
-
-- **`effect:kaichi_horn`** — the horn of Kaichi, thrown as a projectile.
-  Painted height 78 px, travelling and mirrored to its heading, so draw it
-  pointing RIGHT. A single curved beast's horn, dark, carrying the fine
-  engraved pattern the manga gives it, sheathed in a thin skin of cursed
-  energy. It is a small fast poke, not a spectacle — it has to read at
-  fighting-game distance as one recognisable object, not as a smear.
-- **`effect:ryu_dragon`** — Ryu, his ultimate. Painted height 190 px,
-  travelling and mirrored, so draw it heading RIGHT. A serpentine eastern
-  dragon — long body, no wings, a maned head — drawn as a length rather than a
-  ball, because the move re-arms its hit box every 0.20 s specifically so that
-  the whole body of it counts as it goes past. Cursed water, so it wants the
-  same blue-white the `water` element already uses, not his own ochre.
-
-## 25C. Ino's hero card and roster tile — 2 images
-
-The card to the same spec as the roster's other hero cards
-(`assets/cards/`), the tile to the simplified-tile spec. Mask **up** on both —
-the card is who he is, not what he does. His `config_cards.js` focus entry is
-written once the painting exists, the same as everyone else's.
-
----
-
-# Round 20 — delivered
-
-**All four requests are in.** The last of them was Yuji's own four poses, which
-landed as [20E](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests-history.md#20e-yujis-four-round-20-poses--4-sprites) and are in the game:
-his grab now reads as a grab and his dash attack as a lunge, like everybody
-else's. Nothing in round 20 is outstanding.
-
-- **~~44 of the 114 summon plates hold six creatures instead of one~~** —
-  delivered. All forty-four came back as one figure each,
-  `tools/check_summon_plates.py` passes on the whole tree of 114, and the seven
-  authored hit boxes that were standing in for an unmeasurable plate came out
-  with them.
-- **~~Twenty backgrounds, re-extended from the paintings 18E replaced~~** —
-  delivered, all twenty at 3200×1800, and in the game. Each one carries its
-  source painting's composition rather than a fresh take on the brief, which is
-  the whole thing 18E got wrong and the only thing this round was asking for.
-  See [the history entry](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests-history.md#20b-twenty-backgrounds-re-extended--delivered).
-- **~~The grab poses~~** and **~~the dash attack pose~~** — delivered, 26
-  fighters of 27 each, plus Mahoraga. Both are in the game: every one is a new
-  pose key, so nothing was replaced and nothing waited for an approval. A grab
-  now reads as a grab and a dash attack as a lunge, on everybody except Yuji.
-- **~~Yuji's four~~** — [20E](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests-history.md#20e-yujis-four-round-20-poses--4-sprites),
-  delivered. 20C and 20D each asked for 27, one per fighter, and each arrived
-  as 27 files with Mahoraga in Yuji's place; this was the correction, and it
-  came back as the four missing drawings. Imported, anchored, and seeded a
-  pose read each — the seeder had to learn that the REFERENCE character can
-  gain frames too, since it was skipping him wholesale and he was then the one
-  fighter with unread art.
-
-Round 18 is closed and everything in it landed.
-
-**Round 18 was delivered complete** — 28 sprites and 14 near-field cards, every
-section of it, plus the five render3d image inputs (DI1–DI4). Its record, and
-the reasoning behind each request in it, is now in
-[the history](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests-history.md#round-18--delivered).
-
-**Round 20 is the open round.** (19 is skipped as a request number: it was used
-for the *intake* of round 18, so `assets/reference/round19/` holds the delivered
-plates and no request ever carried that number. Reusing it would make "round 19"
-mean two different things.) Anything found from here — a placement pass, an
-approval rejection, a manifest audit — lands in 20 beside 20B.
+**No open round** in [asset-requests.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests.md). 8 images are still outstanding for this mode — they are flagged in the workbench rather than asked for by a round, and they are in [Outstanding by manifest, not by request](#outstanding-by-manifest-not-by-request).
 
 ---
 

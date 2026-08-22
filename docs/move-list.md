@@ -8,7 +8,7 @@ re-run. Its companions are [characters.md](characters.md), which explains *why*
 each kit is the way it is, and [game-mechanics.md](game-mechanics.md), which
 explains the systems the moves are built from.
 
-**35 fighters**, 1 of them staged and not yet selectable — every one with three specials and an
+**34 fighters** — every one with three specials and an
 ultimate, and **9** of them with a Domain Expansion as well.
 
 An ultimate and a Domain Expansion each cost the **whole** meter bar, so a
@@ -53,7 +53,6 @@ are free and run on individual cooldowns instead.
 | [Geto](#geto) | Curses and Curse Users | Cursed Spirit Volley | Cursed Spirit Release | Kuchisake-Onna's Scissors | Maximum: Uzumaki | — |
 | [Choso](#choso) | Curses and Curse Users | Piercing Blood | Convergence: Blood Meteorite | Flowing Red Scale | Supernova | — |
 | [Sukuna](#sukuna) | Curses and Curse Users | Dismantle | Cleave | Divine Flame: Fuga | Dismantle: Merciless Barrage | Malevolent Shrine |
-| [Ino](#ino) | Staged (not yet selectable) | Auspicious Beast: Kaichi | Auspicious Beast: Reiki | Auspicious Beast: Kirin | Auspicious Beast: Ryu | — |
 
 ## Every kit in full
 
@@ -486,15 +485,3 @@ are free and run on individual cooldowns instead.
 - Domain Expansion — **Malevolent Shrine** — The shrine of skulls, raised without walls. Everything inside its reach is already cut.
   - *How it plays:* A ring of cleave-blades orbits the shrine and slashes rain on the enemy automatically. Press SPECIAL to snatch a blade out of the air, then LIGHT or HEAVY to unleash it as a colossal Cleave — the more blades still orbiting when you throw, the harder it lands.
 - Passive — **King's Contempt** — Scents weakness: +10% damage against opponents past 80%.
-
-<a id="ino"></a>
-
-### Takuma Ino — "The Medium"
-
-*Staged (not yet selectable) · `ino` · theme `#a8582f`*
-
-- Neutral special *(1.4s cooldown)* — **Auspicious Beast: Kaichi** — The horn of the judgement beast, spiralling out sheathed in cursed energy. It does not stop travelling until it has hit what it was aimed at.
-- Side special *(1.7s cooldown)* — **Auspicious Beast: Reiki** — Cursed water sheets over him and the floor stops holding him back — he glides through the swing rather than stepping into it, and the attack that was going to land goes past.
-- Down special *(8.5s cooldown)* — **Auspicious Beast: Kirin** — Doping from inside his own skull: pain stops arriving, so nothing staggers him. It is running on his body rather than his cursed energy, and when it lifts he cannot make his legs work for a moment.
-- Ultimate — **Auspicious Beast: Ryu** — The fourth beast, the one his mask came off before he ever got to use: a serpentine dragon surges out of his hands and coils through whatever it catches.
-- Passive — **The Mask** — The seance only runs while his face is covered: beast techniques hit 12% harder with the mask on — and a shield break tears it off, sealing all three for 4.5 s.
