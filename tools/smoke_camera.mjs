@@ -403,5 +403,40 @@ for (let i = 0; i < 400; i++) {
 }
 pass("full-stage chase stays framed");
 
+// A STILL FIGHT DOES NOT MOVE THE FRAME, AND A MOVING ONE STILL DOES.
+//
+// Two fighters standing their ground, with the few pixels of per-frame noise a
+// real one has (sway, stride centre of mass, the sprite's own centre moving
+// between poses). The frame must not pass any of it on: the deadzone is what
+// stops the stage swimming behind a fighter who is not going anywhere.
+resetState();
+state.fighters[0].x = 560; state.fighters[1].x = 720;
+for (let i = 0; i < 600; i++) updateCamera(DT);
+const still = { x: state.camera.x, y: state.camera.y, zoom: state.camera.zoom };
+let drift = 0, zoomDrift = 0;
+for (let i = 0; i < 300; i++) {
+  const t = i * DT;
+  // ±3 px of body noise, and out of phase so the box breathes as well as slides.
+  state.fighters[0].x = 560 + Math.sin(t * 41) * 3;
+  state.fighters[1].x = 720 + Math.sin(t * 37 + 1.7) * 3;
+  state.fighters[0].y = 568 + Math.sin(t * 53) * 2;
+  state.fighters[1].y = 568 + Math.sin(t * 47 + 0.6) * 2;
+  updateCamera(DT);
+  drift = Math.max(drift, Math.hypot(state.camera.x - still.x, state.camera.y - still.y));
+  zoomDrift = Math.max(zoomDrift, Math.abs(state.camera.zoom - still.zoom));
+}
+check(drift < 0.001, "body noise never moves the frame", `drift=${drift.toFixed(4)} px`);
+check(zoomDrift < 0.0005, "...and never breathes the zoom", `dz=${zoomDrift.toFixed(5)}`);
+
+// ...and the same shot still follows a fighter who actually walks away.
+state.fighters[0].vx = -300;
+for (let i = 0; i < 120; i++) {
+  state.fighters[0].x -= 300 * DT;
+  updateCamera(DT);
+}
+check(still.x - state.camera.x > 40, "a real move still moves the frame",
+  `moved ${(still.x - state.camera.x).toFixed(1)} px`);
+pass("deadzone kills the jiggle without deadening the shot");
+
 console.log(failures ? `\n${failures} check(s) failed` : "\nall checks passed");
 process.exit(failures ? 1 : 0);

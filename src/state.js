@@ -60,7 +60,9 @@ export const state = {
   popups: [],
   banners: [],
 
-  camera: { x: 640, y: 360, zoom: 1, shake: 0, kick: 0 },
+  // aimX/aimY/aimZoom are the deadzoned framing target the pan eases toward —
+  // camera.js owns them; nothing else should write them.
+  camera: { x: 640, y: 360, zoom: 1, shake: 0, kick: 0, aimX: null, aimY: null, aimZoom: null },
   slowMo: 0,
   screenFlash: null, // {color, life, maxLife}
   vignette: null,    // {color, alpha, life, maxLife} — Black Flash's dark beat

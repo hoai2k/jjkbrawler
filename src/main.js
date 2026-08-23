@@ -209,6 +209,7 @@ async function resetMatch() {
   setPauseNotice(null);
   resetHudCache();
   state.camera.x = 640; state.camera.y = 360; state.camera.zoom = 1; state.camera.shake = 0; state.camera.kick = 0;
+  state.camera.aimX = null; state.camera.aimY = null; state.camera.aimZoom = null;
   camera3d?.resetRig();
 
   // Stage identity (Active Boards): field modifiers + the gimmick entity.

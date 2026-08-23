@@ -150,6 +150,48 @@ function returnPoint(f) {
   };
 }
 
+// A FIGHT THAT IS NOT GOING ANYWHERE DOES NOT MOVE THE CAMERA AT ALL.
+//
+// The framing target is built out of live bodies, and a body is never quite
+// still: an idle sways, a walk cycle's centre of mass slides a few pixels
+// inside the stride, and the sprite a pose is drawn from has its own centre
+// that differs a little from the next one's. None of that is motion anyone is
+// watching — but the frame was tracking every pixel of it, and because the
+// camera holds the fighters roughly fixed on screen, the wobble came out of
+// the bodies and went into the WORLD: the stage swam behind a fighter standing
+// still. That is the jiggle. It is worst exactly where the shot is best, in a
+// tight duel, because tight is where a pixel of target is most screen pixels.
+//
+// So the target the pan eases toward is not the raw one: it is an aim point
+// dragged behind it, allowed to sit anywhere inside a small box around it. The
+// aim only moves when the raw target pushes the wall of the box, and then only
+// by the overshoot, so:
+//
+//   sway, breath, per-frame centre noise   the aim does not move — at all, not
+//                                          slowly, not a little; the frame is
+//                                          perfectly still
+//   a step, a jump, a launch               the target leaves the box on the
+//                                          first frame and drags the aim with
+//                                          it for as long as it keeps moving,
+//                                          which is ordinary tracking
+//
+// A deadzone rather than more damping, because damping cannot tell those two
+// apart: any ease big enough to follow a launch still passes a fraction of the
+// jitter through, every frame, forever. The box is sized in SCREEN pixels and
+// converted at the live zoom, so it is the same visual stillness whether the
+// shot is tight on a duel or wide over a scramble.
+const DEAD_ZONE_X = 16;
+const DEAD_ZONE_Y = 12;
+// The same idea for the zoom, which had the same problem in a form that is
+// even easier to see: the fit is computed off the bounding box, so a body
+// swaying two pixels rescaled the entire picture every frame. Relative, since
+// zoom is a ratio: 0.4% is under a pixel of drift at the edge of the frame.
+const ZOOM_DEAD_ZONE = 0.004;
+
+/** Pull `aim` the smallest distance that puts it within `dz` of `target` —
+ *  i.e. hold it exactly still while the target moves inside the box. */
+const deadzone = (aim, target, dz) => clamp(aim, target - dz, target + dz);
+
 const PAN_DAMP = 0.0009;
 // ...AND A SPEED LIMIT ON TOP OF IT, because an eased pan is proportional and
 // proportional is fastest exactly when the error is largest. A fighter coming
@@ -265,6 +307,17 @@ export function updateCamera(dt) {
   // the HUD instead of the middle of the canvas.
   cy -= bandWorld(clamp(zoomTarget, ZOOM_MIN, ZOOM_MAX)) / 2;
 
+  // The deadzone, on the framing target rather than on the camera: everything
+  // downstream — the ease, the speed limit, the containment pass — still works
+  // on whatever comes out of it, so the shot's character is unchanged. What
+  // changed is that a still fight presents a target that is genuinely still
+  // instead of one that vibrates. The hit kick below and the hard fit in the
+  // containment pass are deliberate moves, not noise, and go straight through.
+  //
+  // Stale aim from the last match self-corrects: one clamp puts it in the box.
+  cam.aimZoom = deadzone(cam.aimZoom ?? zoomTarget, zoomTarget, zoomTarget * ZOOM_DEAD_ZONE);
+  zoomTarget = cam.aimZoom;
+
   if (cam.kick > 0) {
     cam.kick = Math.max(0, cam.kick - dt);
     zoomTarget += 0.05;
@@ -272,6 +325,11 @@ export function updateCamera(dt) {
 
   const zoomDamp = zoomTarget < cam.zoom ? ZOOM_OUT_DAMP : ZOOM_IN_DAMP;
   cam.zoom = lerp(cam.zoom, zoomTarget, 1 - Math.pow(zoomDamp, dt));
+
+  cam.aimX = deadzone(cam.aimX ?? cx, cx, DEAD_ZONE_X / cam.zoom);
+  cam.aimY = deadzone(cam.aimY ?? cy, cy, DEAD_ZONE_Y / cam.zoom);
+  cx = cam.aimX;
+  cy = cam.aimY;
 
   const panHalfW = WORLD.w / 2 / cam.zoom;
   const panHalfH = WORLD.h / 2 / cam.zoom;
