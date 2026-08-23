@@ -1,10 +1,11 @@
 // Static audit of stage platform layouts (src/stages.js) against the
 // movement budget in docs/stage-variety-plan.md ("Platform configurations"):
 //
-//   - the main platform(s) are the lowest surface — one on most boards, two on
-//     the six with a split floor, and they sit level with each other
-//   - a board with a lower floor carries exactly one `kind: "spawn"` tier, the
-//     platform a match opens on, and it is above the floor and reachable from it
+//   - the main platform(s) are the lowest surface — one on most boards, two or
+//     three on the boards with a split floor, and they sit level with each other
+//   - a board with a lower floor carries exactly one tier, the platform a match
+//     opens on (a `kind: "spawn"` drop-through, or a main marked `spawn: true`),
+//     and a drop-through tier is above the floor and reachable from it
 //   - every stage has 2–10 platforms besides the main
 //   - every platform is reachable by the WEAKEST jumper (jump 780 @ g 2350:
 //     single hop rises 129 px, single + air jump ~239 px) via some chain of
@@ -102,7 +103,10 @@ for (const stage of STAGES) {
   const mains = plats.filter((p) => p.kind === "main");
   const main = mains[0];
   const others = plats.filter((p) => !mains.includes(p));
-  const tier = plats.filter((p) => p.kind === "spawn");
+  // THE TIER a match opens on: a drop-through `kind: "spawn"`, or any platform
+  // marked `spawn: true` — including a main, for the board that wants to open
+  // on solid ground with a floor still underneath it (stages.js spawnPlatform).
+  const tier = plats.filter((p) => p.kind === "spawn" || p.spawn);
   const slack = stage.key === "domainCore" ? ORBIT_SLACK : 0;
   // A HOP IS WORTH MORE WHERE GRAVITY IS LOWER. Rise goes as v²/2g, so a board
   // that scales gravity scales every budget here by the reciprocal — Domain
@@ -116,21 +120,29 @@ for (const stage of STAGES) {
 
   if (!main) problems.push("no main platform");
   if (plats[0] !== main) problems.push("main is not platforms[0]");
-  if (mains.length > 2) problems.push(`${mains.length} main platforms (allowed 1 or 2)`);
-  // A split floor is two halves of ONE floor: level with each other, with a
-  // real hole between them rather than an overlap or a step.
-  if (mains.length === 2) {
-    const [a, b] = mains.slice().sort((p, q) => p.x - q.x);
-    // A WARNING, and only past a real step. "Two halves of one floor" is the
-    // usual shape, but a board is allowed to put one side lower than the other
-    // — that is a design, not a mistake — and a couple of pixels between them
-    // is a drag that landed a hair off and means nothing to anybody playing.
-    const step = Math.abs(a.y - b.y);
-    if (step > LEVEL_SLOP) {
-      warns.push(`the floor halves sit ${step}px apart (${a.y} vs ${b.y}) — a step, not one floor`);
+  // HOW MANY PIECES A FLOOR MAY COME IN. Two is the usual split; three is Curse
+  // Maw, whose floor is a row of teeth with a gap between each. Past that it
+  // stops being a floor with holes in it and starts being a set of stepping
+  // stones, which is a `side` platform's job.
+  if (mains.length > 3) problems.push(`${mains.length} main platforms (allowed 1–3)`);
+  // A split floor is pieces of ONE floor: level with each other, with real
+  // holes between them rather than overlaps or steps.
+  if (mains.length >= 2) {
+    const row = mains.slice().sort((p, q) => p.x - q.x);
+    for (let i = 1; i < row.length; i++) {
+      const a = row[i - 1];
+      const b = row[i];
+      // A WARNING, and only past a real step. Level halves are the usual shape,
+      // but a board is allowed to put one side lower than the other — that is a
+      // design, not a mistake — and a couple of pixels between them is a drag
+      // that landed a hair off and means nothing to anybody playing.
+      const step = Math.abs(a.y - b.y);
+      if (step > LEVEL_SLOP) {
+        warns.push(`the floor's pieces sit ${step}px apart (${a.y} vs ${b.y}) — a step, not one floor`);
+      }
+      const hole = b.x - (a.x + a.w);
+      if (hole < 90) problems.push(`the floor's hole is only ${hole}px (want ≥ 90)`);
     }
-    const hole = b.x - (a.x + a.w);
-    if (hole < 90) problems.push(`split floor's hole is only ${hole}px (want ≥ 90)`);
   }
   // An ARCHETYPE guard, not a mechanical limit: nothing in the game cares how
   // many platforms a board has, but a board with thirty of them is not one of
@@ -146,7 +158,7 @@ for (const stage of STAGES) {
   }
   // THE TIER A MATCH OPENS ON has to be somewhere a fighter can get back to
   // after being knocked down to the floor, or the storey below is a trap.
-  if (tier.length === 1) {
+  if (tier.length === 1 && tier[0].kind !== "main") {
     const t = tier[0];
     const rise = main.y - t.y;
     if (rise > maxRise) problems.push(`the spawn tier is a ${rise}px hop off the floor (max ${Math.round(maxRise)})`);
@@ -225,7 +237,7 @@ for (const stage of STAGES) {
     if (!reached.has(p)) problems.push(`platform at (${p.x},${p.y}) w${p.w} is unreachable`);
   }
 
-  const shape = mains.length === 2 ? "split" : tier.length ? "floor" : "classic";
+  const shape = mains.length >= 2 ? "split" : tier.length ? "floor" : "classic";
   const label = `${stage.key.padEnd(16)} ${shape.padEnd(7)} main+${others.length}`;
   if (problems.length) {
     errors += problems.length;

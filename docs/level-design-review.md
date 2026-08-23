@@ -723,6 +723,53 @@ the board decide:
 - The highest-platform rule and the hop ceiling had already gone the same way
   in §11.
 
+## 19. A ground can be the place a match opens
+
+The tier a match opens on used to be a KIND — `kind: "spawn"`, a drop-through
+sliver above the floor. That worked because the two decisions arrived together:
+every board that gained a storey got a tier at the old ground's height, and
+every board that kept its ground had no tier at all.
+
+They are not the same decision. "What is this platform made of" (solid ground
+with grabbable ledges, or a sliver you can fall through) and "is this where the
+crowd lines up" are independent, and spending one field on both meant a board
+could not open on solid ground while still having a floor beneath the fight —
+the shape Training Bridge wanted back.
+
+So the tier is a FLAG now, `spawn: true`, readable on any platform including a
+main, and `spawnPlatform()` prefers it over the kind:
+
+    platforms.find((p) => p.spawn) || platforms.find((p) => p.kind === "spawn") || mainPlatform(platforms)
+
+Three layers, in order of how explicit they are: a platform somebody named, a
+drop-through tier, and then the fallback every classic board has always used —
+no tier declared, so the ground is where you start. `spawnSpot` treats the first
+two the same (the crowd lines up ON the named tier) and keeps the old
+lowest-surface-under-x rule for the fallback, which is what still opens Bridge
+Duel's outer slots on its side platforms, Battlefield-style.
+
+The bench shows it as a tick box that behaves like a radio: ticking one unticks
+whichever platform held it, and the box reflects the EFFECTIVE tier rather than
+the raw flag, so a classic board reads as "opens here" instead of "no spawn".
+A paste never carries the flag — one board, one tier.
+
+Training Bridge is restored: one ground at y 497 with its ledges and its top
+platform above, no storey underneath, the shape it had before the floor pass.
+
+Two limits moved with it. A floor may now come in **three** pieces (Curse Maw's
+row of teeth) rather than two, with the level/hole checks run over each
+consecutive pair. And the tier checks — above the floor, ≥300px wide — apply
+only to a drop-through tier: a main that IS the tier is the floor, and asking it
+to sit above itself is nonsense.
+
+One bug fell out of writing the tick box. The panel controls swallow their own
+keystrokes so `input.js` cannot read them as gameplay, and that swallowing also
+stopped Ctrl+Z reaching the bench's own handler — which is documented as
+answering wherever the caret is. An edit made from a panel control could not be
+undone without clicking the picture first. The chord is let through now, and a
+smoke types a width into the panel and takes it back with the caret still in the
+field.
+
 ## The slab takes the room's light
 
 Every board declared its ambiance once — `tint` in `src/stages.js`, the wash the

@@ -136,6 +136,51 @@ check(kept.some(p => p.kind === "main") && kept.length === preDel,
   "deleting everything is refused rather than leaving a board with no floor",
   `${kept.length} left`);
 
+// --- THE SPAWN TIER IS A CHOICE, and only one platform holds it
+await page.keyboard.press("Escape");
+await page.waitForTimeout(120);
+const authored = () => page.evaluate(async () => {
+  const { spawnPlatform } = await import("/src/stages.js");
+  const { state } = await import("/src/state.js");
+  const tier = spawnPlatform(state.platforms);
+  return {
+    kinds: state.platforms.map((p) => p.kind + (p.spawn ? "*" : "")),
+    tier: { y: tier.y, kind: tier.kind, flagged: !!tier.spawn },
+  };
+});
+const wasTier = await authored();
+const floor = (await plats())[0];
+let c = await clientOf(floor.x + floor.w / 2, floor.y + 6);
+await page.mouse.click(c.x, c.y);
+await page.waitForTimeout(150);
+check(await page.isChecked("#pSpawn") === false,
+  "the floor is not the tier while a drop-through holds it", JSON.stringify(wasTier.tier));
+await page.check("#pSpawn");
+await page.waitForTimeout(200);
+const nowTier = await authored();
+check(nowTier.tier.kind === "main" && nowTier.tier.flagged,
+  "ticking the box hands the tier to the main", JSON.stringify(nowTier.tier));
+check(nowTier.kinds.filter((k) => k === "spawn" || k.endsWith("*")).length === 1,
+  "...and takes it off the platform that had it", JSON.stringify(nowTier.kinds));
+await page.keyboard.press("Control+z");
+await page.waitForTimeout(250);
+const backTier = await authored();
+check(JSON.stringify(backTier) === JSON.stringify(wasTier),
+  "one undo puts the tier back where it was", JSON.stringify(backTier.tier));
+
+// --- and an edit typed into a property field undoes with the caret still in it
+await page.mouse.click(c.x, c.y);
+await page.waitForTimeout(150);
+const beforeW = (await plats())[0].w;
+await page.fill("#pW", String(beforeW - 120));
+await page.waitForTimeout(200);
+check((await plats())[0].w === beforeW - 120, "a width typed into the panel takes effect",
+  `${beforeW} -> ${(await plats())[0].w}`);
+await page.keyboard.press("Control+z");
+await page.waitForTimeout(250);
+check((await plats())[0].w === beforeW, "...and undoes without clicking the picture first",
+  String((await plats())[0].w));
+
 console.log("errors:", errors.length ? errors.slice(0,4) : "none");
 await b.close();
 console.log(fails||errors.length ? `\n${fails} failed` : "\nall multi-select checks passed");

@@ -61,16 +61,20 @@ const plats = () => page.evaluate(async () => {
 //     made a tiered board look like it opened somewhere it does not.
 const stood = await page.evaluate(async () => {
   const { state } = await import("/src/state.js");
-  const { spawnPlatform, mainPlatforms } = await import("/src/stages.js");
+  const { spawnPlatform, spawnSpot, mainPlatforms } = await import("/src/stages.js");
   const tier = spawnPlatform(state.platforms);
   return {
     fighterY: Math.round(state.fighters[0].y),
-    tierY: tier.y, tiered: tier.kind === "spawn",
+    // ...against the GAME's own rule, asked for this fighter's own x. Naming a
+    // height here instead would only be true of whichever board the smoke
+    // happens to open, and a board is allowed to change shape.
+    wantY: spawnSpot(state.platforms, state.fighters[0].x).y,
+    tierY: tier.y, tiered: tier.kind === "spawn" || !!tier.spawn,
     floorY: mainPlatforms(state.platforms)[0].y,
   };
 });
-check(stood.fighterY === stood.tierY && stood.tiered && stood.floorY > stood.tierY,
-  "the bench's fighter stands on the spawn tier, not the floor",
+check(stood.fighterY === stood.wantY && (!stood.tiered || stood.floorY > stood.tierY),
+  "the bench's fighter stands where a match would start them",
   `fighter ${stood.fighterY}, tier ${stood.tierY}, floor ${stood.floorY}`);
 
 // --- select the main platform by clicking its middle

@@ -23,21 +23,30 @@ import { clamp } from "./utils.js";
 // A ledge hang on the floor sits low in frame on purpose — being able to USE
 // the bottom of the board matters more than seeing all of a hanging body.
 //
-// FOUR BOARDS KEEP A HIGH FLOOR, because a floor underneath would cost them
+// FIVE BOARDS KEEP A HIGH FLOOR, because a floor underneath would cost them
 // the thing they are. Sunken Crossing and Crosswalk Rush are walk-offs whose
 // street already IS the bottom of the world. Bridge Duel is a narrow bridge
 // over a void — catching yourself on a floor below is exactly what that board
 // is meant not to offer, and its gimmick drifts that bridge. Garden Steps is a
-// staircase, and a staircase reads from its bottom step. Every other board
-// gains the storey; which ones do is a per-board decision, not a rule.
+// staircase, and a staircase reads from its bottom step. Training Bridge is the
+// board everybody meets first, and it teaches the shape best without a storey
+// under it. Every other board gains the storey; which ones do is a per-board
+// decision, not a rule.
 //
-// SIX BOARDS SPLIT THAT FLOOR IN TWO, with a ~190px hole down the middle:
-// Shibuya Night, Bone Sanctum, Mist Pier, Empty City, Billboard Roof and
-// Domain Core. The spawn tier still bridges the gap, so a match opens on solid
-// ground and the hole is something you choose to deal with — four grabbable
-// ledges instead of two, and a way to lose a stock straight down the middle.
-// The six were picked for gimmicks that never measure the main (stage_fx.js):
-// a board whose hazard sweeps its floor keeps that floor in one piece.
+// SIX BOARDS SPLIT THAT FLOOR, with holes down the middle: Neon Split, Bone
+// Sanctum, Cursed Teeth, Billboard Roof, Domain Core — and Curse Maw, whose
+// floor comes in THREE pieces, a row of teeth with a gap between each. The
+// spawn tier still bridges the gaps, so a match opens on solid ground and the
+// hole is something you choose to deal with — more grabbable ledges, and a way
+// to lose a stock straight down the middle. The six were picked for gimmicks
+// that never measure the main (stage_fx.js): a board whose hazard sweeps its
+// floor keeps that floor in one piece.
+//
+// WHERE A MATCH OPENS IS ITS OWN DECISION, separate from what the ground is.
+// Usually it is the `kind: "spawn"` drop-through above the floor; a board that
+// wants to open on SOLID ground with a floor still underneath marks that
+// platform `spawn: true` instead (see spawnPlatform below). The arena bench
+// exposes it as a tick box, one per board.
 //
 // Proportions follow docs/level-design-review.md: platforms two fighters are
 // meant to contest are ≥ ~195px (about three body widths); shorter ones are
@@ -89,25 +98,25 @@ import { clamp } from "./utils.js";
 
 export const STAGES = [
   { key: "trainingBridge", name: "Training Bridge", bgFile: "training_bridge.jpg", tint: "rgba(87, 186, 129, 0.12)", platforms: [
-    { x: 120, y: 688, w: 1040, h: 42, kind: "main" }, { x: 218, y: 568, w: 844, h: 15, kind: "spawn" }, { x: 140, y: 424, w: 250, h: 15, kind: "side" }, { x: 890, y: 424, w: 250, h: 15, kind: "side" }, { x: 512, y: 302, w: 256, h: 15, kind: "top" }
+    { x: 219, y: 497, w: 844, h: 42, kind: "main" }, { x: 141, y: 353, w: 250, h: 15, kind: "side" }, { x: 891, y: 353, w: 250, h: 15, kind: "side" }, { x: 513, y: 231, w: 256, h: 15, kind: "top" }
   ] },
   { key: "quietHall", name: "Quiet Hall", bgFile: "quiet_hall.jpg", tint: "rgba(175, 128, 80, 0.12)", platforms: [
-    { x: 110, y: 692, w: 1060, h: 42, kind: "main" }, { x: 206, y: 572, w: 868, h: 15, kind: "spawn" }, { x: 230, y: 438, w: 270, h: 15, kind: "side" }, { x: 780, y: 452, w: 270, h: 15, kind: "side" }
+    { x: -149, y: 692, w: 1581, h: 42, kind: "main" }, { x: 206, y: 572, w: 868, h: 15, kind: "spawn" }, { x: 230, y: 438, w: 270, h: 15, kind: "side" }, { x: 780, y: 452, w: 270, h: 15, kind: "side" }
   ] },
   { key: "floodedGate", name: "Flooded Gate", bgFile: "flooded_gate.jpg", tint: "rgba(107, 174, 214, 0.13)", platforms: [
-    { x: 100, y: 690, w: 1080, h: 42, kind: "main" }, { x: 180, y: 570, w: 920, h: 15, kind: "spawn" }, { x: 150, y: 446, w: 200, h: 15, kind: "side" }, { x: 930, y: 446, w: 200, h: 15, kind: "side" }, { x: 552, y: 336, w: 176, h: 15, kind: "top" }
+    { x: 65, y: 687, w: 1151, h: 42, kind: "main" }, { x: 212, y: 570, w: 827, h: 15, kind: "spawn" }, { x: 150, y: 446, w: 200, h: 15, kind: "side" }, { x: 930, y: 446, w: 200, h: 15, kind: "side" }, { x: 464, y: 300, w: 352, h: 15, kind: "top" }
   ] },
   { key: "shibuyaNight", name: "Shibuya Night", bgFile: "shibuya_night.jpg", tint: "rgba(88, 116, 220, 0.16)", platforms: [
-    { x: 110, y: 686, w: 460, h: 42, kind: "main" }, { x: 770, y: 686, w: 460, h: 42, kind: "main" }, { x: 220, y: 566, w: 840, h: 15, kind: "spawn" }, { x: 170, y: 452, w: 220, h: 15, kind: "side" }, { x: 890, y: 452, w: 220, h: 15, kind: "side" }, { x: 350, y: 342, w: 190, h: 15, kind: "side" }, { x: 740, y: 342, w: 190, h: 15, kind: "side" }, { x: 505, y: 240, w: 270, h: 15, kind: "top" }
+    { x: 110, y: 686, w: 1029, h: 42, kind: "main" }, { x: 330, y: 566, w: 600, h: 15, kind: "spawn" }, { x: 170, y: 452, w: 220, h: 15, kind: "side" }, { x: 857, y: 452, w: 220, h: 15, kind: "side" }, { x: 350, y: 342, w: 190, h: 15, kind: "side" }, { x: 740, y: 342, w: 190, h: 15, kind: "side" }, { x: 505, y: 240, w: 270, h: 15, kind: "top" }
   ] },
   { key: "curseMaw", name: "Curse Maw", bgFile: "curse_maw.jpg", tint: "rgba(60, 215, 218, 0.13)", platforms: [
-    { x: 130, y: 696, w: 1020, h: 42, kind: "main" }, { x: 228, y: 576, w: 824, h: 15, kind: "spawn" }, { x: 240, y: 442, w: 220, h: 15, kind: "side" }, { x: 820, y: 442, w: 220, h: 15, kind: "side" }
+    { x: 116, y: 699, w: 184, h: 42, kind: "main" }, { x: 228, y: 576, w: 824, h: 15, kind: "spawn" }, { x: 240, y: 442, w: 220, h: 15, kind: "side" }, { x: 820, y: 442, w: 220, h: 15, kind: "side" }, { x: 493, y: 697, w: 275, h: 42, kind: "main" }, { x: 921, y: 695, w: 184, h: 42, kind: "main" }, { x: 312, y: 68, w: 31, h: 259, kind: "wall" }, { x: 972, y: 63, w: 31, h: 259, kind: "wall" }
   ] },
   { key: "gardenSteps", name: "Garden Steps", bgFile: "garden_steps.jpg", tint: "rgba(111, 219, 147, 0.16)", platforms: [
-    { x: 182, y: 584, w: 916, h: 42, kind: "main" }, { x: 140, y: 474, w: 210, h: 15, kind: "side" }, { x: 470, y: 384, w: 210, h: 15, kind: "top" }, { x: 830, y: 294, w: 240, h: 15, kind: "side" }
+    { x: 17, y: 630, w: 1219, h: 42, kind: "main" }, { x: 134, y: 495, w: 210, h: 15, kind: "side" }, { x: 419, y: 398, w: 210, h: 15, kind: "top" }, { x: 719, y: 311, w: 240, h: 15, kind: "side" }, { x: 1026, y: 197, w: 240, h: 15, kind: "side" }
   ] },
   { key: "lanternCorridor", name: "Lantern Corridor", bgFile: "lantern_corridor.jpg", tint: "rgba(255, 187, 93, 0.11)", platforms: [
-    { x: 120, y: 690, w: 1040, h: 42, kind: "main" }, { x: 222, y: 570, w: 836, h: 15, kind: "spawn" }, { x: 210, y: 428, w: 210, h: 15, kind: "side" }, { x: 535, y: 428, w: 210, h: 15, kind: "side" }, { x: 860, y: 428, w: 210, h: 15, kind: "side" }
+    { x: 35, y: 690, w: 1217, h: 42, kind: "main" }, { x: 165, y: 570, w: 982, h: 15, kind: "spawn" }, { x: 210, y: 428, w: 210, h: 15, kind: "side" }, { x: 535, y: 428, w: 210, h: 15, kind: "side" }, { x: 860, y: 428, w: 210, h: 15, kind: "side" }, { x: 539, y: 298, w: 210, h: 15, kind: "side" }, { x: 543, y: 159, w: 210, h: 15, kind: "side" }
   ] },
   { key: "sunkenCrossing", name: "Sunken Crossing", bgFile: "sunken_crossing.jpg", tint: "rgba(87, 196, 255, 0.12)", mods: { frictionPow: 0.35 }, platforms: [
     { x: -140, y: 668, w: 1560, h: 42, kind: "main" }, { x: 170, y: 536, w: 320, h: 15, kind: "side" }, { x: 790, y: 536, w: 320, h: 15, kind: "side" }
@@ -294,7 +303,11 @@ export function spawnSpot(platforms, x) {
   const tier = spawnPlatform(platforms);
   if (!tier) return { x, y: 568 };
   const onto = () => ({ x: clamp(x, tier.x + 50, tier.x + tier.w - 50), y: tier.y });
-  if (tier.kind === "spawn") return onto();
+  // A tier somebody CHOSE — a drop-through `kind: "spawn"`, or a main marked
+  // `spawn: true` — is where the crowd lines up, full stop. Only the implicit
+  // fallback below (no tier declared anywhere, so the ground is the ground)
+  // keeps the old lowest-surface-under-x rule.
+  if (tier.kind === "spawn" || tier.spawn) return onto();
   const under = platforms.filter((p) => x >= p.x + 12 && x <= p.x + p.w - 12);
   if (under.length) return { x, y: Math.max(...under.map((p) => p.y)) };
   return onto();
@@ -327,10 +340,17 @@ export function groundSpan(platforms) {
   };
 }
 
-/** WHERE A MATCH OPENS — the `spawn: true` tier, which is the platform the old
- *  layout used as its ground. Boards with no tier of their own (the walk-offs,
- *  whose floor IS the starting ground) fall back to the main, so every caller
- *  gets an answer without knowing which kind of board it is on.
+/** WHERE A MATCH OPENS — the `kind: "spawn"` tier, which is the platform the
+ *  old layout used as its ground. Boards with no tier of their own (the walk-
+ *  offs and the classic boards, whose ground IS the starting ground) fall back
+ *  to the main, so every caller gets an answer without knowing which kind of
+ *  board it is on.
+ *
+ *  A GROUND CAN BE THE TIER ON PURPOSE, too: `spawn: true` on any platform
+ *  names it the tier and wins over everything else. That is for the board that
+ *  wants a floor under the fight AND wants the match to open on a piece of
+ *  solid ground rather than on a drop-through — the two used to be the same
+ *  decision because the tier was a kind, and a kind a main could not also be.
  *
  *  Asked by the spawn placement, by the crowd spread, and by the camera's
  *  high-play envelope — that last one because "play has gone high" has to mean
@@ -338,7 +358,9 @@ export function groundSpan(platforms) {
  *  under it. Measured off the floor, standing on the starting tier would read
  *  as permanently half-elevated. */
 export function spawnPlatform(platforms) {
-  return platforms.find((p) => p.kind === "spawn") || mainPlatform(platforms);
+  return platforms.find((p) => p.spawn)
+    || platforms.find((p) => p.kind === "spawn")
+    || mainPlatform(platforms);
 }
 
 /** GROUND LEVEL for anything that draws or lands at "the floor" without asking
