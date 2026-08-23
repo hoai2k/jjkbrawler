@@ -230,6 +230,7 @@ const charPickEl = document.getElementById("charPick");
 const padEl = document.getElementById("arenaPads");
 const fpsEl = document.getElementById("arenaFps");
 const historyEl = document.getElementById("arenaHistory");
+const exportEl = document.getElementById("arenaExport");
 const leftToggleEl = document.getElementById("leftToggle");
 const rightToggleEl = document.getElementById("rightToggle");
 const propsNoneEl = document.getElementById("propsNone");
@@ -310,6 +311,7 @@ const runtimeOf = (p) => ({
  *  than every frame, so Active Boards' moving platforms are free to move. */
 function syncPlatforms() {
   state.platforms = bench.arena.platforms.map(runtimeOf);
+  paintEdited();
   // The fighter holds a reference to the platform they are standing on, and
   // the array it came from has just been replaced. resolvePlatforms reassigns
   // it on the next step; this stops the one frame in between reading a shape
@@ -386,6 +388,64 @@ function paintHistory() {
   historyEl.textContent = `${bench.past.length} undo · ${bench.future.length} redo`;
 }
 
+/** Keep the board list's change marks and the export button honest about how
+ *  much work is waiting to come out. */
+function paintEdited() {
+  const n = editedBoards().length;
+  exportEl.textContent = n > 1 ? `⭳ Export ${n} boards` : "⭳ Export arena";
+  exportEl.title = n > 1
+    ? `Download all ${n} changed boards as one JSON, with paste-ready src/stages.js lines`
+    : "Download this board as JSON, with a ready-to-paste src/stages.js line inside it";
+  for (const li of listEl.querySelectorAll(".arena")) {
+    li.classList.toggle("is-edited", isEdited(li.dataset.stage));
+    const b = li.querySelector("b");
+    const has = !!b.querySelector(".dot");
+    if (isEdited(li.dataset.stage) === has) continue;
+    if (has) b.querySelector(".dot").remove();
+    else b.insertAdjacentHTML("beforeend", '<i class="dot" title="changed from what ships">●</i>');
+  }
+}
+
+// EVERY BOARD YOU HAVE TOUCHED, KEPT AS YOU LEFT IT.
+//
+// Switching boards used to rebuild the new one from the shipped table and throw
+// the old one away, so an afternoon's work on Billboard Roof vanished the
+// moment you looked at Empty City. A bench you cannot leave is a bench you
+// cannot compare anything in — and comparing is most of what laying out a set
+// of boards IS.
+//
+// So each board gets its own entry the first time it is opened, and keeps it:
+// the arena, and its own undo and redo stacks, because "undo" after switching
+// back has to mean the last thing you did TO THAT BOARD.
+//
+// The CLIPBOARD is deliberately not in here. It is global, and it survives a
+// switch on purpose: copying a ledge arrangement off one board and pasting it
+// onto another is the whole reason a bench has a clipboard rather than a
+// duplicate button.
+const boards = new Map();
+
+function boardState(key) {
+  let b = boards.get(key);
+  if (!b) {
+    b = { arena: authored(key), past: [], future: [] };
+    boards.set(key, b);
+  }
+  return b;
+}
+
+/** Has this board been changed from what ships? Compared on the authored
+ *  numbers, so moving a platform and moving it back leaves nothing behind. */
+function isEdited(key) {
+  const b = boards.get(key);
+  if (!b) return false;
+  return JSON.stringify(b.arena) !== JSON.stringify(authored(key));
+}
+
+/** Every board that differs from what ships, in table order. */
+function editedBoards() {
+  return AUTHORED_STAGES.map((a) => a.key).filter(isEdited);
+}
+
 function authored(key) {
   const s = AUTHORED_STAGES.find((a) => a.key === key) || AUTHORED_STAGES[0];
   return {
@@ -397,11 +457,14 @@ function authored(key) {
 
 async function loadArena(key) {
   bench.stageKey = key;
-  bench.arena = authored(key);
+  // The board as YOU left it, with its own history. First visit builds it from
+  // the shipped table; every visit after that is where you were.
+  const b = boardState(key);
+  bench.arena = b.arena;
+  bench.past = b.past;
+  bench.future = b.future;
   bench.sel = [];
-  bench.past.length = 0;
-  bench.future.length = 0;
-  bench.clip = null;
+  // bench.clip is NOT cleared — see the note on `boards`.
   bench.loading = true;
   overlayEl.textContent = "Loading…";
   overlayEl.classList.add("is-on");
@@ -462,13 +525,18 @@ function renderList() {
   listEl.innerHTML = "";
   for (const s of visibleArenas()) {
     const li = document.createElement("li");
-    li.className = "arena" + (s.key === bench.stageKey ? " is-on" : "");
+    const edited = isEdited(s.key);
+    li.className = "arena" + (s.key === bench.stageKey ? " is-on" : "") + (edited ? " is-edited" : "");
     li.dataset.stage = s.key;
     li.setAttribute("role", "option");
-    const plats = s.platforms.length;
-    const main = s.platforms.find((p) => p.kind === "main") || s.platforms[0];
-    const walls = s.platforms.filter((p) => p.kind === "wall").length;
-    li.innerHTML = `<b>${s.name}</b><span>${plats} platform${plats === 1 ? "" : "s"}`
+    // Counts come from the board AS EDITED once you have opened it, so the list
+    // is a summary of your work rather than of what shipped.
+    const live = boards.get(s.key)?.arena || s;
+    const plats = live.platforms.length;
+    const main = live.platforms.find((p) => p.kind === "main") || live.platforms[0];
+    const walls = live.platforms.filter((p) => p.kind === "wall").length;
+    li.innerHTML = `<b>${s.name}${edited ? '<i class="dot" title="changed from what ships">●</i>' : ""}</b>`
+      + `<span>${plats} platform${plats === 1 ? "" : "s"}`
       + ` · main ${main.w}w${walls ? ` · ${walls} wall${walls === 1 ? "" : "s"}` : ""}</span>`;
     li.addEventListener("click", () => { if (s.key !== bench.stageKey) loadArena(s.key); });
     listEl.appendChild(li);
@@ -883,39 +951,73 @@ function stagesJsLine(a) {
   return `  { key: "${a.key}", name: "${a.name}", bgFile: "${a.bgFile}", tint: "${a.tint}", ${mods}platforms: [\n    ${plats}\n  ] },`;
 }
 
-document.getElementById("arenaExport").addEventListener("click", () => {
-  const a = bench.arena;
-  const payload = {
-    note: "Authored numbers, ready for src/stages.js. `h` is pre-ART_SCALE thickness — the game scales it (walls excepted).",
+/** One board's worth of export, including what the reach panel makes of it. */
+function boardPayload(key) {
+  const a = boards.get(key).arena;
+  return {
     key: a.key, name: a.name, bgFile: a.bgFile, tint: a.tint,
     mods: a.mods, platforms: a.platforms,
-    reach: reachReport(),
+    reach: reachReportFor(a),
     stagesJs: stagesJsLine(a),
   };
+}
+
+document.getElementById("arenaExport").addEventListener("click", () => {
+  // EVERYTHING YOU CHANGED, not just the board you happen to be looking at —
+  // the same bargain the audio bench's "Export changes" strikes. A session
+  // spent balancing four boards against each other should come out as one file.
+  // Nothing changed anywhere? Then export the board on screen, so the button
+  // always does the obvious thing rather than refusing.
+  const keys = editedBoards();
+  const only = keys.length ? null : bench.stageKey;
+  const list = (only ? [only] : keys).map(boardPayload);
+  const payload = {
+    note: "Authored numbers, ready for src/stages.js. `h` is pre-ART_SCALE thickness — the game scales it (walls excepted).",
+    boards: list,
+    // Every changed board's line, in table order, ready to paste in one go.
+    stagesJs: list.map((b) => b.stagesJs).join("\n"),
+    // A single-board export also carries that board at the top level, so the
+    // common case reads exactly as it always did.
+    ...(list.length === 1 ? list[0] : {}),
+  };
+  const name = list.length === 1 ? `arena-${list[0].key}.json` : `arenas-${list.length}-boards.json`;
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
-  link.download = `arena-${a.key}.json`;
+  link.download = name;
   link.click();
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-  flash(`exported arena-${a.key}.json`);
+  flash(`exported ${name}`);
 });
 
 // ------------------------------------------------------------------- reach
 //
 // The same budget tools/audit_stage_reach.mjs enforces, live: a board you can
 // build here but not land in `main` is a board the bench let you waste time on.
-const MAX_RISE = 175;
-const COMFY_RISE = 145;
-const gapBudget = (rise) => (rise <= 110 ? 220 : rise <= 145 ? 160 : 90);
+// The same budget tools/audit_stage_reach.mjs uses, and for the reasons derived
+// there: 235 is the weakest fighter's real full-jump reach (239) less a few
+// pixels for landing, and 175 — what the ceiling used to be — is now the point
+// where a hop starts needing a deliberate double jump and earns a warning.
+const MAX_RISE = 235;
+const COMFY_RISE = 175;
+const TOP_CAP = 170;
+const gapBudget = (rise) => (rise <= 110 ? 220 : rise <= 145 ? 160 : rise <= 175 ? 120 : 90);
 
 function horizontalGap(a, b) {
   if (a.x + a.w >= b.x && b.x + b.w >= a.x) return 0;
   return a.x + a.w < b.x ? b.x - (a.x + a.w) : a.x - (b.x + b.w);
 }
 
-function reachReport() {
-  const plats = bench.arena.platforms;
+const reachReport = () => reachReportFor(bench.arena);
+
+function reachReportFor(arena) {
+  const plats = arena.platforms;
+  // A hop is worth more where gravity is lower (rise goes as v²/2g), so the
+  // budgets scale by the reciprocal of this board's own gravity — the same
+  // rule tools/audit_stage_reach.mjs applies, so the panel says what CI will.
+  const gMul = arena.mods?.gravityMul ?? 1;
+  const maxRise = MAX_RISE / gMul;
+  const comfyRise = COMFY_RISE / gMul;
   const mains = plats.filter((p) => p.kind === "main");
   const main = mains[0] || plats[0];
   if (!main) return { problems: ["no main platform"], warnings: [] };
@@ -933,15 +1035,21 @@ function reachReport() {
   if (tier.length === 1) {
     const rise = main.y - tier[0].y;
     if (rise <= 0) problems.push("the spawn tier is not above the floor");
-    else if (rise > 175) problems.push(`the spawn tier is a ${rise}px hop off the floor (max 175)`);
-    else if (rise > 145) warnings.push(`the spawn tier needs a ${rise}px hop off the floor`);
+    else if (rise > maxRise) problems.push(`the spawn tier is a ${rise}px hop off the floor (max ${Math.round(maxRise)})`);
+    else if (rise > comfyRise) warnings.push(`the spawn tier needs a ${rise}px hop off the floor`);
     if (tier[0].w < 300) problems.push(`the spawn tier is only ${tier[0].w}px wide`);
   }
   for (const p of others) {
     if (p.y >= main.y) problems.push(`(${p.x},${p.y}) is not above the main`);
   }
   const highest = Math.min(...plats.map((p) => p.y));
-  if (highest < 235) problems.push(`highest platform y ${highest} is above the 235 cap`);
+  // The same cap tools/audit_stage_reach.mjs enforces, and for the reason
+  // derived there: it is where the weakest full jump stops keeping the tallest
+  // fighter's head inside the shot, not the top of the world rect.
+  if (highest < TOP_CAP) {
+    warnings.push(`y ${highest} is high — a full jump from it takes the strongest `
+      + `fighters entirely out of frame`);
+  }
   const reached = new Set(mains.length ? mains : [main]);
   let grew = true;
   while (grew) {
@@ -951,13 +1059,13 @@ function reachReport() {
       let best = Infinity;
       for (const from of reached) {
         const rise = from.y - p.y;
-        if (rise > MAX_RISE) continue;
-        if (horizontalGap(from, p) > gapBudget(Math.max(0, rise))) continue;
+        if (rise > maxRise) continue;
+        if (horizontalGap(from, p) > gapBudget(Math.max(0, rise) * gMul)) continue;
         best = Math.min(best, rise);
       }
       if (best === Infinity) continue;
       reached.add(p);
-      if (best > COMFY_RISE) warnings.push(`(${p.x},${p.y}) needs a ${Math.round(best)}px hop`);
+      if (best > comfyRise) warnings.push(`(${p.x},${p.y}) needs a ${Math.round(best)}px hop`);
       grew = true;
     }
   }

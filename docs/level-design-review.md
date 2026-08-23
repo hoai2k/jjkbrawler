@@ -506,6 +506,59 @@ The character bench (`workbench/character.js`) has the same two-scale transform
 and would squash the same way in a non-16:9 box; it was left alone here because
 nothing asked it to change, not because it is right.
 
+## 11. What actually bounds a board
+
+Three limits the audit was enforcing turned out to be inherited numbers rather
+than measured ones, and all three were costing usable board.
+
+**The top cap was 235**, chosen so a full jump from the highest platform could
+not pass y = 0. That is not a safety line: y = 0 is the top of the world *rect*.
+Above it there is painted backdrop (`VIEW_BLEED` bleeds the plate to −400) and
+no danger (`BLAST.top` is −420). The limit that matters is that a fighter should
+never end up *entirely* above the shot — partly offscreen at an apex is ordinary
+in this genre. The camera can show up to y = −260 (`OVERSCAN_Y`, and the same
+number at every zoom, because `cam.y ≥ halfH − OVERSCAN_Y` makes the frame top
+`cam.y − halfH ≥ −OVERSCAN_Y`), and the strongest full jump rises 434px, so a
+platform stops being safe at y ≈ 174. That is now a **warning at y < 170**, not
+an error: nothing breaks up there, and whoever lays the board out is the
+authority on whether the height is worth it.
+
+**The hop ceiling was 175 against a real reach of 239.** `MAX_RISE` was a
+"comfortable" number standing in for the physical one, so the audit called
+platforms unreachable that a player could plainly double-jump to — reported from
+the bench, where a hand-built board was fully reachable and the panel said
+otherwise. The ceiling is the measured one now (235: the weakest jumper's 239px
+full jump, less a few pixels for landing on a platform rather than touching its
+height at the apex), and 175 became the *warning* threshold, which makes it an
+honest band: a hop that works but wants a deliberate double jump.
+
+**The budgets ignored gravity.** Rise goes as v²/2g, so Domain Core's
+`gravityMul: 0.88` buys 14% more height — and judging its shards against
+sea-level numbers called reachable hops uncomfortable. Every rise budget now
+scales by the reciprocal of the board's own gravity. The top cap deliberately
+does *not*: scaling it would make the one board that floats the most restricted
+board in the set, which is backwards for the board whose whole idea is height.
+
+**And the platform-count cap went 6 → 8 → 10**, which is an archetype guard
+rather than a mechanical limit — a floor, a starting tier and an orbit field of
+shards is nine before anybody has done anything unusual.
+
+## 12. The bench holds more than one board
+
+Reported from use: an afternoon's work on Billboard Roof vanished on switching
+to Empty City, and a copy taken on one board had nothing to paste after moving.
+Switching rebuilt the new board from the shipped table, threw the old one away,
+and cleared the clipboard on the way past.
+
+Each board now keeps its own entry — the arena *and* its own undo/redo stacks,
+because "undo" after switching back has to mean the last thing you did to *that*
+board. The clipboard is deliberately global and survives a switch: copying a
+ledge arrangement off one board onto another is the whole reason a bench has a
+clipboard rather than a duplicate button. The board list marks what you have
+changed, and **Export carries every changed board at once** with a paste-ready
+`stages.js` entry for each — the same bargain the audio bench's "Export changes"
+strikes. A single-board export still reads exactly as it did.
+
 ## The slab takes the room's light
 
 Every board declared its ambiance once — `tint` in `src/stages.js`, the wash the

@@ -140,13 +140,13 @@ export const STAGES = [
     { x: 130, y: 690, w: 1020, h: 42, kind: "main" }, { x: 230, y: 570, w: 820, h: 15, kind: "spawn" }, { x: 170, y: 446, w: 200, h: 15, kind: "side" }, { x: 910, y: 446, w: 200, h: 15, kind: "side" }, { x: 340, y: 330, w: 130, h: 15, kind: "side" }, { x: 790, y: 330, w: 170, h: 15, kind: "side" }
   ] },
   { key: "emptyCity", name: "Empty City", bgFile: "empty_city.jpg", tint: "rgba(159, 189, 214, 0.15)", platforms: [
-    { x: 110, y: 694, w: 460, h: 42, kind: "main" }, { x: 770, y: 694, w: 460, h: 42, kind: "main" }, { x: 180, y: 574, w: 920, h: 15, kind: "spawn" }, { x: 140, y: 470, w: 210, h: 15, kind: "side" }, { x: 930, y: 446, w: 210, h: 15, kind: "side" }, { x: 360, y: 360, w: 190, h: 15, kind: "top" }, { x: 730, y: 326, w: 190, h: 15, kind: "top" }
+    { x: 98, y: 633, w: 460, h: 42, kind: "main" }, { x: 758, y: 633, w: 460, h: 42, kind: "main" }, { x: 168, y: 513, w: 920, h: 15, kind: "spawn" }, { x: 128, y: 409, w: 210, h: 15, kind: "side" }, { x: 918, y: 385, w: 210, h: 15, kind: "side" }, { x: 50, y: 256, w: 190, h: 15, kind: "top" }, { x: 611, y: 245, w: 389, h: 15, kind: "top" }
   ] },
   { key: "billboardRoof", name: "Billboard Roof", bgFile: "billboard_roof.jpg", tint: "rgba(255, 83, 148, 0.1)", platforms: [
-    { x: 120, y: 700, w: 450, h: 42, kind: "main" }, { x: 760, y: 700, w: 450, h: 42, kind: "main" }, { x: 214, y: 580, w: 852, h: 15, kind: "spawn" }, { x: 180, y: 470, w: 150, h: 15, kind: "side" }, { x: 950, y: 470, w: 150, h: 15, kind: "side" }, { x: 470, y: 370, w: 340, h: 15, kind: "side" }, { x: 540, y: 262, w: 200, h: 15, kind: "top" }
+    { x: 120, y: 700, w: 450, h: 42, kind: "main" }, { x: 760, y: 700, w: 450, h: 42, kind: "main" }, { x: 214, y: 580, w: 852, h: 15, kind: "spawn" }, { x: 180, y: 470, w: 150, h: 15, kind: "side" }, { x: 950, y: 470, w: 150, h: 15, kind: "side" }, { x: 470, y: 370, w: 340, h: 15, kind: "side" }, { x: 540, y: 262, w: 200, h: 15, kind: "top" }, { x: -43, y: 323, w: 340, h: 15, kind: "side" }, { x: 1024, y: 323, w: 340, h: 15, kind: "side" }, { x: 980, y: 94, w: 150, h: 15, kind: "side" }
   ] },
   { key: "domainCore", name: "Domain Core", bgFile: "domain_core.jpg", tint: "rgba(108, 255, 230, 0.13)", mods: { gravityMul: 0.88 }, platforms: [
-    { x: 100, y: 698, w: 470, h: 42, kind: "main" }, { x: 760, y: 698, w: 470, h: 42, kind: "main" }, { x: 166, y: 578, w: 948, h: 15, kind: "spawn" }, { x: 240, y: 458, w: 180, h: 15, kind: "side" }, { x: 860, y: 458, w: 180, h: 15, kind: "side" }, { x: 430, y: 338, w: 170, h: 15, kind: "side" }, { x: 680, y: 338, w: 170, h: 15, kind: "side" }
+    { x: 100, y: 698, w: 470, h: 42, kind: "main" }, { x: 760, y: 698, w: 470, h: 42, kind: "main" }, { x: 166, y: 578, w: 948, h: 15, kind: "spawn" }, { x: 240, y: 458, w: 180, h: 15, kind: "side" }, { x: 860, y: 458, w: 180, h: 15, kind: "side" }, { x: 430, y: 338, w: 170, h: 15, kind: "side" }, { x: 680, y: 338, w: 170, h: 15, kind: "side" }, { x: 17, y: 341, w: 180, h: 15, kind: "side" }, { x: 1087, y: 335, w: 180, h: 15, kind: "side" }, { x: 1148, y: 196, w: 180, h: 15, kind: "side" }, { x: -101, y: 201, w: 180, h: 15, kind: "side" }
   ] },
 ];
 
