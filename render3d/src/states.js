@@ -95,6 +95,14 @@ export const STATES = {
   throwBack:      { loop: false, duration: 0.3,   beat: 0.1,  tier: "library" },
   throwUp:        { loop: false, duration: 0.3,   beat: 0.1,  tier: "library" },
   throwDown:      { loop: false, duration: 0.3,   beat: 0.1,  tier: "library" },
+  // The hand seal held while a Domain Expansion is declared (src/domains.js).
+  // ALIASED to the ult below, which is what this path drew for that window
+  // before the state existed — so nothing about a rig changes and no clip is
+  // owed. The sprite side holds a bespoke drawing where one has been delivered;
+  // here the declaration and the barrier go on sharing a performance until
+  // somebody decides a rig should make the sign, which is a clip request and
+  // not a state.
+  domain:         { loop: true,  duration: 1.0,   tier: "library" },
 };
 
 // States that play ANOTHER state's clip. `dodge` is the legacy alias for
@@ -129,6 +137,7 @@ const STATE_ALIASES = {
   throwBack: "sideHeavy",
   throwUp: "upHeavy",
   throwDown: "downHeavy",
+  domain: "ult",
 };
 
 export const CLIP_STATES = Object.keys(STATES).filter((s) => !STATE_ALIASES[s]);
