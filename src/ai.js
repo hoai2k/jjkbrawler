@@ -150,6 +150,19 @@ function makePlan(f, opp, lvl) {
   if (input.left && f.x < plat.x + 90) { input.left = false; input.right = chance(0.5); }
   if (input.right && f.x > plat.x + plat.w - 90) { input.right = false; input.left = chance(0.5); }
 
+  // A WALL in the walking direction is hopped, not leaned on. Without this the
+  // CPU runs into a gate pillar (River Gate) or a molar (Cursed Teeth) and
+  // stays there, pushing, until the opponent comes to it.
+  if (f.grounded && (input.left || input.right)) {
+    const dir = input.right ? 1 : -1;
+    for (const w of state.platforms) {
+      if (w.kind !== "wall" || w.ghost) continue;
+      if (f.y <= w.y) continue; // already level with its top, or above it
+      const gap = dir > 0 ? w.x - f.x : f.x - (w.x + w.w);
+      if (gap >= 0 && gap < 110) { input.jumpP = true; input.jumpHeld = true; break; }
+    }
+  }
+
   // chase to platforms above
   if (opp.y < f.y - 60 && f.grounded && chance(0.4)) {
     input.jumpP = true;

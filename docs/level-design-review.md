@@ -215,3 +215,52 @@ The bigger levers — fighter scale (G1a), jump impulses + step cap (G1b),
 split-main spawn support (G6) — touch `config_tuning.js`, `characters.js`,
 `constants.js` and `tools/audit_stage_reach.mjs`, and should be their own
 pass with the reach audit and `tools/smoke_stages.mjs` re-run.
+
+## 5. Second widening — six players, walk-offs, walls (implemented)
+
+A later pass with two goals: seat SIX fighters without the fight turning to
+mush, and pull more of Smash's terrain vocabulary into the set. All of it is
+`stages.js` geometry plus one AI rule; `tools/audit_stage_reach.mjs` stays
+green with zero warnings.
+
+**Wider ground, wider edges.** Every main grew ~40–80 px (Bridge Duel kept
+small on purpose, 560 → 600) and the outermost side platforms moved out toward
+the screen edges (left lips now start as far out as x≈130–180 instead of
+x≈150–260, mirrored on the right). Main widths now spread 600 → 1192.
+
+**Walk-offs (Smash: Smashville edges, Duck Hunt ground game).** Two boards run
+their main nearly edge to edge and sit it ~25 px lower, so the match lives at
+ground level and the kill is a shove past the screen edge rather than a spike:
+
+- *Sunken Crossing* — `x: 44, w: 1192, y: 602`; on the slick surface every
+  slide is a threat the whole way across.
+- *Crosswalk Rush* — `x: 54, w: 1172, y: 598`; the traffic hazard already
+  sweeps the main, so it now sweeps the whole street. Mid deck and sign
+  perches moved down in step so every hop stays inside the comfy budget.
+
+**Walls (Smash: walled stages, Shadow Moses pillars).** `{ kind: "wall" }`
+existed only for the character bench; two boards now build them for real:
+
+- *River Gate* — the torii's two legs (30×130) stand on the main flanking the
+  center: a dueling pit between them, perch tops above, and the crosswind can
+  pin an airborne fighter against a leg.
+- *Cursed Teeth* — a molar (34×60) juts up near each end of the jaw, low
+  enough to hop but tall enough to catch a grounded launch; the fight pools in
+  the bowl, with a bare teeter-lip outside each tooth.
+
+Support that made walls real-stage-safe: the ART_SCALE slab-thinning pass
+skips walls (their height is collision, not slab art), and the CPU hops a wall
+that stands within ~110 px of its walking direction instead of pushing on it
+forever (`ai.js`).
+
+**Six-player spawns.** The crowd spread (5+ fighters) now spans THE BOARD'S
+main platform (70 px off each lip) instead of the fixed 320–960 window, so
+the widened boards actually buy a crowd elbow room: six on Sunken Crossing
+start ~210 px apart, and on the narrowest board every spawn still lands on
+solid ground. Hand-placed 2/3/4 spacings are untouched.
+
+**Considered and skipped:** slopes (the platform model is axis-aligned rects
+throughout — collision, ledges, teeter all assume a flat top), a true flat
+Final Destination board (the audit's 2-minimum on non-main platforms is a
+deliberate archetype rule), and moving hazards beyond what Active Boards
+already does.
