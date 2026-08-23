@@ -22,7 +22,12 @@ numbered DI1, DI2… — so the tracks never collide. All of them are gathered i
 [image-requests.md](image-requests.md), which is what to read to draw any of
 them; these files are where each is written.)
 
-**Current status: rounds 1–23 and 22L delivered. NOTHING IS OUTSTANDING.**
+**Current status: rounds 1–23 and 22L delivered. ROUND 24 IS OPEN — 143
+sprites**, the last poses on the roster that are drawn by a stand-in: the four
+throws, which every fighter plays as a heavy attack swung that way, and
+Mahoraga's walk and teeter, which play his run and his idle. Nothing is
+blocked by either — that is what a fallback is for — and nothing else is owed.
+
 **Every fighter on the select screen has every pose the game asks of them** —
 `node tools/check_pose_coverage.mjs` reports 34 fighters and 0 undrawn poses,
 the first time that has been true. Round 22 delivered its three 36-pose sets
@@ -404,6 +409,124 @@ round's numbers are not mistaken for the whole outstanding list.
 
 If a redelivery is ever easier than a cut, the spec is the standard one with a
 single addition: **no drawn shadow of any kind** — the game casts its own.
+
+---
+
+# Round 24 — open
+
+**143 sprites: the last stand-ins.** Every pose on the roster is now either
+drawn for the fighter who plays it or listed here. These are the ones a state
+NAMES and nobody has drawn, so the game plays somebody else's drawing instead
+— which is why none of this is urgent and all of it is visible.
+
+The two groups are unrelated except in that respect: 24A is a mechanic the
+whole roster owes four poses to, 24B is three poses one actor was never given.
+
+## 24A. The four throws — 140 sprites
+
+**Four new pose keys per fighter, all 34 fighters and Mahoraga**: `throw_fwd`,
+`throw_back`, `throw_up`, `throw_down`.
+
+**This reverses a decision, and says why.** Round 20C registered these four
+keys and deliberately did not ask for them: each plays the heavy attack swung
+that way, a throw IS a heave in that direction, and 20C was complete without
+them. That reasoning still holds — nothing is broken today — but it was made
+when the grab mechanic was new and behind a flag, and it leaves the roster in
+the one state the request documents exist to prevent: a pose the game names,
+nobody has drawn, and nobody has written down. Every other such pose has since
+been drawn. These four are what is left.
+
+**What a throw actually is on screen.** The victim is RELEASED the instant the
+throw begins (`executeThrow` in `src/grab.js`) and launched by the hit in the
+same frame. So the drawing is the FOLLOW-THROUGH of a heave with empty hands —
+the thrower alone, having just let go. Do not draw an opponent, and do not
+draw the moment of holding: that is `grab_hold`, which already exists.
+
+| Pose key | What it must read as | Drawing in the meantime |
+|---|---|---|
+| `throw_fwd` | Just released a heave straight ahead: both arms extended forward at chest height, palms open, weight transferred fully onto the front foot, torso rotated through the throw, head following where they went. | `attack_heavy_a` |
+| `throw_back` | Hurled someone behind them: torso twisted hard, both arms swept past the near hip and up toward the rear, head turned to look back over the shoulder. **The engine flips the fighter's facing at the end of this throw** (`executeThrow`), so draw the release, not the turn. | `attack_heavy_b` + `attack_heavy_a` |
+| `throw_up` | Launched someone straight up: both arms thrown overhead, knees just snapping out of a dip, chest open, chin up, eyes following the rise. | `attack_up` |
+| `throw_down` | Slammed someone into the floor: bent sharply at the waist, both arms driven down past the knees, back heel lifted, head down at the impact. | `attack_down` |
+
+**All four are single drawings**, not `_a`/`_b` pairs — the state holds one
+pose for `GRAB.throwDur` — so it is four files per fighter and no wind-up.
+
+**The read to aim for is the DIRECTION, at a glance and in silhouette.** These
+four poses are told apart by nothing else: same fighter, same costume, same
+moment of a move, and the only thing a player needs off them is which way the
+person who was just in their hands has gone. Arms and spine carry that; the
+face does not.
+
+Same spec as every sprite round: one subject per file, flat key screen (grey
+for the warm-palette fighters — see the list at the top), facing right, one
+zoom per character matched to their own `idle_a`, at least 600 px of body,
+delivered to `assets/intake/<character>/<pose_key>.png`. Read
+[pose-brief.md](../sprites/docs/pose-brief.md) first, and the
+[canonical reference](#the-canonical-reference-image--one-per-fighter) rule
+applies as always.
+
+| Fighter | Sprites | Idle to draw against |
+|---|---|---|
+| Yuji | `yuji/throw_fwd.png`, `yuji/throw_back.png`, `yuji/throw_up.png`, `yuji/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuji/idle_a.png> |
+| Nobara | `nobara/throw_fwd.png`, `nobara/throw_back.png`, `nobara/throw_up.png`, `nobara/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/nobara/idle_a.png> |
+| Megumi | `megumi/throw_fwd.png`, `megumi/throw_back.png`, `megumi/throw_up.png`, `megumi/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/megumi/idle_a.png> |
+| Yuta | `yuta/throw_fwd.png`, `yuta/throw_back.png`, `yuta/throw_up.png`, `yuta/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuta/idle_a.png> |
+| Maki | `maki/throw_fwd.png`, `maki/throw_back.png`, `maki/throw_up.png`, `maki/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/maki/idle_a.png> |
+| Inumaki | `inumaki/throw_fwd.png`, `inumaki/throw_back.png`, `inumaki/throw_up.png`, `inumaki/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/inumaki/idle_a.png> |
+| Panda | `panda/throw_fwd.png`, `panda/throw_back.png`, `panda/throw_up.png`, `panda/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/panda/idle_a.png> |
+| Mechamaru | `mechamaru/throw_fwd.png`, `mechamaru/throw_back.png`, `mechamaru/throw_up.png`, `mechamaru/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mechamaru/idle_a.png> |
+| Todo | `todo/throw_fwd.png`, `todo/throw_back.png`, `todo/throw_up.png`, `todo/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/todo/idle_a.png> |
+| Momo | `momo/throw_fwd.png`, `momo/throw_back.png`, `momo/throw_up.png`, `momo/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/momo/idle_a.png> |
+| Miwa | `miwa/throw_fwd.png`, `miwa/throw_back.png`, `miwa/throw_up.png`, `miwa/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/miwa/idle_a.png> |
+| Kirara | `kirara/throw_fwd.png`, `kirara/throw_back.png`, `kirara/throw_up.png`, `kirara/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kirara/idle_a.png> |
+| Gojo | `gojo/throw_fwd.png`, `gojo/throw_back.png`, `gojo/throw_up.png`, `gojo/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gojo/idle_a.png> |
+| Nanami | `nanami/throw_fwd.png`, `nanami/throw_back.png`, `nanami/throw_up.png`, `nanami/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/nanami/idle_a.png> |
+| Mei Mei | `meimei/throw_fwd.png`, `meimei/throw_back.png`, `meimei/throw_up.png`, `meimei/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/meimei/idle_a.png> |
+| Gakuganji | `gakuganji/throw_fwd.png`, `gakuganji/throw_back.png`, `gakuganji/throw_up.png`, `gakuganji/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gakuganji/idle_a.png> |
+| Yaga | `yaga/throw_fwd.png`, `yaga/throw_back.png`, `yaga/throw_up.png`, `yaga/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yaga/idle_a.png> |
+| Tengen | `tengen/throw_fwd.png`, `tengen/throw_back.png`, `tengen/throw_up.png`, `tengen/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/tengen/idle_a.png> |
+| Toji | `toji/throw_fwd.png`, `toji/throw_back.png`, `toji/throw_up.png`, `toji/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/toji/idle_a.png> |
+| Yuki | `yuki/throw_fwd.png`, `yuki/throw_back.png`, `yuki/throw_up.png`, `yuki/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuki/idle_a.png> |
+| Hakari | `hakari/throw_fwd.png`, `hakari/throw_back.png`, `hakari/throw_up.png`, `hakari/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hakari/idle_a.png> |
+| Uro | `uro/throw_fwd.png`, `uro/throw_back.png`, `uro/throw_up.png`, `uro/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/uro/idle_a.png> |
+| Reggie Star | `reggie/throw_fwd.png`, `reggie/throw_back.png`, `reggie/throw_up.png`, `reggie/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/reggie/idle_a.png> |
+| Kashimo | `kashimo/throw_fwd.png`, `kashimo/throw_back.png`, `kashimo/throw_up.png`, `kashimo/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kashimo/idle_a.png> |
+| Naoya | `naoya/throw_fwd.png`, `naoya/throw_back.png`, `naoya/throw_up.png`, `naoya/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_a.png> |
+| Mahito | `mahito/throw_fwd.png`, `mahito/throw_back.png`, `mahito/throw_up.png`, `mahito/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahito/idle_a.png> |
+| Jogo | `jogo/throw_fwd.png`, `jogo/throw_back.png`, `jogo/throw_up.png`, `jogo/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/idle_a.png> |
+| Hanami | `hanami/throw_fwd.png`, `hanami/throw_back.png`, `hanami/throw_up.png`, `hanami/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hanami/idle_a.png> |
+| Dagon | `dagon/throw_fwd.png`, `dagon/throw_back.png`, `dagon/throw_up.png`, `dagon/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/dagon/idle_a.png> |
+| Kurourushi | `kurourushi/throw_fwd.png`, `kurourushi/throw_back.png`, `kurourushi/throw_up.png`, `kurourushi/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kurourushi/idle_a.png> |
+| Haruta | `haruta/throw_fwd.png`, `haruta/throw_back.png`, `haruta/throw_up.png`, `haruta/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/haruta/idle_a.png> |
+| Geto | `geto/throw_fwd.png`, `geto/throw_back.png`, `geto/throw_up.png`, `geto/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/geto/idle_a.png> |
+| Choso | `choso/throw_fwd.png`, `choso/throw_back.png`, `choso/throw_up.png`, `choso/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/choso/idle_a.png> |
+| Sukuna | `sukuna/throw_fwd.png`, `sukuna/throw_back.png`, `sukuna/throw_up.png`, `sukuna/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/sukuna/idle_a.png> |
+| Mahoraga | `mahoraga/throw_fwd.png`, `mahoraga/throw_back.png`, `mahoraga/throw_up.png`, `mahoraga/throw_down.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahoraga/idle_a.png> |
+
+## 24B. Mahoraga's walk and teeter — 3 sprites
+
+**Three poses one actor never got**: `mahoraga/walk_a.png`,
+`mahoraga/walk_b.png`, `mahoraga/teeter.png`.
+
+Mahoraga is a transformation actor rather than a fighter — he owns a full
+sprite set and has no kit — and the two roster-wide rounds that drew everybody
+a walk cycle (round 11) and everybody a teeter (22A) both walked
+`CHARACTER_KEYS`, which he is not in. So his walk plays his RUN cycle, four
+frames of a sprint used for a stroll, and his teeter plays his idle.
+
+`node tools/check_pose_coverage.mjs` did not catch it for the same reason the
+rounds missed him: it asked the question of fighters only. It now asks it of
+the actors too, which is what surfaced these three.
+
+| Pose key | What it must read as | Drawing in the meantime |
+|---|---|---|
+| `walk_a` | Mid-stride at a WALK, not a run: one leg forward and planted, the other trailing, torso upright and level, arms swinging low and short. The contrast with his sprint is the whole point — the run is a charge, this is an approach. | `run_reach_a` |
+| `walk_b` | The opposite half of the same cycle: the trailing leg has come through and planted, the other now trails. Same height, same posture — the two must match so the body does not bob between them. | `run_pass_a` |
+| `teeter` | Balanced on the lip: weight shifted BACK from the drop, arms out, front foot at or just over the edge, head turned down toward the fall. The same brief 22A gave the roster, and the same test — it has to read against his own idle in silhouette. | `idle_a` + `idle_b` |
+
+Same spec and same delivery as 24A. His idle to draw against:
+<https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahoraga/idle_a.png>
 
 ---
 

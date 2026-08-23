@@ -43,7 +43,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-import { CHARACTERS, CHARACTER_KEYS } from "../src/characters.js";
+import { CHARACTERS, CHARACTER_KEYS, SPRITE_ACTORS } from "../src/characters.js";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const MANIFEST = join(ROOT, "sprites", "assets", "manifest.json");
@@ -51,30 +51,41 @@ const REQUESTS = join(ROOT, "docs", "asset-requests.md");
 
 // Registered on purpose and not owed by anybody. A state can exist because the
 // MECHANIC needs somewhere to hang art if it is ever drawn, while the reading
-// it falls back to is already correct — round 20C decided exactly that for the
-// four throws: each plays the heavy attack swung that way, and a throw IS a
-// heave in that direction, so 20C is complete without them
-// (asset-requests-history.md, round 20C). Deliver art under one of these keys
-// and it is picked up with no code change.
+// it falls back to is already correct.
 //
 // A key belongs here only with a written decision behind it. "Nobody has drawn
 // it yet" is the other list, and that one is meant to be loud.
-const NOT_OWED = new Set(["throw_fwd", "throw_back", "throw_up", "throw_down"]);
+//
+// EMPTY, as of round 24. It held the four throws on 20C's reasoning — each
+// plays the heavy attack swung that way, and a throw IS a heave in that
+// direction — which was true and is still true, and was nonetheless the one
+// thing this check exists to prevent: a pose the game names, nobody has drawn,
+// and nobody has written down. Round 24 asks for them, so they are owed like
+// anything else and the list has nothing left in it.
+const NOT_OWED = new Set();
 
 const man = JSON.parse(readFileSync(MANIFEST, "utf8"));
 const requests = readFileSync(REQUESTS, "utf8");
 
+// ACTORS ARE ASKED THE SAME QUESTION. Mahoraga owns a full sprite set, is drawn
+// by the same renderer, and is simply not a fighter — which is exactly how he
+// ended up without a walk or a teeter: the two roster-wide rounds that drew
+// everybody one walked `CHARACTER_KEYS`, and so did this check. The gap this
+// file exists to make loud was hiding in the one set nobody was asking about.
+const SETS = [...CHARACTER_KEYS, ...Object.keys(SPRITE_ACTORS)];
+
 /** The poses a fighter's own states name, which is what they are owed. */
 function owed(charKey) {
   const out = new Set();
-  for (const anim of Object.values(CHARACTERS[charKey]?.anims || {})) {
+  const anims = CHARACTERS[charKey]?.anims || SPRITE_ACTORS[charKey]?.anims || {};
+  for (const anim of Object.values(anims)) {
     for (const frame of anim?.frames || []) if (!NOT_OWED.has(frame)) out.add(frame);
   }
   return [...out].sort();
 }
 
 const gaps = [];
-for (const charKey of CHARACTER_KEYS) {
+for (const charKey of SETS) {
   const delivered = man.characters[charKey] || {};
   for (const pose of owed(charKey)) {
     if (!delivered[pose]) gaps.push({ charKey, pose });
@@ -102,5 +113,6 @@ if (unwritten.length) {
   process.exit(1);
 }
 
-console.log(`pose coverage ok — ${CHARACTER_KEYS.length} fighters,`
+console.log(`pose coverage ok — ${CHARACTER_KEYS.length} fighters`
+  + ` and ${SETS.length - CHARACTER_KEYS.length} actor(s),`
   + ` ${gaps.length} undrawn pose(s), all of them requested`);
