@@ -1,11 +1,42 @@
 import { ART_SCALE } from "./config_tuning.js";
-// 20 stages. Each is one "main" platform (solid ground, grabbable ledges, the
-// lowest surface) plus 2–6 drop-through platforms in a deliberate archetype —
-// arenas, skylines, galleries, towers, staircases, orbit fields (see
-// docs/stage-variety-plan.md, "Platform configurations"). Layout rules: tier
-// steps stay ≤140px (every fighter's single+air jump covers ~239px minimum),
-// and nothing sits above y≈235 so a full jump from the highest platform stays
-// on screen. tools/audit_stage_reach.mjs enforces both.
+// 20 stages. Each is one or two "main" platforms (solid ground, grabbable
+// ledges, the lowest surface) plus drop-through platforms in a deliberate
+// archetype — arenas, skylines, galleries, towers, staircases, orbit fields
+// (see docs/stage-variety-plan.md, "Platform configurations"). Layout rules:
+// tier steps stay ≤140px (every fighter's single+air jump covers ~239px
+// minimum), and nothing sits above y≈235 so a full jump from the highest
+// platform stays on screen. tools/audit_stage_reach.mjs enforces both.
+//
+// THE FLOOR IS NOT WHERE YOU START.
+//
+// Every board's lowest ground sits at the BOTTOM of the world (y 686–700,
+// beside the walk-offs' 664/668) — not at the height fighters begin at. What
+// used to be the main is still there, at the same y and the same width, but as
+// a `kind: "spawn"` drop-through: it is where a match opens and it is what the
+// crowd spreads across, and you can leave it downward whenever you like.
+//
+// That buys every board a whole storey of playable space it did not have. The
+// old layout put the lowest surface ~570 in a 720-tall world, so a third of
+// the board was scenery; now the fight can go under the starting line, and
+// getting knocked below it is a position to fight out of rather than a death.
+// A ledge hang on the floor sits low in frame on purpose — being able to USE
+// the bottom of the board matters more than seeing all of a hanging body.
+//
+// FOUR BOARDS KEEP A HIGH FLOOR, because a floor underneath would cost them
+// the thing they are. Sunken Crossing and Crosswalk Rush are walk-offs whose
+// street already IS the bottom of the world. Bridge Duel is a narrow bridge
+// over a void — catching yourself on a floor below is exactly what that board
+// is meant not to offer, and its gimmick drifts that bridge. Garden Steps is a
+// staircase, and a staircase reads from its bottom step. Every other board
+// gains the storey; which ones do is a per-board decision, not a rule.
+//
+// SIX BOARDS SPLIT THAT FLOOR IN TWO, with a ~190px hole down the middle:
+// Shibuya Night, Bone Sanctum, Mist Pier, Empty City, Billboard Roof and
+// Domain Core. The spawn tier still bridges the gap, so a match opens on solid
+// ground and the hole is something you choose to deal with — four grabbable
+// ledges instead of two, and a way to lose a stock straight down the middle.
+// The six were picked for gimmicks that never measure the main (stage_fx.js):
+// a board whose hazard sweeps its floor keeps that floor in one piece.
 //
 // Proportions follow docs/level-design-review.md: platforms two fighters are
 // meant to contest are ≥ ~195px (about three body widths); shorter ones are
@@ -57,81 +88,65 @@ import { ART_SCALE } from "./config_tuning.js";
 
 export const STAGES = [
   { key: "trainingBridge", name: "Training Bridge", bgFile: "training_bridge.jpg", tint: "rgba(87, 186, 129, 0.12)", platforms: [
-    { x: 218, y: 568, w: 844, h: 42, kind: "main" }, { x: 140, y: 424, w: 250, h: 15, kind: "side" }, { x: 890, y: 424, w: 250, h: 15, kind: "side" }, { x: 512, y: 302, w: 256, h: 15, kind: "top" }
+    { x: 120, y: 688, w: 1040, h: 42, kind: "main" }, { x: 218, y: 568, w: 844, h: 15, kind: "spawn" }, { x: 140, y: 424, w: 250, h: 15, kind: "side" }, { x: 890, y: 424, w: 250, h: 15, kind: "side" }, { x: 512, y: 302, w: 256, h: 15, kind: "top" }
   ] },
   { key: "quietHall", name: "Quiet Hall", bgFile: "quiet_hall.jpg", tint: "rgba(175, 128, 80, 0.12)", platforms: [
-    { x: 206, y: 572, w: 868, h: 42, kind: "main" }, { x: 230, y: 438, w: 270, h: 15, kind: "side" }, { x: 780, y: 452, w: 270, h: 15, kind: "side" }
+    { x: 110, y: 692, w: 1060, h: 42, kind: "main" }, { x: 206, y: 572, w: 868, h: 15, kind: "spawn" }, { x: 230, y: 438, w: 270, h: 15, kind: "side" }, { x: 780, y: 452, w: 270, h: 15, kind: "side" }
   ] },
   { key: "floodedGate", name: "Flooded Gate", bgFile: "flooded_gate.jpg", tint: "rgba(107, 174, 214, 0.13)", platforms: [
-    { x: 180, y: 570, w: 920, h: 42, kind: "main" }, { x: 150, y: 446, w: 200, h: 15, kind: "side" }, { x: 930, y: 446, w: 200, h: 15, kind: "side" }, { x: 552, y: 336, w: 176, h: 15, kind: "top" }
+    { x: 100, y: 690, w: 1080, h: 42, kind: "main" }, { x: 180, y: 570, w: 920, h: 15, kind: "spawn" }, { x: 150, y: 446, w: 200, h: 15, kind: "side" }, { x: 930, y: 446, w: 200, h: 15, kind: "side" }, { x: 552, y: 336, w: 176, h: 15, kind: "top" }
   ] },
   { key: "shibuyaNight", name: "Shibuya Night", bgFile: "shibuya_night.jpg", tint: "rgba(88, 116, 220, 0.16)", platforms: [
-    { x: 220, y: 566, w: 840, h: 42, kind: "main" }, { x: 170, y: 452, w: 220, h: 15, kind: "side" }, { x: 890, y: 452, w: 220, h: 15, kind: "side" }, { x: 350, y: 342, w: 190, h: 15, kind: "side" }, { x: 740, y: 342, w: 190, h: 15, kind: "side" }, { x: 505, y: 240, w: 270, h: 15, kind: "top" }
+    { x: 110, y: 686, w: 460, h: 42, kind: "main" }, { x: 770, y: 686, w: 460, h: 42, kind: "main" }, { x: 220, y: 566, w: 840, h: 15, kind: "spawn" }, { x: 170, y: 452, w: 220, h: 15, kind: "side" }, { x: 890, y: 452, w: 220, h: 15, kind: "side" }, { x: 350, y: 342, w: 190, h: 15, kind: "side" }, { x: 740, y: 342, w: 190, h: 15, kind: "side" }, { x: 505, y: 240, w: 270, h: 15, kind: "top" }
   ] },
   { key: "curseMaw", name: "Curse Maw", bgFile: "curse_maw.jpg", tint: "rgba(60, 215, 218, 0.13)", platforms: [
-    { x: 228, y: 576, w: 824, h: 42, kind: "main" }, { x: 240, y: 442, w: 220, h: 15, kind: "side" }, { x: 820, y: 442, w: 220, h: 15, kind: "side" }
+    { x: 130, y: 696, w: 1020, h: 42, kind: "main" }, { x: 228, y: 576, w: 824, h: 15, kind: "spawn" }, { x: 240, y: 442, w: 220, h: 15, kind: "side" }, { x: 820, y: 442, w: 220, h: 15, kind: "side" }
   ] },
-  // Terraced like the garden's stone steps: each platform is one stair higher
-  // than the last, climbing left to right.
   { key: "gardenSteps", name: "Garden Steps", bgFile: "garden_steps.jpg", tint: "rgba(111, 219, 147, 0.16)", platforms: [
     { x: 182, y: 584, w: 916, h: 42, kind: "main" }, { x: 140, y: 474, w: 210, h: 15, kind: "side" }, { x: 470, y: 384, w: 210, h: 15, kind: "top" }, { x: 830, y: 294, w: 240, h: 15, kind: "side" }
   ] },
   { key: "lanternCorridor", name: "Lantern Corridor", bgFile: "lantern_corridor.jpg", tint: "rgba(255, 187, 93, 0.11)", platforms: [
-    { x: 222, y: 570, w: 836, h: 42, kind: "main" }, { x: 210, y: 428, w: 210, h: 15, kind: "side" }, { x: 535, y: 428, w: 210, h: 15, kind: "side" }, { x: 860, y: 428, w: 210, h: 15, kind: "side" }
+    { x: 120, y: 690, w: 1040, h: 42, kind: "main" }, { x: 222, y: 570, w: 836, h: 15, kind: "spawn" }, { x: 210, y: 428, w: 210, h: 15, kind: "side" }, { x: 535, y: 428, w: 210, h: 15, kind: "side" }, { x: 860, y: 428, w: 210, h: 15, kind: "side" }
   ] },
-  // WALK-OFF: the flooded street runs past both world edges and sits at the
-  // bottom, so on the slick surface a slide is a threat the whole way across —
-  // the Smash walk-off dynamic, where the kill is a shove past the screen edge.
-  // Wide enough to pin the camera at its zoom floor (see WALK-OFF WIDTH below).
   { key: "sunkenCrossing", name: "Sunken Crossing", bgFile: "sunken_crossing.jpg", tint: "rgba(87, 196, 255, 0.12)", mods: { frictionPow: 0.35 }, platforms: [
     { x: -140, y: 668, w: 1560, h: 42, kind: "main" }, { x: 170, y: 536, w: 320, h: 15, kind: "side" }, { x: 790, y: 536, w: 320, h: 15, kind: "side" }
   ] },
   { key: "neonSplit", name: "Neon Split", bgFile: "neon_split.jpg", tint: "rgba(224, 82, 192, 0.12)", platforms: [
-    { x: 240, y: 568, w: 800, h: 42, kind: "main" }, { x: 190, y: 452, w: 230, h: 15, kind: "side" }, { x: 860, y: 452, w: 230, h: 15, kind: "side" }, { x: 250, y: 332, w: 200, h: 15, kind: "side" }, { x: 830, y: 332, w: 200, h: 15, kind: "side" }
+    { x: 140, y: 688, w: 1000, h: 42, kind: "main" }, { x: 240, y: 568, w: 800, h: 15, kind: "spawn" }, { x: 190, y: 452, w: 230, h: 15, kind: "side" }, { x: 860, y: 452, w: 230, h: 15, kind: "side" }, { x: 250, y: 332, w: 200, h: 15, kind: "side" }, { x: 830, y: 332, w: 200, h: 15, kind: "side" }
   ] },
   { key: "boneSanctum", name: "Bone Sanctum", bgFile: "bone_sanctum.jpg", tint: "rgba(76, 221, 210, 0.1)", platforms: [
-    { x: 206, y: 574, w: 868, h: 42, kind: "main" }, { x: 160, y: 456, w: 190, h: 15, kind: "side" }, { x: 930, y: 456, w: 190, h: 15, kind: "side" }, { x: 400, y: 346, w: 180, h: 15, kind: "side" }, { x: 700, y: 346, w: 180, h: 15, kind: "side" }, { x: 315, y: 236, w: 200, h: 15, kind: "side" }, { x: 765, y: 236, w: 200, h: 15, kind: "side" }
+    { x: 120, y: 694, w: 450, h: 42, kind: "main" }, { x: 760, y: 694, w: 450, h: 42, kind: "main" }, { x: 206, y: 574, w: 868, h: 15, kind: "spawn" }, { x: 160, y: 456, w: 190, h: 15, kind: "side" }, { x: 930, y: 456, w: 190, h: 15, kind: "side" }, { x: 400, y: 346, w: 180, h: 15, kind: "side" }, { x: 700, y: 346, w: 180, h: 15, kind: "side" }, { x: 315, y: 236, w: 200, h: 15, kind: "side" }, { x: 765, y: 236, w: 200, h: 15, kind: "side" }
   ] },
   { key: "bridgeDuel", name: "Bridge Duel", bgFile: "bridge_duel.jpg", tint: "rgba(49, 168, 134, 0.12)", platforms: [
     { x: 340, y: 582, w: 600, h: 42, kind: "main" }, { x: 130, y: 448, w: 230, h: 15, kind: "side" }, { x: 920, y: 448, w: 230, h: 15, kind: "side" }
   ] },
   { key: "academyHall", name: "Academy Hall", bgFile: "academy_hall.jpg", tint: "rgba(140, 112, 80, 0.14)", platforms: [
-    { x: 110, y: 568, w: 1060, h: 42, kind: "main" }, { x: 230, y: 446, w: 220, h: 15, kind: "side" }, { x: 830, y: 446, w: 220, h: 15, kind: "side" }, { x: 512, y: 320, w: 256, h: 15, kind: "top" }, { x: 560, y: 452, w: 160, h: 15, kind: "side" }
+    { x: 60, y: 688, w: 1160, h: 42, kind: "main" }, { x: 110, y: 568, w: 1060, h: 15, kind: "spawn" }, { x: 230, y: 446, w: 220, h: 15, kind: "side" }, { x: 830, y: 446, w: 220, h: 15, kind: "side" }, { x: 512, y: 320, w: 256, h: 15, kind: "top" }, { x: 560, y: 452, w: 160, h: 15, kind: "side" }
   ] },
   { key: "mistPier", name: "Mist Pier", bgFile: "mist_pier.jpg", tint: "rgba(178, 226, 255, 0.1)", platforms: [
-    { x: 222, y: 580, w: 836, h: 42, kind: "main" }, { x: 160, y: 462, w: 240, h: 15, kind: "side" }, { x: 870, y: 440, w: 240, h: 15, kind: "side" }, { x: 540, y: 352, w: 150, h: 15, kind: "top" }
+    { x: 120, y: 700, w: 450, h: 42, kind: "main" }, { x: 760, y: 700, w: 450, h: 42, kind: "main" }, { x: 222, y: 580, w: 836, h: 15, kind: "spawn" }, { x: 160, y: 462, w: 240, h: 15, kind: "side" }, { x: 870, y: 440, w: 240, h: 15, kind: "side" }, { x: 540, y: 352, w: 150, h: 15, kind: "top" }
   ] },
-  // WALK-OFF: the street IS the board — past both world edges and at the
-  // bottom, with the traffic hazard sweeping the whole width. The overpass deck
-  // and its signs are the only high ground.
   { key: "crosswalkRush", name: "Crosswalk Rush", bgFile: "crosswalk_rush.jpg", tint: "rgba(76, 171, 255, 0.13)", platforms: [
     { x: -140, y: 664, w: 1560, h: 42, kind: "main" }, { x: 340, y: 532, w: 600, h: 15, kind: "side" }, { x: 130, y: 398, w: 170, h: 15, kind: "top" }, { x: 980, y: 398, w: 170, h: 15, kind: "top" }
   ] },
-  // WALLED BOWL (Smash: walled stages): a molar juts up near each end of the
-  // jaw, low enough to hop but tall enough to catch a grounded launch — the
-  // fight pools in the bowl between them, with a bare lip outside each tooth.
   { key: "cursedTeeth", name: "Cursed Teeth", bgFile: "cursed_teeth.jpg", tint: "rgba(42, 205, 204, 0.14)", platforms: [
-    { x: 244, y: 584, w: 792, h: 42, kind: "main" }, { x: 180, y: 452, w: 220, h: 15, kind: "side" }, { x: 880, y: 452, w: 220, h: 15, kind: "side" }, { x: 542, y: 330, w: 195, h: 15, kind: "top" }, { x: 290, y: 524, w: 34, h: 60, kind: "wall" }, { x: 956, y: 524, w: 34, h: 60, kind: "wall" }
+    { x: 150, y: 700, w: 980, h: 42, kind: "main" }, { x: 244, y: 584, w: 792, h: 15, kind: "spawn" }, { x: 180, y: 452, w: 220, h: 15, kind: "side" }, { x: 880, y: 452, w: 220, h: 15, kind: "side" }, { x: 542, y: 330, w: 195, h: 15, kind: "top" }, { x: 290, y: 524, w: 34, h: 60, kind: "wall" }, { x: 956, y: 524, w: 34, h: 60, kind: "wall" }
   ] },
-  // GATE PILLARS (Smash: Shadow Moses-style walls): the torii's two legs stand
-  // on the main as true walls — sideways movement stops at them, their tops are
-  // perches, and the span between them is a dueling pit the crosswind can pin
-  // you against.
   { key: "riverGate", name: "River Gate", bgFile: "river_gate.jpg", tint: "rgba(91, 205, 176, 0.13)", platforms: [
-    { x: 200, y: 576, w: 880, h: 42, kind: "main" }, { x: 180, y: 448, w: 280, h: 15, kind: "side" }, { x: 820, y: 440, w: 200, h: 15, kind: "side" }, { x: 560, y: 310, w: 150, h: 15, kind: "top" }, { x: 495, y: 446, w: 30, h: 130, kind: "wall" }, { x: 755, y: 446, w: 30, h: 130, kind: "wall" }
+    { x: 110, y: 696, w: 1060, h: 42, kind: "main" }, { x: 200, y: 576, w: 880, h: 15, kind: "spawn" }, { x: 180, y: 448, w: 280, h: 15, kind: "side" }, { x: 820, y: 440, w: 200, h: 15, kind: "side" }, { x: 560, y: 310, w: 150, h: 15, kind: "top" }, { x: 495, y: 446, w: 30, h: 130, kind: "wall" }, { x: 755, y: 446, w: 30, h: 130, kind: "wall" }
   ] },
   { key: "schoolWing", name: "School Wing", bgFile: "school_wing.jpg", tint: "rgba(205, 148, 92, 0.1)", platforms: [
-    { x: 230, y: 570, w: 820, h: 42, kind: "main" }, { x: 170, y: 446, w: 200, h: 15, kind: "side" }, { x: 910, y: 446, w: 200, h: 15, kind: "side" }, { x: 340, y: 330, w: 130, h: 15, kind: "side" }, { x: 790, y: 330, w: 170, h: 15, kind: "side" }
+    { x: 130, y: 690, w: 1020, h: 42, kind: "main" }, { x: 230, y: 570, w: 820, h: 15, kind: "spawn" }, { x: 170, y: 446, w: 200, h: 15, kind: "side" }, { x: 910, y: 446, w: 200, h: 15, kind: "side" }, { x: 340, y: 330, w: 130, h: 15, kind: "side" }, { x: 790, y: 330, w: 170, h: 15, kind: "side" }
   ] },
   { key: "emptyCity", name: "Empty City", bgFile: "empty_city.jpg", tint: "rgba(159, 189, 214, 0.15)", platforms: [
-    { x: 180, y: 574, w: 920, h: 42, kind: "main" }, { x: 140, y: 470, w: 210, h: 15, kind: "side" }, { x: 930, y: 446, w: 210, h: 15, kind: "side" }, { x: 360, y: 360, w: 190, h: 15, kind: "top" }, { x: 730, y: 326, w: 190, h: 15, kind: "top" }
+    { x: 110, y: 694, w: 460, h: 42, kind: "main" }, { x: 770, y: 694, w: 460, h: 42, kind: "main" }, { x: 180, y: 574, w: 920, h: 15, kind: "spawn" }, { x: 140, y: 470, w: 210, h: 15, kind: "side" }, { x: 930, y: 446, w: 210, h: 15, kind: "side" }, { x: 360, y: 360, w: 190, h: 15, kind: "top" }, { x: 730, y: 326, w: 190, h: 15, kind: "top" }
   ] },
   { key: "billboardRoof", name: "Billboard Roof", bgFile: "billboard_roof.jpg", tint: "rgba(255, 83, 148, 0.1)", platforms: [
-    { x: 214, y: 580, w: 852, h: 42, kind: "main" }, { x: 180, y: 470, w: 150, h: 15, kind: "side" }, { x: 950, y: 470, w: 150, h: 15, kind: "side" }, { x: 470, y: 370, w: 340, h: 15, kind: "side" }, { x: 540, y: 262, w: 200, h: 15, kind: "top" }
+    { x: 120, y: 700, w: 450, h: 42, kind: "main" }, { x: 760, y: 700, w: 450, h: 42, kind: "main" }, { x: 214, y: 580, w: 852, h: 15, kind: "spawn" }, { x: 180, y: 470, w: 150, h: 15, kind: "side" }, { x: 950, y: 470, w: 150, h: 15, kind: "side" }, { x: 470, y: 370, w: 340, h: 15, kind: "side" }, { x: 540, y: 262, w: 200, h: 15, kind: "top" }
   ] },
   { key: "domainCore", name: "Domain Core", bgFile: "domain_core.jpg", tint: "rgba(108, 255, 230, 0.13)", mods: { gravityMul: 0.88 }, platforms: [
-    { x: 166, y: 578, w: 948, h: 42, kind: "main" }, { x: 240, y: 458, w: 180, h: 15, kind: "side" }, { x: 860, y: 458, w: 180, h: 15, kind: "side" }, { x: 430, y: 338, w: 170, h: 15, kind: "side" }, { x: 680, y: 338, w: 170, h: 15, kind: "side" }
-  ] }
+    { x: 100, y: 698, w: 470, h: 42, kind: "main" }, { x: 760, y: 698, w: 470, h: 42, kind: "main" }, { x: 166, y: 578, w: 948, h: 15, kind: "spawn" }, { x: 240, y: 458, w: 180, h: 15, kind: "side" }, { x: 860, y: 458, w: 180, h: 15, kind: "side" }, { x: 430, y: 338, w: 170, h: 15, kind: "side" }, { x: 680, y: 338, w: 170, h: 15, kind: "side" }
+  ] },
 ];
 
 // THE TABLE AS SOMEBODY TYPED IT, taken before the thickness pass below bends
@@ -255,4 +270,53 @@ export function spawnXs(count, main) {
 
 export function mainPlatform(platforms) {
   return platforms.find((p) => p.kind === "main") || platforms[0];
+}
+
+/** EVERY piece of lowest ground. One on most boards, two on the split six.
+ *
+ *  `mainPlatform` above still answers "a" main and is what the hazards and the
+ *  camera rig anchor to — they want a reference point, and both halves of a
+ *  split floor sit at the same y. This is for the things that must not miss the
+ *  other half: the ledges you can grab, and how wide the ground actually is. */
+export function mainPlatforms(platforms) {
+  const mains = platforms.filter((p) => p.kind === "main");
+  return mains.length ? mains : [platforms[0]].filter(Boolean);
+}
+
+/** How far the ground reaches, across every main. On a split board this spans
+ *  the hole — which is right for "am I about to walk off the STAGE", and wrong
+ *  for "is there floor under my next step"; ai.js asks both. */
+export function groundSpan(platforms) {
+  const mains = mainPlatforms(platforms);
+  return {
+    left: Math.min(...mains.map((p) => p.x)),
+    right: Math.max(...mains.map((p) => p.x + p.w)),
+    y: Math.min(...mains.map((p) => p.y)),
+  };
+}
+
+/** WHERE A MATCH OPENS — the `spawn: true` tier, which is the platform the old
+ *  layout used as its ground. Boards with no tier of their own (the walk-offs,
+ *  whose floor IS the starting ground) fall back to the main, so every caller
+ *  gets an answer without knowing which kind of board it is on.
+ *
+ *  Asked by the spawn placement, by the crowd spread, and by the camera's
+ *  high-play envelope — that last one because "play has gone high" has to mean
+ *  high relative to where the fight NORMALLY happens, not relative to the floor
+ *  under it. Measured off the floor, standing on the starting tier would read
+ *  as permanently half-elevated. */
+export function spawnPlatform(platforms) {
+  return platforms.find((p) => p.kind === "spawn") || mainPlatform(platforms);
+}
+
+/** GROUND LEVEL for anything that draws or lands at "the floor" without asking
+ *  which platform — shockwaves, ground slams, where a summon stands.
+ *
+ *  The STARTING TIER, not the lowest ground. These callers all used
+ *  `state.platforms[0].y`, which was the same number until the floor moved down
+ *  a storey (see the header); left alone they would have painted every ground
+ *  effect 120px under the fight. This keeps them exactly where they have always
+ *  been drawn, and gives them one name instead of eight copies of an index. */
+export function groundY(platforms) {
+  return spawnPlatform(platforms)?.y ?? 568;
 }

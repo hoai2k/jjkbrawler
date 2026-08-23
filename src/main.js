@@ -9,7 +9,7 @@ import { banner } from "./particles.js";
 import { draw } from "./render.js";
 import { selectRenderBackend, renderBackendLabel } from "./render_backend.js";
 import { enable3dCamera, camera3d } from "./camera_mode.js";
-import { getStage, spawnXs } from "./stages.js";
+import { getStage, spawnXs, spawnPlatform } from "./stages.js";
 import { matchPlan, HUMAN_TEAM } from "./modes.js";
 import { oneSideLeft } from "./teams.js";
 import { TEXT } from "./config_menus.js";
@@ -152,18 +152,23 @@ async function resetMatch() {
   setBattleStage(stage.key);
   state.platforms = stage.platforms.map((p) => ({ ...p }));
 
-  // A spawn stands on the lowest surface under its x — usually the main, but
-  // on boards whose main is narrower than the spawn spread (Bridge Duel) the
-  // outer slots start on the side platforms, Battlefield-style. An x with
-  // nothing under it at all is pulled onto the main rather than into the void.
-  const main = state.platforms[0];
+  // A spawn stands on the STARTING TIER — the `spawn: true` platform, which is
+  // the height every board's ground used to be at (stages.js). Below it is a
+  // whole storey of board that a match should not open in the middle of, so the
+  // tier wins outright wherever it is underfoot; anywhere else the rule is the
+  // old one, the lowest surface under that x, which is what puts Bridge Duel's
+  // outer slots on its side platforms Battlefield-style. An x with nothing
+  // under it at all is pulled onto the tier rather than dropped into the void.
+  const tier = spawnPlatform(state.platforms);
   const spawnSpot = (x) => {
     const under = state.platforms.filter((p) => x >= p.x + 12 && x <= p.x + p.w - 12);
-    if (under.length) return { x, y: Math.max(...under.map((p) => p.y)) };
-    return { x: clamp(x, main.x + 50, main.x + main.w - 50), y: main.y };
+    const onTier = under.filter((p) => p.kind === "spawn");
+    const pick = onTier.length ? onTier : under;
+    if (pick.length) return { x, y: Math.max(...pick.map((p) => p.y)) };
+    return { x: clamp(x, tier.x + 50, tier.x + tier.w - 50), y: tier.y };
   };
 
-  const spawns = spawnXs(entrantCount, main);
+  const spawns = spawnXs(entrantCount, tier);
   state.fighters = Array.from({ length: entrantCount }, (_, i) => {
     const id = i + 1;
     const spot = spawnSpot(spawns[i]);

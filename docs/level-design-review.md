@@ -378,6 +378,103 @@ round trip through the bench would shave 30% off every slab, every time.
 `tools/smoke_arena_bench.mjs` asserts it: a main platform exports as `h: 42`
 while the world is running it at 29.
 
+
+## 8. The floor is not where you start (implemented)
+
+Reported from play: every board except the two walk-offs sat its lowest ground
+around y≈570 in a 720-tall world, so roughly a third of each board was scenery
+you could never stand in. The fix is not to move the fight down — it is to stop
+conflating **the lowest ground** with **where a match opens**.
+
+Every board that gained a storey now has two things where it used to have one:
+
+| | |
+|---|---|
+| **the floor** | `kind: "main"` — the lowest ground, the grabbable ledges, y 686–700 (the walk-offs' 664/668 for company) |
+| **the starting tier** | `kind: "spawn"` — a drop-through at exactly the y and width the old main had. A match opens here, the crowd spreads across it, and you can leave it downward whenever you like |
+
+The tier is always one climb off the floor (measured rises: 116–120 px, against
+the reach audit's 145 comfy limit), so being knocked below the starting line is
+a position to fight out of rather than a death. A ledge hang on the floor sits
+low in frame on purpose — being able to *use* the bottom of the board is worth
+more than seeing all of a hanging body.
+
+**Six boards split that floor in two**, with a ~190 px hole down the middle:
+Shibuya Night, Bone Sanctum, Mist Pier, Empty City, Billboard Roof and Domain
+Core. The starting tier still bridges the gap, so a match opens on solid ground
+and the hole is something you choose to deal with — four grabbable ledges
+instead of two, and a way to lose a stock straight down the middle. The six were
+picked for gimmicks that never measure the main (`stage_fx.js`): a board whose
+hazard sweeps its floor keeps that floor in one piece.
+
+**Four boards deliberately keep a high floor**, because a floor underneath would
+cost them what they are. Sunken Crossing and Crosswalk Rush are walk-offs whose
+street already *is* the bottom of the world. Bridge Duel is a narrow bridge over
+a void — catching yourself on a floor below is exactly what that board is meant
+not to offer, and its gimmick drifts that bridge. Garden Steps is a staircase,
+and a staircase reads from its bottom step. Which boards gain the storey is a
+per-board decision, not a rule.
+
+### What this touched, and the traps in it
+
+- `stages.js` gains `mainPlatforms()` (every piece of lowest ground),
+  `groundSpan()` (how far the ground reaches, across a split) and
+  `spawnPlatform()` / `groundY()` (the starting tier).
+- **Ledges.** `tryGrabLedge` read only the *first* main, so half of a split
+  board's ledges were dead to the touch — including both lips facing the hole,
+  which are the point of splitting it. It iterates every main now.
+- **Spawns.** `spawnSpot` picked the *lowest* surface under an x, which is now a
+  storey below the start. The tier wins wherever it is underfoot; everywhere
+  else the old rule stands, which is what still puts Bridge Duel's outer slots
+  on its side platforms.
+- **Ground effects.** Eight sites across `ultimates.js`, plus `combat.js`,
+  `domains.js`, `specials.js` and `summons.js`, read `state.platforms[0].y` as
+  "ground level" for shockwaves, slams and summon placement. Left alone they
+  would have drawn every one of them 120 px under the fight. They call
+  `groundY()` now, which returns the starting tier — the same number they have
+  always got.
+- **Gimmicks that filter by kind.** Bone Sanctum phases "every non-main
+  platform" and Academy Hall glides them into four indexed layouts; a fifth
+  platform in that list would have phased the tier out from under a match and
+  glided everything to the wrong position. Both exclude `spawn` now. Domain
+  Core orbits `kind === "side"`, which is why the tier got a kind of its own
+  rather than a flag on `side` — the filters that should skip it now do so for
+  free.
+- **The CPU.** `groundSpan` reads straight over a split floor's hole, so the AI
+  gets a second rule: while standing on the floor, don't back into a gap.
+
+`tools/smoke_stage_floor.mjs` covers the invariants; `audit_stage_reach.mjs`
+now understands one-or-two mains, checks a split floor's halves are level with a
+real hole between them, and checks the tier is wide enough and within a hop.
+
+## 9. The arena bench grows an editing layer
+
+`/workbench/?edit=arena` gains what any editor needs once boards are made of
+more than four rectangles:
+
+- **Multi-select** — shift/ctrl-click to add, drag on empty space to marquee
+  (touched, not enclosed, so catching a 1500 px floor doesn't mean starting the
+  sweep off the board), `ctrl+A` for all, `esc` for none. A group drags as one:
+  the offset is applied to where each platform *started*, so rounding cannot
+  shear a group apart over a long drag. Resize handles appear only on a single
+  selection — a resize means one platform, and drawing grips on a group would
+  promise a gesture that does nothing.
+- **Copy/paste** — `ctrl+C`/`ctrl+V`, `ctrl+D` to duplicate. The clipboard holds
+  authored *shapes*, not indices, so a copy survives any edit made before it is
+  pasted, including deleting the originals. Pasted copies land offset and become
+  the selection, and the clipboard follows them down so pasting twice makes a
+  staircase rather than a stack.
+- **Undo/redo** — `ctrl+Z` / `ctrl+shift+Z` (and `ctrl+Y`), over whole-board
+  snapshots. A board is a few dozen small objects, so a snapshot is cheaper than
+  a delta log and cannot drift out of step with the screen. The property that
+  buys: **an edit is one step whatever it touched** — a drag that moved both
+  halves of a split floor undoes once, as does a paste of three platforms or a
+  group delete. A press that never moved pops its own snapshot rather than
+  costing an undo.
+
+The reach panel mirrors the audit's new rules, so the bench says what CI will,
+and the kind list gained `spawn`.
+
 ## The slab takes the room's light
 
 Every board declared its ambiance once — `tint` in `src/stages.js`, the wash the

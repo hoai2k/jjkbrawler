@@ -44,6 +44,7 @@
 // down and then it bursts.
 
 import { state } from "./state.js";
+import { groundY as stageGroundY } from "./stages.js";
 import { clamp, sign, rand, rectsOverlap } from "./utils.js";
 import { applyHit, hurtbox, spawnProjectile, ownerStick } from "./combat.js";
 import { isFoe } from "./teams.js";
@@ -124,7 +125,7 @@ function grantMeterForKill(f) {
 }
 
 function groundY() {
-  return state.platforms.length ? state.platforms[0].y : 568;
+  return stageGroundY(state.platforms);
 }
 
 // The surface a falling summon should land on: the highest platform it is over

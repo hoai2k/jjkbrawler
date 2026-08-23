@@ -1,4 +1,5 @@
 import { state } from "./state.js";
+import { groundY as stageGroundY } from "./stages.js";
 import { clamp, sign, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, sparkLine, ring, popup, banner } from "./particles.js";
 import { hitFx, elementOf, burnTickFx, bleedTickFx, projectileEmit, explodeFx, blackFlashFx, ratioSeamFx, specks, spray } from "./fx.js";
@@ -484,7 +485,7 @@ function explodeProjectile(p) {
 }
 
 export function updateProjectiles(dt) {
-  const groundY = state.platforms.length ? state.platforms[0].y : 568;
+  const groundY = stageGroundY(state.platforms);
   for (let i = state.projectiles.length - 1; i >= 0; i--) {
     const p = state.projectiles[i];
     // Hitboxes freeze with their owner through hitlag (updateHitboxes above);

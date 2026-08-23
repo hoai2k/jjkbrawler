@@ -4,6 +4,7 @@
 // get bespoke handlers; common shapes share primitives.
 
 import { state } from "./state.js";
+import { groundY as stageGroundY } from "./stages.js";
 import { ART_SCALE } from "./config_tuning.js";
 // Effects spawned from CODE draw here rather than through render.js, so the
 // per-drawing nudge has to be applied at each of them or the workbench dial
@@ -1114,7 +1115,7 @@ function grantSummonMeter(f, cfg) {
 }
 
 function groundYAt() {
-  return state.platforms.length ? state.platforms[0].y : 568;
+  return stageGroundY(state.platforms);
 }
 
 function makeTrap(owner, x, groundY, p, name) {

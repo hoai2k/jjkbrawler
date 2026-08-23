@@ -50,11 +50,17 @@ const url = new URL(window.location.href);
 // "side"/"top" are drop-through slivers, and "wall" is the one piece of stage
 // that blocks sideways movement.
 const KINDS = [
-  { key: "main", label: "main — the ground, grabbable ledges, drop-through never" },
+  { key: "main", label: "main — the lowest ground, grabbable ledges, never drop-through" },
+  { key: "spawn", label: "spawn — the tier a match opens on (one per board)" },
   { key: "side", label: "side — drop-through platform" },
   { key: "top", label: "top — drop-through platform (highest tier by convention)" },
   { key: "wall", label: "wall — blocks sideways movement, walkable on top" },
 ];
+
+// A platform's default thickness for its kind. `main` is the ground and reads
+// heavy; a wall's number is how TALL the obstacle is, which is collision rather
+// than slab art (stages.js exempts it from the ART_SCALE pass).
+const KIND_H = { main: 42, spawn: 15, side: 15, top: 15, wall: 130 };
 
 // A new platform starts as a contestable drop-through: ~3 body widths, the
 // width docs/level-design-review.md calls the floor for a platform two people
@@ -70,11 +76,23 @@ const bench = {
   // reason to touch it — see the guides drawn in editing mode.
   view: 1,
   arena: null,       // the authored board being edited
-  selected: -1,
+  // WHAT IS SELECTED, as indices into arena.platforms. An array rather than one
+  // index because a board is edited in groups as often as one piece at a time —
+  // both halves of a split floor move together or they are not a floor.
+  sel: [],
   drag: null,
+  marquee: null,     // { x0, y0, x1, y1 } while rubber-banding
+  clip: null,        // the copied platforms, as authored shapes
+  past: [],          // undo stack of whole-board snapshots
+  future: [],
   loading: false,
   fps: 0,
 };
+
+// How many boards back the undo stack remembers. Snapshots are a handful of
+// small objects, so this is generous on purpose: running out of undo is a much
+// worse experience than the memory it costs.
+const HISTORY_MAX = 100;
 
 // ------------------------------------------------------------------- the shell
 root.innerHTML = `
@@ -111,7 +129,9 @@ root.innerHTML = `
           <input type="checkbox" id="editingToggle"> editing mode
         </label>
         <button class="ghost" id="addPlatform" type="button" title="Add a drop-through platform in the middle of the view">＋ platform</button>
-        <button class="ghost" id="delPlatform" type="button" title="Remove the selected platform (or press Delete)">🗑 delete</button>
+        <button class="ghost" id="delPlatform" type="button" title="Remove the selected platforms (or press Delete)">🗑 delete</button>
+        <button class="ghost" id="undoBtn" type="button" title="Undo (Ctrl+Z)">↶</button>
+        <button class="ghost" id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z, or Ctrl+Y)">↷</button>
         <button class="ghost" id="resetArena" type="button" title="Throw away every edit and reload this board as it ships">↺ revert</button>
         <label class="toggle zoom" title="A multiplier on the pinned editing camera. 1 is the game's furthest pull-back; below 1 reaches past it so you can drag a platform out toward the blast lines.">view
           <input type="range" id="viewRange" min="0.5" max="1.15" step="0.01">
@@ -119,13 +139,14 @@ root.innerHTML = `
         </label>
         <select id="charPick" class="dummyPick" title="Who you are driving. Any fighter — the point is to feel the board under a body, so pick the one whose movement you are worried about."></select>
         <span class="viewer__pads" id="arenaPads"></span>
+        <span class="viewer__hist" id="arenaHistory" title="Undo steps held. An edit is one step whatever it touched — a drag that moved eight platforms undoes in one.">0 undo · 0 redo</span>
         <span class="viewer__fps" id="arenaFps"></span>
       </div>
     </section>
 
     <aside class="props" id="propsPane">
       <h2>Platform</h2>
-      <p class="sub" id="propsNone">Click a platform to select it.</p>
+      <p class="sub" id="propsNone">Click a platform, or drag a box around several.</p>
       <div id="propsBody" hidden>
         <label class="field">kind
           <select id="pKind"></select>
@@ -158,6 +179,16 @@ root.innerHTML = `
 
       <h2>Reach</h2>
       <p class="sub" id="reachOut">—</p>
+
+      <h2>Keys</h2>
+      <ul class="keys">
+        <li><kbd>click</kbd> select · <kbd>shift</kbd>+click add</li>
+        <li><kbd>drag</kbd> on empty space marquees</li>
+        <li><kbd>ctrl</kbd>+<kbd>A</kbd> all · <kbd>esc</kbd> none</li>
+        <li><kbd>ctrl</kbd>+<kbd>C</kbd>/<kbd>V</kbd> copy, paste · <kbd>ctrl</kbd>+<kbd>D</kbd> duplicate</li>
+        <li><kbd>ctrl</kbd>+<kbd>Z</kbd> undo · <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>Z</kbd> redo</li>
+        <li><kbd>del</kbd> remove the selection</li>
+      </ul>
     </aside>
   </div>`;
 
@@ -172,11 +203,15 @@ const viewValueEl = document.getElementById("viewValue");
 const charPickEl = document.getElementById("charPick");
 const padEl = document.getElementById("arenaPads");
 const fpsEl = document.getElementById("arenaFps");
+const historyEl = document.getElementById("arenaHistory");
 const propsNoneEl = document.getElementById("propsNone");
 const propsBodyEl = document.getElementById("propsBody");
 const thickEl = document.getElementById("pThickness");
 const reachEl = document.getElementById("reachOut");
 const fxEl = document.getElementById("fxToggle");
+// True while a burst of typing in one property field is still one undo step.
+let fieldDirty = false;
+
 const fields = {
   kind: document.getElementById("pKind"),
   x: document.getElementById("pX"), y: document.getElementById("pY"),
@@ -242,6 +277,61 @@ function syncStageFx() {
   state.stageMods.frictionPow = mods.frictionPow ?? 1;
 }
 
+// ------------------------------------------------------------------- history
+//
+// Undo over the AUTHORED board, snapshotted whole. A board is a few dozen small
+// objects, so a snapshot is cheaper than tracking deltas and cannot drift out
+// of step with what is on screen the way a delta log can — every edit path,
+// including a drag that touched twelve platforms, gets undo for free by calling
+// `commit()` once before it starts.
+
+const snapshot = () => JSON.stringify({
+  name: bench.arena.name, tint: bench.arena.tint,
+  mods: bench.arena.mods, platforms: bench.arena.platforms,
+});
+
+/** Remember the board as it is NOW, before the change you are about to make.
+ *  Call it once at the START of an edit — on pointerdown for a drag, not on
+ *  every frame of one — so undo steps land on whole gestures. */
+function commit() {
+  bench.past.push(snapshot());
+  if (bench.past.length > HISTORY_MAX) bench.past.shift();
+  // A new edit is a new branch: whatever was redone away is gone.
+  bench.future.length = 0;
+  paintHistory();
+}
+
+function restore(json) {
+  const b = JSON.parse(json);
+  bench.arena.name = b.name;
+  bench.arena.tint = b.tint;
+  bench.arena.mods = b.mods;
+  bench.arena.platforms = b.platforms;
+  // Indices that no longer exist are dropped rather than left dangling: an
+  // undo that removed platforms must not leave the panel editing a hole.
+  bench.sel = bench.sel.filter((i) => i < bench.arena.platforms.length);
+  syncPlatforms();
+  paintProps();
+  paintBoard();
+  paintHistory();
+}
+
+function undo() {
+  if (!bench.past.length) return flash("nothing to undo");
+  bench.future.push(snapshot());
+  restore(bench.past.pop());
+}
+
+function redo() {
+  if (!bench.future.length) return flash("nothing to redo");
+  bench.past.push(snapshot());
+  restore(bench.future.pop());
+}
+
+function paintHistory() {
+  historyEl.textContent = `${bench.past.length} undo · ${bench.future.length} redo`;
+}
+
 function authored(key) {
   const s = AUTHORED_STAGES.find((a) => a.key === key) || AUTHORED_STAGES[0];
   return {
@@ -254,7 +344,10 @@ function authored(key) {
 async function loadArena(key) {
   bench.stageKey = key;
   bench.arena = authored(key);
-  bench.selected = -1;
+  bench.sel = [];
+  bench.past.length = 0;
+  bench.future.length = 0;
+  bench.clip = null;
   bench.loading = true;
   overlayEl.textContent = "Loading…";
   overlayEl.classList.add("is-on");
@@ -268,6 +361,7 @@ async function loadArena(key) {
   renderList();
   paintProps();
   paintBoard();
+  paintHistory();
   const next = new URL(window.location.href);
   next.searchParams.set("stage", key);
   history.replaceState(null, "", next);
@@ -381,10 +475,35 @@ canvas.addEventListener("pointerdown", (ev) => {
   if (!bench.editing || !bench.arena) return;
   const w = toWorld(ev);
   const hit = pick(w);
-  select(hit ? hit.i : -1);
-  if (!hit) return;
+  const additive = ev.shiftKey || ev.ctrlKey || ev.metaKey;
+
+  if (!hit) {
+    // Empty space starts a MARQUEE. Additive keeps what is already picked, so a
+    // group can be built up out of several sweeps.
+    if (!additive) setSelection([]);
+    bench.marquee = { x0: w.x, y0: w.y, x1: w.x, y1: w.y, add: additive };
+    canvas.setPointerCapture(ev.pointerId);
+    ev.preventDefault();
+    return;
+  }
+
+  if (additive) toggleSelected(hit.i);
+  else if (!bench.sel.includes(hit.i)) setSelection([hit.i]);
+  // Clicking one of an existing group KEEPS the group, so dragging moves all of
+  // it — picking a member must not be a way to accidentally lose the rest.
+
+  // A resize only ever means one platform. With a group picked the handles are
+  // not drawn, so any drag from inside it is a move.
+  const part = bench.sel.length === 1 ? hit.part : "move";
   const p = bench.arena.platforms[hit.i];
-  bench.drag = { part: hit.part, i: hit.i, ox: w.x - p.x, oy: w.y - p.y, w0: p.w, x0: p.x };
+  commit();
+  bench.drag = {
+    part, i: hit.i, ox: w.x - p.x, oy: w.y - p.y, w0: p.w, x0: p.x,
+    // Where every selected platform started, so a group move is one offset
+    // applied to all of them rather than a chain of relative nudges.
+    from: bench.sel.map((i) => ({ i, x: bench.arena.platforms[i].x, y: bench.arena.platforms[i].y })),
+    moved: false,
+  };
   canvas.setPointerCapture(ev.pointerId);
   ev.preventDefault();
 });
@@ -392,44 +511,104 @@ canvas.addEventListener("pointerdown", (ev) => {
 canvas.addEventListener("pointermove", (ev) => {
   if (!bench.editing || !bench.arena) return;
   const w = toWorld(ev);
+
+  if (bench.marquee) {
+    bench.marquee.x1 = w.x;
+    bench.marquee.y1 = w.y;
+    return;
+  }
   if (!bench.drag) {
     const hit = pick(w);
     canvas.style.cursor = !hit ? "default"
-      : hit.part === "move" ? "move" : "ew-resize";
+      : hit.part === "move" || bench.sel.length > 1 ? "move" : "ew-resize";
     return;
   }
+
   const d = bench.drag;
-  const p = bench.arena.platforms[d.i];
+  d.moved = true;
   if (d.part === "move") {
-    p.x = Math.round(w.x - d.ox);
-    p.y = Math.round(w.y - d.oy);
+    // ONE offset, applied to where each platform started. Nudging each shape by
+    // a per-frame delta instead would let rounding accumulate differently for
+    // each of them, and a group would slowly shear apart as you dragged it.
+    const anchor = d.from.find((s) => s.i === d.i);
+    const offX = Math.round(w.x - d.ox) - anchor.x;
+    const offY = Math.round(w.y - d.oy) - anchor.y;
+    for (const s of d.from) {
+      const q = bench.arena.platforms[s.i];
+      if (!q) continue;
+      q.x = s.x + offX;
+      q.y = s.y + offY;
+    }
   } else if (d.part === "left") {
     // The RIGHT edge is what stays put when you pull the left one.
+    const p = bench.arena.platforms[d.i];
     const right = d.x0 + d.w0;
     const x = Math.min(Math.round(w.x), right - 8);
     p.x = x;
     p.w = right - x;
   } else {
+    const p = bench.arena.platforms[d.i];
     p.w = Math.max(8, Math.round(w.x - p.x));
   }
   syncPlatforms();
   paintProps();
 });
 
-const endDrag = () => { bench.drag = null; };
+function endDrag() {
+  if (bench.marquee) {
+    const m = bench.marquee;
+    bench.marquee = null;
+    const lo = { x: Math.min(m.x0, m.x1), y: Math.min(m.y0, m.y1) };
+    const hi = { x: Math.max(m.x0, m.x1), y: Math.max(m.y0, m.y1) };
+    // A click that never moved is a click on nothing, not an empty marquee.
+    if (hi.x - lo.x < 4 && hi.y - lo.y < 4) return;
+    const caught = [];
+    for (let i = 0; i < bench.arena.platforms.length; i++) {
+      const r = rectOf(i);
+      // TOUCHED, not enclosed: sweeping across a 1500px floor to catch it
+      // would otherwise mean starting the sweep off the edge of the board.
+      if (r.x + r.w >= lo.x && r.x <= hi.x && r.y + r.h >= lo.y && r.y <= hi.y) caught.push(i);
+    }
+    setSelection(m.add ? [...new Set([...bench.sel, ...caught])] : caught);
+    return;
+  }
+  if (bench.drag && !bench.drag.moved) {
+    // A press that never moved changed nothing, so it should not cost an undo.
+    bench.past.pop();
+    paintHistory();
+  }
+  bench.drag = null;
+}
 canvas.addEventListener("pointerup", endDrag);
 canvas.addEventListener("pointercancel", endDrag);
 
 // ------------------------------------------------------------- selection/props
-function select(i) {
-  bench.selected = i;
+function setSelection(list) {
+  bench.sel = [...new Set(list)].filter((i) => i >= 0 && i < bench.arena.platforms.length);
   paintProps();
 }
 
+function toggleSelected(i) {
+  setSelection(bench.sel.includes(i) ? bench.sel.filter((j) => j !== i) : [...bench.sel, i]);
+}
+
+/** The one selected platform, or null when none or several are. The property
+ *  fields edit a single shape; a group is moved, copied and deleted instead. */
+function onlySelected() {
+  return bench.arena && bench.sel.length === 1 ? bench.arena.platforms[bench.sel[0]] : null;
+}
+
 function paintProps() {
-  const p = bench.arena && bench.selected >= 0 ? bench.arena.platforms[bench.selected] : null;
+  const p = onlySelected();
+  const many = bench.sel.length > 1;
   propsNoneEl.hidden = !!p;
   propsBodyEl.hidden = !p;
+  if (many) {
+    propsNoneEl.textContent = `${bench.sel.length} platforms selected — drag to move them, `
+      + `Ctrl+C / Ctrl+V to copy, Delete to remove.`;
+  } else if (!p) {
+    propsNoneEl.textContent = "Click a platform, or drag a box around several.";
+  }
   if (!p) return;
   fields.kind.value = p.kind;
   fields.x.value = String(p.x);
@@ -453,22 +632,27 @@ function paintBoard() {
 
 fields.kind.innerHTML = KINDS.map((k) => `<option value="${k.key}">${k.label}</option>`).join("");
 fields.kind.addEventListener("change", () => {
-  const p = bench.arena.platforms[bench.selected];
+  const p = onlySelected();
   if (!p) return;
+  commit();
+  const was = p.kind;
   p.kind = fields.kind.value;
   // A wall's height is collision and a slab's is art, so the sensible default
-  // thickness is different for each. Only nudged when the current value is the
-  // OTHER kind's default, so a height somebody chose is never overwritten.
-  if (p.kind === "wall" && p.h <= 42) p.h = 130;
-  if (p.kind !== "wall" && p.h > 42) p.h = p.kind === "main" ? 42 : 15;
+  // thickness is different for each. Only nudged when the height still IS the
+  // old kind's default, so a number somebody chose is never overwritten.
+  if (p.h === KIND_H[was]) p.h = KIND_H[p.kind] ?? p.h;
   syncPlatforms();
   paintProps();
 });
 
 for (const key of ["x", "y", "w", "h"]) {
+  // One undo step per burst of typing rather than per keystroke: a field being
+  // edited coalesces until focus leaves it or another kind of edit happens.
+  fields[key].addEventListener("focus", () => { fieldDirty = false; });
   fields[key].addEventListener("input", () => {
-    const p = bench.arena.platforms[bench.selected];
+    const p = onlySelected();
     if (!p) return;
+    if (!fieldDirty) { commit(); fieldDirty = true; }
     const v = Number(fields[key].value);
     if (!Number.isFinite(v)) return;
     p[key] = key === "w" ? Math.max(8, Math.round(v))
@@ -511,39 +695,103 @@ document.getElementById("addPlatform").addEventListener("click", () => {
     y: Math.round(mainPlatform(state.platforms)?.y - 140 || cam.y),
     w: NEW_PLATFORM.w, h: NEW_PLATFORM.h, kind: NEW_PLATFORM.kind,
   };
+  commit();
   bench.arena.platforms.push(p);
   syncPlatforms();
-  select(bench.arena.platforms.length - 1);
+  setSelection([bench.arena.platforms.length - 1]);
 });
 
 function deleteSelected() {
-  const i = bench.selected;
-  if (i < 0) return;
-  const p = bench.arena.platforms[i];
-  // The main is the ground, the ledges and where every spawn stands. Losing it
-  // does not make an interesting board, it makes a broken one.
-  if (p.kind === "main" && bench.arena.platforms.filter((q) => q.kind === "main").length <= 1) {
-    flash("that is the board's only main platform — change its kind first");
+  if (!bench.sel.length) return;
+  const doomed = new Set(bench.sel);
+  const mains = bench.arena.platforms.filter((q) => q.kind === "main");
+  const losing = mains.filter((q) => doomed.has(bench.arena.platforms.indexOf(q))).length;
+  // The main is the ground and the ledges. Losing every one of them does not
+  // make an interesting board, it makes a board with no floor.
+  if (mains.length && losing >= mains.length) {
+    flash("that would leave the board with no main platform — change a kind first");
     return;
   }
-  bench.arena.platforms.splice(i, 1);
-  select(-1);
+  commit();
+  // Highest index first, so each splice cannot shift the ones still to go.
+  for (const i of [...bench.sel].sort((a, b) => b - a)) bench.arena.platforms.splice(i, 1);
+  setSelection([]);
   syncPlatforms();
 }
 document.getElementById("delPlatform").addEventListener("click", deleteSelected);
+document.getElementById("undoBtn").addEventListener("click", undo);
+document.getElementById("redoBtn").addEventListener("click", redo);
+
+// ------------------------------------------------------------- copy and paste
+//
+// The clipboard holds authored SHAPES, not indices — so a copy survives every
+// edit made between taking it and pasting it, including deleting the originals.
+
+function copySelected() {
+  if (!bench.sel.length) return flash("nothing to copy");
+  bench.clip = bench.sel.map((i) => ({ ...bench.arena.platforms[i] }));
+  flash(`copied ${bench.clip.length} platform${bench.clip.length === 1 ? "" : "s"}`);
+}
+
+// How far a paste lands from what it came from. Enough to see that it is a
+// second thing rather than a redraw of the first, and small enough to drag
+// where you meant it to go.
+const PASTE_OFFSET = 28;
+
+function paste() {
+  if (!bench.clip || !bench.clip.length) return flash("nothing to paste");
+  commit();
+  const at = bench.arena.platforms.length;
+  for (const p of bench.clip) {
+    bench.arena.platforms.push({ ...p, x: p.x + PASTE_OFFSET, y: p.y + PASTE_OFFSET });
+  }
+  // The PASTED copies become the selection, so the next drag moves what you
+  // just made rather than what you copied it from.
+  setSelection(bench.clip.map((_, i) => at + i));
+  // ...and the clipboard follows them down, so pasting twice makes a staircase
+  // instead of stacking two copies in the same place.
+  bench.clip = bench.clip.map((p) => ({ ...p, x: p.x + PASTE_OFFSET, y: p.y + PASTE_OFFSET }));
+  syncPlatforms();
+}
+
+// One place deciding whether a key belongs to the editor or to whatever has
+// focus. A field is typing; the canvas is editing.
+const typingIn = (t) => t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA");
 
 window.addEventListener("keydown", (e) => {
-  if (e.key !== "Delete" && e.key !== "Backspace") return;
-  const t = e.target;
-  if (t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA")) return;
-  if (!bench.editing) return;
-  e.preventDefault();
-  deleteSelected();
+  if (typingIn(e.target) || !bench.editing || !bench.arena) return;
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key.toLowerCase() === "z") {
+    e.preventDefault();
+    // Shift+Z redoes, the same chord every editor uses; Ctrl+Y as well, for
+    // the hands that learned it the other way.
+    if (e.shiftKey) redo(); else undo();
+    return;
+  }
+  if (mod && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
+  if (mod && e.key.toLowerCase() === "c") { e.preventDefault(); copySelected(); return; }
+  if (mod && e.key.toLowerCase() === "v") { e.preventDefault(); paste(); return; }
+  if (mod && e.key.toLowerCase() === "d") { e.preventDefault(); copySelected(); paste(); return; }
+  if (mod && e.key.toLowerCase() === "a") {
+    e.preventDefault();
+    setSelection(bench.arena.platforms.map((_, i) => i));
+    return;
+  }
+  if (e.key === "Escape") { setSelection([]); return; }
+  if (e.key === "Delete" || e.key === "Backspace") {
+    e.preventDefault();
+    deleteSelected();
+  }
 });
 
 document.getElementById("resetArena").addEventListener("click", () => {
-  bench.arena = authored(bench.stageKey);
-  select(-1);
+  commit();
+  const fresh = authored(bench.stageKey);
+  bench.arena.name = fresh.name;
+  bench.arena.tint = fresh.tint;
+  bench.arena.mods = fresh.mods;
+  bench.arena.platforms = fresh.platforms;
+  setSelection([]);
   syncPlatforms();
   paintBoard();
   flash("reverted to the board as it ships");
@@ -603,17 +851,33 @@ function horizontalGap(a, b) {
 
 function reachReport() {
   const plats = bench.arena.platforms;
-  const main = plats.find((p) => p.kind === "main") || plats[0];
+  const mains = plats.filter((p) => p.kind === "main");
+  const main = mains[0] || plats[0];
   if (!main) return { problems: ["no main platform"], warnings: [] };
-  const others = plats.filter((p) => p !== main);
+  const others = plats.filter((p) => !mains.includes(p));
+  const tier = plats.filter((p) => p.kind === "spawn");
   const problems = [];
   const warnings = [];
+  if (mains.length > 2) problems.push(`${mains.length} main platforms (allowed 1 or 2)`);
+  if (mains.length === 2) {
+    const [a, b] = mains.slice().sort((p, q) => p.x - q.x);
+    if (a.y !== b.y) problems.push(`the split floor's halves are not level`);
+    else if (b.x - (a.x + a.w) < 90) problems.push(`the split floor's hole is under 90px`);
+  }
+  if (tier.length > 1) problems.push(`${tier.length} spawn tiers (allowed 0 or 1)`);
+  if (tier.length === 1) {
+    const rise = main.y - tier[0].y;
+    if (rise <= 0) problems.push("the spawn tier is not above the floor");
+    else if (rise > 175) problems.push(`the spawn tier is a ${rise}px hop off the floor (max 175)`);
+    else if (rise > 145) warnings.push(`the spawn tier needs a ${rise}px hop off the floor`);
+    if (tier[0].w < 300) problems.push(`the spawn tier is only ${tier[0].w}px wide`);
+  }
   for (const p of others) {
     if (p.y >= main.y) problems.push(`(${p.x},${p.y}) is not above the main`);
   }
   const highest = Math.min(...plats.map((p) => p.y));
   if (highest < 235) problems.push(`highest platform y ${highest} is above the 235 cap`);
-  const reached = new Set([main]);
+  const reached = new Set(mains.length ? mains : [main]);
   let grew = true;
   while (grew) {
     grew = false;
@@ -676,23 +940,53 @@ function drawEditing() {
   ctx.fillStyle = "rgba(255, 211, 92, 0.85)";
   ctx.fillText("widest game shot", WORLD.w / 2 - halfW + 8 * px, WORLD.h / 2 - halfH + 18 * px);
 
+  const single = bench.sel.length === 1;
   for (let i = 0; i < bench.arena.platforms.length; i++) {
     const r = rectOf(i);
-    const on = i === bench.selected;
+    const on = bench.sel.includes(i);
     ctx.lineWidth = (on ? 2.5 : 1.2) * px;
     ctx.strokeStyle = on ? "rgba(120, 240, 190, 0.95)" : "rgba(255, 255, 255, 0.28)";
     ctx.strokeRect(r.x, r.y, r.w, r.h);
     if (!on) continue;
-    // The two handles that resize it, drawn a constant size on screen.
-    const s = 9 * px;
-    ctx.fillStyle = "rgba(120, 240, 190, 0.95)";
-    for (const hx of [r.x, r.x + r.w]) {
-      ctx.fillRect(hx - s / 2, r.y + r.h / 2 - s, s, s * 2);
+    // Handles only when ONE is picked: a resize means one platform, and drawing
+    // grips on a group would promise a gesture that does nothing.
+    if (single) {
+      const s = 9 * px;
+      ctx.fillStyle = "rgba(120, 240, 190, 0.95)";
+      for (const hx of [r.x, r.x + r.w]) {
+        ctx.fillRect(hx - s / 2, r.y + r.h / 2 - s, s, s * 2);
+      }
+      ctx.fillStyle = "rgba(230, 255, 245, 0.95)";
+      ctx.font = `${13 * px}px ui-monospace, monospace`;
+      ctx.fillText(`${r.w}w  x${bench.arena.platforms[i].x} y${bench.arena.platforms[i].y}`,
+                   r.x, r.y - 10 * px);
     }
-    ctx.fillStyle = "rgba(230, 255, 245, 0.95)";
+  }
+
+  // The group's own outline, so a multi-selection reads as one thing to drag.
+  if (bench.sel.length > 1) {
+    const rs = bench.sel.map((i) => rectOf(i));
+    const lo = { x: Math.min(...rs.map((r) => r.x)), y: Math.min(...rs.map((r) => r.y)) };
+    const hi = { x: Math.max(...rs.map((r) => r.x + r.w)), y: Math.max(...rs.map((r) => r.y + r.h)) };
+    ctx.setLineDash([6 * px, 5 * px]);
+    ctx.lineWidth = 1.5 * px;
+    ctx.strokeStyle = "rgba(120, 240, 190, 0.55)";
+    ctx.strokeRect(lo.x - 6 * px, lo.y - 6 * px, hi.x - lo.x + 12 * px, hi.y - lo.y + 12 * px);
+    ctx.setLineDash([]);
+    ctx.fillStyle = "rgba(230, 255, 245, 0.9)";
     ctx.font = `${13 * px}px ui-monospace, monospace`;
-    ctx.fillText(`${r.w}w  x${bench.arena.platforms[i].x} y${bench.arena.platforms[i].y}`,
-                 r.x, r.y - 10 * px);
+    ctx.fillText(`${bench.sel.length} selected`, lo.x, lo.y - 14 * px);
+  }
+
+  if (bench.marquee) {
+    const m = bench.marquee;
+    ctx.fillStyle = "rgba(120, 240, 190, 0.12)";
+    ctx.strokeStyle = "rgba(120, 240, 190, 0.8)";
+    ctx.lineWidth = 1.5 * px;
+    const x = Math.min(m.x0, m.x1), y = Math.min(m.y0, m.y1);
+    const w = Math.abs(m.x1 - m.x0), h = Math.abs(m.y1 - m.y0);
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
   }
   releaseCamera(ctx);
 }

@@ -5,7 +5,7 @@ import { state } from "./state.js";
 import { foesOf } from "./teams.js";
 import { blankInput } from "./input.js";
 import { chance, clamp, sign } from "./utils.js";
-import { mainPlatform } from "./stages.js";
+import { mainPlatform, mainPlatforms, groundSpan } from "./stages.js";
 import { METER_MAX } from "./constants.js";
 import { heavyMove } from "./moves.js";
 import { bodyMetrics } from "./silhouette.js";
@@ -68,10 +68,13 @@ export function aiInput(f) {
   const dt = 1 / 60;
   ai.planT -= dt;
 
+  // Across EVERY piece of lowest ground, so a split board's right-hand half is
+  // still "the stage" and standing on it is not read as being off it.
+  const ground = groundSpan(state.platforms);
   const plat = mainPlatform(state.platforms);
-  const stageL = plat.x;
-  const stageR = plat.x + plat.w;
-  const offstage = f.x < stageL - 10 || f.x > stageR + 10 || f.y > plat.y + 60;
+  const stageL = ground.left;
+  const stageR = ground.right;
+  const offstage = f.x < stageL - 10 || f.x > stageR + 10 || f.y > ground.y + 60;
 
   // --- recovery has absolute priority
   if (offstage) {
@@ -146,9 +149,18 @@ function makePlan(f, opp, lvl) {
   }
 
   // don't walk off the stage while spacing backwards
-  const plat = mainPlatform(state.platforms);
-  if (input.left && f.x < plat.x + 90) { input.left = false; input.right = chance(0.5); }
-  if (input.right && f.x > plat.x + plat.w - 90) { input.right = false; input.left = chance(0.5); }
+  const ground = groundSpan(state.platforms);
+  if (input.left && f.x < ground.left + 90) { input.left = false; input.right = chance(0.5); }
+  if (input.right && f.x > ground.right - 90) { input.right = false; input.left = chance(0.5); }
+  // ...and don't back into the HOLE either. `groundSpan` reads straight over
+  // the gap in a split floor (stages.js) — it answers "where does the stage
+  // reach", which is a different question from "is there anything under my
+  // next step". Only while standing on the floor itself: the spawn tier
+  // bridges the gap and is meant to be walked across.
+  if (f.grounded && f.currentPlatform?.kind === "main") {
+    if (input.left && !groundUnder(f.x - 90)) { input.left = false; input.right = chance(0.5); }
+    if (input.right && !groundUnder(f.x + 90)) { input.right = false; input.left = chance(0.5); }
+  }
 
   // A WALL in the walking direction is hopped, not leaned on. Without this the
   // CPU runs into a gate pillar (River Gate) or a molar (Cursed Teeth) and
@@ -262,6 +274,13 @@ function makePlan(f, opp, lvl) {
   }
 
   return input;
+}
+
+/** Is there lowest ground under this x? Six boards split their floor down the
+ *  middle (stages.js), and the hole is the one thing a CPU spacing backwards
+ *  cannot see from the stage's outer bounds. */
+function groundUnder(x) {
+  return mainPlatforms(state.platforms).some((p) => x >= p.x && x <= p.x + p.w);
 }
 
 function finishPlan(f, input, opp) {

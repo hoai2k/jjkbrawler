@@ -684,7 +684,10 @@ const STAGE_FX = {
   // something solid at all times; the main floor never phases.
   boneSanctum() {
     const PERIOD = 12, RATTLE = 1, GHOST = 3;
-    const plats = state.platforms.filter((p) => p.kind !== "main");
+    // The starting tier is excluded with the floor: phasing out the platform a
+    // match opens on would drop everybody into the hole between the two halves
+    // of this board's floor, through no decision of their own.
+    const plats = state.platforms.filter((p) => p.kind !== "main" && p.kind !== "spawn");
     return {
       update() {
         plats.forEach((p, i) => {
@@ -706,7 +709,8 @@ const STAGE_FX = {
 
   // -- Bridge Duel: the bridge never sits still. The whole main platform —
   // ledges, fighters and all — drifts slowly side to side under fixed
-  // rooftop platforms.
+  // rooftop platforms. One of the boards that keeps a high floor and no tier
+  // beneath it (stages.js), so its main is still the bridge.
   bridgeDuel() {
     const plat = mainPlatform(state.platforms);
     const baseX = plat.x;
@@ -722,7 +726,10 @@ const STAGE_FX = {
   // platforms glide between preset arrangements. Solid the whole way.
   academyHall() {
     const PERIOD = 30, GLIDE = 2;
-    const plats = state.platforms.filter((p) => p.kind !== "main");
+    // The four LAYOUTS below are positions for the four drop-throughs, matched
+    // by index — so the starting tier has to be filtered out with the floor or
+    // every platform is glided to the wrong one of them.
+    const plats = state.platforms.filter((p) => p.kind !== "main" && p.kind !== "spawn");
     // Arrangements for [side A (w220), side B (w220), top C (w256),
     // lectern D (w160)] — assembly, both staircases, and study rows with the
     // lectern raised to a summit. Steps stay ≤140 px (the reach budget).

@@ -18,6 +18,7 @@
 // see domainSpecialSlot below and the routing in fighter.js.
 
 import { state } from "./state.js";
+import { groundY as stageGroundY } from "./stages.js";
 import { ART_SCALE } from "./config_tuning.js";
 import { foesOf } from "./teams.js";
 import { clamp, sign, rand, rectsOverlap, circleRectOverlap } from "./utils.js";
@@ -29,7 +30,7 @@ import { getImage } from "./assets.js";
 import { DOMAIN_METER_COST } from "./constants.js";
 import { DOMAIN_CALL } from "./config_audio.js";
 
-const GROUND = () => state.platforms[0]?.y ?? 568;
+const GROUND = () => stageGroundY(state.platforms);
 
 /** The domain a fighter currently has open, or null. */
 // Each domain's signature sound, layered under the shared expansion sting.

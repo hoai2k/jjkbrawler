@@ -5,6 +5,7 @@
 // time the meter fills.
 
 import { state } from "./state.js";
+import { groundY as stageGroundY } from "./stages.js";
 import { ART_SCALE } from "./config_tuning.js";
 import { clamp, sign, rand } from "./utils.js";
 // Scaled spawns: kit literals are authored for the reference body and sized
@@ -218,7 +219,7 @@ const DIRECTORS = {
           state.camera.shake = Math.max(state.camera.shake, 18);
           state.slowMo = Math.max(state.slowMo, 0.25);
           state.screenFlash = { color: "#ff7a2f", life: 0.3, maxLife: 0.3 };
-          const groundY = state.platforms[0]?.y ?? 568;
+          const groundY = stageGroundY(state.platforms);
           burst(tx, groundY - 40, "#ff7a2f", 70, 2.2);
           ring(tx, groundY - 40, "#ffd35a", 260);
           debugShape({ x: tx, y: groundY - 40, r: p.r });
@@ -237,7 +238,7 @@ const DIRECTORS = {
           this.burnT += dt;
           if (this.burnT > 0.4) {
             this.burnT = 0;
-            const groundY = state.platforms[0]?.y ?? 568;
+            const groundY = stageGroundY(state.platforms);
             for (const t of state.fighters) {
               if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
               if (Math.abs(t.x - tx) < p.r && Math.abs(t.y - groundY) < 60) {
@@ -250,7 +251,7 @@ const DIRECTORS = {
         }
       },
       draw(ctx) {
-        const groundY = state.platforms[0]?.y ?? 568;
+        const groundY = stageGroundY(state.platforms);
         if (!this.exploded) {
           // warning marker
           ctx.save();
@@ -578,7 +579,7 @@ const DIRECTORS = {
         this.t += dt;
         if (this.wave >= p.waves) { this.dead = true; return; }
         if (this.t >= this.wave * p.waveGap) {
-          const groundY = state.platforms[0]?.y ?? 568;
+          const groundY = stageGroundY(state.platforms);
           const originX = f.x;
           const spread = 150 + this.wave * 170;
           for (const dir of [-1, 1]) {
@@ -602,7 +603,7 @@ const DIRECTORS = {
         }
       },
       draw(ctx) {
-        const groundY = state.platforms[0]?.y ?? 568;
+        const groundY = stageGroundY(state.platforms);
         const roots = p.sprite ? getImage(p.sprite) : null;
         ctx.save();
         ctx.globalAlpha = roots ? 0.85 : 0.5;
@@ -1049,7 +1050,7 @@ const DIRECTORS = {
       update(dt) {
         this.t += dt;
         this.phaseT += dt;
-        const groundY = state.platforms[0]?.y ?? 568;
+        const groundY = stageGroundY(state.platforms);
 
         if (this.phase === "falling" && this.t >= 0.5 + p.fallTime) {
           this.phase = "bouncing";
@@ -1109,7 +1110,7 @@ const DIRECTORS = {
         }
       },
       draw(ctx) {
-        const groundY = state.platforms[0]?.y ?? 568;
+        const groundY = stageGroundY(state.platforms);
         const img = p.sprite ? getImage(p.sprite) : null;
         const carH = paintedHeight(p.sprite, p.spriteH || 170);
         const carW = img ? img.width * carH / img.height : 300;
@@ -1430,7 +1431,7 @@ const DIRECTORS = {
       },
       draw(ctx) {
         // the water he is drawing them out of, boiling at his feet
-        const g = state.platforms[0]?.y ?? 568;
+        const g = stageGroundY(state.platforms);
         ctx.save();
         ctx.globalAlpha = 0.45;
         ctx.fillStyle = p.color;
