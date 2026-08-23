@@ -36,9 +36,9 @@ import { draw } from "../src/render.js";
 import { applyCamera, releaseCamera, ZOOM_MIN } from "../src/camera.js";
 import { AUTHORED_STAGES, mainPlatform, spawnPlatform, spawnSpot } from "../src/stages.js";
 import { initStageFx } from "../src/stage_fx.js";
-import { CHARACTER_KEYS, characterName } from "../src/characters.js";
+import { CHARACTERS, CHARACTER_KEYS, characterName } from "../src/characters.js";
 import { ART_SCALE } from "../src/config_tuning.js";
-import { WORLD, BLAST } from "../src/constants.js";
+import { WORLD, BLAST, GRAVITY, AIR_JUMP_MULT } from "../src/constants.js";
 import { clamp } from "../src/utils.js";
 
 const root = document.getElementById("arenaRoot");
@@ -67,9 +67,29 @@ const KIND_H = { main: 42, spawn: 15, side: 15, top: 15, wall: 130 };
 // are meant to fight over.
 const NEW_PLATFORM = { w: 210, h: 15, kind: "side" };
 
+/** How high this fighter gets on a full jump — the ground hop plus every air
+ *  jump they own, each at AIR_JUMP_MULT. Rise is v²/2g. */
+function fullJump(key) {
+  const st = CHARACTERS[key]?.stats;
+  if (!st?.jump) return Infinity;
+  const rise = (v) => (v * v) / (2 * GRAVITY);
+  return rise(st.jump) + (st.airJumps || 0) * rise(st.jump * AIR_JUMP_MULT);
+}
+
+/** THE FIGHTER A BOARD SHOULD BE TESTED WITH: the one who reaches least far.
+ *
+ *  A layout is only as good as its worst case — if the shortest jumper in the
+ *  roster can get everywhere, everyone can, and if they cannot then the board
+ *  has a hole in it that a tall jumper will hide from you. Gakuganji and Tengen
+ *  are the pair at the bottom today (impulse 780, one air jump, 239px of full
+ *  reach against Uro's 434), but this is derived rather than named so it stays
+ *  true when somebody re-tunes a stat. */
+const weakestJumper = () =>
+  CHARACTER_KEYS.reduce((a, b) => (fullJump(b) < fullJump(a) ? b : a), CHARACTER_KEYS[0]);
+
 const bench = {
   stageKey: url.searchParams.get("stage") || AUTHORED_STAGES[0].key,
-  charKey: url.searchParams.get("char") || CHARACTER_KEYS[0],
+  charKey: url.searchParams.get("char") || weakestJumper(),
   editing: url.searchParams.get("editing") !== "off",
   // A multiplier on the pinned editing zoom. 1 is the game's own furthest
   // pull-back; below 1 reaches past it to the blast lines, which is the only
@@ -154,7 +174,8 @@ root.innerHTML = `
           <input type="range" id="viewRange" min="0.5" max="1.15" step="0.01">
           <span id="viewValue"></span>
         </label>
-        <select id="charPick" class="dummyPick" title="Who you are driving. Any fighter — the point is to feel the board under a body, so pick the one whose movement you are worried about."></select>
+        <select id="charPick" class="dummyPick" title="Who you are driving. Defaults to the roster's WEAKEST jumper, because a board is only as good as its worst case: if they can get everywhere, everyone can."></select>
+        <span class="viewer__reach" id="charReach" title="This fighter's full jump — the ground hop plus every air jump they own. The reach panel judges hops against the weakest of these."></span>
         <span class="viewer__pads" id="arenaPads"></span>
         <span class="viewer__hist" id="arenaHistory" title="Undo steps held. An edit is one step whatever it touched — a drag that moved eight platforms undoes in one.">0 undo · 0 redo</span>
         <span class="viewer__fps" id="arenaFps"></span>
@@ -227,6 +248,7 @@ const editingEl = document.getElementById("editingToggle");
 const viewEl = document.getElementById("viewRange");
 const viewValueEl = document.getElementById("viewValue");
 const charPickEl = document.getElementById("charPick");
+const charReachEl = document.getElementById("charReach");
 const padEl = document.getElementById("arenaPads");
 const fpsEl = document.getElementById("arenaFps");
 const historyEl = document.getElementById("arenaHistory");
@@ -585,6 +607,18 @@ function rectOf(i) {
   return { x: r.x, y: r.y, w: r.w, h: Math.max(r.h, 10) };
 }
 
+/** How wide a grab zone this platform can afford on each edge.
+ *
+ *  A quarter of the width, capped at the ordinary margin — because two full
+ *  margins do not FIT on a narrow platform, and when they do not fit they eat
+ *  it whole. A 30px wall at editing zoom left a 1.8px band in the middle where
+ *  "move" was reachable, which is why a wall could be resized all day and never
+ *  picked up. Reserving half the width for the body means every platform, at
+ *  any zoom, can always be dragged. */
+function edgeGrab(r) {
+  return Math.min(grabPx(), r.w / 4);
+}
+
 /** What is under this world point: an index and which part of it was hit. */
 function pick(w) {
   const m = grabPx();
@@ -594,8 +628,17 @@ function pick(w) {
     const r = rectOf(i);
     if (w.y < r.y - m || w.y > r.y + r.h + m) continue;
     if (w.x < r.x - m || w.x > r.x + r.w + m) continue;
-    if (Math.abs(w.x - r.x) <= m) return { i, part: "left" };
-    if (Math.abs(w.x - (r.x + r.w)) <= m) return { i, part: "right" };
+    const e = edgeGrab(r);
+    if (Math.abs(w.x - r.x) <= e) return { i, part: "left" };
+    if (Math.abs(w.x - (r.x + r.w)) <= e) return { i, part: "right" };
+    // A WALL'S HEIGHT IS ITS REACH, so it gets a handle for it. On everything
+    // else `h` is slab thickness — a drawing decision the ART_SCALE pass owns
+    // (stages.js) — and dragging it by accident while reaching for the body
+    // would be a change nobody asked for. The numeric field still edits it.
+    if (bench.arena.platforms[i].kind === "wall"
+        && Math.abs(w.y - (r.y + r.h)) <= Math.min(m, r.h / 3)) {
+      return { i, part: "bottom" };
+    }
     return { i, part: "move" };
   }
   return null;
@@ -651,7 +694,8 @@ canvas.addEventListener("pointermove", (ev) => {
   if (!bench.drag) {
     const hit = pick(w);
     canvas.style.cursor = !hit ? "default"
-      : hit.part === "move" || bench.sel.length > 1 ? "move" : "ew-resize";
+      : hit.part === "move" || bench.sel.length > 1 ? "move"
+      : hit.part === "bottom" ? "ns-resize" : "ew-resize";
     return;
   }
 
@@ -677,6 +721,11 @@ canvas.addEventListener("pointermove", (ev) => {
     const x = Math.min(Math.round(w.x), right - 8);
     p.x = x;
     p.w = right - x;
+  } else if (d.part === "bottom") {
+    // Down from the TOP surface, which is the edge everything stands on and
+    // the one number a wall must not move while it is being made taller.
+    const p = bench.arena.platforms[d.i];
+    p.h = Math.max(8, Math.round(w.y - p.y));
   } else {
     const p = bench.arena.platforms[d.i];
     p.w = Math.max(8, Math.round(w.x - p.x));
@@ -1124,10 +1173,18 @@ function drawEditing() {
     // Handles only when ONE is picked: a resize means one platform, and drawing
     // grips on a group would promise a gesture that does nothing.
     if (single) {
-      const s = 9 * px;
+      // Drawn no wider than the zone that actually answers, so a narrow wall
+      // shows two small grips with body between them rather than two big ones
+      // that appear to cover it.
+      const s = Math.min(9 * px, edgeGrab(r));
       ctx.fillStyle = "rgba(120, 240, 190, 0.95)";
       for (const hx of [r.x, r.x + r.w]) {
         ctx.fillRect(hx - s / 2, r.y + r.h / 2 - s, s, s * 2);
+      }
+      // The height grip, on the one kind whose height is a gameplay number.
+      if (bench.arena.platforms[i].kind === "wall") {
+        const t = Math.min(9 * px, r.h / 3);
+        ctx.fillRect(r.x + r.w / 2 - t, r.y + r.h - t / 2, t * 2, t);
       }
       ctx.fillStyle = "rgba(230, 255, 245, 0.95)";
       ctx.font = `${13 * px}px ui-monospace, monospace`;
@@ -1255,10 +1312,21 @@ viewEl.addEventListener("input", () => {
   if (bench.editing) pinCamera();
 });
 
+// The list says what each fighter can reach, so picking one to test with is an
+// informed choice rather than a name you recognise.
 charPickEl.innerHTML = CHARACTER_KEYS
-  .map((k) => `<option value="${k}">${characterName(k)}</option>`).join("");
+  .map((k) => `<option value="${k}">${characterName(k)} · ${Math.round(fullJump(k))}px</option>`)
+  .join("");
+
+function paintReachOfChar() {
+  const px = Math.round(fullJump(bench.charKey));
+  const weakest = bench.charKey === weakestJumper();
+  charReachEl.textContent = `${px}px jump${weakest ? " · weakest" : ""}`;
+  charReachEl.classList.toggle("is-weakest", weakest);
+}
 charPickEl.addEventListener("change", async () => {
   bench.charKey = charPickEl.value;
+  paintReachOfChar();
   bench.loading = true;
   await ensureMatchAssets([bench.charKey], bench.stageKey);
   spawnFighter();
@@ -1291,6 +1359,7 @@ async function boot() {
   viewEl.value = String(bench.view);
   viewValueEl.textContent = `${bench.view.toFixed(2)}x`;
   charPickEl.value = bench.charKey;
+  paintReachOfChar();
 
   layoutCanvas();
   pinCamera();

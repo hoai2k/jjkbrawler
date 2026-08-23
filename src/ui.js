@@ -3,10 +3,11 @@ import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacte
 import { STAGES, getStage, backgroundFile, thumbFile } from "./stages.js";
 import { audioSettings, audioUnlocked, cycleMusicMode, MUSIC_MODES, musicPlaying, setTitleLive, syncMusic, playSfx, toggleMute } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
-import { METER_MAX, TIME_OPTIONS } from "./constants.js";
+import { METER_MAX, TIME_OPTIONS, WORLD } from "./constants.js";
 import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates, MAX_SEATS } from "./input.js";
-import { cameraMode } from "./camera_mode.js";
+import { cameraMode, camera3d } from "./camera_mode.js";
+import { bodyMetrics } from "./silhouette.js";
 import { cycleRenderBackend, renderBackendMenuLabel, preloadChar } from "./render_backend.js";
 import { previewCharacter, claimCharacter, previewStage, loadProgress, onLoadProgress } from "./assets.js";
 import { warmMenuArt } from "./menu_art.js";
@@ -2102,6 +2103,98 @@ function measureHudBand() {
   state.hudBand = clamp((box.bottom - arena.top) / arena.height, 0, 0.3);
 }
 
+// ---------------------------------------------------------- the HUD yields
+//
+// THE CAMERA MOVES FIRST; THE INTERFACE MOVES LAST.
+//
+// The shot is framed into the strip under the damage plates (camera.js
+// bandFrac), so in normal play a fighter never reaches them. Boards can now be
+// built tall enough that the frame runs out of room — `clampView` will not look
+// higher than OVERSCAN_Y past the world — and at that point somebody fighting
+// at the top of the board is BEHIND the readouts, which is the one thing the
+// interface must never do to the game it is reporting on.
+//
+// So when the camera has nowhere left to go (`cam.atTop`) and a body overlaps a
+// plate, that plate gets out of the way. Only that plate: three other players'
+// readouts have done nothing wrong.
+//
+// AND IT STAYS OUT OF THE WAY UNTIL THE BODY HAS GONE. The trigger needs the
+// camera to be pinned, but the RELEASE only asks whether they still overlap —
+// otherwise a fighter hovering at the limit, where the camera is pinned one
+// frame and free the next, would strobe the plate on and off. Hysteresis on the
+// harder-to-satisfy half of the condition is the whole trick.
+const yielding = new Set();
+const WORLD_W = WORLD.w;
+const WORLD_H = WORLD.h;
+
+/** A fighter's body in canvas space (0..WORLD), through whichever camera is
+ *  running. The 2.5D path has to ask the rig — its projection is not the flat
+ *  camera's, and being 20px out here would show as a plate that fades late. */
+function bodyBoxOnCanvas(f) {
+  // Both off the fighter's OWN drawing, so a short character does not reserve a
+  // tall character's worth of plate.
+  const m = bodyMetrics(f.spriteChar || f.charKey);
+  const h = m.height;
+  const halfW = m.width * 0.5;
+  const feet = { x: f.x, y: f.y };
+  const head = { x: f.x, y: f.y - h };
+  const project = cameraMode === "3d" && camera3d
+    ? (p) => camera3d.worldToScreen(p.x, p.y)
+    : (p) => {
+      const cam = state.camera;
+      return {
+        x: (p.x - cam.x) * cam.zoom + WORLD_W / 2,
+        y: (p.y - cam.y) * cam.zoom + WORLD_H / 2,
+      };
+    };
+  const a = project(feet);
+  const b = project(head);
+  const zoom = cameraMode === "3d" && camera3d
+    ? Math.abs(a.y - b.y) / Math.max(1, h)
+    : state.camera.zoom;
+  return {
+    left: Math.min(a.x, b.x) - halfW * zoom,
+    right: Math.max(a.x, b.x) + halfW * zoom,
+    top: Math.min(a.y, b.y),
+    bottom: Math.max(a.y, b.y),
+  };
+}
+
+function updateHudYield() {
+  const canvas = els.gameCanvas || document.getElementById("gameCanvas");
+  if (!canvas) return;
+  const view = canvas.getBoundingClientRect();
+  if (!view.width || !view.height) return;
+  const atTop = !!state.camera.atTop;
+
+  for (const id of FIGHTER_IDS) {
+    const panel = els[`p${id}Panel`];
+    const f = state.fighters[id - 1];
+    if (!panel || panel.classList.contains("hidden")) { yielding.delete(id); continue; }
+
+    // Every LIVE body is tested against every plate, not just the plate that
+    // belongs to that fighter: it is player 2 climbing into player 1's readout
+    // that hides player 1's damage.
+    let hit = false;
+    for (const other of state.fighters) {
+      if (!other || other.dead || other.respawnTimer > 0) continue;
+      const box = bodyBoxOnCanvas(other);
+      const r = panel.getBoundingClientRect();
+      const l = view.left + (box.left / WORLD_W) * view.width;
+      const rr = view.left + (box.right / WORLD_W) * view.width;
+      const t = view.top + (box.top / WORLD_H) * view.height;
+      const b = view.top + (box.bottom / WORLD_H) * view.height;
+      if (rr > r.left && l < r.right && b > r.top && t < r.bottom) { hit = true; break; }
+    }
+
+    // Enter only when the camera has already given up; leave as soon as the
+    // body is clear, whatever the camera is doing.
+    if (yielding.has(id)) { if (!hit) yielding.delete(id); }
+    else if (hit && atTop) yielding.add(id);
+    panel.classList.toggle("fighter-status--yield", yielding.has(id));
+  }
+}
+
 export function updateHud() {
   els.hud.classList.toggle("hud--multiplayer", state.fighters.length > 2);
   // Five or more panels no longer fit at multiplayer size: portraits go and the
@@ -2150,6 +2243,9 @@ export function updateHud() {
     renderStocks(id, els[`p${id}Stocks`], f);
     renderMeter(id, els[`p${id}Meter`], els[`p${id}MeterLabel`], f);
   }
+  // Last, so the plates have their final size and position for the overlap
+  // test — the crowd layouts above change how wide they are.
+  updateHudYield();
 }
 
 function updateMatchClock() {

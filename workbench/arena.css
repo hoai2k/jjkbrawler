@@ -207,6 +207,8 @@
   font-family: ui-monospace, monospace;
 }
 .arenabench .viewer__hist { margin-left: auto; color: #7a839c; }
+.arenabench .viewer__reach { font-family: ui-monospace, monospace; color: #7a839c; }
+.arenabench .viewer__reach.is-weakest { color: #6fe3ad; }
 .arenabench .viewer__fps { margin-left: 0; }
 
 .arenabench .dummyPick {

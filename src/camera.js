@@ -448,6 +448,22 @@ export function updateCamera(dt) {
   cam.x = clampView(cam.x, halfW, WORLD.w, OVERSCAN_X);
   cam.y = clampView(cam.y, halfH, WORLD.h, OVERSCAN_Y);
 
+  // THE FRAME HAS NOWHERE LEFT TO GO UP.
+  //
+  // Read here, after the last clamp, because that is the only point at which it
+  // is true of the frame that will actually be drawn. The HUD asks it: a
+  // fighter who has climbed behind the damage plates is a problem the CAMERA
+  // should solve by moving, and only when the camera has run out of room does
+  // the interface get out of the way instead (ui.js, hud yielding).
+  //
+  // A view taller than world+gutter cannot pan at all, so it is always at its
+  // limit — that is the `lo > hi` case clampView centres.
+  {
+    const lo = halfH - OVERSCAN_Y;
+    const hi = WORLD.h - halfH + OVERSCAN_Y;
+    cam.atTop = lo > hi || cam.y <= lo + 0.5;
+  }
+
   cam.shake = Math.max(0, cam.shake - dt * 44);
 }
 

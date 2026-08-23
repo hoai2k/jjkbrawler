@@ -559,6 +559,67 @@ changed, and **Export carries every changed board at once** with a paste-ready
 `stages.js` entry for each — the same bargain the audio bench's "Export changes"
 strikes. A single-board export still reads exactly as it did.
 
+## 13. The interface defers to the fight
+
+The shot is framed into the strip under the damage plates (`camera.js`
+`bandFrac`), so in normal play a fighter never reaches them. Boards can now be
+built tall enough that the frame runs out of room — `clampView` will not look
+higher than `OVERSCAN_Y` past the world — and at that point somebody fighting at
+the top of the board is *behind* the readouts, which is the one thing an
+interface must never do to the game it reports on.
+
+**The camera moves first; the interface moves last.** `camera.js` publishes
+`cam.atTop` after its final clamp — the only point at which it is true of the
+frame that will actually be drawn — and `ui.js` `updateHudYield` fades a plate
+only when the camera has already given up *and* a body overlaps it. Only the
+plate that is actually covered: three other players' readouts have done nothing
+wrong. Every live body is tested against every plate, because it is player 2
+climbing into player 1's readout that hides player 1's damage.
+
+**And it stays out of the way until the body has gone.** The trigger needs the
+camera pinned; the *release* only asks whether they still overlap. A fighter
+hovering exactly at the limit — where the camera is pinned one frame and free
+the next — would otherwise strobe the plate. Hysteresis on the harder half of
+the condition is the whole trick, and `tools/smoke_hud_yield.mjs` holds one
+there for 150 frames and allows at most one change. It runs against both
+cameras: the flat one projects with `cam.x/y/zoom`, the shipped 2.5D one has to
+ask the rig, and being 20px out shows as a plate that fades late.
+
+The plate fades to 0.14 rather than vanishing — you can still read your own
+damage as a ghost behind the body, which matters most at exactly the moment you
+are being juggled into the ceiling. True per-pixel layering (the fighter drawn
+*over* the plate) would mean re-rendering the body into a layer above the HUD,
+and the body lives on a different canvas in each backend — the 2D one in flat
+mode, a WebGL billboard in 2.5D — so it would have to be drawn twice by two
+different paths and would not match itself. Fading is the same promise kept with
+one mechanism.
+
+## 14. Test a board with the fighter who reaches least far
+
+The arena bench defaults to the roster's **weakest jumper**, derived rather than
+named so it stays true when somebody re-tunes a stat. A layout is only as good
+as its worst case: if the shortest jumper can get everywhere, everyone can, and
+if they cannot then the board has a hole in it that a tall jumper will hide from
+you. Today that is Gakuganji and Tengen, tied at impulse 780 with one air jump —
+129px on a single hop, 239px on a full one, against Uro's 434. The picker lists
+every fighter's full jump beside their name for the same reason.
+
+Two handle bugs went with it, both reported from use:
+
+- **A wall could not be dragged taller.** There was no vertical handle at all,
+  only the two horizontal ones — and a wall's height is its reach, not slab art.
+  Walls now carry a height grip on their bottom edge, which grows them downward
+  and leaves the top surface (the thing everything stands on) exactly where it
+  is. Only walls: on every other kind `h` is thickness the `ART_SCALE` pass
+  owns, and dragging it by accident while reaching for the body would be a
+  change nobody asked for.
+- **A narrow wall could not be picked up.** The two edge grab zones are a fixed
+  margin wide — 14.1px each at editing zoom — so on a 30px wall they leave a
+  **1.8px** band in the middle where "move" answers. Every attempt landed on a
+  resize, and making the wall taller only offered more of the wrong thing to
+  hit. The zones are capped at a quarter of the width now, which reserves half
+  the platform for the body at any size and any zoom.
+
 ## The slab takes the room's light
 
 Every board declared its ambiance once — `tint` in `src/stages.js`, the wash the
