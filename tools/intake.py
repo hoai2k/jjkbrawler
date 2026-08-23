@@ -300,6 +300,22 @@ FACING_OVERRIDE = {
     # the POSE that defeats the detector, not the character, so a fighter who
     # needed no entry for 35 frames can still need one for the 36th.
     "kirara/attack_down": "right",
+    # Round 25: three more, and the two `attack_diag_up_b` are the clearest
+    # case the list has. A diagonal up-swing puts the weapon overhead and the
+    # body under it, so almost the whole silhouette is a vertical column with
+    # one arm out of it — and the strongest asymmetry left is whatever hangs
+    # down, which points the other way. Mei Mei's braids trail behind her and
+    # Nanami's club is above his head; both were delivered facing RIGHT, both
+    # were called left with the highest confidence in the round (0.386, 0.229),
+    # and both would have landed swinging into the air behind them.
+    "meimei/attack_diag_up_b": "right",
+    "nanami/attack_diag_up_b": "right",
+    # And Momo, for the reason Panda keeps being here: a front-on pose with the
+    # arms raised is nearly symmetrical, so the detector reads the one thing
+    # that is not — her broom, slung across her back. Her own `idle_a` settles
+    # it: hat point sweeping image-left, buckle on the left, bristles at the
+    # bottom left. The delivery matches it and the mirror contradicted it.
+    "momo/throw_up": "right",
 }
 
 

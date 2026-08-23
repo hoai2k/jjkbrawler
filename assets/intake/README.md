@@ -111,11 +111,11 @@ that way, so this is the normal case, not a mistake.
    five backwards-mirrored poses were both found here, and a mirrored strike
    reads as a perfectly good strike until you notice it lands behind the
    fighter.
-3. `tools/intake_import.py --approve` copies approved frames into
-   `sprites/assets/<char>/` and registers them in `manifest.json`. **A frame
-   that replaces existing art does not enter the game here** — it lands beside
-   the drawing it replaces and waits to be approved in the workbench. A
-   brand-new pose has nothing to compare against and goes straight in. See
+3. `tools/intake_import.py --approve` lands approved frames in
+   `sprites/assets/<char>/incoming/` and registers them in `manifest.json`.
+   **Nothing enters the game here** — a replacement lands beside the drawing it
+   replaces, and a first delivery beside the fallback its states are playing,
+   and both wait to be approved in the workbench. See
    [the confirm step](#the-confirm-step) below.
 4. `tools/bake_anchors.py` measures each new frame's centre of mass.
 5. `tools/auto_tune.py` applies the placement corrections that are mechanical —
