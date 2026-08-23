@@ -84,7 +84,7 @@ export const AUDIO_MIX = {
     combat: 1.00,   // hits, slashes, blocks — the loudest, most frequent layer
     movement: 0.55, // jumps, landings, dashes: constant, must not fatigue
     voice: 0.80,    // SPOKEN lines: the call-outs and Inumaki's commands
-    cry: 0.80,      // the KO cry — one per stock, and it should land
+    cry: 0.55,      // the KO cry — one per stock, and it should land
     grunt: 0.55,    // the wordless effort noise under every attack
     ui: 0.45,       // menus should never be as loud as a fight
     stinger: 0.85,  // countdown, match end, meter full — occasional and big
