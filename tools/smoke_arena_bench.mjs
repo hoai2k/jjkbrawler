@@ -163,6 +163,34 @@ const fxPlay = await fxState();
 check(fxPlay.on && fxPlay.entities === 1 && fxPlay.checked,
   "...and arms this board's hazards", JSON.stringify(fxPlay));
 
+// --- ...AND THE WORLD CLOCK RUNS. Every gimmick's schedule is `state.matchTime`
+//     (stage_fx.js), which used to be ticked by the MATCH loop and by nothing
+//     else — so an armed hazard on a bench sat at t = 0 forever and a board
+//     whose fangs come every 20s never reached its first second. The world step
+//     ticks it now, so anything that steps the world has a clock.
+const clock0 = await page.evaluate(async () => (await import("/src/state.js")).state.matchTime);
+await page.waitForTimeout(900);
+const clock1 = await page.evaluate(async () => (await import("/src/state.js")).state.matchTime);
+check(clock1 > clock0 + 0.4, "the world clock runs in the bench", `${clock0.toFixed(2)} -> ${clock1.toFixed(2)}`);
+
+// --- WHAT THE BOARD DOES, in words, beside the board it is about.
+const note = await page.textContent("#fxNote");
+const wantNote = await page.evaluate(async () => {
+  const { STAGE_FX_NOTES } = await import("/src/stage_fx.js");
+  const { state } = await import("/src/state.js");
+  return STAGE_FX_NOTES[state.stageKey] || null;
+});
+check(!!wantNote && note.includes(wantNote.name) && note.includes(wantNote.asks.slice(0, 24)),
+  "the panel says what this board does, and what it asks of the layout",
+  JSON.stringify(note.slice(0, 90)));
+const missingNotes = await page.evaluate(async () => {
+  const { STAGE_FX_NOTES } = await import("/src/stage_fx.js");
+  const { STAGES } = await import("/src/stages.js");
+  return STAGES.filter((s) => !STAGE_FX_NOTES[s.key]?.what || !STAGE_FX_NOTES[s.key]?.asks)
+    .map((s) => s.key);
+});
+check(missingNotes.length === 0, "every board has one", missingNotes.join(", "));
+
 await page.check("#editingToggle");
 await page.waitForTimeout(400);
 const camEdit = await page.evaluate(async () => (await import("/src/state.js")).state.camera.zoom);
@@ -198,6 +226,21 @@ check(json.mods && json.mods.frictionPow === 0.35, "export carries the board's m
   JSON.stringify(json.mods));
 check(dl.suggestedFilename() === "arena-sunkenCrossing.json", "download is named for the board",
   dl.suggestedFilename());
+
+// --- A BENCH OPENED STRAIGHT INTO PLAY MODE arms them too. The toggle that
+//     arms hazards only fires when somebody changes it, so ?editing=off used to
+//     boot with the board stilled and nothing on screen saying why.
+await page.goto(`${BASE}/workbench/?edit=arena&stage=curseMaw&editing=off`, { waitUntil: "load" });
+await page.waitForSelector("#arenaCanvas", { timeout: 30000 });
+for (let w = 0; ; w += 200) {
+  if (await page.evaluate(async () => (await import("/src/state.js")).state.fighters.length > 0)) break;
+  if (w > 60000) throw new Error("no boot");
+  await page.waitForTimeout(200);
+}
+await page.waitForTimeout(800);
+const booted = await fxState();
+check(booted.on && booted.entities === 1 && booted.checked,
+  "a bench booted into play mode starts with its hazards armed", JSON.stringify(booted));
 
 console.log("\nerrors:", errors.length ? errors.slice(0, 5) : "none");
 await browser.close();

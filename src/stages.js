@@ -33,20 +33,26 @@ import { clamp } from "./utils.js";
 // under it. Every other board gains the storey; which ones do is a per-board
 // decision, not a rule.
 //
-// SIX BOARDS SPLIT THAT FLOOR, with holes down the middle: Neon Split, Bone
-// Sanctum, Cursed Teeth, Billboard Roof, Domain Core — and Curse Maw, whose
-// floor comes in THREE pieces, a row of teeth with a gap between each. The
-// spawn tier still bridges the gaps, so a match opens on solid ground and the
-// hole is something you choose to deal with — more grabbable ledges, and a way
-// to lose a stock straight down the middle. The six were picked for gimmicks
-// that never measure the main (stage_fx.js): a board whose hazard sweeps its
-// floor keeps that floor in one piece.
+// THREE BOARDS SPLIT THAT FLOOR, with holes down the middle: Neon Split,
+// Cursed Teeth, and Curse Maw — whose floor comes in THREE pieces, a row of
+// teeth with a gap between each. The spawn tier bridges the gaps, so a match
+// opens on solid ground and the hole is something you choose to deal with:
+// more grabbable ledges, and a way to lose a stock straight down the middle.
+// The three run gimmicks that measure the floor by its whole SPAN rather than
+// by one slab (stage_fx.js floorRect), so a hazard still crosses the board.
 //
 // WHERE A MATCH OPENS IS ITS OWN DECISION, separate from what the ground is.
-// Usually it is the `kind: "spawn"` drop-through above the floor; a board that
-// wants to open on SOLID ground with a floor still underneath marks that
-// platform `spawn: true` instead (see spawnPlatform below). The arena bench
-// exposes it as a tick box, one per board.
+// On eight boards it is the `kind: "spawn"` drop-through a storey above the
+// floor; on seven it is the ground itself, marked `spawn: true` (see
+// spawnPlatform below) — those are boards whose fight wanted one clean surface
+// rather than two storeys, and the flag is what lets them say so without
+// giving up the floor's other properties. The arena bench exposes it as a tick
+// box, one per board.
+//
+// AND A PLATFORM MAY HANG BELOW THE FLOOR. Bridge Duel keeps two catch
+// platforms under its bridge: nothing grabs their ledges (only a main has
+// those) but a fighter knocked off has something to land on. The audit says so
+// rather than refusing it.
 //
 // Proportions follow docs/level-design-review.md: platforms two fighters are
 // meant to contest are ≥ ~195px (about three body widths); shorter ones are
@@ -104,7 +110,7 @@ export const STAGES = [
     { x: -149, y: 692, w: 1581, h: 42, kind: "main" }, { x: 206, y: 572, w: 868, h: 15, kind: "spawn" }, { x: 230, y: 438, w: 270, h: 15, kind: "side" }, { x: 780, y: 452, w: 270, h: 15, kind: "side" }
   ] },
   { key: "floodedGate", name: "Flooded Gate", bgFile: "flooded_gate.jpg", tint: "rgba(107, 174, 214, 0.13)", platforms: [
-    { x: 65, y: 687, w: 1151, h: 42, kind: "main" }, { x: 212, y: 570, w: 827, h: 15, kind: "spawn" }, { x: 150, y: 446, w: 200, h: 15, kind: "side" }, { x: 930, y: 446, w: 200, h: 15, kind: "side" }, { x: 464, y: 300, w: 352, h: 15, kind: "top" }
+    { x: 77, y: 590, w: 1151, h: 42, kind: "main", spawn: true }, { x: 150, y: 446, w: 200, h: 15, kind: "side" }, { x: 930, y: 446, w: 200, h: 15, kind: "side" }, { x: 464, y: 300, w: 352, h: 15, kind: "top" }
   ] },
   { key: "shibuyaNight", name: "Shibuya Night", bgFile: "shibuya_night.jpg", tint: "rgba(88, 116, 220, 0.16)", platforms: [
     { x: 110, y: 686, w: 1029, h: 42, kind: "main" }, { x: 330, y: 566, w: 600, h: 15, kind: "spawn" }, { x: 170, y: 452, w: 220, h: 15, kind: "side" }, { x: 857, y: 452, w: 220, h: 15, kind: "side" }, { x: 350, y: 342, w: 190, h: 15, kind: "side" }, { x: 740, y: 342, w: 190, h: 15, kind: "side" }, { x: 505, y: 240, w: 270, h: 15, kind: "top" }
@@ -125,16 +131,16 @@ export const STAGES = [
     { x: -104, y: 696, w: 641, h: 42, kind: "main" }, { x: 240, y: 568, w: 800, h: 15, kind: "spawn" }, { x: 42, y: 452, w: 378, h: 15, kind: "side" }, { x: 860, y: 452, w: 401, h: 15, kind: "side" }, { x: 134, y: 337, w: 315, h: 15, kind: "side" }, { x: 830, y: 332, w: 318, h: 15, kind: "side" }, { x: 787, y: 693, w: 573, h: 42, kind: "main" }, { x: 230, y: 193, w: 325, h: 15, kind: "side" }, { x: 767, y: 191, w: 304, h: 15, kind: "side" }
   ] },
   { key: "boneSanctum", name: "Bone Sanctum", bgFile: "bone_sanctum.jpg", tint: "rgba(76, 221, 210, 0.1)", platforms: [
-    { x: 120, y: 694, w: 450, h: 42, kind: "main" }, { x: 760, y: 694, w: 450, h: 42, kind: "main" }, { x: 206, y: 574, w: 868, h: 15, kind: "spawn" }, { x: 160, y: 456, w: 190, h: 15, kind: "side" }, { x: 930, y: 456, w: 190, h: 15, kind: "side" }, { x: 400, y: 346, w: 180, h: 15, kind: "side" }, { x: 700, y: 346, w: 180, h: 15, kind: "side" }, { x: 315, y: 236, w: 200, h: 15, kind: "side" }, { x: 765, y: 236, w: 200, h: 15, kind: "side" }
+    { x: 223, y: 586, w: 853, h: 42, kind: "main", spawn: true }, { x: 160, y: 456, w: 190, h: 15, kind: "side" }, { x: 930, y: 456, w: 190, h: 15, kind: "side" }, { x: 400, y: 346, w: 180, h: 15, kind: "side" }, { x: 700, y: 346, w: 180, h: 15, kind: "side" }, { x: 315, y: 236, w: 200, h: 15, kind: "side" }, { x: 765, y: 236, w: 200, h: 15, kind: "side" }
   ] },
   { key: "bridgeDuel", name: "Bridge Duel", bgFile: "bridge_duel.jpg", tint: "rgba(49, 168, 134, 0.12)", platforms: [
-    { x: 179, y: 475, w: 907, h: 42, kind: "main" }, { x: -21, y: 339, w: 263, h: 15, kind: "side" }, { x: 1039, y: 341, w: 265, h: 15, kind: "side" }
+    { x: 179, y: 475, w: 907, h: 42, kind: "main" }, { x: -6, y: 661, w: 263, h: 15, kind: "side" }, { x: 878, y: 672, w: 265, h: 15, kind: "side" }
   ] },
   { key: "academyHall", name: "Academy Hall", bgFile: "academy_hall.jpg", tint: "rgba(140, 112, 80, 0.14)", platforms: [
-    { x: 60, y: 688, w: 1160, h: 42, kind: "main" }, { x: 110, y: 568, w: 1060, h: 15, kind: "spawn" }, { x: 230, y: 446, w: 220, h: 15, kind: "side" }, { x: 830, y: 446, w: 220, h: 15, kind: "side" }, { x: 512, y: 320, w: 256, h: 15, kind: "top" }, { x: 560, y: 452, w: 160, h: 15, kind: "side" }, { x: 560, y: 191, w: 160, h: 15, kind: "side" }
+    { x: 56, y: 585, w: 1160, h: 42, kind: "main", spawn: true }, { x: 230, y: 446, w: 220, h: 15, kind: "side" }, { x: 830, y: 446, w: 220, h: 15, kind: "side" }, { x: 512, y: 320, w: 256, h: 15, kind: "top" }, { x: 560, y: 452, w: 160, h: 15, kind: "side" }, { x: 560, y: 191, w: 160, h: 15, kind: "side" }
   ] },
   { key: "mistPier", name: "Mist Pier", bgFile: "mist_pier.jpg", tint: "rgba(178, 226, 255, 0.1)", platforms: [
-    { x: 129, y: 703, w: 1052, h: 42, kind: "main" }, { x: 222, y: 580, w: 836, h: 15, kind: "spawn" }, { x: 319, y: 410, w: 240, h: 15, kind: "side" }, { x: 752, y: 408, w: 240, h: 15, kind: "side" }, { x: 602, y: 294, w: 150, h: 15, kind: "top" }
+    { x: 129, y: 703, w: 1052, h: 42, kind: "main" }, { x: 333, y: 580, w: 640, h: 15, kind: "spawn" }, { x: 498, y: 416, w: 339, h: 15, kind: "side" }, { x: 602, y: 294, w: 150, h: 15, kind: "top" }
   ] },
   { key: "crosswalkRush", name: "Crosswalk Rush", bgFile: "crosswalk_rush.jpg", tint: "rgba(76, 171, 255, 0.13)", platforms: [
     { x: -140, y: 664, w: 1560, h: 42, kind: "main" }, { x: 340, y: 532, w: 600, h: 15, kind: "side" }, { x: 130, y: 398, w: 170, h: 15, kind: "top" }, { x: 980, y: 398, w: 170, h: 15, kind: "top" }
@@ -146,16 +152,16 @@ export const STAGES = [
     { x: 110, y: 696, w: 1060, h: 42, kind: "main" }, { x: 244, y: 573, w: 538, h: 15, kind: "spawn" }, { x: -42, y: 488, w: 243, h: 15, kind: "side" }, { x: 189, y: 209, w: 200, h: 15, kind: "side" }, { x: 408, y: 350, w: 325, h: 15, kind: "top" }, { x: 60, y: 11, w: 26, h: 480, kind: "wall" }, { x: 1144, y: 77, w: 34, h: 430, kind: "wall" }, { x: -116, y: 617, w: 116, h: 15, kind: "side" }, { x: 896, y: 141, w: 244, h: 15, kind: "side" }, { x: 857, y: 87, w: 34, h: 430, kind: "wall" }, { x: 889, y: 501, w: 257, h: 15, kind: "side" }
   ] },
   { key: "schoolWing", name: "School Wing", bgFile: "school_wing.jpg", tint: "rgba(205, 148, 92, 0.1)", platforms: [
-    { x: 86, y: 690, w: 1170, h: 42, kind: "main" }, { x: 230, y: 570, w: 903, h: 15, kind: "spawn" }, { x: 149, y: 446, w: 221, h: 15, kind: "side" }, { x: 844, y: 448, w: 200, h: 15, kind: "side" }, { x: 340, y: 330, w: 130, h: 15, kind: "side" }, { x: 790, y: 330, w: 170, h: 15, kind: "side" }, { x: 1123, y: 228, w: 130, h: 15, kind: "side" }, { x: -53, y: 290, w: 130, h: 15, kind: "side" }, { x: 76, y: 171, w: 130, h: 15, kind: "side" }
+    { x: 79, y: 591, w: 1170, h: 42, kind: "main", spawn: true }, { x: 149, y: 446, w: 221, h: 15, kind: "side" }, { x: 844, y: 448, w: 200, h: 15, kind: "side" }, { x: 340, y: 330, w: 130, h: 15, kind: "side" }, { x: 790, y: 330, w: 170, h: 15, kind: "side" }, { x: 1123, y: 228, w: 130, h: 15, kind: "side" }, { x: -53, y: 290, w: 130, h: 15, kind: "side" }, { x: 76, y: 171, w: 130, h: 15, kind: "side" }
   ] },
   { key: "emptyCity", name: "Empty City", bgFile: "empty_city.jpg", tint: "rgba(159, 189, 214, 0.15)", platforms: [
-    { x: -49, y: 640, w: 1394, h: 42, kind: "main" }, { x: 168, y: 513, w: 920, h: 15, kind: "spawn" }, { x: 128, y: 409, w: 210, h: 15, kind: "side" }, { x: 918, y: 385, w: 210, h: 15, kind: "side" }, { x: 50, y: 256, w: 190, h: 15, kind: "top" }, { x: 611, y: 245, w: 389, h: 15, kind: "top" }
+    { x: 72, y: 597, w: 1118, h: 42, kind: "main", spawn: true }, { x: 130, y: 375, w: 210, h: 15, kind: "side" }, { x: 918, y: 385, w: 210, h: 15, kind: "side" }, { x: 50, y: 256, w: 190, h: 15, kind: "top" }, { x: 611, y: 245, w: 389, h: 15, kind: "top" }, { x: 240, y: 480, w: 210, h: 15, kind: "side" }, { x: 761, y: 480, w: 203, h: 15, kind: "side" }
   ] },
   { key: "billboardRoof", name: "Billboard Roof", bgFile: "billboard_roof.jpg", tint: "rgba(255, 83, 148, 0.1)", platforms: [
-    { x: 120, y: 700, w: 450, h: 42, kind: "main" }, { x: 760, y: 700, w: 450, h: 42, kind: "main" }, { x: 214, y: 580, w: 852, h: 15, kind: "spawn" }, { x: 180, y: 470, w: 150, h: 15, kind: "side" }, { x: 950, y: 470, w: 150, h: 15, kind: "side" }, { x: 470, y: 370, w: 340, h: 15, kind: "side" }, { x: 540, y: 262, w: 200, h: 15, kind: "top" }, { x: -43, y: 323, w: 340, h: 15, kind: "side" }, { x: 1024, y: 323, w: 340, h: 15, kind: "side" }, { x: 980, y: 94, w: 150, h: 15, kind: "side" }
+    { x: 253, y: 589, w: 815, h: 42, kind: "main", spawn: true }, { x: 180, y: 470, w: 150, h: 15, kind: "side" }, { x: 950, y: 470, w: 150, h: 15, kind: "side" }, { x: 470, y: 370, w: 340, h: 15, kind: "side" }, { x: 540, y: 262, w: 200, h: 15, kind: "top" }, { x: -43, y: 323, w: 340, h: 15, kind: "side" }, { x: 1024, y: 323, w: 340, h: 15, kind: "side" }, { x: 980, y: 94, w: 150, h: 15, kind: "side" }
   ] },
   { key: "domainCore", name: "Domain Core", bgFile: "domain_core.jpg", tint: "rgba(108, 255, 230, 0.13)", mods: { gravityMul: 0.88 }, platforms: [
-    { x: 100, y: 698, w: 470, h: 42, kind: "main" }, { x: 760, y: 698, w: 470, h: 42, kind: "main" }, { x: 166, y: 578, w: 948, h: 15, kind: "spawn" }, { x: 240, y: 458, w: 180, h: 15, kind: "side" }, { x: 860, y: 458, w: 180, h: 15, kind: "side" }, { x: 430, y: 338, w: 170, h: 15, kind: "side" }, { x: 680, y: 338, w: 170, h: 15, kind: "side" }, { x: 17, y: 341, w: 180, h: 15, kind: "side" }, { x: 1087, y: 335, w: 180, h: 15, kind: "side" }, { x: 1148, y: 196, w: 180, h: 15, kind: "side" }, { x: -101, y: 201, w: 180, h: 15, kind: "side" }
+    { x: 306, y: 585, w: 681, h: 42, kind: "main", spawn: true }, { x: 240, y: 458, w: 180, h: 15, kind: "side" }, { x: 860, y: 458, w: 180, h: 15, kind: "side" }, { x: 430, y: 338, w: 170, h: 15, kind: "side" }, { x: 680, y: 338, w: 170, h: 15, kind: "side" }, { x: 17, y: 341, w: 180, h: 15, kind: "side" }, { x: 1087, y: 335, w: 180, h: 15, kind: "side" }, { x: 1148, y: 196, w: 180, h: 15, kind: "side" }, { x: -101, y: 201, w: 180, h: 15, kind: "side" }
   ] },
 ];
 
@@ -308,6 +314,14 @@ export function spawnSpot(platforms, x) {
   // fallback below (no tier declared anywhere, so the ground is the ground)
   // keeps the old lowest-surface-under-x rule.
   if (tier.kind === "spawn" || tier.spawn) return onto();
+  // THE FALLBACK: no tier declared, so the ground is the ground. Standing ON
+  // the ground wins wherever it is underfoot — Bridge Duel hangs two catch
+  // platforms UNDER its bridge, and "the lowest surface under this x" alone
+  // would have opened the outer slots below the board they are meant to duel
+  // on. Only where the ground is NOT under that x does the lowest surface
+  // decide, which is what still opens a slot on a side platform Battlefield-
+  // style rather than in mid-air.
+  if (x >= tier.x + 12 && x <= tier.x + tier.w - 12) return { x, y: tier.y };
   const under = platforms.filter((p) => x >= p.x + 12 && x <= p.x + p.w - 12);
   if (under.length) return { x, y: Math.max(...under.map((p) => p.y)) };
   return onto();

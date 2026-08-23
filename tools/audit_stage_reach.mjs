@@ -153,8 +153,17 @@ for (const stage of STAGES) {
     problems.push(`${others.length} non-main platforms (allowed 2–10)`);
   }
   if (tier.length > 1) problems.push(`${tier.length} spawn tiers (allowed 0 or 1)`);
+  // A PLATFORM BELOW THE FLOOR is unusual, not broken. It used to be an error
+  // on the reading that the main is "the lowest surface", which was true of
+  // every board when it was written. Bridge Duel now hangs two catch platforms
+  // UNDER its bridge, which is a recovery decision, and nothing in the game
+  // objects: you can stand on them, they simply have no grabbable ledges (only
+  // a main does) and the blast line is a long way further down. So: say it,
+  // because a slab that drifted below the floor by accident looks the same.
   for (const p of others) {
-    if (p.y >= main.y) problems.push(`platform at (${p.x},${p.y}) is not above the main (y ${main.y})`);
+    if (p.y >= main.y) {
+      warns.push(`(${p.x},${p.y}) hangs below the floor (y ${main.y}) — no ledges to grab on it`);
+    }
   }
   // THE TIER A MATCH OPENS ON has to be somewhere a fighter can get back to
   // after being knocked down to the floor, or the storey below is a trap.

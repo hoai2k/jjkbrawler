@@ -770,6 +770,65 @@ undone without clicking the picture first. The chord is let through now, and a
 smoke types a width into the panel and takes it back with the caret still in the
 field.
 
+## 20. The clock the benches never had, and what a board does in words
+
+**Active Boards did nothing in the arena bench**, and the reason was one line in
+the wrong file. `state.matchTime` — the clock every gimmick's schedule is
+written against — was incremented by `main.js`'s match step, because that used
+to be the only step there was. `sim.js stepWorld` is shared with the benches;
+the increment was not. So a bench armed its board's gimmick entity, called its
+`update` sixty times a second, and the entity asked what time it was and was
+told zero, forever. A hazard on a 20-second cycle never reached its first
+second.
+
+The clock is not a match rule — a dash's double-tap window, the parry window,
+animation phase and every hazard schedule read it, and all of those are the
+world, not the fight. It ticks in `stepWorld` now: one step, one tick, whoever
+is driving.
+
+Two smaller things fell out of the same investigation:
+
+- A bench opened straight into play mode (`?editing=off`) booted with hazards
+  stilled, because the toggle that arms them only fires when somebody changes
+  it. Boot takes the mode's answer now.
+- Academy Hall's class-change glides its drop-throughs into four authored
+  arrangements **matched by index**, and the board had since grown a fifth. The
+  fifth had no target, so the gimmick threw on the first bell and took the
+  frame's whole entity loop with it. A platform with no seat now stays where it
+  was authored.
+
+**And a floor in pieces was being measured by its first piece.** Six hazards
+took their extent from `mainPlatform`, which answers "a main" — the first one.
+That was the whole floor while every floor was one slab; on Curse Maw's row of
+three teeth it meant fangs snapping at the two ends of the leftmost tooth.
+`floorRect()` spans every piece, and on a single-slab board it is the same
+rectangle it always was.
+
+**What a board does, in words.** `STAGE_FX_NOTES` in `src/stage_fx.js` carries
+one entry per board — the gimmick's name, what it does, and an `asks` line for
+the half a layout has to care about: which platforms the board moves, phases or
+measures, and what it therefore expects to find. Bone Sanctum's says every
+platform that is not the floor or the tier will phase out; Empty City's says
+every `top` is its own crumble timer and a rooftop made `side` stops crumbling;
+Domain Core's says every `side` orbits. The bench shows it beside the board you
+are editing, in either mode, because none of it is visible in a still picture —
+a platform that phases out looks exactly like one that does not.
+
+**Two limits softened, both for boards somebody built:**
+
+- A platform may hang BELOW the floor. Bridge Duel now keeps two catch
+  platforms under its bridge; nothing in the game objects (they have no
+  grabbable ledges, and the blast line is far below), so the audit warns rather
+  than refusing. The spawn fallback learned the same lesson: with no tier
+  declared, the ground wins wherever it is underfoot, and only where the ground
+  is not under that x does the lowest surface decide — otherwise Bridge Duel's
+  outer slots opened *under* the board they are meant to duel on.
+- `smoke_stage_floor` counted how many boards had each shape on the day the
+  floor pass landed (12 tiered, 4 split). Those are design decisions, editable
+  from the bench, and seven boards have since traded their storey for one clean
+  surface. It measures the mix and the correctness of each shape now, not the
+  census.
+
 ## The slab takes the room's light
 
 Every board declared its ambiance once — `tint` in `src/stages.js`, the wash the

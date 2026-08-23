@@ -364,7 +364,6 @@ function startSuddenDeath(tiedSides) {
 }
 
 function updateSimulation(dt, held) {
-  state.matchTime += dt;
   // Mirrored onto state for consumers outside this module — the 2.5D camera
   // rig keys its intro pull-out and final-blow shot off these. Nothing in the
   // simulation reads them back.
