@@ -352,6 +352,19 @@ function beginLight(f, input) {
       // an arc swinging out of a shoulder they are not standing on.
       move.pivotY = crouchPivot(f.char);
     }
+    // AND THE TWO DIAGONALS WORTH THEIR OWN DRAWING. The hitbox has been aimed
+    // since the stick was read; the body swung level regardless, so the picture
+    // disagreed with the move on the two throws a player makes constantly —
+    // up-and-forward on the ground, down-and-forward in the air. Each plays the
+    // generic wind-up and one bespoke strike frame (characters.js diagUp /
+    // airDiagDown), and until that frame is drawn for a fighter the state falls
+    // back to exactly the swing they play today.
+    //
+    // The crouch above keeps its own pose: a stick at five o'clock is a crouch,
+    // the body IS down, and a drawing that says so beats one that says
+    // diagonal. This is the case the crouch branch does not cover.
+    else if (f.grounded && tilt < 0) move.anim = "diagUp";
+    else if (!f.grounded && tilt > 0) move.anim = "airDiagDown";
     aimAlong(f, tilt);
     executeMove(f, move);
     return;

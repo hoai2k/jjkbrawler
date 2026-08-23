@@ -22,11 +22,15 @@ numbered DI1, DI2… — so the tracks never collide. All of them are gathered i
 [image-requests.md](image-requests.md), which is what to read to draw any of
 them; these files are where each is written.)
 
-**Current status: rounds 1–23 and 22L delivered. ROUND 24 IS OPEN — 143
-sprites**, the last poses on the roster that are drawn by a stand-in: the four
-throws, which every fighter plays as a heavy attack swung that way, and
-Mahoraga's walk and teeter, which play his run and his idle. Nothing is
-blocked by either — that is what a fallback is for — and nothing else is owed.
+**Current status: rounds 1–23 and 22L delivered. ROUNDS 24 AND 25 ARE OPEN —
+222 sprites.** Round 24 is the last poses on the roster that were drawn by a
+stand-in: the four throws, which every fighter plays as a heavy attack swung
+that way, and Mahoraga's walk and teeter, which play his run and his idle.
+Round 25 is two new drawings the game asks for and one it does not yet: the
+strike frame of each aimed diagonal attack (already wired — the state falls
+back to today's swing until the frame lands) and the domain-expansion sign for
+the nine fighters who have a domain. Nothing is blocked by any of it — that is
+what a fallback is for.
 
 **Every fighter on the select screen has every pose the game asks of them** —
 `node tools/check_pose_coverage.mjs` reports 34 fighters and 0 undrawn poses,
@@ -409,6 +413,159 @@ round's numbers are not mistaken for the whole outstanding list.
 
 If a redelivery is ever easier than a cut, the spec is the standard one with a
 single addition: **no drawn shadow of any kind** — the game casts its own.
+
+---
+
+# Round 25 — open
+
+**79 sprites, in two unrelated halves.** 25A is two drawings per fighter the
+game is already asking for by name: the strike frame of each aimed diagonal
+attack, wired and falling back to today's swing until it lands. 25B is one
+drawing for nine fighters that nothing draws yet: the hand sign a domain
+expansion opens with.
+
+## 25A. The two aimed attacks — 70 sprites
+
+**Two new pose keys per fighter, all 34 fighters and Mahoraga**:
+`attack_diag_up_b` and `attack_air_diag_down_b`.
+
+**What changed in the game, and what is missing.** A light attack thrown with
+the stick on a diagonal is now aimed at that exact angle — the hitbox turns
+with the stick and the drawn arc turns with the hitbox (`attackTilt` and
+`swingMove` in `src/fighter.js`). The BODY did not. A fighter punching level
+while the blow travels up at forty-five degrees is the game disagreeing with
+itself on screen, and it is the two most-thrown diagonals that show it:
+up-and-forward on the ground, down-and-forward in the air.
+
+**Only the strike frame is bespoke.** Each of these plays the generic wind-up
+the fighter already has and then its own strike — `attack_light_a` then
+`attack_diag_up_b`, `attack_air_a` then `attack_air_diag_down_b` — which is
+what makes this two drawings per fighter rather than four. Nothing waits on
+them: until a fighter's frame lands, the state falls back to exactly the pair
+they swing today (`diagUp` / `airDiagDown` in `src/characters.js`).
+
+| Pose key | What it must read as | Drawing in the meantime |
+|---|---|---|
+| `attack_diag_up_b` | The STRIKE of a light attack thrown up-and-forward at about 45°, standing: the arm extended along that diagonal at full reach, shoulder turned into it, hips and back leg driving up through the line, chin following the fist. It is the same attack as `attack_light_b`, aimed up — same weapon, same hand, same commitment, forty-five degrees higher. | `attack_light_b` |
+| `attack_air_diag_down_b` | The STRIKE of an aerial thrown down-and-forward at about 45°: the arm (or leg, if that is how this fighter's aerial lands) driven down the diagonal at full reach, body angled over it, the other arm trailing behind for counterweight. Airborne — no ground contact, legs not planted. It is `attack_air_b` aimed at the floor ahead. | `attack_air_b` |
+
+**Continuity with the wind-up is the test.** These are second frames of a pair
+whose first frame already exists, and they will be seen in sequence at 12 and 8
+fps. The strike must be recognisably the same body, the same weight, the same
+weapon and the same hand as the fighter's own `attack_light_a` /
+`attack_air_a`, moved along the diagonal — not a different attack that happens
+to point that way. Open the wind-up beside you while drawing it.
+
+**The angle is about 45° and does not need to be exact.** The engine turns the
+hitbox to the stick's own angle, which is anywhere from 12° to 62°; the drawing
+is the fighter's reading of "up and forward", not a protractor.
+
+Same spec as every sprite round: one subject per file, flat key screen (grey
+for the warm-palette fighters — see the list at the top), facing right, one
+zoom per character matched to their own `idle_a`, at least 600 px of body,
+delivered to `assets/intake/<character>/<pose_key>.png`. Read
+[pose-brief.md](../sprites/docs/pose-brief.md) first, and the
+[canonical reference](#the-canonical-reference-image--one-per-fighter) rule
+applies as always.
+
+| Fighter | Sprites | Idle to draw against |
+|---|---|---|
+| Yuji | `yuji/attack_diag_up_b.png`, `yuji/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuji/idle_a.png> |
+| Nobara | `nobara/attack_diag_up_b.png`, `nobara/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/nobara/idle_a.png> |
+| Megumi | `megumi/attack_diag_up_b.png`, `megumi/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/megumi/idle_a.png> |
+| Yuta | `yuta/attack_diag_up_b.png`, `yuta/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuta/idle_a.png> |
+| Maki | `maki/attack_diag_up_b.png`, `maki/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/maki/idle_a.png> |
+| Inumaki | `inumaki/attack_diag_up_b.png`, `inumaki/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/inumaki/idle_a.png> |
+| Panda | `panda/attack_diag_up_b.png`, `panda/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/panda/idle_a.png> |
+| Mechamaru | `mechamaru/attack_diag_up_b.png`, `mechamaru/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mechamaru/idle_a.png> |
+| Todo | `todo/attack_diag_up_b.png`, `todo/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/todo/idle_a.png> |
+| Momo | `momo/attack_diag_up_b.png`, `momo/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/momo/idle_a.png> |
+| Miwa | `miwa/attack_diag_up_b.png`, `miwa/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/miwa/idle_a.png> |
+| Kirara | `kirara/attack_diag_up_b.png`, `kirara/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kirara/idle_a.png> |
+| Gojo | `gojo/attack_diag_up_b.png`, `gojo/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gojo/idle_a.png> |
+| Nanami | `nanami/attack_diag_up_b.png`, `nanami/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/nanami/idle_a.png> |
+| Mei Mei | `meimei/attack_diag_up_b.png`, `meimei/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/meimei/idle_a.png> |
+| Gakuganji | `gakuganji/attack_diag_up_b.png`, `gakuganji/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gakuganji/idle_a.png> |
+| Yaga | `yaga/attack_diag_up_b.png`, `yaga/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yaga/idle_a.png> |
+| Tengen | `tengen/attack_diag_up_b.png`, `tengen/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/tengen/idle_a.png> |
+| Toji | `toji/attack_diag_up_b.png`, `toji/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/toji/idle_a.png> |
+| Yuki | `yuki/attack_diag_up_b.png`, `yuki/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuki/idle_a.png> |
+| Hakari | `hakari/attack_diag_up_b.png`, `hakari/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hakari/idle_a.png> |
+| Uro | `uro/attack_diag_up_b.png`, `uro/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/uro/idle_a.png> |
+| Reggie Star | `reggie/attack_diag_up_b.png`, `reggie/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/reggie/idle_a.png> |
+| Kashimo | `kashimo/attack_diag_up_b.png`, `kashimo/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kashimo/idle_a.png> |
+| Naoya | `naoya/attack_diag_up_b.png`, `naoya/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_a.png> |
+| Mahito | `mahito/attack_diag_up_b.png`, `mahito/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahito/idle_a.png> |
+| Jogo | `jogo/attack_diag_up_b.png`, `jogo/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/idle_a.png> |
+| Hanami | `hanami/attack_diag_up_b.png`, `hanami/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hanami/idle_a.png> |
+| Dagon | `dagon/attack_diag_up_b.png`, `dagon/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/dagon/idle_a.png> |
+| Kurourushi | `kurourushi/attack_diag_up_b.png`, `kurourushi/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/kurourushi/idle_a.png> |
+| Haruta | `haruta/attack_diag_up_b.png`, `haruta/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/haruta/idle_a.png> |
+| Geto | `geto/attack_diag_up_b.png`, `geto/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/geto/idle_a.png> |
+| Choso | `choso/attack_diag_up_b.png`, `choso/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/choso/idle_a.png> |
+| Sukuna | `sukuna/attack_diag_up_b.png`, `sukuna/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/sukuna/idle_a.png> |
+| Mahoraga | `mahoraga/attack_diag_up_b.png`, `mahoraga/attack_air_diag_down_b.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahoraga/idle_a.png> |
+
+## 25B. The domain expansion sign — 9 sprites
+
+**One new pose key, `domain_expansion`, for the nine fighters who have a
+domain** (`domains` in `src/characters.js`). Nobody else: a fighter without an
+Expansion has nothing to open with it, and the pose would never be drawn.
+
+**Nothing draws it yet.** This is the one request in either open round that is
+art first and wiring second — the ultimate currently plays `ult_a`/`ult_b`
+throughout, and the sign is the moment before that which the game has never
+had. Delivered, it is one line of animation table to put in front of the ult.
+
+**The pose.** In Jujutsu Kaisen the incantation is opened with a hand seal —
+*shirushi*, a Buddhist **mudra** — held with both hands in front of the body,
+and it is the one moment a sorcerer is drawn square to the viewer rather than
+in profile. So this pose, alone among the set, **faces the camera**:
+
+- Standing, feet planted about shoulder width, square to the viewer. Weight
+  even. Still — this is the instant before the domain, not a lunge.
+- Both hands raised in front of the chest or just below the chin, **fingers
+  interlaced**, with one specific pair of fingers extended and pressed
+  together, pointing up. That extended pair is what makes a mudra read as a
+  mudra rather than as clasped hands, and it must be unambiguous at sprite
+  size.
+- Head level or tipped slightly down, eyes forward at the viewer. Expression
+  is the character's own — Gojo's amusement, Sukuna's contempt, Jogo's
+  fury — but the body is composed.
+- No effects, no cursed energy, no domain behind them. The game draws all of
+  that (`src/domains.js`); this is the figure only, on the flat key screen like
+  every other sprite.
+
+**Per fighter, the canon seal.** Each sorcerer's sign invokes a different
+deity, and where the series names one it is worth drawing — the differences are
+in which fingers extend and how the palms sit. Where it is not named, use the
+general form above.
+
+| Fighter | Domain | Sprite | Idle to draw against |
+|---|---|---|---|
+| Megumi | Chimera Shadow Garden | `megumi/domain_expansion.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/megumi/idle_a.png> |
+| Yuta | Authentic Mutual Love | `yuta/domain_expansion.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuta/idle_a.png> |
+| Gojo | Unlimited Void | `gojo/domain_expansion.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gojo/idle_a.png> |
+| Hakari | Idle Death Gamble | `hakari/domain_expansion.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hakari/idle_a.png> |
+| Naoya | Time Cell Moon Palace | `naoya/domain_expansion.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/idle_a.png> |
+| Mahito | Self-Embodiment of Perfection | `mahito/domain_expansion.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/mahito/idle_a.png> |
+| Jogo | Coffin of the Iron Mountain | `jogo/domain_expansion.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/idle_a.png> |
+| Dagon | Horizon of the Captivating Skandha | `dagon/domain_expansion.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/dagon/idle_a.png> |
+| Sukuna | Malevolent Shrine | `sukuna/domain_expansion.png` | <https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/sukuna/idle_a.png> |
+
+For reference on the general form: Itadori's is the **Kshitigarbha** mudra —
+all fingers of both palms interlaced, turned inward, both middle fingers
+straightened and pressed together — which is the clearest published
+description of the shape and a good default for any of these where the canon
+sign is not legible in the source
+([Animehunch](https://animehunch.com/yuji-itadoris-domain-expansion-hand-sign/),
+[Sportskeeda](https://www.sportskeeda.com/anime/all-13-jujutsu-kaisen-domain-expansion-hand-signs-meanings)).
+
+**Facing is the one exception in this file.** Every other sprite is drawn
+facing right and mirrored by the engine. This one is drawn front-on and must
+not be mirrored: a mudra is not symmetric, and flipping it produces a hand
+sign that does not exist. Delivered as `<character>/domain_expansion.png` like
+the rest.
 
 ---
 

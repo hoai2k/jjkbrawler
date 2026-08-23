@@ -105,6 +105,12 @@ export const STATES = {
 // them appear in CLIP_STATES.
 const STATE_ALIASES = {
   dodge: "dodge_roll",
+  // The two aimed attacks play their level cousin's clip. A rig aims from the
+  // move rather than from the state — the arm follows `aimTilt` — so the
+  // diagonal is already in the pose; what the sprite path needs a second
+  // drawing for, this path gets for free.
+  diagUp: "light",
+  airDiagDown: "airLight",
   teeter: "idle",
   dashAttack: "light",
   dashAttackHeavy: "sideHeavy",

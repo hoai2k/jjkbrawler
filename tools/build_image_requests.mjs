@@ -125,6 +125,23 @@ function nextTopLevel(body, from) {
   return m ? from + 1 + m.index + 1 : body.length;
 }
 
+/** WHICH ROUNDS a source's sections actually came from, said as one phrase.
+ *
+ *  The open marker names the FIRST open round, and for a long time that was
+ *  the same thing as "the open round". It is not: rounds 24 and 25 are open
+ *  together, the parser sweeps both, and reporting the first one turned
+ *  "222 images across two rounds" into "222 asked for by round 25". Derived
+ *  from the section ids so it cannot drift from what was copied through. */
+function roundsPhrase(source) {
+  const nums = [...new Set(source.sections
+    .map((s) => (s.id.match(/^(\d+)/) || [])[1])
+    .filter(Boolean))];
+  if (!nums.length) return source.round ? `round ${source.round}` : "";
+  nums.sort((a, b) => Number(a) - Number(b));
+  return nums.length === 1 ? `round ${nums[0]}`
+    : `rounds ${nums.slice(0, -1).join(", ")} and ${nums.at(-1)}`;
+}
+
 /** One source's open rounds, whole. */
 function roundsFrom(source) {
   const text = read(source.file);
@@ -380,7 +397,7 @@ function modeSection(source) {
   const total = totalOf(source);
   const flags = source.mode === "sprite" ? FLAGGED_COUNT : 0;
   out.push(`**${total + flags} image${total + flags === 1 ? "" : "s"} outstanding for this mode.**`
-    + ` ${total}${source.round ? ` asked for by round ${source.round}` : ""}, authored in`,
+    + ` ${total}${source.round ? ` asked for by ${roundsPhrase(source)}` : ""}, authored in`,
     `[${source.file}](${linkTo(source.file)}) and reproduced whole below`
     + (flags
         ? `, and ${flags} flagged in the workbench and listed in`
@@ -579,7 +596,7 @@ const doc = [
         // own line read 0 while 29 of its images were outstanding.
         const own = s.mode === "sprite" ? n + (flaggedN || 0) : n;
         const parts = [];
-        if (n) parts.push(`${n} asked for by round ${s.round}`);
+        if (n) parts.push(`${n} asked for by ${roundsPhrase(s)}`);
         if (s.mode === "sprite" && flaggedN) {
           parts.push(`[${flaggedN} flagged in the workbench](#outstanding-by-manifest-not-by-request)`
             + " as art that exists and is wrong");

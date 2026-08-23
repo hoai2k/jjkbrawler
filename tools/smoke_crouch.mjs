@@ -136,8 +136,15 @@ check(diag?.aimed && !/^Low /.test(diag?.label || ""),
 
 // 4b. The AIR has no crouch to win, so the down diagonal still angles the
 //     aerial at the legs there — `aimPoint` is the tell (fighter.js aimAlong).
+//
+//     The STATE is `airDiagDown` rather than `airLight` since round 25: the
+//     aerial thrown down the diagonal has a strike frame of its own now, and
+//     until it is drawn that state falls back to the pair `airLight` plays
+//     (characters.js). Either name means the same aerial; what this check is
+//     about is that the swing is aimed and is not the down-air.
 const air = await play([[1, { airborne: true }], [1, { down: true, right: true, lightP: true }], [4, {}]]);
-check(air?.anim === "airLight" && air?.aimed, "in the air, down + forward still angles the aerial",
+check(["airLight", "airDiagDown"].includes(air?.anim) && air?.aimed,
+  "in the air, down + forward still angles the aerial",
   `got ${air?.anim} aimed=${air?.aimed}`);
 
 // 4c. Up + forward is untouched: still the side attack angled up, not the up

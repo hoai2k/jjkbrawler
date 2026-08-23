@@ -234,6 +234,56 @@ const aimed = await page.evaluate(async () => {
   return rows;
 });
 
+// ---- and the BODY goes where the hitbox went
+//
+// The aim was the move's from the day it was read; the drawing swung level
+// regardless, so the two diagonals a player throws constantly showed a fighter
+// punching straight ahead while the blow went up. Each now has a state of its
+// own — a generic wind-up and one bespoke strike frame — and the whole point of
+// `needsAll` (sprites.js) is that the state must not half-resolve while that
+// frame is undrawn: it falls back to the exact pair the move plays today.
+//
+// So both halves are checked, and the second by REGISTERING the pose in memory
+// rather than by waiting for the art: undelivered, today's swing; delivered,
+// the new frame.
+const diag = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { updateFighter } = await import("/src/fighter.js");
+  const { blankInput } = await import("/src/input.js");
+  const { resolvedAnim, clearAnimFrameCache } = await import("/sprites/src/sprites.js");
+  const { spriteManifest } = await import("/src/assets.js");
+
+  const f = state.fighters[0];
+  const main = state.platforms.find((p) => p.kind === "main") || state.platforms[0];
+  const key = f.spriteChar || f.charKey;
+
+  const fire = (deg, grounded) => {
+    const r = (deg * Math.PI) / 180;
+    const ax = Math.cos(r), ay = -Math.sin(r);
+    Object.assign(f, {
+      x: main.x + main.w / 2, y: grounded ? main.y : main.y - 200, vx: 0, vy: 0,
+      grounded, airT: 0.5, hitstun: 0, hitPause: 0, action: null, charging: false,
+      shielding: false, crouching: false, crouchGrace: 0, dashT: 0, walking: false,
+      facing: 1, facingVis: 1, aimPoint: null, jabStep: 0, jabResetT: 0,
+      ledge: null, ledgeMove: null, prone: 0, dead: false,
+    });
+    updateFighter(f, 1 / 60, {
+      ...blankInput(), lightP: true, moveX: ax, moveY: ay, dirX: Math.sign(ax),
+      right: ax > 0.28, left: ax < -0.28, up: ay < -0.5, down: ay > 0.5,
+    });
+    return { anim: f.animKey, frames: resolvedAnim(key, f.animKey).frames.join("+") };
+  };
+
+  const before = { up: fire(45, true), air: fire(-45, false), level: fire(0, true) };
+  spriteManifest.characters[key].attack_diag_up_b =
+    { ...spriteManifest.characters[key].attack_light_b, file: `${key}/attack_diag_up_b.png` };
+  spriteManifest.characters[key].attack_air_diag_down_b =
+    { ...spriteManifest.characters[key].attack_air_b, file: `${key}/attack_air_diag_down_b.png` };
+  clearAnimFrameCache();
+  const after = { up: fire(45, true), air: fire(-45, false) };
+  return { before, after };
+});
+
 
 await browser.close();
 
@@ -375,6 +425,19 @@ check("...and the drawn arc agrees with the hitbox at every angle",
   agree.length === aimed.length,
   `${agree.length}/${aimed.length} match; `
     + aimed.map((r) => `${r.tilt}/${r.arc}`).join(" "));
+
+check("an aimed attack plays its own animation state",
+  diag.before.up.anim === "diagUp" && diag.before.air.anim === "airDiagDown"
+    && diag.before.level.anim === "light",
+  `up ${diag.before.up.anim}, air ${diag.before.air.anim}, level ${diag.before.level.anim}`);
+check("...drawing exactly the swing it played before, while the pose is undrawn",
+  diag.before.up.frames === "attack_light_a+attack_light_b"
+    && diag.before.air.frames === "attack_air_a+attack_air_b",
+  `${diag.before.up.frames} | ${diag.before.air.frames}`);
+check("...and the new strike frame the moment it is delivered",
+  diag.after.up.frames === "attack_light_a+attack_diag_up_b"
+    && diag.after.air.frames === "attack_air_a+attack_air_diag_down_b",
+  `${diag.after.up.frames} | ${diag.after.air.frames}`);
 
 console.log(`\n${samples.length} samples over ${samples.at(-1).t.toFixed(1)}s of match time`);
 console.log(failed ? `${failed} check(s) failed` : "all checks passed");

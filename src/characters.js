@@ -158,6 +158,17 @@ export const DEFAULT_ANIMS = {
   // Wind-up then strike (see SEMANTIC_ANIMS below for the timing note). The
   // `fallback` is what a fighter without the round-9 pair keeps drawing.
   airLight: { frames: ["attack_air_a", "attack_air_b"], fallback: ["attack_air"], fps: 8, loop: false },
+  // The two aimed attacks — round 25. See SEMANTIC_ANIMS below for what they
+  // are and why they take `needsAll`; the sheet-era fallbacks are simply what
+  // this table's light and aerial attacks draw today.
+  diagUp: {
+    frames: ["attack_light_a", "attack_diag_up_b"], fallback: ["r3c0", "r3c1"],
+    needsAll: true, fps: 12, loop: false,
+  },
+  airDiagDown: {
+    frames: ["attack_air_a", "attack_air_diag_down_b"], fallback: ["attack_air"],
+    needsAll: true, fps: 8, loop: false,
+  },
   sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["r3c0"], fps: 6, loop: false },
   upHeavy: { frames: ["attack_up"], fps: 6, loop: false },
   downHeavy: { frames: ["r2c2"], fps: 6, loop: false },
@@ -228,6 +239,34 @@ export const SEMANTIC_ANIMS = {
   // single delivered pose, exactly as before. It is a fallback rather than a
   // third frame, so a fighter who HAS the pair never plays the old drawing.
   airLight: { frames: ["attack_air_a", "attack_air_b"], fallback: ["attack_air"], fps: 8, loop: false },
+  // THE TWO AIMED ATTACKS — round 25.
+  //
+  // A light attack thrown with the stick on a diagonal is aimed at that exact
+  // angle (attackTilt in fighter.js): the hitbox turns, the arc turns with it,
+  // and the BODY did not — it swung level and the drawing disagreed with the
+  // move. These are the two diagonals worth their own drawing, the ones a
+  // player throws constantly: up-and-forward on the ground, down-and-forward
+  // in the air.
+  //
+  // The wind-up is the generic one. Only the strike frame is bespoke, which is
+  // what makes this two drawings per fighter rather than four: `attack_light_a`
+  // then `attack_diag_up_b`, `attack_air_a` then `attack_air_diag_down_b`.
+  //
+  // `needsAll` because a state that is only itself when it is whole must not
+  // half-resolve: with the strike undrawn, filtering to what exists would hold
+  // the wind-up alone for the length of the swing. The fallback is exactly what
+  // the move played before these states existed, so nothing changes for anybody
+  // until their strike frame lands.
+  diagUp: {
+    frames: ["attack_light_a", "attack_diag_up_b"],
+    fallback: ["attack_light_a", "attack_light_b"],
+    needsAll: true, fps: 12, loop: false,
+  },
+  airDiagDown: {
+    frames: ["attack_air_a", "attack_air_diag_down_b"],
+    fallback: ["attack_air_a", "attack_air_b"],
+    needsAll: true, fps: 8, loop: false,
+  },
   sideHeavy: { frames: ["attack_heavy_a", "attack_heavy_b"], fallback: ["attack_heavy"], fps: 6, loop: false },
   upHeavy: { frames: ["attack_up"], fps: 6, loop: false },
   downHeavy: { frames: ["attack_down"], fps: 6, loop: false },
