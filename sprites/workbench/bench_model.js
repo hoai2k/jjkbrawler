@@ -13,6 +13,7 @@
 import { spriteManifest, sharedSpriteKeys, getImage } from "../../src/assets.js";
 import {
   anchorLocal, anchorsForFrame, statesUsingFrame, drawnByFallbackOnly, EXTRA_ANCHORS,
+  animsOf,
   REPLACEMENT_KINDS, replacementKind, improvementKind, variantsOf, VARIANT_BANKED,
   VARIANT_ONLY_KINDS,
 } from "../src/sprites.js";
@@ -236,6 +237,19 @@ export function effectsOf(charKey) {
 }
 
 export function statesUsing(charKey, frameKey) {
+  // A first delivery being held is drawn by NOTHING while it waits — the game
+  // is still resolving its states to their fallback, which is the whole point
+  // of the hold — so the honest game-side answer is an empty list. That answer
+  // would drop the pose out of every working view as "not drawn by any state",
+  // which is exactly the pose somebody has to place and decide about. So the
+  // bench asks the other question: which states DECLARE this frame, and will
+  // draw it the moment it is approved.
+  const held = approvalNote(charKey, frameKey);
+  if (held && !held.live) {
+    return Object.entries(animsOf(charKey))
+      .filter(([, anim]) => anim.frames.includes(frameKey))
+      .map(([name]) => name);
+  }
   return statesUsingFrame(charKey, frameKey);
 }
 
@@ -302,7 +316,19 @@ export function isPending(charKey, frameKey) {
  *  now counts first. See hold_for_approval() in tools/intake_import.py.
  */
 export function approvalNote(charKey, frameKey) {
-  return rawMeta(charKey, frameKey)?.awaitingApproval || null;
+  const note = rawMeta(charKey, frameKey)?.awaitingApproval || null;
+  // A declined first delivery keeps its marker, because the marker is what
+  // holds it out of the game — there is no older drawing of this pose to point
+  // back at, so "no" is a hold that stays. It is not a QUESTION any more, and
+  // the queue asks questions, so it is answered here and not there. Approving
+  // later drops the marker and the pose goes in, which is what makes a no as
+  // changeable as a yes.
+  return note && !note.declined ? note : null;
+}
+
+/** A first delivery that was turned down and is being held out of the game. */
+export function approvalDeclined(charKey, frameKey) {
+  return rawMeta(charKey, frameKey)?.awaitingApproval?.declined || null;
 }
 
 export function awaitingApproval(charKey, frameKey) {
@@ -1012,7 +1038,7 @@ export function anchorNames(charKey, frameKey) {
 export function comPivots(charKey, frameKey) {
   if (state.anchorForced.has(`${charKey}/${frameKey}`)) return true;
   if (rawMeta(charKey, frameKey)?.rotationDeg) return true;
-  return statesUsingFrame(charKey, frameKey).some((s) => PIVOTED_STATES.has(s));
+  return statesUsing(charKey, frameKey).some((s) => PIVOTED_STATES.has(s));
 }
 
 /** Current value in image-local px, resolved from the default when unset. */
@@ -1203,7 +1229,7 @@ export function isUsed(charKey, frameKey) {
   // A pose an actor is EXPECTED to have but nobody has drawn still counts as
   // used: its state names it, so the transform will play it the moment the art
   // lands, and listing it is what makes the set readable as a checklist.
-  return statesUsingFrame(charKey, frameKey).length > 0;
+  return statesUsing(charKey, frameKey).length > 0;
 }
 
 export function needsReplacement(charKey, frameKey) {

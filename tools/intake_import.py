@@ -5,6 +5,12 @@ Copies from `assets/intake/_processed/` into `sprites/assets/`, computes the
 placement metadata the renderer needs, and registers it in `manifest.json`.
 Only frames named in an approval file move; everything else stays in intake.
 
+Nothing an import lands is in the game until somebody approves it, and that
+holds whether the delivery replaces a pose or adds one. A pose the manifest has
+never carried is still being DRAWN — by its animation's `fallback` — so adding
+it changes what a player sees exactly as overwriting one does. See
+hold_for_approval().
+
 Placement follows the same model as the rest of the pipeline: `ox`/`oy` place
 the art inside the logical cell, `bodyBottom` is the foot line. New art is
 scaled so its body height matches what it replaces, so a swap does not
@@ -382,8 +388,20 @@ def hold_for_approval(man, char, key, src, meta, stored, at):
     replaces. Approving is one button in the workbench, and it exports and
     applies like every other change.
 
-    A brand-new pose never comes through here — there is nothing to compare it
-    against and nothing to break, so it goes straight in.
+    A brand-new pose comes through here too, and `live` is None for it. There
+    IS something to compare it against and something to break: an animation
+    whose art has not landed plays its `fallback` (sprites.js presentFrames),
+    so what a player sees for a pose nobody has drawn is another drawing — the
+    walk cycle is the run replayed slowly, the teeter is the idle. Landing the
+    new pose changes that the instant the manifest names it, which is the one
+    thing the confirm step exists to prevent. "New" describes the manifest, not
+    the screen.
+
+    `live: None` is how that is said: the game draws NOTHING for this pose key
+    while the hold stands, so its states go on resolving to the fallback they
+    resolve to today. `frameMeta` in src/assets.js is where that is enforced,
+    and it is the same one line for both cases — a hold with a live drawing
+    shows it, a hold without one is invisible.
     """
     # The drawing the GAME is showing, which is not always the pose's own
     # fields. On a pose that is ALREADY awaiting approval those fields describe
@@ -391,9 +409,16 @@ def hold_for_approval(man, char, key, src, meta, stored, at):
     # `awaitingApproval.live` names. Reading `stored` flat would have promoted
     # an unapproved drawing into the game the moment a second delivery landed
     # on the same pose — the one thing the approval step exists to prevent.
-    waiting = stored.get("awaitingApproval") or {}
-    live = dict(waiting["live"]) if waiting.get("live") \
-        else {f: stored[f] for f in LIVE_FIELDS if f in stored}
+    waiting = (stored or {}).get("awaitingApproval") or {}
+    if waiting.get("live"):
+        live = dict(waiting["live"])
+    elif stored:
+        live = {f: stored[f] for f in LIVE_FIELDS if f in stored}
+    else:
+        # Nothing of this pose's own is in the game, because the pose is not in
+        # the game: its states are drawing their fallback. There is no block to
+        # bank, and None is what tells the renderer to leave it that way.
+        live = None
     rel = free_pending_path(man, char, key)
     os.makedirs(os.path.join(SPRITES, char, PENDING_DIR), exist_ok=True)
     shutil.copy2(src, os.path.join(SPRITES, rel))
@@ -469,16 +494,21 @@ def main():
             if note:
                 meta["replaced"] = note
 
-            # A replacement lands BESIDE the art it replaces and waits to be
-            # approved; only a brand-new pose goes straight into the game. See
-            # hold_for_approval() for why.
-            holding = bool(stored) and not args.replace_now
+            # Every delivery lands BESIDE what the game is drawing and waits to
+            # be approved — a replacement beside the drawing it replaces, a
+            # brand-new pose beside the fallback its states are playing. See
+            # hold_for_approval() for why the second is not the exception it
+            # looks like.
+            holding = not args.replace_now
             if holding:
                 if not args.dry_run:
                     hold_for_approval(man, char, key, src, meta, stored, at)
                 done.append(f"{char}/{key}: {meta['w']}x{meta['h']} "
                             f"renderScale={meta['renderScale']}  [awaiting approval]"
-                            "  -> updated list, game still draws the old art")
+                            + ("  -> updated list, game still draws the old art"
+                               if stored else
+                               "  -> updated list, NEW pose, game still draws "
+                               "the fallback"))
                 continue
 
             if not args.dry_run:

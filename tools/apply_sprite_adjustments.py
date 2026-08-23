@@ -329,6 +329,7 @@ def main():
             key: {f: meta[f] for f in ["file"] + VARIANT_BANKED if f in meta}
             for key, meta in frames.items()
             if isinstance(meta, dict) and meta.get("awaitingApproval")
+            and not meta["awaitingApproval"].get("declined")
         }
         # Which sprite each action draws. The workbench's secondary-action
         # editor writes these when a state is pointed at a different cell; the
@@ -479,7 +480,17 @@ def main():
             if note is None:
                 skipped.append(f"{char}/{key}: no replacement was waiting")
                 continue
-            if verdict == "keep":
+            if verdict == "keep" and not note.get("live"):
+                # A FIRST delivery turned down. There is no drawing of this
+                # pose to restore — the game has been playing the animation's
+                # fallback all along — so the hold is what keeps this one out
+                # and it stays, carrying the answer. Popping it, which is what
+                # the branch below does, would put the drawing into the game by
+                # exactly the door the answer closed.
+                bank_rejected(man, char, key, note, delivered_before.get(key, {}))
+                note["declined"] = now_stamp()
+                meta["awaitingApproval"] = note
+            elif verdict == "keep":
                 # The whole drawing goes back, not a field-by-field merge over
                 # the one being turned down: every field that belongs to an
                 # image is cleared first, or the rejected drawing's numbers
@@ -492,7 +503,10 @@ def main():
             else:
                 bank_superseded(man, char, key, note, meta)
             applied.append(
-                f"{char}/{key}: replacement kept out, old art restored"
+                (f"{char}/{key}: first delivery kept out, states go on playing "
+                 "their fallback")
+                if verdict == "keep" and not note.get("live")
+                else f"{char}/{key}: replacement kept out, old art restored"
                 if verdict == "keep"
                 else f"{char}/{key}: replacement approved -> {meta.get('file')}")
 

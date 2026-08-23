@@ -47,10 +47,19 @@ def check(ok, label, detail=""):
 
 
 def live_file(man, char, key):
-    """What the game draws for this pose — mirrors frameMeta() without preview."""
+    """What the game draws for this pose — mirrors frameMeta() without preview.
+
+    None when the pose is held with no live block: a first delivery, whose
+    states are still resolving to their fallback. `frameMeta` answers null there
+    and `presentFrames` reads that as undrawn, which is what keeps the fallback
+    playing.
+    """
     meta = man["characters"][char][key]
-    waiting = meta.get("awaitingApproval") or {}
-    return (waiting.get("live") or {}).get("file") or meta["file"]
+    waiting = meta.get("awaitingApproval")
+    if waiting is not None:
+        live = waiting.get("live")
+        return live.get("file") if live else None
+    return meta["file"]
 
 
 def run_import(work, char, key, plate):
@@ -149,6 +158,36 @@ def main():
         for who, f in (("live", second_live), ("pending", second_pending)):
             check(os.path.exists(os.path.join(work, "sprites", "assets", f)),
                   f"the {who} drawing is on disk", f)
+
+        # ---- a pose the manifest has never carried is held too
+        #
+        # "New" describes the manifest, not the screen. An animation whose art
+        # has not landed plays its `fallback` — the walk is the run replayed
+        # slowly, the teeter is the idle — so a first delivery changes what a
+        # player sees exactly as a replacement does, and used to go straight in.
+        fresh = next((k for k in ("walk_a", "teeter", "dodge_roll")
+                      if k not in man2["characters"][char]), None)
+        if not fresh:
+            check(False, "found a pose the sandbox manifest does not carry")
+        else:
+            print(f"\ntesting a FIRST delivery of {char}/{fresh}\n")
+            man3 = run_import(work, char, fresh, plates[0])
+            entry = man3["characters"][char][fresh]
+            check("awaitingApproval" in entry,
+                  "a first delivery is held for approval like any other",
+                  ", ".join(sorted(entry)))
+            check(entry.get("awaitingApproval", {}).get("live") is None,
+                  "with no live drawing, because the pose was never in the game",
+                  json.dumps(entry.get("awaitingApproval", {}).get("live")))
+            check(live_file(man3, char, fresh) is None,
+                  "so the game draws nothing for it and its states keep their fallback",
+                  str(live_file(man3, char, fresh)))
+            check(entry.get("file", "").startswith(f"{char}/incoming/"),
+                  "and the drawing waits in incoming/ rather than under the pose's name",
+                  entry.get("file"))
+            check(not os.path.exists(os.path.join(work, "sprites", "assets",
+                                                  char, f"{fresh}.png")),
+                  "nothing was written to the name the pose will take when approved")
 
     print()
     print(f"{fails} check(s) failed" if fails else "all checks passed")
