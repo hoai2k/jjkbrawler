@@ -31,7 +31,7 @@ import {
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
 import { TRAIL_LEN, TRAIL_STEP, MACH, TURN_TIME, SKID, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE, ART_SCALE } from "./config_tuning.js";
-import { mainPlatform, spawnXs } from "./stages.js";
+import { mainPlatform, mainPlatforms, spawnPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame, sweepsTurns } from "./render_backend.js";
 import { trailStrength } from "./motion.js";
@@ -741,8 +741,13 @@ function tryGrabLedge(f) {
   // back DOWN into it. The walk-off loop it guarded against is already covered
   // by airT and the getup cooldowns.
   if (f.hitstun > 0.05 || f.airT < 0.18) return;
-  const plat = mainPlatform(state.platforms);
-  if (f.y < plat.y - LEDGE_GRAB_Y_ABOVE || f.y > plat.y + LEDGE_GRAB_Y_BELOW) return;
+  // EVERY piece of lowest ground offers its ledges, not just the first. Six
+  // boards split their floor down the middle (stages.js), and the two edges
+  // facing that hole are the interesting ones — falling in is meant to be
+  // survivable if you can reach a lip on the way past. Reading only the first
+  // main made half of a split board's ledges dead to the touch.
+  for (const plat of mainPlatforms(state.platforms)) {
+  if (f.y < plat.y - LEDGE_GRAB_Y_ABOVE || f.y > plat.y + LEDGE_GRAB_Y_BELOW) continue;
   for (const side of [-1, 1]) {
     const edgeX = side === -1 ? plat.x : plat.x + plat.w;
     const outside = side === -1 ? f.x <= edgeX : f.x >= edgeX;
@@ -804,6 +809,7 @@ function tryGrabLedge(f) {
       dust(f.x, f.y, 8);
       return;
     }
+  }
   }
 }
 
@@ -1223,7 +1229,7 @@ export function respawnX(f) {
   if (set) return set[f.id] || RESPAWN_X[f.id] || 640;
   // Five or more (the Players vs CPUs and Battle Royal modes): come back where
   // this fighter started, which is already spread across the stage.
-  return spawnXs(state.fighters.length, mainPlatform(state.platforms))[f.id - 1] ?? RESPAWN_X[f.id] ?? 640;
+  return spawnXs(state.fighters.length, spawnPlatform(state.platforms))[f.id - 1] ?? RESPAWN_X[f.id] ?? 640;
 }
 
 function respawn(f) {

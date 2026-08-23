@@ -148,10 +148,11 @@
 .arenabench .viewer__foot .zoom { cursor: default; }
 .arenabench .viewer__foot .zoom input { width: 90px; accent-color: #6ba8ff; }
 .arenabench .viewer__foot .zoom span { min-width: 38px; font-family: ui-monospace, monospace; }
-.arenabench .viewer__fps, .arenabench .viewer__pads {
+.arenabench .viewer__fps, .arenabench .viewer__pads, .arenabench .viewer__hist {
   font-family: ui-monospace, monospace;
 }
-.arenabench .viewer__fps { margin-left: auto; }
+.arenabench .viewer__hist { margin-left: auto; color: #7a839c; }
+.arenabench .viewer__fps { margin-left: 0; }
 
 .arenabench .dummyPick {
   padding: 4px 7px;
@@ -226,4 +227,29 @@
 
 @media (max-width: 1100px) {
   .arenabench { grid-template-columns: 1fr; height: auto; }
+}
+
+/* The shortcut legend. Discoverability is the whole point of writing them
+   down — a multi-select editor whose keys are only in the source is an editor
+   nobody uses the keys of. */
+.arenabench .keys {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 11px;
+  color: #7a839c;
+  line-height: 1.9;
+}
+.arenabench .keys kbd {
+  display: inline-block;
+  min-width: 14px;
+  padding: 1px 4px;
+  background: #10131b;
+  border: 1px solid #2d3346;
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  color: #c3ccdf;
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  text-align: center;
 }

@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { clamp, lerp } from "./utils.js";
 import { WORLD, RESPAWN_WAIT } from "./constants.js";
-import { mainPlatform } from "./stages.js";
+import { spawnPlatform } from "./stages.js";
 import { ART_SCALE } from "./config_tuning.js";
 
 // Smash-style framing: fit the alive fighters' bounding box, padded, and zoom
@@ -248,7 +248,12 @@ const HIGH_RELEASE_DAMP = 0.9;        // back to the default — slow on purpose
  *  world px. `alive` is the bodies actually on the stage. */
 function highPlayBias(dt, alive) {
   const cam = state.camera;
-  const plat = mainPlatform(state.platforms);
+  // Measured off the STARTING TIER, not the floor. Every board now has ground
+  // below where fighters begin (stages.js), and reading height from the floor
+  // would score ordinary play on the starting line as permanently half-way up
+  // — the envelope would sit at ~0.5 all match and have half the range left to
+  // say anything with.
+  const plat = spawnPlatform(state.platforms);
   let drive = 0;
   if (plat && alive.length) {
     // The HIGHEST body decides: it is the one whose headroom is in question,
