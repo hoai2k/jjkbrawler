@@ -34,6 +34,34 @@ export const SHORT_HOP_WINDOW = 0.09;
 export const SHORT_HOP_CUT = 0.52;
 export const AIR_JUMP_MULT = 0.92;
 
+// WALL JUMPING. A jump pressed in the air while pressed against a wall
+// ({ kind: "wall" }, stages.js) pushes off it instead of spending an air jump —
+// so a tall wall is a route upward and a board can be built to climb.
+//
+// The trade is Smash's: the wall jump is FREE and repeatable, but taking one
+// spends your air jump for the rest of the fall. You can climb a wall all day;
+// you cannot climb it and then still have a double jump in hand at the top.
+//
+// THE TWO NUMBERS WERE MEASURED, NOT GUESSED. They were first set to 0.86 lift
+// and a 300 push, reasoning that a wall jump should be weaker than an air jump
+// because it also throws you sideways. Driven up River Gate's 480px wall the
+// way a player would — hold into the face, jump on contact — that climbed 283px
+// in 60 jumps and then STALLED: the shove threw the fighter so far off the face
+// that gravity took back more on the way in than the jump had gained.
+//
+// So the push is what had to come down, not the lift go up. At 170 the same
+// climb clears the whole wall in 11 jumps — about 47px of net height each,
+// which is a climb you have to work at rather than a free elevator. The lift
+// ended up a shade ABOVE an air jump (0.92), and that is right: a wall jump
+// costs you the air jump for the rest of the fall and needs a wall to do it
+// against, so it should be worth having.
+export const WALL_JUMP_LIFT = 0.95;
+export const WALL_JUMP_PUSH = 170;
+// How near the face counts as "against it". Measured from the drawn body's
+// edge, the same place pushOutOfWalls rests them, so what LOOKS like touching
+// the wall is what jumps off it.
+export const WALL_JUMP_REACH = 18;
+
 // dashing
 //
 // A burst, not a commitment: the dash should be over before anything can react

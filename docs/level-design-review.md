@@ -620,6 +620,64 @@ Two handle bugs went with it, both reported from use:
   hit. The zones are capped at a quarter of the width now, which reserves half
   the platform for the body at any size and any zoom.
 
+## 15. Wall jumping, and boards you climb
+
+A jump pressed in the air while against a wall (`kind: "wall"`) pushes off it
+**without spending an air jump**, so a tall wall is a route upward and a board
+can be built to be climbed. The trade is Smash's: the wall jump is free and
+repeatable, but taking one spends your air jump for the rest of that fall — you
+can climb a wall all day, you cannot climb it and still have a double jump in
+hand at the top. Landing, or catching a ledge, gives it back.
+
+**The two numbers were measured, not guessed.** They started at 0.86 lift and a
+300 push, on the reasoning that a wall jump should be weaker than an air jump
+because it also throws you sideways. Driven up River Gate's 480px wall the way a
+player would — hold into the face, jump on contact — that climbed **283px in 60
+jumps and then stalled**: the shove threw the fighter so far off the face that
+gravity took back more on the way in than the jump had gained.
+
+So the push was what had to come down, not the lift go up:
+
+| lift | push | climbed | jumps |
+|---|---|---|---|
+| 0.86 | 300 | 283px — **stalls** | 60 |
+| **0.95** | **170** | **514px — clears the wall** | **11** |
+| 0.98 | 140 | 496px | 10 |
+
+0.95/170 gives about 47px of net height per jump: a climb you work at rather
+than a free elevator. The lift ends up a shade *above* an air jump (0.92), and
+that is right — it costs you the air jump for the rest of the fall and needs a
+wall to do it against, so it should be worth having.
+
+**The reach audit had to learn it too.** A wall you can get to makes everything
+alongside its face reachable, whatever the rise from the nearest platform —
+without that rule a deliberately vertical board reads as broken. River Gate went
+from six "unreachable" errors to zero, and
+`tools/smoke_wall_jump.mjs` closes the loop by driving a fighter up the real
+wall on the real board rather than trusting the audit's arithmetic.
+
+## 16. Three bench bugs that were all one bug
+
+Reported: Delete "did not always work", undo "did not work" on a wall width, and
+grabbing a handle could reselect a neighbour.
+
+The first two were the same root cause, and it is a good one. Clicking the board
+calls `preventDefault` to stop the drag becoming a text selection — and
+`preventDefault` also suppresses the browser's **focus change**. So a click on
+the canvas left the caret wherever it was, and if that was a property field then
+every key afterwards went to the field: Delete typed into a number box, and
+Ctrl+Z became the browser's *text* undo, which restored the old text, fired the
+`input` handler, and wrote that value back to the platform — so the board
+appeared to undo while the bench's own history sat untouched and the two drifted
+apart silently. The canvas takes focus explicitly now, and undo answers wherever
+the caret is.
+
+The third is the rule as asked for: once something is selected, **its grips own
+their pixels**. A wall standing on a shelf puts its handles right on top of that
+shelf, and the shelf is drawn later, so reaching for the grip handed you the
+shelf. The body underneath is still up for grabs, so clicking *into* another
+platform still selects it.
+
 ## The slab takes the room's light
 
 Every board declared its ambiance once — `tint` in `src/stages.js`, the wash the

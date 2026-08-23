@@ -157,7 +157,13 @@ root.innerHTML = `
              is never stretched — a squashed board is a board you cannot judge
              the layout of, which is the one thing this bench is for. -->
         <div class="viewer__frame" id="arenaFrame">
-          <canvas id="arenaCanvas" width="1280" height="720"></canvas>
+          <!-- tabindex so the canvas can hold the keyboard. Clicking it calls
+               preventDefault (to stop the drag becoming a text selection), and
+               preventDefault also suppresses the browser's focus change — so
+               without this, a click on the board left the caret in whichever
+               property field was last touched and every Delete, Ctrl+Z and
+               Ctrl+C after it went to that field instead of to the editor. -->
+          <canvas id="arenaCanvas" width="1280" height="720" tabindex="-1"></canvas>
           <div class="viewer__overlay" id="arenaOverlay"></div>
         </div>
       </div>
@@ -619,9 +625,37 @@ function edgeGrab(r) {
   return Math.min(grabPx(), r.w / 4);
 }
 
+/** Which handle of platform `i` is under this point, if any. */
+function handleAt(i, w) {
+  const m = grabPx();
+  const r = rectOf(i);
+  if (w.y < r.y - m || w.y > r.y + r.h + m) return null;
+  if (w.x < r.x - m || w.x > r.x + r.w + m) return null;
+  const e = edgeGrab(r);
+  if (Math.abs(w.x - r.x) <= e) return { i, part: "left" };
+  if (Math.abs(w.x - (r.x + r.w)) <= e) return { i, part: "right" };
+  if (bench.arena.platforms[i].kind === "wall"
+      && Math.abs(w.y - (r.y + r.h)) <= Math.min(m, r.h / 3)) {
+    return { i, part: "bottom" };
+  }
+  return null;
+}
+
 /** What is under this world point: an index and which part of it was hit. */
 function pick(w) {
   const m = grabPx();
+  // THE SELECTION'S OWN HANDLES COME FIRST.
+  //
+  // Reaching for a grip on the thing you just selected must not hand you a
+  // different platform because that one happens to be drawn later and overlaps
+  // the grip — a wall standing on a shelf puts its handles right on top of that
+  // shelf. Once something is picked, its grips own their few pixels; the body
+  // underneath is still up for grabs, so clicking INTO another platform still
+  // selects it.
+  if (bench.sel.length === 1) {
+    const own = handleAt(bench.sel[0], w);
+    if (own) return own;
+  }
   // Last first: later platforms are drawn over earlier ones, so they are the
   // ones the eye thinks it is pointing at.
   for (let i = bench.arena.platforms.length - 1; i >= 0; i--) {
@@ -657,6 +691,7 @@ canvas.addEventListener("pointerdown", (ev) => {
     if (!additive) setSelection([]);
     bench.marquee = { x0: w.x, y0: w.y, x1: w.x, y1: w.y, add: additive };
     canvas.setPointerCapture(ev.pointerId);
+    canvas.focus({ preventScroll: true });
     ev.preventDefault();
     return;
   }
@@ -679,6 +714,7 @@ canvas.addEventListener("pointerdown", (ev) => {
     moved: false,
   };
   canvas.setPointerCapture(ev.pointerId);
+  canvas.focus({ preventScroll: true });
   ev.preventDefault();
 });
 
@@ -939,16 +975,24 @@ function paste() {
 const typingIn = (t) => t && (t.tagName === "INPUT" || t.tagName === "SELECT" || t.tagName === "TEXTAREA");
 
 window.addEventListener("keydown", (e) => {
-  if (typingIn(e.target) || !bench.editing || !bench.arena) return;
+  if (!bench.editing || !bench.arena) return;
   const mod = e.ctrlKey || e.metaKey;
-  if (mod && e.key.toLowerCase() === "z") {
+
+  // UNDO ANSWERS WHEREVER THE CARET IS. Everything else defers to a focused
+  // field, but undo must not: with the caret in a property box the browser
+  // takes Ctrl+Z as "undo my typing", restores the old text, and the `input`
+  // handler writes THAT back to the platform — so the board appears to undo
+  // while the bench's own history sits untouched, and the two drift apart
+  // silently. preventDefault stops the text undo; this is the only meaning
+  // Ctrl+Z has here.
+  if (mod && (e.key.toLowerCase() === "z" || e.key.toLowerCase() === "y")) {
     e.preventDefault();
-    // Shift+Z redoes, the same chord every editor uses; Ctrl+Y as well, for
-    // the hands that learned it the other way.
-    if (e.shiftKey) redo(); else undo();
+    // Shift+Z redoes, the chord every editor uses; Ctrl+Y for the hands that
+    // learned it the other way.
+    if (e.key.toLowerCase() === "y" || e.shiftKey) redo(); else undo();
     return;
   }
-  if (mod && e.key.toLowerCase() === "y") { e.preventDefault(); redo(); return; }
+  if (typingIn(e.target)) return;
   if (mod && e.key.toLowerCase() === "c") { e.preventDefault(); copySelected(); return; }
   if (mod && e.key.toLowerCase() === "v") { e.preventDefault(); paste(); return; }
   if (mod && e.key.toLowerCase() === "d") { e.preventDefault(); copySelected(); paste(); return; }

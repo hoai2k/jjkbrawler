@@ -14,6 +14,7 @@ import { rumbleEvent } from "./rumble.js";
 import { counterShimmerFx, healMotesFx } from "./fx.js";
 import {
   WORLD, GRAVITY, MAX_FALL, FASTFALL_MULT, BLAST, JUMP_BUFFER, COYOTE_TIME, CROUCH_GRACE,
+  WALL_JUMP_LIFT, WALL_JUMP_PUSH, WALL_JUMP_REACH,
   SHORT_HOP_WINDOW, SHORT_HOP_CUT, AIR_JUMP_MULT, DASH_TAP_WINDOW, DASH_TIME,
   DASH_MULT, ACTION_BUFFER, AERIAL_LAND_LAG_MULT, AERIAL_LAND_LAG_MIN, SHIELD_MAX, SHIELD_DRAIN, SHIELD_REGEN, ROLL_TIME, ROLL_DIST,
   SPOT_DODGE_TIME, AIR_DODGE_TIME, DODGE_STALE_WINDOW, METER_MAX, METER_PASSIVE,
@@ -59,6 +60,8 @@ export function makeFighter(id, charKey, x, facing) {
     // released, and while it runs an attack still comes out crouching.
     crouchGrace: 0,
     airJumpsLeft: char.stats.airJumps, airDodged: false,
+    // Spent by a wall jump, given back the moment they touch ground or ledge.
+    wallJumped: false,
     jumpBuffer: 0, coyote: 0, jumpHeldT: 0, jumpCut: false,
     dashT: 0, dashDir: 0, lastTap: { dir: 0, t: -10 },
     turnLock: 0, landTimer: 0, dropTimer: 0, bufferedAction: null, landLag: 0,
@@ -783,6 +786,7 @@ function tryGrabLedge(f) {
       f.charging = null;
       f.shielding = false;
       f.airJumpsLeft = stats(f).airJumps;
+      f.wallJumped = false;
       f.airDodged = false;
       f.facing = side === -1 ? 1 : -1;
       f.ledgeTimer = 0;
@@ -956,6 +960,29 @@ function pushOutOfWalls(f, prevY) {
 }
 
 /**
+ * WHICH WALL THIS AIRBORNE FIGHTER IS AGAINST, and which way pushing off it
+ * would send them. Null when they are not on one.
+ *
+ * The same geometry `pushOutOfWalls` uses — the drawn body's edge against the
+ * wall's face — so the wall you can SEE yourself touching is the one that
+ * answers. `side` is which face they are on, and it is also the direction the
+ * push goes: a fighter resting against the left face is thrown further left.
+ */
+function wallAgainst(f) {
+  const half = bodyMetrics(f.spriteChar || f.charKey).width * 0.5;
+  for (const w of state.platforms) {
+    if (w.kind !== "wall" || w.ghost) continue;
+    // Level with the FACE, not standing on the top and not below the foot —
+    // the same window that makes the wall solid to walk into.
+    if (f.y <= w.y || f.y > w.y + w.h + 1) continue;
+    const side = f.x < w.x + w.w / 2 ? -1 : 1;
+    const face = (side < 0 ? w.x : w.x + w.w) + side * half;
+    if (Math.abs(f.x - face) <= WALL_JUMP_REACH) return { wall: w, side };
+  }
+  return null;
+}
+
+/**
  * THE LEDGE BRAKE: you do not leave the ground unless you meant to.
  *
  * Smash protects this with the TEETER — walk slowly to the lip and the
@@ -1102,6 +1129,7 @@ function resolvePlatforms(f, prevY) {
       f.grounded = true;
       f.currentPlatform = plat;
       f.airJumpsLeft = stats(f).airJumps;
+      f.wallJumped = false;
       f.airDodged = false;
       f.fastFalling = false;
       f.coyote = COYOTE_TIME;
@@ -1253,6 +1281,7 @@ function respawn(f) {
   f.hitstun = 0; f.landLag = 0; f.landTimer = 0;
   setAnim(f, "idle");
   f.airJumpsLeft = stats(f).airJumps;
+  f.wallJumped = false;
   f.facing = f.x < 640 ? 1 : -1;
   f.facingVis = f.facing;
   // Everything Has a Price (Mei Mei): each stock opens with an advance payment
@@ -1972,7 +2001,27 @@ export function updateFighter(f, dt, input) {
       if (f.action?.kind === "dodge") f.action = null; f.aimPoint = null;
       dust(f.x, f.y, 12);
       playSfx("jump");
-    } else if (f.airJumpsLeft > 0 && !inHitstun) {
+    } else if (!inHitstun && wallAgainst(f)) {
+      // OFF THE WALL. Free and repeatable: the air jump is not spent, so a
+      // fighter can climb a face as long as they keep reaching it. What it
+      // costs is the air jump for the rest of this fall (`wallJumped`), which
+      // is what stops a wall being a way to buy extra height in open air.
+      const { side } = wallAgainst(f);
+      f.jumpBuffer = 0;
+      f.wallJumped = true;
+      f.vy = -st.jump * WALL_JUMP_LIFT;
+      f.vx = side * WALL_JUMP_PUSH;
+      // Facing the way they are going, because the push is a decision and a
+      // fighter kicking off a wall backwards reads as a mistake.
+      f.facing = side;
+      f.takeoffT = TAKEOFF_STRETCH_TIME;
+      f.fastFalling = false;
+      f.jumpHeldT = 0;
+      f.jumpCut = false;
+      f.airDodged = false;
+      dust(f.x, f.y, 10);
+      playSfx("jump", 0.85);
+    } else if (f.airJumpsLeft > 0 && !f.wallJumped && !inHitstun) {
       f.jumpBuffer = 0;
       f.airJumpsLeft -= 1;
       f.vy = -st.jump * AIR_JUMP_MULT;
