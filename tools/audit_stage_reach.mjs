@@ -5,26 +5,80 @@
 //     the six with a split floor, and they sit level with each other
 //   - a board with a lower floor carries exactly one `kind: "spawn"` tier, the
 //     platform a match opens on, and it is above the floor and reachable from it
-//   - every stage has 2–8 platforms besides the main
+//   - every stage has 2–10 platforms besides the main
 //   - every platform is reachable by the WEAKEST jumper (jump 780 @ g 2350:
 //     single hop rises 129 px, single + air jump ~239 px) via some chain of
 //     hops — max vertical rise per hop 175 px, with a horizontal-gap budget
 //     that shrinks as the rise grows
-//   - the highest platform sits at y ≥ 235, so a full jump from it cannot
-//     leave the top of the board (y = 0)
+//   - the highest platform sits at y ≥ MIN_TOP_Y, so a full jump from it keeps
+//     the jumper inside the shot (see the derivation on that constant)
 //
 // Run: node tools/audit_stage_reach.mjs   (exit 1 on any error)
 
 import { STAGES } from "../src/stages.js";
 
-const MAX_RISE = 175;        // hard ceiling per hop (weakest reach is ~239)
-const COMFY_RISE = 145;      // above this, flag as a warning
-const MIN_TOP_Y = 235;       // highest allowed platform
+// WHAT A HOP ACTUALLY COSTS.
+//
+// MAX_RISE was 175 against a weakest reach of ~239 — a "comfortable" number
+// standing in for the physical one, which meant the audit called platforms
+// unreachable that a player could plainly get to. Reported from the arena
+// bench: everything on a hand-built board was reachable by double jump, and
+// this said otherwise.
+//
+// So the ceiling is the real one now. The weakest jumper in the roster rises
+// 239px on a full jump (impulse 780, one air jump at x0.92, gravity 2350), and
+// 235 leaves a few pixels for the fact that landing ON a platform is not the
+// same as touching its height at the apex. Anything under it, every fighter can
+// make; anything over it, nobody can.
+//
+// COMFY_RISE is what used to be the ceiling, which makes it an honest warning
+// band: 175–235 is a hop that WORKS but wants a deliberate double jump, and
+// saying so is more useful than refusing it.
+const MAX_RISE = 235;        // physical ceiling per hop (weakest full jump 239)
+const COMFY_RISE = 175;      // above this it needs a real double jump — warn
+// HOW HIGH A PLATFORM MAY SIT — and why it is not 235 any more.
+//
+// The old cap was 235, chosen so a full jump from the highest platform could
+// not carry a fighter past y = 0. That reads like a safety rule and is not one:
+// y = 0 is the top of the world RECT and means nothing mechanically. Above it
+// there is painted backdrop (VIEW_BLEED bleeds the plate to y = -400) and no
+// danger (BLAST.top, where a fighter dies, is y = -420). The rule was costing
+// 200px of usable board to protect a line that does not exist.
+//
+// THE RULE THAT MATTERS is that a fighter must never end up ENTIRELY above the
+// shot. Partly offscreen at the apex of a jump is ordinary in this genre;
+// wholly gone is disorienting. So the test is the FEET — the lowest point of
+// the body — against the top of the frame:
+//
+//   camera can show up to y     -260   (OVERSCAN_Y in camera.js; the same
+//                                       number at every zoom, because
+//                                       cam.y ≥ halfH - OVERSCAN_Y makes the
+//                                       frame top cam.y - halfH ≥ -OVERSCAN_Y)
+//   strongest full jump rises   434px  (jump 870 plus two air jumps at x0.92,
+//                                       gravity 2350)
+//   so a platform must sit at   y ≥ 434 - 260 = 174
+//
+// 170 is that, rounded down by the width of a rounding error so a board whose
+// shards BOB can still sit at its authored height — Domain Core's orbit lifts
+// its highest platform 24px on the way round, and those four pixels buy that
+// at no real cost.
+//
+// This is deliberately NOT scaled by a board's gravity the way the reach
+// budgets below are. Low gravity means a fighter rises further, so scaling it
+// would make the one board that floats (Domain Core, x0.88) the most
+// restricted board in the set — which is backwards: that board is the one whose
+// whole idea is height. A maximal triple jump from its top shard can clear the
+// frame for a few frames. That is a CAMERA limit (OVERSCAN_Y), not a fault in
+// the board, and the place to fix it if it ever shows up in play is the camera.
+const MIN_TOP_Y = 170;       // highest allowed platform
 const ORBIT_SLACK = 24;      // domainCore shards bob ±24 in y
 
 // Horizontal gap budget for a hop: plenty of drift on low hops, little near
 // the apex of a maximum-height jump.
-const gapBudget = (rise) => (rise <= 110 ? 220 : rise <= 145 ? 160 : 90);
+// How much DRIFT a hop of a given rise can spend. Plenty near the ground,
+// almost none near the apex of a maximal double jump — the higher you are
+// asking someone to go, the less of the jump is left for going sideways.
+const gapBudget = (rise) => (rise <= 110 ? 220 : rise <= 145 ? 160 : rise <= 175 ? 120 : 90);
 
 function horizontalGap(a, b) {
   if (a.x + a.w >= b.x && b.x + b.w >= a.x) return 0; // spans overlap
@@ -41,6 +95,13 @@ for (const stage of STAGES) {
   const others = plats.filter((p) => !mains.includes(p));
   const tier = plats.filter((p) => p.kind === "spawn");
   const slack = stage.key === "domainCore" ? ORBIT_SLACK : 0;
+  // A HOP IS WORTH MORE WHERE GRAVITY IS LOWER. Rise goes as v²/2g, so a board
+  // that scales gravity scales every budget here by the reciprocal — Domain
+  // Core's 0.88 buys 14% more height, and judging its shards against sea-level
+  // numbers called reachable hops uncomfortable.
+  const gMul = stage.mods?.gravityMul ?? 1;
+  const maxRise = MAX_RISE / gMul;
+  const comfyRise = COMFY_RISE / gMul;
   const problems = [];
   const warns = [];
 
@@ -55,8 +116,13 @@ for (const stage of STAGES) {
     const hole = b.x - (a.x + a.w);
     if (hole < 90) problems.push(`split floor's hole is only ${hole}px (want ≥ 90)`);
   }
-  if (others.length < 2 || others.length > 8) {
-    problems.push(`${others.length} non-main platforms (allowed 2–8)`);
+  // An ARCHETYPE guard, not a mechanical limit: nothing in the game cares how
+  // many platforms a board has, but a board with thirty of them is not one of
+  // the shapes docs/stage-variety-plan.md set out to build. Raised as the
+  // boards got richer — a floor, a starting tier and an orbit field of shards
+  // is nine before anybody has done anything unusual.
+  if (others.length < 2 || others.length > 10) {
+    problems.push(`${others.length} non-main platforms (allowed 2–10)`);
   }
   if (tier.length > 1) problems.push(`${tier.length} spawn tiers (allowed 0 or 1)`);
   for (const p of others) {
@@ -67,14 +133,23 @@ for (const stage of STAGES) {
   if (tier.length === 1) {
     const t = tier[0];
     const rise = main.y - t.y;
-    if (rise > MAX_RISE) problems.push(`the spawn tier is a ${rise}px hop off the floor (max ${MAX_RISE})`);
-    else if (rise > COMFY_RISE) warns.push(`the spawn tier needs a ${rise}px hop off the floor`);
+    if (rise > maxRise) problems.push(`the spawn tier is a ${rise}px hop off the floor (max ${Math.round(maxRise)})`);
+    else if (rise > comfyRise) warns.push(`the spawn tier needs a ${rise}px hop off the floor`);
     // ...and wide enough that a crowd can line up on it (spawnXs insets 70px
     // a side, and CROWD_SPAN_MAX caps how far apart they stand).
     if (t.w < 300) problems.push(`the spawn tier is only ${t.w}px wide`);
   }
   const highest = Math.min(...plats.map((p) => p.y - slack));
-  if (highest < MIN_TOP_Y) problems.push(`highest platform y ${highest} above the cap (min ${MIN_TOP_Y})`);
+  // A WARNING, not an error. Nothing breaks up there: no death line, painted
+  // backdrop all the way, and the board is still playable. What it costs is
+  // that the strongest jumpers leave the top of the shot entirely for a few
+  // frames, and that is a CAMERA limit worth knowing about rather than a
+  // layout somebody is not allowed to build. Whoever laid the board out is the
+  // authority on whether the height is worth it.
+  if (highest < MIN_TOP_Y) {
+    warns.push(`highest platform y ${highest} is above y ${MIN_TOP_Y} — a full jump `
+      + `from it takes the strongest fighters entirely out of frame`);
+  }
 
   // Reachability: climb from the main, admitting any platform some already-
   // reached surface can hop to within the rise/gap budget.
@@ -88,13 +163,13 @@ for (const stage of STAGES) {
       let best = Infinity;
       for (const from of reached) {
         const rise = from.y - p.y + slack; // worst case: target at orbit top
-        if (rise > MAX_RISE) continue;
-        if (horizontalGap(from, p) > gapBudget(Math.max(0, rise))) continue;
+        if (rise > maxRise) continue;
+        if (horizontalGap(from, p) > gapBudget(Math.max(0, rise) * gMul)) continue;
         best = Math.min(best, rise);
       }
       if (best === Infinity) continue;
       reached.add(p);
-      if (best > COMFY_RISE) warns.push(`(${p.x},${p.y}) needs a ${Math.round(best)}px hop`);
+      if (best > comfyRise) warns.push(`(${p.x},${p.y}) needs a ${Math.round(best)}px hop`);
       grew = true;
     }
   }

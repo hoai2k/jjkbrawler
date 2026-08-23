@@ -9,7 +9,7 @@ import { banner } from "./particles.js";
 import { draw } from "./render.js";
 import { selectRenderBackend, renderBackendLabel } from "./render_backend.js";
 import { enable3dCamera, camera3d } from "./camera_mode.js";
-import { getStage, spawnXs, spawnPlatform } from "./stages.js";
+import { getStage, spawnXs, spawnPlatform, spawnSpot } from "./stages.js";
 import { matchPlan, HUMAN_TEAM } from "./modes.js";
 import { oneSideLeft } from "./teams.js";
 import { TEXT } from "./config_menus.js";
@@ -18,7 +18,6 @@ import { RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { makeAiState, aiInput, cpuDamageMul } from "./ai.js";
 import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, showBattleIntro, fadeBattleIntro, hideBattleIntro, leaveTitle, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady, setPauseNotice, reportError, resetHudCache } from "./ui.js";
 import { WORLD, SUDDEN_DEATH_DAMAGE } from "./constants.js";
-import { clamp } from "./utils.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -152,26 +151,15 @@ async function resetMatch() {
   setBattleStage(stage.key);
   state.platforms = stage.platforms.map((p) => ({ ...p }));
 
-  // A spawn stands on the STARTING TIER — the `spawn: true` platform, which is
-  // the height every board's ground used to be at (stages.js). Below it is a
-  // whole storey of board that a match should not open in the middle of, so the
-  // tier wins outright wherever it is underfoot; anywhere else the rule is the
-  // old one, the lowest surface under that x, which is what puts Bridge Duel's
-  // outer slots on its side platforms Battlefield-style. An x with nothing
-  // under it at all is pulled onto the tier rather than dropped into the void.
+  // Where each fighter stands at the start is stages.js's rule (spawnSpot), not
+  // this file's: the arena bench has to place a fighter too, and two copies of
+  // "where does a match begin" is how they came to disagree.
   const tier = spawnPlatform(state.platforms);
-  const spawnSpot = (x) => {
-    const under = state.platforms.filter((p) => x >= p.x + 12 && x <= p.x + p.w - 12);
-    const onTier = under.filter((p) => p.kind === "spawn");
-    const pick = onTier.length ? onTier : under;
-    if (pick.length) return { x, y: Math.max(...pick.map((p) => p.y)) };
-    return { x: clamp(x, tier.x + 50, tier.x + tier.w - 50), y: tier.y };
-  };
 
   const spawns = spawnXs(entrantCount, tier);
   state.fighters = Array.from({ length: entrantCount }, (_, i) => {
     const id = i + 1;
-    const spot = spawnSpot(spawns[i]);
+    const spot = spawnSpot(state.platforms, spawns[i]);
     const fighter = makeFighter(id, state.roster[id], spot.x, spot.x < WORLD.w / 2 ? 1 : -1);
     fighter.y = spot.y;
     fighter.grounded = true;
