@@ -377,3 +377,38 @@ anybody typed. The bench edits `AUTHORED_STAGES` — a copy taken before that pa
 round trip through the bench would shave 30% off every slab, every time.
 `tools/smoke_arena_bench.mjs` asserts it: a main platform exports as `h: 42`
 while the world is running it at 29.
+
+## The slab takes the room's light
+
+Every board declared its ambiance once — `tint` in `src/stages.js`, the wash the
+backdrop is painted through — and the platforms did not read it. One blue-grey
+gradient with a gold lip was drawn on all twenty boards, so the same cold slab
+sat in Lantern Corridor's amber and in Neon Split's magenta as if it had been
+carried in from another game.
+
+`src/stage_palette.js` derives the slab's colours from that same tint, so the
+boards stay in sync with themselves: retint a stage and its platforms follow.
+Both cameras read it — the flat renderer's gradient and lip (`drawPlatformShape`)
+and the 3D extrusion's top, end and underside faces — so a board looks like one
+board from either angle.
+
+What is derived is HUE, and only hue:
+
+- **The fill** takes the room's hue. The shipped gradient's stops keep their own
+  lightness and (near enough) their own saturation, scaled by one factor per
+  board so a muted room takes its slab down a little and a neon one up. The
+  shipped spread from body to edge is kept but compressed to about an eighth:
+  at full width the edge sits nearly opposite the body, which on an amber board
+  lands a saturated blue over half the main platform and reads as two platforms
+  welded together.
+- **The lip** — the light *on* the slab — sits ON the board's hue rather than
+  opposite it, so the brightest line in the drawing agrees with where the light
+  in the painting comes from.
+- **The drop-throughs** keep their own lip colour, offset from the main's by the
+  same ≈152° the shipped gold and cyan had. That gap is not decoration: it is
+  how a player tells solid ground from a platform they can fall through, and it
+  survives on every board.
+
+Lightness is never derived. A platform is read at a glance, mid-fight, against a
+painted photograph; its legibility is the value structure, and that is a drawing
+decision made once rather than something a stage's tint gets a vote on.

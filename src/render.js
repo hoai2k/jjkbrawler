@@ -2,6 +2,7 @@ import { state } from "./state.js";
 import { getImage, frameMeta } from "./assets.js";
 import { sharedAdjust, sharedFadeIn, paintedHeight, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "./shared_sprites.js";
 import { getStage } from "./stages.js";
+import { stagePalette } from "./stage_palette.js";
 import { drawCharFrame, currentFrame, anchorOffset } from "./render_backend.js";
 import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
@@ -217,23 +218,25 @@ function cachedGradient(key, build) {
   return grad;
 }
 
-function platformGradient(ctx, kind, w) {
-  return cachedGradient(`plat:${kind}:${Math.round(w)}`, () => {
+// The slab's three stops come from the BOARD (src/stage_palette.js) rather
+// than from one hardcoded blue-grey, so a platform sits in its arena's light.
+// The stage key joins the cache key: the gradients are per board now.
+function platformGradient(ctx, kind, w, pal, stageKey) {
+  return cachedGradient(`plat:${stageKey}:${kind}:${Math.round(w)}`, () => {
     const grad = ctx.createLinearGradient(0, 0, w, 0);
-    if (kind === "main") {
-      grad.addColorStop(0, "#263044");
-      grad.addColorStop(0.5, "#111827");
-      grad.addColorStop(1, "#4d3a19");
-    } else {
-      grad.addColorStop(0, "#1d2739");
-      grad.addColorStop(0.5, "#111827");
-      grad.addColorStop(1, "#2a2f3f");
-    }
+    const stops = kind === "main" ? pal.main : pal.side;
+    grad.addColorStop(0, stops[0]);
+    grad.addColorStop(0.5, stops[1]);
+    grad.addColorStop(1, stops[2]);
     return grad;
   });
 }
 
 export function drawPlatformShape(ctx, p) {
+  // Which board's light this slab is standing in. The 3D path paints its face
+  // texture through this same function, so both cameras agree by construction.
+  const stageKey = p.stageKey || state.stageKey;
+  const pal = stagePalette(stageKey);
   ctx.save();
   if (p.shakeMag) ctx.translate((Math.random() - 0.5) * p.shakeMag, (Math.random() - 0.5) * p.shakeMag * 0.5);
   if (p.ghost) {
@@ -261,14 +264,14 @@ export function drawPlatformShape(ctx, p) {
   // 0..w in local space and the translate places it.
   ctx.save();
   ctx.translate(p.x, 0);
-  ctx.fillStyle = platformGradient(ctx, p.kind, p.w);
+  ctx.fillStyle = platformGradient(ctx, p.kind, p.w, pal, stageKey);
   roundRect(ctx, 0, p.y, p.w, p.h, 8 * A);
   ctx.fill();
   ctx.restore();
 
   // The lip of light along the walking surface: a line ON the slab, so its
   // weight and its inset from the ends are drawing numbers too.
-  ctx.strokeStyle = p.accent || (p.kind === "main" ? "rgba(255, 211, 92, 0.55)" : "rgba(97, 216, 255, 0.45)");
+  ctx.strokeStyle = p.accent || (p.kind === "main" ? pal.accentMain : pal.accentSide);
   ctx.lineWidth = 2 * A;
   ctx.beginPath();
   ctx.moveTo(p.x + 6 * A, p.y + 1 * A);
