@@ -803,6 +803,70 @@ a typical body width, which is what "the arc would be inside their own art"
 actually means. The change is strictly additive: across every character × move ×
 tilt, 147 combinations gain a crescent they did not have and **none lose one**.
 
+### The attack-angle audit
+
+Reported from play: a stick held straight down did not read as a downward
+attack; some angles put Gojo in the crouch-attack drawing with the arc swinging
+out of a standing shoulder; upward diagonals never appeared at all, the sweep
+stepping straight from the side attack to the up attack; and the up attack's arc
+hung far above the arm throwing it. Five separate faults, found together
+(`tools/smoke_attack_dirs.mjs` prints the whole sweep and holds all of it now).
+
+**The arc fields never reached the renderer.** `drawStrikeArcs` is handed the
+spawned **hitbox**, and `spawnMelee` copies a move field by field. `sweep`,
+`aimTilt` and the arc's pivot were not on that list, so every aimed attack in
+the game drew its crescent dead level, at every angle, for as long as aiming has
+existed. Both checks that cover arcs called `strikeArcs` on the *move*, so both
+passed while the game drew something else — they read the spawned box now, and
+`check_strike_arcs.mjs` asserts the two agree.
+
+**The arc's radius was the box's forward edge**, which is only the distance a
+swing reaches when the swing is level. `swingMove` scales an angled box by
+`cos(tilt)`, so the marker shrank as the aim steepened *and* was then drawn at
+that shrunken distance along a line the box no longer ended on: Gojo's jab aimed
+62° up reaches 59 px along its own swing and was marked at 37, inside his
+shoulder. It is now where the ray at the aim angle leaves the rectangle
+(`reachAlong`) — identical to the old answer at 0°, and to the two verticals'
+hand-written radii.
+
+**The arc's height was a guess off the box.** Arm height for everything, unless
+the box hung low enough to fall back to its own vertical centre. The quake never
+tripped the low test and drew its shockwave at the fighter's shoulders; a
+steeply aimed swing did trip it and dropped its crescent to the ankles, jumping
+the pivot 77 px between two adjacent stick angles. Every melee normal now
+records the height its blow actually lands at — the verified strike point — and
+the body fraction survives only as the fallback for boxes with no move behind
+them. An aimed swing thrown from a crouch pivots at the *ducked* shoulder, which
+is the "crouch drawing, standing arc" complaint answered directly.
+
+**Rising attacks had no measured range at all.** Forward reach has come off the
+drawings since the strike points landed; the up attacks' boxes were still
+literals, so every fighter's up tilt topped out at 1.88 body heights and every
+up smash at 2.17 — while the fist the move is drawn around gets to 1.05 on Gojo
+and 1.34 on Maki. The arc is drawn at the box's far edge, so the mark floated 87
+px above Gojo's own arm. `moveHeight` reads the contact point's `y` the way
+`moveReach` reads its `x`, and the top is that plus the move's own grace. Mean
+up-tilt top is now 1.54 body heights and mean up-smash 1.63, spread 1.26–1.88
+across the roster instead of flat. Jogo keeps the literal — nobody has verified
+his up attack, which is the bench's queue and not a number to invent.
+
+**The aimed band was symmetric and the two hand-offs are not.** Up is a genuine
+vertical, so 62° hands one skyward swing to another. Down is not: a grounded
+fighter cannot swing under the floor, and the move that owns *low* is the crouch
+poke, a forward attack — so the same hand-off ran the arc from 62° down back to
+level, snapping it backwards through sixty degrees at the one angle a player was
+aiming hardest. Grounded, the downward band ends at
+`ATTACK_TILT_GROUND_DOWN_DEG` (46°, just past the corner a d-pad can hold)
+instead. In the air the full band still applies both ways.
+
+**The heavy button had no diagonal.** It picked its variant off two independent
+half-plane flags, so a stick held between up and forward resolved to one or the
+other and the smash had no diagonal anywhere in its circle — only the *right*
+stick could angle one, and only on release. `beginHeavy` reads `attackTilt` now,
+before the dash-attack branch, exactly as `beginLight` does. And the angled
+smash was aiming its *body* at `-tilt` while swinging its *box* at `+tilt`, so a
+fighter throwing a high smash leaned down at it.
+
 ### Still open
 
 - **Item 10** — hurtbox extension on non-disjointed attacks. Every attack is

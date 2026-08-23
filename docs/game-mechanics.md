@@ -282,10 +282,24 @@ per-character (from their `light`/`heavy` profiles in `src/characters.js`).
   pressing attack throws the low poke rather than snapping the fighter upright
   into a jab. Smash gets the same feel out of its squat-exit animation — an
   attack out of the stand-up frames is still the down tilt. Holding down AND
-  forward together keeps its own reach — the side attack angled 45° at the
-  legs — but is *posed* out of the crouch, because a stick at five o'clock is
-  a crouch: the aim is the input's, the posture is the fighter's. The hurtbox
-  follows the same reading and stays ducked for the whole low swing.
+  forward together keeps its own reach — the side attack angled at the legs —
+  but is *posed* out of the crouch, because a stick at five o'clock is a
+  crouch: the aim is the input's, the posture is the fighter's. The hurtbox
+  follows the same reading and stays ducked for the whole low swing, and so
+  does the strike arc, which swings from the ducked shoulder rather than from
+  a standing one.
+
+**Aiming, and where the band ends.** Every angle between level and vertical is
+live on both buttons: the swing goes where the stick is pointed and the crescent
+turns with it (`attackTilt`, `swingMove`). The band opens 12° off level — under
+that a stick means "forward" and an arc should not wobble with it — and closes
+where a dedicated move takes over. That close is **not symmetric on the
+ground**. Upward it is 62°, handing one skyward swing to another. Downward it is
+46°, because a grounded fighter cannot swing under the floor they are standing
+on and the move that owns *low* is the crouch poke — a forward attack along the
+ground, which the last aimed swing hands off to rather than snapping back
+through sixty degrees to level. Airborne, the full band applies both ways: a
+down-forward aerial is a real attack and the meteor at 90° is a real hand-off.
 - **Aerials** — neutral / up / **down air** in midair; down airs are
   **spikes** that launch downward — the edge-guard finisher.
 
@@ -765,7 +779,9 @@ tilt in that direction on the spot — a side tilt without the run-up a light
 press needs, an up or down tilt without holding a direction, or in the air the
 aerial for that direction. Held rather than flicked it still angles a charging
 side smash on release; a charging fighter cannot act, so aiming never becomes an
-attack. Summon steering moved to the D-pad when the stick took this job.
+attack. It is no longer the *only* way to angle one — the left stick's own angle
+aims a smash the same way it aims a tilt — but it still wins when both are
+saying something, because it is the deliberate one. Summon steering moved to the D-pad when the stick took this job.
 
 **Special is B, and dash is a double-tap again.** Special spent one mapping on
 the right trigger with dash on B, and it is back where it started: special is

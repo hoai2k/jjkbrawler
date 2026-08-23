@@ -51,9 +51,11 @@ import {
 } from "./config_tuning.js";
 import { SAKURAI, SMASH_TILT_ANGLE, DASH_LUNGE_DRAG } from "./constants.js";
 import {
-  artReach, bodyWidth, bodyMetrics, moveReach, paintedReach, rosterReach,
-  rosterReachSpan,
+  artReach, bodyWidth, bodyMetrics, moveHeight, moveReach, paintedReach,
+  rosterReach, rosterReachSpan,
 } from "./silhouette.js";
+import { strikePoint } from "./strike_points.js";
+import { hurtboxFit } from "./body_points.js";
 import { clamp } from "./utils.js";
 
 function round1(v) {
@@ -182,6 +184,64 @@ function straddle(g, span, oy, h, sweep) {
 }
 
 /**
+ * A RISING box — an up tilt, an up air, an up smash — sized off the art the way
+ * a forward one is.
+ *
+ * `oy`/`h` are the authored literals, written for a reference-height fighter
+ * and scaled by `g.vy` like every other vertical in this file. They still set
+ * where the box ENDS, at the hip, because that end is about the fighter's own
+ * body and not about the swing.
+ *
+ * The TOP is the part that was wrong. It was the literal too, so every fighter
+ * on the roster threw an up attack topping out at the same fraction of their
+ * own height — 1.88 of it for a tilt, 2.17 for a smash — while the fist the
+ * move is drawn around gets to 1.05 body heights on Gojo and 1.34 on Maki. The
+ * strike arc is drawn at the box's far edge, so what a player saw was a
+ * crescent hanging eighty-odd px above the arm that threw it, on everybody.
+ *
+ * So the top comes off the verified contact point plus this move's own grace,
+ * exactly as `tipOf` does for a forward swing, and falls back to the literal
+ * for a fighter whose up attack nobody has pointed yet (`moveHeight` is null
+ * for Jogo). Held to a minimum span so a low-pointed rig cannot collapse the
+ * box onto the hip line it starts from.
+ */
+function rising(g, span, oy, h, variant) {
+  const bottom = g.vy(oy + h);
+  const measured = moveHeight(g.charKey, "upHeavy");
+  const grace = ((MELEE_GRACE[variant] ?? MELEE_GRACE.up) + addedFor(g)) * MELEE_GRACE.scale;
+  const top = measured == null
+    ? g.vy(oy)
+    : Math.min(-(measured + grace), bottom - g.vy(MELEE_SPAN.risingMin));
+  return { ox: -span / 2, w: span, oy: top, h: bottom - top, sweep: "up" };
+}
+
+/**
+ * The height a move's crescent hangs at: where this fighter's blow actually
+ * LANDS on the drawing for it, in game px from the foot line.
+ *
+ * Read here, where the character and the state are both known, and recorded on
+ * the move — the same hand-off `sweep` makes, and for the same reason. By the
+ * time `strikeArcs` has a box it has no idea whose it is, so it was placing
+ * every sideways arc at one fraction of body height and correcting with a
+ * guess: a box hanging low enough drew from its own vertical CENTRE instead.
+ * Both readings were wrong wherever it mattered. A quake is a shockwave along
+ * the FLOOR and drew at shoulder height; a crouch poke drew at a standing
+ * fighter's shoulder, over a fighter who is visibly ducked; and a swing aimed
+ * steeply down tripped the guess and dropped its arc to the ankles, so the
+ * pivot jumped 77 px between two adjacent stick angles.
+ *
+ * The contact point answers all three, because it is the one number that knows
+ * both the pose and the move. Null for a point nobody has placed or measured —
+ * `strikeArcs` keeps the body-fraction fallback for those, and for the
+ * projectiles and summon strikes that have no state at all.
+ */
+function pivotOf(g, state) {
+  if (!state) return null;
+  const p = strikePoint(g.charKey, state);
+  return p && p.source !== "derived" && Number.isFinite(p.y) ? p.y : null;
+}
+
+/**
  * A tip sweetspot for a move that reaches well past the roster.
  *
  * This is Marth's tipper, and it is how range gets paid for a second time: a
@@ -214,6 +274,34 @@ function tipBand(g, tip) {
   };
 }
 
+/**
+ * The height an AIMED swing pivots at when the fighter throwing it is ducked —
+ * the crouched shoulder, as a fraction of a crouched body rather than a
+ * standing one.
+ *
+ * `pivotOf` answers with the contact point, which is the right answer for a
+ * move as it was authored and the wrong one for a move that has since been
+ * rotated: the crouch poke's blow lands at ankle height because that is where a
+ * low poke ends, and swinging a 40° arc about THAT puts the crescent under the
+ * stage. A rotation needs the joint it turns about, and for a ducked fighter
+ * that is a shoulder they are holding low.
+ *
+ * `crouch` is measured off the fighter's own ducking art (silhouette.js), so a
+ * fighter drawn barely bending keeps a high shoulder and one drawn folded up
+ * gets a low one.
+ */
+export function crouchPivot(char) {
+  const key = keyOf(char);
+  const m = bodyMetrics(key);
+  // The REVIEWED crouch height, not the raw measurement: `b.crouch` is a scan
+  // of the ducking art and the hurtbox fit is a person's correction to it
+  // (combat.js hurtbox builds a crouch box the same way round). On Gojo the two
+  // are 83 px and 58 px apart, and taking the scan would put the shoulder an
+  // arc pivots about above the head it belongs to.
+  const duck = m.height * m.crouch * hurtboxFit(key, "crouch").h;
+  return -STRIKE_ARC.armHeight * duck;
+}
+
 export function lightMove(char, variant, jabStep = 0) {
   const p = char.light;
   const g = geo(char);
@@ -233,6 +321,7 @@ export function lightMove(char, variant, jabStep = 0) {
         delay: 0.05 / s, dur: 0.09,
         recover: (finisher ? 0.24 : 0.13) * priceOf(g),
         ...forward(g, tip, -92, 98),
+        pivotY: pivotOf(g, "light"),
         dmg: round1(p.dmg * (finisher ? 0.95 : 0.5)),
         baseKb: finisher ? 330 : 90,
         growth: finisher ? 6.0 : 1.0,
@@ -251,6 +340,7 @@ export function lightMove(char, variant, jabStep = 0) {
         ...base,
         delay: 0.07 / s, dur: 0.12, recover: 0.2 * priceOf(g),
         ...forward(g, tip, -90, 92),
+        pivotY: pivotOf(g, "light"),
         dmg: round1(p.dmg), baseKb: 310, growth: 5.8, angle: p.angle,
         critBand: p.critBand || tipBand(g, tip),
         label: p.label, lungeVx: 90,
@@ -283,6 +373,7 @@ export function lightMove(char, variant, jabStep = 0) {
         anim: "dashAttack",
         delay: 0.08 / s, dur: 0.13, recover: 0.34 * priceOf(g),
         ...forward(g, tip, -94, 104),
+        pivotY: pivotOf(g, "dashAttack"),
         dmg: round1(p.dmg * 1.1), baseKb: 330, growth: 6.2, angle: p.angle,
         critBand: p.critBand || tipBand(g, tip),
         label: "Dash " + p.label,
@@ -294,7 +385,7 @@ export function lightMove(char, variant, jabStep = 0) {
         ...base,
         anim: "upHeavy",
         delay: 0.06 / s, dur: 0.13, recover: 0.2 * priceOf(g),
-        ...straddle(g, tipOf(g, "up") * MELEE_SPAN.up, -196, 130, "up"),
+        ...rising(g, tipOf(g, "up") * MELEE_SPAN.up, -196, 130, "up"),
         dmg: round1(p.dmg * 0.9), baseKb: 300, growth: 6.0, angle: 1.15,
         label: "Rising " + p.label,
       };
@@ -304,6 +395,7 @@ export function lightMove(char, variant, jabStep = 0) {
         anim: "crouchAttack",
         delay: 0.05 / s, dur: 0.12, recover: 0.18 * priceOf(g),
         ...forward(g, tipOf(g, "down", "crouchAttack"), -52, 54, MELEE_SPAN.nearLow),
+        pivotY: pivotOf(g, "crouchAttack"),
         dmg: round1(p.dmg * 0.85), baseKb: 250, growth: 5.0,
         // A low poke that stays low. With the flat launch pop gone (combat.js)
         // this finally sends a grounded opponent sliding rather than popping
@@ -317,6 +409,7 @@ export function lightMove(char, variant, jabStep = 0) {
         anim: "airLight",
         delay: 0.05 / s, dur: 0.16, recover: 0.14 * priceOf(g),
         ...forward(g, tipOf(g, "air", "airLight"), -104, 104, MELEE_SPAN.nearAir),
+        pivotY: pivotOf(g, "airLight"),
         dmg: round1(p.dmg * 0.95), baseKb: 290, growth: 5.9, angle: 0.5,
         label: "Aerial " + p.label,
       };
@@ -325,7 +418,7 @@ export function lightMove(char, variant, jabStep = 0) {
         ...base,
         anim: "airLight",
         delay: 0.05 / s, dur: 0.15, recover: 0.14 * priceOf(g),
-        ...straddle(g, tipOf(g, "up") * MELEE_SPAN.up, -210, 120, "up"),
+        ...rising(g, tipOf(g, "up") * MELEE_SPAN.up, -210, 120, "up"),
         dmg: round1(p.dmg * 0.9), baseKb: 280, growth: 6.1, angle: 1.3,
         label: "Air Rising " + p.label,
       };
@@ -365,6 +458,7 @@ export function heavyMove(char, variant, charge = 0) {
         anim: "sideHeavy",
         delay: 0.15 / s, dur: 0.14, recover: 0.3 * price,
         ...forward(g, tip, -96, 108),
+        pivotY: pivotOf(g, "sideHeavy"),
         dmg: round1(p.dmg * chargeMul), baseKb: 430 * (1 + 0.25 * charge), growth: 8.4, angle: p.angle,
         // An authored band (Nanami's 7:3) is a character's own decision and
         // wins; otherwise a long enough swing earns a tipper from its reach.
@@ -384,6 +478,7 @@ export function heavyMove(char, variant, charge = 0) {
         anim: "dashAttackHeavy",
         delay: 0.13 / s, dur: 0.15, recover: 0.42 * price,
         ...forward(g, tip, -96, 112),
+        pivotY: pivotOf(g, "dashAttackHeavy"),
         dmg: round1(p.dmg * 0.95), baseKb: 420, growth: 8.0, angle: p.angle,
         critBand: p.critBand || tipBand(g, tip),
         label: "Charging " + p.label,
@@ -395,7 +490,7 @@ export function heavyMove(char, variant, charge = 0) {
         ...base,
         anim: "upHeavy",
         delay: 0.14 / s, dur: 0.16, recover: 0.32 * price,
-        ...straddle(g, tipOf(g, "upHeavy") * MELEE_SPAN.upHeavy, -226, 160, "up"),
+        ...rising(g, tipOf(g, "upHeavy") * MELEE_SPAN.upHeavy, -226, 160, "upHeavy"),
         dmg: round1(p.dmg * 0.95 * chargeMul), baseKb: 440 * (1 + 0.25 * charge), growth: 8.8, angle: 1.35,
         critBand: p.critBand || null,
         label: "Skyward " + p.label,
@@ -406,6 +501,7 @@ export function heavyMove(char, variant, charge = 0) {
         anim: "downHeavy",
         delay: 0.17 / s, dur: 0.15, recover: 0.34 * price,
         ...straddle(g, tipOf(g, "downHeavy") * MELEE_SPAN.downHeavy, -64, 78, "sides"),
+        pivotY: pivotOf(g, "downHeavy"),
         dmg: round1(p.dmg * 0.9 * chargeMul), baseKb: 400 * (1 + 0.25 * charge), growth: 7.8, angle: 0.9,
         critBand: p.critBand || null,
         label: "Quake " + p.label, quake: true,
@@ -416,6 +512,7 @@ export function heavyMove(char, variant, charge = 0) {
         anim: "airLight",
         delay: 0.13 / s, dur: 0.16, recover: 0.2 * price,
         ...forward(g, tipOf(g, "airHeavy", "airLight"), -104, 110, MELEE_SPAN.nearAir),
+        pivotY: pivotOf(g, "airLight"),
         dmg: round1(p.dmg * 0.9), baseKb: 380, growth: 7.6, angle: 0.48,
         critBand: p.critBand || null,
         label: "Aerial " + p.label,
@@ -488,11 +585,10 @@ export function strikeArcs(m, bodyH) {
   // default — see STRIKE_ARC.hideInsideArt for why redundant beats absent.
   const floor = STRIKE_ARC.hideInsideArt ? minRadius : 0;
   const drawable = (r) => r > 0 && r >= floor;
-  const x0 = m.ox, x1 = m.ox + m.w;
-  const y0 = m.oy, y1 = m.oy + m.h;
+  const box = { x0: m.ox, x1: m.ox + m.w, y0: m.oy, y1: m.oy + m.h };
   const armY = -STRIKE_ARC.armHeight * bodyH;
   const hipY = -STRIKE_ARC.hipHeight * bodyH;
-  const straddles = x0 < 0;
+  const straddles = box.x0 < 0;
 
   // WHICH WAY THE SWING COMES OUT, and the move is asked before the box is.
   //
@@ -507,25 +603,41 @@ export function strikeArcs(m, bodyH) {
   // one pixel from reading as a different attack, and a nudge in the sprite
   // workbench would have moved him across it.
   //
-  // It is the same lesson `aimTilt` already carries thirty lines below: a
-  // box's own geometry cannot tell you what the swing MEANT. So `straddle`
-  // labels the move and this reads the label.
+  // It is the same lesson `aimTilt` already carries below: a box's own
+  // geometry cannot tell you what the swing MEANT. So `straddle` labels the
+  // move and this reads the label.
   const sweep = m.sweep || guessSweep(m, straddles);
   if (sweep === "up") {
-    return vertical(armY, armY - y0, -Math.PI / 2, m.w / 2, minRadius, drawable);
+    return vertical(box, armY, -Math.PI / 2, m.w / 2, minRadius, drawable);
   }
   if (sweep === "down") {
-    return vertical(hipY, y1 - hipY, Math.PI / 2, m.w / 2, minRadius, drawable);
+    return vertical(box, hipY, Math.PI / 2, m.w / 2, minRadius, drawable);
   }
   // "sides", and everything else, falls through: a quake really does come out
   // both ways along the floor, and so the two-armed branch below is its
   // picture rather than a fallback it lands in.
 
-  // Sideways. Arm height, unless the box sits low enough that the strike is
-  // plainly a low one — a crouch poke, a ground quake — in which case it draws
-  // from its own height, because that is where the fighter is swinging.
-  const low = y0 > armY + STRIKE_ARC.lowStrike * bodyH;
-  const pivotY = low ? (y0 + y1) / 2 : armY;
+  // WHAT HEIGHT THE SWING COMES FROM.
+  //
+  // The move's own contact point (`pivotOf`), which is where this fighter's
+  // blow actually lands on the drawing for this attack. Everything before it
+  // was a guess off the box, and the box is the wrong thing to ask: hitboxes
+  // are deliberately generous downward — a jab's runs from chest to floor so
+  // it catches a crouching opponent — so its centre is nobody's fist and its
+  // top edge is nobody's shoulder.
+  //
+  // Two guesses, both wrong where it showed. Arm height for everything meant a
+  // ground quake drew its shockwave at the fighter's shoulders. The escape
+  // hatch for that — a box hanging low enough draws from its own vertical
+  // CENTRE — never caught the quake and did catch the steep aimed swings,
+  // dropping their arcs to ankle height: on Gojo the pivot jumped 77 px
+  // between two adjacent stick angles, which is the "crouched sprite, standing
+  // arc" the audit opened on.
+  //
+  // The body fraction stays as the fallback for a box with no move behind it —
+  // a projectile, a special, a summon's strike — which is what it was always
+  // suited to being.
+  const pivotY = Number.isFinite(m.pivotY) ? m.pivotY : guessPivot(box, armY, bodyH);
   const half = m.h / 2;
   // WHICH WAY THE SWING WENT.
   //
@@ -537,17 +649,67 @@ export function strikeArcs(m, bodyH) {
   //
   // The angled smash carried a note saying the arc followed the aim "for
   // free". It did not — this was hardcoded to zero, and only `low` moved it,
-  // and only once a box had dropped far enough to trip that.
+  // and only once a box had dropped far enough to trip that. And once it was
+  // read here it still did not reach the screen, because `spawnMelee` was not
+  // copying it onto the hitbox this is called with (combat.js).
   const aim = m.aimTilt || 0;
   const arcs = [];
-  if (drawable(x1)) {
-    arcs.push({ pivotY, radius: x1, aim, span: arcSpan(half, x1), minRadius });
+  const fwd = reachAlong(box, pivotY, aim);
+  if (drawable(fwd)) {
+    arcs.push({ pivotY, radius: fwd, aim, span: arcSpan(half, fwd), minRadius });
   }
   // Backward too, for the down-smash quakes whose box spans both sides.
-  if (drawable(-x0)) {
-    arcs.push({ pivotY, radius: -x0, aim: Math.PI, span: arcSpan(half, -x0), minRadius });
+  const back = reachAlong(box, pivotY, Math.PI);
+  if (straddles && drawable(back)) {
+    arcs.push({ pivotY, radius: back, aim: Math.PI, span: arcSpan(half, back), minRadius });
   }
   return arcs;
+}
+
+/**
+ * How far the box reaches ALONG one direction from the arc's pivot: the
+ * distance at which a ray leaving `(0, pivotY)` at `aim` leaves the rectangle.
+ *
+ * This is the whole of "the arc is drawn at the hitbox's own far edge", and it
+ * used to be `ox + w` — the box's forward edge — which is only that distance
+ * when the swing is level. Aim one and it stopped being true twice over.
+ * `swingMove` scales an angled box by the cosine of its tilt, so the forward
+ * edge shrinks; and the arc was then drawn at that shrunken distance along a
+ * line the box no longer ended on. Gojo's jab aimed 62° up reaches 59 px along
+ * its own swing and was marked at 37, which is inside his shoulder — the
+ * upward diagonals had arcs, and they were drawn where nobody would see them.
+ *
+ * Reduces to the old answer exactly when `aim` is 0, and to `armY - y0` and
+ * `y1 - hipY` for the two verticals, so nothing that was already right moved.
+ */
+function reachAlong(box, pivotY, aim) {
+  const dx = Math.cos(aim), dy = Math.sin(aim);
+  const top = box.y0 - pivotY, bottom = box.y1 - pivotY;
+  let t = Infinity;
+  if (dx > 1e-6) t = Math.min(t, box.x1 / dx);
+  else if (dx < -1e-6) t = Math.min(t, box.x0 / dx);
+  if (dy > 1e-6) t = Math.min(t, bottom / dy);
+  else if (dy < -1e-6) t = Math.min(t, top / dy);
+  return Number.isFinite(t) ? t : 0;
+}
+
+/**
+ * The old height guess, kept — like `guessSweep` below — for the boxes that
+ * carry no contact point: a projectile's, a special's, a summon's strike.
+ *
+ * Arm height, unless the box sits low enough that the strike is plainly a low
+ * one, in which case it draws from its own middle because that is the only
+ * thing about it anybody knows. It was the rule for EVERYTHING until the melee
+ * normals started saying where their blow lands, and both halves of it were
+ * wrong on the moves that mattered: the quake never tripped the low test and
+ * drew its shockwave at the shoulders, while a steeply aimed swing did trip it
+ * and dropped its crescent to the ankles. Reduced to the fallback it is good
+ * at, it goes on doing what it always did for the boxes that have nothing
+ * better.
+ */
+function guessPivot(box, armY, bodyH) {
+  const low = box.y0 > armY + STRIKE_ARC.lowStrike * bodyH;
+  return low ? (box.y0 + box.y1) / 2 : armY;
 }
 
 /**
@@ -568,7 +730,8 @@ function guessSweep(m, straddles) {
 /** The one-arc list for a straight-up or straight-down strike — empty when the
  *  radius is not worth drawing, which by default means only "not positive".
  *  See STRIKE_ARC.hideInsideArt. */
-function vertical(pivotY, radius, aim, half, minRadius, drawable) {
+function vertical(box, pivotY, aim, half, minRadius, drawable) {
+  const radius = reachAlong(box, pivotY, aim);
   if (!drawable(radius)) return [];
   return [{ pivotY, radius, aim, span: arcSpan(half, radius), minRadius }];
 }

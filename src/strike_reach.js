@@ -162,6 +162,49 @@ export function verifiedPoint(charKey, state) {
 }
 
 /**
+ * The states whose contact point is a HEIGHT rather than a reach.
+ *
+ * The mirror image of FORWARD_STATES above, and the same argument the other way
+ * round. A rising attack is struck along the fighter's own centre line, so its
+ * `x` is a few px of shoulder lean and says nothing — but its `y` is the whole
+ * move: how far above their own head this fighter's fist actually gets.
+ *
+ * Nothing read that number until it had to. `moves.js` sized every up attack
+ * from a literal written for a reference-height fighter — a box whose top edge
+ * landed 1.88 body heights up for the entire roster — and the strike arc, which
+ * is drawn at the box's far edge, therefore floated about eighty px above the
+ * arm on Gojo. The art has known better all along.
+ */
+export const RISING_STATES = ["upHeavy"];
+
+/**
+ * How high a verified point may land and still be read as a rising attack's
+ * reach, in game px above the foot line. See STRIKE_REACH.upMin/upMax — it is
+ * the vertical twin of `reachGuard` and it is loose for the same reason.
+ */
+export function heightGuard(charKey) {
+  const h = headHeightTarget(charKey) || BODY.fallbackHeight;
+  return { lo: h * STRIKE_REACH.upMin, hi: h * STRIKE_REACH.upMax, height: h };
+}
+
+/**
+ * This state's vertical reach off the art, in game px above the foot line — or
+ * null when there is no usable verified point for it, which sends the move back
+ * to its authored literal.
+ *
+ * Same rule as `verifiedReach`: a point outside the guard is refused rather
+ * than clamped, because a fist drawn at ankle height on an up smash is a
+ * picture to look at again and not a short up smash.
+ */
+export function verifiedHeight(charKey, state) {
+  const p = verifiedPoint(charKey, state);
+  if (!p) return null;
+  const up = -p.y;                              // canvas y is negative upward
+  const { lo, hi } = heightGuard(charKey);
+  return up >= lo && up <= hi ? up : null;
+}
+
+/**
  * How far a verified point may sit from the centre line and still be read as a
  * reach, in game px. See STRIKE_REACH in config_tuning.js for why this band is
  * so much wider than the one guarding the silhouette scan: it is catching a
