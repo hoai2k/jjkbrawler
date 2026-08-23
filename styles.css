@@ -208,7 +208,24 @@ html, body {
   z-index: 5;
 }
 
+/* THE PLATE GETS OUT OF THE WAY (ui.js updateHudYield).
+ *
+ * Faded rather than removed: at 0.14 the readout is still legibly THERE — you
+ * can see your own damage as a ghost behind the body — while the fighter reads
+ * as being in front of it, which is the point. Removing it outright would make
+ * a player's stock count vanish at exactly the moment they are being juggled
+ * into the ceiling and most want to know it.
+ *
+ * The transition is short and symmetric. Anything slower reads as a lag in the
+ * interface rather than as the interface deferring; the no-flicker guarantee is
+ * the hysteresis in ui.js, not this. */
+.fighter-status--yield {
+  opacity: 0.14;
+  filter: saturate(0.5);
+}
+
 .fighter-status {
+  transition: opacity 0.12s ease, filter 0.12s ease;
   display: flex;
   gap: 10px;
   align-items: center;

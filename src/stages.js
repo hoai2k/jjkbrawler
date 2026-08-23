@@ -137,7 +137,7 @@ export const STAGES = [
     { x: 110, y: 696, w: 1060, h: 42, kind: "main" }, { x: 200, y: 576, w: 880, h: 15, kind: "spawn" }, { x: 180, y: 448, w: 280, h: 15, kind: "side" }, { x: 820, y: 440, w: 200, h: 15, kind: "side" }, { x: 560, y: 310, w: 150, h: 15, kind: "top" }, { x: 495, y: 446, w: 30, h: 130, kind: "wall" }, { x: 755, y: 446, w: 30, h: 130, kind: "wall" }
   ] },
   { key: "schoolWing", name: "School Wing", bgFile: "school_wing.jpg", tint: "rgba(205, 148, 92, 0.1)", platforms: [
-    { x: 130, y: 690, w: 1020, h: 42, kind: "main" }, { x: 230, y: 570, w: 820, h: 15, kind: "spawn" }, { x: 170, y: 446, w: 200, h: 15, kind: "side" }, { x: 910, y: 446, w: 200, h: 15, kind: "side" }, { x: 340, y: 330, w: 130, h: 15, kind: "side" }, { x: 790, y: 330, w: 170, h: 15, kind: "side" }
+    { x: 86, y: 690, w: 1170, h: 42, kind: "main" }, { x: 230, y: 570, w: 903, h: 15, kind: "spawn" }, { x: 149, y: 446, w: 221, h: 15, kind: "side" }, { x: 844, y: 448, w: 200, h: 15, kind: "side" }, { x: 340, y: 330, w: 130, h: 15, kind: "side" }, { x: 790, y: 330, w: 170, h: 15, kind: "side" }, { x: 1123, y: 228, w: 130, h: 15, kind: "side" }, { x: -53, y: 290, w: 130, h: 15, kind: "side" }, { x: 76, y: 171, w: 130, h: 15, kind: "side" }
   ] },
   { key: "emptyCity", name: "Empty City", bgFile: "empty_city.jpg", tint: "rgba(159, 189, 214, 0.15)", platforms: [
     { x: 98, y: 633, w: 460, h: 42, kind: "main" }, { x: 758, y: 633, w: 460, h: 42, kind: "main" }, { x: 168, y: 513, w: 920, h: 15, kind: "spawn" }, { x: 128, y: 409, w: 210, h: 15, kind: "side" }, { x: 918, y: 385, w: 210, h: 15, kind: "side" }, { x: 50, y: 256, w: 190, h: 15, kind: "top" }, { x: 611, y: 245, w: 389, h: 15, kind: "top" }
