@@ -212,8 +212,8 @@ root.innerHTML = `
 
       <h2>Board</h2>
       <label class="field">name <input id="aName" type="text"></label>
-      <label class="toggle" title="Stage gimmicks — hazards and moving platforms (src/stage_fx.js). Off while editing by default: several boards MOVE their platforms, which fights the thing you are dragging.">
-        <input type="checkbox" id="fxToggle"> active boards (hazards)
+      <label class="toggle" title="Stage gimmicks — hazards and moving platforms (src/stage_fx.js). Follows the mode: still while you are editing, because several boards MOVE their platforms and one that walks away cannot be dragged; live as soon as you turn editing off, because what a board DOES to a platform is half of what that platform asks of a player. Override it here either way.">
+        <input type="checkbox" id="fxToggle"> active boards (hazards) — live in play mode
       </label>
       <label class="field" title="Scales gravity for the whole match. Domain Core floats at 0.88.">gravity ×
         <input id="mGravity" type="number" step="0.01" min="0.4" max="1.6">
@@ -895,11 +895,17 @@ for (const [key, mod] of [["gravity", "gravityMul"], ["friction", "frictionPow"]
   });
 }
 
-fxEl.addEventListener("change", () => {
-  state.activeBoards = fxEl.checked;
+function setHazards(on) {
+  if (state.activeBoards === on) return;
+  state.activeBoards = on;
+  fxEl.checked = on;
+  // Back to the authored geometry first: a gimmick that had moved or phased a
+  // platform leaves it wherever it stopped, and that is not the board.
   syncPlatforms();
   syncStageFx();
-});
+}
+
+fxEl.addEventListener("change", () => setHazards(fxEl.checked));
 
 // ------------------------------------------------------------- add / delete
 document.getElementById("addPlatform").addEventListener("click", () => {
@@ -1094,6 +1100,8 @@ document.getElementById("arenaExport").addEventListener("click", () => {
 const MAX_RISE = 235;
 const COMFY_RISE = 175;
 const TOP_CAP = 170;
+const WALL_REACH = 120;
+const LEVEL_SLOP = 12;
 const gapBudget = (rise) => (rise <= 110 ? 220 : rise <= 145 ? 160 : rise <= 175 ? 120 : 90);
 
 function horizontalGap(a, b) {
@@ -1121,8 +1129,9 @@ function reachReportFor(arena) {
   if (mains.length > 2) problems.push(`${mains.length} main platforms (allowed 1 or 2)`);
   if (mains.length === 2) {
     const [a, b] = mains.slice().sort((p, q) => p.x - q.x);
-    if (a.y !== b.y) problems.push(`the split floor's halves are not level`);
-    else if (b.x - (a.x + a.w) < 90) problems.push(`the split floor's hole is under 90px`);
+    const step = Math.abs(a.y - b.y);
+    if (step > LEVEL_SLOP) warnings.push(`the floor halves sit ${step}px apart — a step, not one floor`);
+    if (b.x - (a.x + a.w) < 90) problems.push(`the split floor's hole is under 90px`);
   }
   if (tier.length > 1) problems.push(`${tier.length} spawn tiers (allowed 0 or 1)`);
   if (tier.length === 1) {
@@ -1143,6 +1152,19 @@ function reachReportFor(arena) {
     warnings.push(`y ${highest} is high — a full jump from it takes the strongest `
       + `fighters entirely out of frame`);
   }
+  // A WALL IS A LADDER, the same rule tools/audit_stage_reach.mjs applies
+  // (fighter.js wallAgainst): a jump taken against a wall costs no air jump, so
+  // a wall you can get to makes everything alongside its face reachable
+  // whatever the rise. Without this the panel called a deliberately vertical
+  // board broken while CI passed it, which is worse than having no panel.
+  const walls = plats.filter((p) => p.kind === "wall");
+  const reachesWall = (w, from) =>
+    horizontalGap(w, from) <= WALL_REACH
+    && w.y + w.h >= from.y - maxRise && w.y <= from.y + WALL_REACH;
+  const alongWall = (w, p) =>
+    horizontalGap(w, p) <= WALL_REACH
+    && p.y >= w.y - maxRise && p.y <= w.y + w.h + WALL_REACH;
+
   const reached = new Set(mains.length ? mains : [main]);
   let grew = true;
   while (grew) {
@@ -1160,6 +1182,15 @@ function reachReportFor(arena) {
       reached.add(p);
       if (best > comfyRise) warnings.push(`(${p.x},${p.y}) needs a ${Math.round(best)}px hop`);
       grew = true;
+    }
+    for (const w of walls) {
+      if (![...reached].some((from) => from === w || reachesWall(w, from))) continue;
+      reached.add(w);
+      for (const p of others) {
+        if (reached.has(p) || !alongWall(w, p)) continue;
+        reached.add(p);
+        grew = true;
+      }
     }
   }
   for (const p of others) {
@@ -1315,6 +1346,16 @@ function loop(now) {
 editingEl.addEventListener("change", () => {
   bench.editing = editingEl.checked;
   canvas.classList.toggle("is-editing", bench.editing);
+  // HAZARDS FOLLOW THE MODE.
+  //
+  // Editing wants the board to hold still — several gimmicks MOVE platforms,
+  // phase them out, or drop things on them, and a platform that walks away from
+  // the cursor cannot be dragged. Playing wants the opposite: half of what a
+  // platform demands of a player is what the board DOES to it, and judging a
+  // layout with the hazards switched off is judging a different board. So
+  // turning editing off arms them and turning it back on stills them. The
+  // checkbox still overrides, for either mode.
+  setHazards(!bench.editing);
   if (bench.editing) pinCamera();
   else resetFrameClock();
   const next = new URL(window.location.href);

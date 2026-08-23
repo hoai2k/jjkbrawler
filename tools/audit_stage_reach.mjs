@@ -77,6 +77,10 @@ const ORBIT_SLACK = 24;      // domainCore shards bob ±24 in y
 // WALL_JUMP_REACH); this is that plus the sideways shove that carries you off
 // the face, which is what actually lands you on a neighbouring platform.
 const WALL_REACH = 120;
+// How far two halves of a split floor may sit apart before it reads as a step
+// rather than as one floor with a hole in it. Generous: a few pixels is a drag
+// that landed a hair off, and nothing in the game measures it.
+const LEVEL_SLOP = 12;
 
 // Horizontal gap budget for a hop: plenty of drift on low hops, little near
 // the apex of a maximum-height jump.
@@ -117,7 +121,14 @@ for (const stage of STAGES) {
   // real hole between them rather than an overlap or a step.
   if (mains.length === 2) {
     const [a, b] = mains.slice().sort((p, q) => p.x - q.x);
-    if (a.y !== b.y) problems.push(`split floor halves are not level (${a.y} vs ${b.y})`);
+    // A WARNING, and only past a real step. "Two halves of one floor" is the
+    // usual shape, but a board is allowed to put one side lower than the other
+    // — that is a design, not a mistake — and a couple of pixels between them
+    // is a drag that landed a hair off and means nothing to anybody playing.
+    const step = Math.abs(a.y - b.y);
+    if (step > LEVEL_SLOP) {
+      warns.push(`the floor halves sit ${step}px apart (${a.y} vs ${b.y}) — a step, not one floor`);
+    }
     const hole = b.x - (a.x + a.w);
     if (hole < 90) problems.push(`split floor's hole is only ${hole}px (want ≥ 90)`);
   }

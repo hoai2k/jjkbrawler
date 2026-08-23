@@ -65,6 +65,9 @@ export function makeFighter(id, charKey, x, facing) {
     jumpBuffer: 0, coyote: 0, jumpHeldT: 0, jumpCut: false,
     dashT: 0, dashDir: 0, lastTap: { dir: 0, t: -10 },
     turnLock: 0, landTimer: 0, dropTimer: 0, bufferedAction: null, landLag: 0,
+    // THE ONE platform being dropped through, not "all of them for a moment" —
+    // see resolvePlatforms. dropTimer is only the safety net behind it.
+    dropThrough: null,
     // Braking out of a run to go the other way. `skidding` is this frame's
     // reading (config_tuning.js SKID) and drives the pose and the lean;
     // `skidFxT` is the dust metronome. Neither feeds the simulation.
@@ -787,6 +790,7 @@ function tryGrabLedge(f) {
       f.shielding = false;
       f.airJumpsLeft = stats(f).airJumps;
       f.wallJumped = false;
+      f.dropThrough = null;
       f.airDodged = false;
       f.facing = side === -1 ? 1 : -1;
       f.ledgeTimer = 0;
@@ -1100,7 +1104,19 @@ function resolvePlatforms(f, prevY) {
   for (const plat of plats) {
     // phased-out platform (Active Boards: Bone Sanctum, Empty City)
     if (plat.ghost) continue;
-    if (f.dropTimer > 0 && plat.kind !== "main") continue;
+    // ONE PLATFORM AT A TIME.
+    //
+    // A drop used to switch off EVERY non-main platform for 0.24s, and 0.24s of
+    // falling is ~87px — so anything stacked under the one you meant to leave
+    // went with it, and a press meant to take you down one tier could take you
+    // down three. Ignoring the specific platform being left means the next
+    // surface catches you however close it is, which is also the answer to
+    // "don't drop me through a platform with nothing below it".
+    //
+    // The timer stays as the safety net: identity is the rule, but a platform
+    // that phases out or is carried away underneath (Active Boards) must not be
+    // able to strand the flag forever.
+    if (plat === f.dropThrough) continue;
     const margin = standMargin(plat);
     if (f.x < plat.x - margin || f.x > plat.x + plat.w + margin) continue;
     if (f.vy < 0) continue;
@@ -1130,6 +1146,7 @@ function resolvePlatforms(f, prevY) {
       f.currentPlatform = plat;
       f.airJumpsLeft = stats(f).airJumps;
       f.wallJumped = false;
+      f.dropThrough = null;
       f.airDodged = false;
       f.fastFalling = false;
       f.coyote = COYOTE_TIME;
@@ -1282,6 +1299,7 @@ function respawn(f) {
   setAnim(f, "idle");
   f.airJumpsLeft = stats(f).airJumps;
   f.wallJumped = false;
+  f.dropThrough = null;
   f.facing = f.x < 640 ? 1 : -1;
   f.facingVis = f.facing;
   // Everything Has a Price (Mei Mei): each stock opens with an advance payment
@@ -1359,6 +1377,12 @@ export function updateFighter(f, dt, input) {
   f.landTimer = Math.max(0, f.landTimer - dt);
   f.landLag = Math.max(0, f.landLag - dt);
   f.dropTimer = Math.max(0, f.dropTimer - dt);
+  // Done dropping once they are CLEAR of the underside of it, or once the
+  // safety timer gives up on them. Landing clears it too (resolvePlatforms).
+  if (f.dropThrough) {
+    const p = f.dropThrough;
+    if (f.dropTimer <= 0 || f.grounded || f.y > p.y + p.h + 2) f.dropThrough = null;
+  }
   f.jumpBuffer = Math.max(0, f.jumpBuffer - dt);
   f.coyote = Math.max(0, f.coyote - dt);
   f.turnLock = Math.max(0, f.turnLock - dt);
@@ -1985,6 +2009,7 @@ export function updateFighter(f, dt, input) {
     !locked && !f.charging && f.currentPlatform && f.currentPlatform.kind !== "main";
   if (wantsDrop) {
     f.jumpBuffer = 0;
+    f.dropThrough = f.currentPlatform;
     f.dropTimer = 0.24;
     f.grounded = false;
     f.y += 9;

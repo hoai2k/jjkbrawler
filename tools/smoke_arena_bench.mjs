@@ -139,15 +139,32 @@ await page.waitForTimeout(150);
 const stillMain = (await plats()).filter((p) => p.kind === "main").length;
 check(stillMain === 1, "the only main platform is protected", `mains=${stillMain}`);
 
-// --- editing off hands the camera back to the game
+// --- HAZARDS FOLLOW THE MODE. Editing wants the board to hold still (several
+//     gimmicks move or phase platforms); playing wants them live, because what
+//     a board DOES to a platform is half of what that platform asks of you.
+const fxState = async () => page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  return { on: !!state.activeBoards, entities: state.entities.filter((e) => e.owner === null).length,
+           checked: document.getElementById("fxToggle").checked };
+});
+const fxEdit = await fxState();
+check(!fxEdit.on && fxEdit.entities === 0, "hazards are still while editing", JSON.stringify(fxEdit));
+
+// --- editing off hands the camera back to the game, and arms the hazards
 await page.uncheck("#editingToggle");
 await page.waitForTimeout(1200);
 const camPlay = await page.evaluate(async () => (await import("/src/state.js")).state.camera.zoom);
 check(Math.abs(camPlay - 0.78) > 0.01, "editing off gives the game camera back", `zoom=${camPlay.toFixed(3)}`);
+const fxPlay = await fxState();
+check(fxPlay.on && fxPlay.entities === 1 && fxPlay.checked,
+  "...and arms this board's hazards", JSON.stringify(fxPlay));
+
 await page.check("#editingToggle");
 await page.waitForTimeout(400);
 const camEdit = await page.evaluate(async () => (await import("/src/state.js")).state.camera.zoom);
 check(Math.abs(camEdit - 0.78) < 0.001, "editing on re-pins it at the furthest shot", `zoom=${camEdit.toFixed(3)}`);
+const fxBack = await fxState();
+check(!fxBack.on && fxBack.entities === 0, "...and stills them again", JSON.stringify(fxBack));
 
 // --- EXPORT: authored thickness must survive the round trip (42, not 29)
 await page.goto(`${BASE}/workbench/?edit=arena&stage=sunkenCrossing`, { waitUntil: "load" });

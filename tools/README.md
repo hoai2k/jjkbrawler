@@ -40,7 +40,7 @@ running, and the gate is meant to pass on a bare checkout.
 | Prefix | What it is | Count |
 |---|---|---|
 | `check_*` | invariants — a non-zero exit means something drifted | 22 |
-| `smoke_*` | play the real game (mostly headless via Playwright) and measure the result | 51 |
+| `smoke_*` | play the real game (mostly headless via Playwright) and measure the result | 52 |
 | `audit_*` | report on the data rather than pass/fail it — reach, hitboxes, frame sizes, model health | 18 |
 | `build_*` | generate a checked-in file from the source of truth | 6 |
 | `debug_*` | probe one mechanism and print what it did — no pass/fail, for judging a look change | 5 |
