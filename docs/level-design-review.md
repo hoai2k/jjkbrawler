@@ -229,14 +229,54 @@ the screen edges (left lips now start as far out as x≈130–180 instead of
 x≈150–260, mirrored on the right). Main widths now spread 600 → 1192.
 
 **Walk-offs (Smash: Smashville edges, Duck Hunt ground game).** Two boards run
-their main nearly edge to edge and sit it ~25 px lower, so the match lives at
-ground level and the kill is a shove past the screen edge rather than a spike:
+their main past both world edges and sit it at the bottom of the world, so the
+match lives at ground level and the kill is a shove past the screen edge rather
+than a spike:
 
-- *Sunken Crossing* — `x: 44, w: 1192, y: 602`; on the slick surface every
+- *Sunken Crossing* — `x: -140, w: 1560, y: 668`; on the slick surface every
   slide is a threat the whole way across.
-- *Crosswalk Rush* — `x: 54, w: 1172, y: 598`; the traffic hazard already
-  sweeps the main, so it now sweeps the whole street. Mid deck and sign
-  perches moved down in step so every hop stays inside the comfy budget.
+- *Crosswalk Rush* — `x: -140, w: 1560, y: 664`; the traffic hazard already
+  sweeps the main, so it now sweeps the whole street. The overpass deck and its
+  sign perches came down in step so every hop stays inside the comfy budget.
+
+**Why 1560, and why the first attempt at this failed.** The first pass sized
+these against WORLD coordinates (0–1280) and set the mains to ~1180 wide
+starting at x≈50 — 3.4% off the world edge, which read on screen as a platform
+floating well inside its background. The world rect is not the frame. What the
+eye judges is the gap beside the platform ON SCREEN, and that gap belongs to
+the CAMERA: `updateCamera` fits the alive fighters plus `FRAME_PAD_X` (240 ×
+ART_SCALE = 168 world px) on each side, so with a fighter standing at each end
+the margin is ~138 world px × zoom on ANY board. Widening a board just makes
+the camera zoom out to restore the same padding. Measured on the shipped 2.5D
+camera, fighters pinned 30 px inside each end:
+
+| Board | main w | zoom | gap L/R (screen px) |
+|---|---|---|---|
+| Sunken Crossing (first pass) | 1192 | 0.873 | 120 / 119 |
+| Training Bridge | 844 | 1.145 | 158 / 156 |
+| Bridge Duel | 600 | 1.465 | 208 / 194 |
+
+All three are the same 138 world px, scaled by each board's zoom. The one thing
+that closes the gap is running OUT of zoom: the camera bottoms out at
+`ZOOM_MIN` 0.78, a frame 1641 world px across, so a board whose fighters can
+stand more than ~1305 apart cannot be padded further and the platform is forced
+to the edges. At w = 1560 (ends x = -140 and 1420) the camera pins to 0.78 and
+the measured gap falls to **33 / 31 screen px** — about 2.5% of the width. The
+blast lines (-300 / 1580) stay 160 px past each end, so a walk-off kill is fast
+but not instant.
+
+Two knock-ons this made necessary. `VIEW_BLEED` is 400, so the backdrop already
+covers world -400…1680 and a platform starting at -140 still sits on painted
+background. And the crowd spread is now capped at `CROWD_SPAN_MAX` 1100
+whatever the board's width — spreading six fighters over all 1560 px would have
+stood the outer two within one launch of the blast line before the match
+started; they now start 220 px apart across 90…1190.
+
+The remaining ~245 px of background below the platform is also the camera's,
+not the board's: at zoom 0.78 the frame is 923 world px tall against a 720 px
+world, so some below-world bleed is always in shot. Closing that would mean
+re-tuning `FRAME_PAD_TOP` / `FRAME_PAD_BOTTOM`, which changes every board's
+feel and is deliberately left alone here.
 
 **Walls (Smash: walled stages, Shadow Moses pillars).** `{ kind: "wall" }`
 existed only for the character bench; two boards now build them for real:
