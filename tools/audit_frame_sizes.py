@@ -64,6 +64,16 @@ def named_anims(src):
     made all four frames of the four-frame run cycle look undrawn on all 24
     fighters, so the request tables listed the busiest sprites in the game as
     "not drawn by any state".
+
+    `frames:` does not have to sit on the same line as the brace. It did in
+    `RUN_ANIM` when this was written, and requiring it silently lost
+    `WALK_ANIM` and `TEETER_ANIM`, which are spread over several lines because
+    they carry comments. That is 102 poses — both walk contacts and the teeter,
+    on every fighter — invisible to every state-based tool built on this:
+    `auto_tune.py` placed them on the standing foot fraction rather than the
+    locomotion one they measure at, and this module and `build_variants.py`
+    counted them as drawn by nothing. So the search skips whitespace and
+    comments between the brace and the first `frames:`.
     """
     # Frame lists are shared too — `RUN_ANIM` names `RUN_CYCLE_FRAMES` rather
     # than repeating it, since the cycle order is referenced elsewhere — so the
@@ -73,7 +83,9 @@ def named_anims(src):
         lists[name] = [f.strip().strip('"') for f in frames.split(",") if f.strip()]
 
     out = {}
-    for name, frames in re.findall(r'const (\w+) = \{ frames: (\[[^\]]*\]|\w+)', src):
+    gap = r'(?:\s|//[^\n]*\n|/\*.*?\*/)*'
+    for name, frames in re.findall(
+            r'const (\w+) = \{' + gap + r'frames:\s*(\[[^\]]*\]|\w+)', src, re.S):
         out[name] = (lists.get(frames, []) if not frames.startswith("[")
                      else [f.strip().strip('"')
                            for f in frames[1:-1].split(",") if f.strip()])

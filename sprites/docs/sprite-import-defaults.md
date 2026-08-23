@@ -25,6 +25,7 @@ It reads the manifest, the art and `src/characters.js`, and writes nothing.
 | Size cannot be defaulted, only corrected | **Wrong for the same reason `ox` was.** There is no do-nothing option for size either, and the rule that is already computed beats the default in place by half |
 | `ox` from the alpha-weighted centroid | **Right, and beatable.** On the poses where the centroid fails, the answer is already in the manifest next to it |
 | `rotationDeg` and `faceLeft` are not automatable | **Still true**, and the rotation case is now weaker than "no signal" |
+| Nothing measured off a drawing beats a constant for size | **Wrong.** Ink area — how much character is drawn — halves the best constant rule and thirds the import default (§8) |
 
 Two defects fell out of the audit on the way: `walk` and `teeter` are invisible
 to every state-based tool, and `centroidX` goes stale the moment anybody moves
@@ -393,6 +394,117 @@ change: this stays a human's call.
 
 ---
 
+## 8. Size is measurable from the drawing, and the measurement is ink area
+
+Sections 8 and 9 re-run from the tuner rather than the audit:
+
+    python3 tools/auto_tune.py --report      # the pose ratios it learned
+    python3 tools/auto_tune.py --backtest    # the table below, leave-one-out
+
+> **Landed.** `tools/auto_tune.py` sizes a pose from how much character is drawn
+> in it. `--backtest` scores it leave-one-character-out at **15.3% → 4.2%**
+> median relative error on the 1,372 hand-set scales.
+
+§3 asked what an imported pose should be sized at and answered "the state's
+height ratio × the character's idle", 14.9% → 7.3%, on the reasoning that
+nothing measured from the art had ever beaten a constant. That was measuring the
+wrong thing about the art.
+
+How big a drawing of a person is cannot be read off its bounding box, which is
+what every size rule here has been built on: a crouch is short, a lunge is long,
+and neither is a smaller or a larger fighter. What does not change with the pose
+is **how much character is drawn** — the opaque area of the figure — because a
+body has the same amount of body in it whatever it is doing. Area goes as the
+square of linear size, so
+
+    renderScale = the idle's renderScale × sqrt(the idle's area / this frame's area)
+
+puts a frame at the size the character's own idle is drawn at. Scored against
+the 1,372 poses somebody sized by hand:
+
+| What sets the size | median | p90 |
+|---|---:|---:|
+| the value the human corrected (the import default in place) | 15.3% | 41.8% |
+| the character's idle `renderScale` | 12.6% | 38.7% |
+| the state's height ratio × the idle (**§3's answer**) | ~7.3% | — |
+| **ink area** | **5.2%** | **13.9%** |
+| **ink area × the state's pose ratio** | **4.2%** | **11.2%** |
+
+The residual has a shape, and it is anatomical rather than statistical: a pose
+that folds up hides some of itself and reads small, and one carrying an effect
+welded to the body reads large. Measured per state exactly the way the foot
+fraction is, over the same corrections:
+
+| State | ×area | | State | ×area |
+|---|---:|---|---|---:|
+| `dodge_roll` | 0.869 | curled around itself | `light` | 1.067 |
+| `prone` | 0.907 | | `sideHeavy` | 1.082 |
+| `dodge_air` | 0.924 | tucked | `upHeavy` | 1.077 |
+| `crouch` | 0.958 | | `ult` | 1.164 | drawn inside its own cursed energy |
+| `idle` | **1.000** | the identity, sd 0.016 | `specialSide` | 1.071 |
+
+`idle` coming back at 1.000 with a 1.6% spread is the check on the whole rule:
+it is the frame every prediction is measured *against*, so anything else would
+have meant the area measurement was picking up something other than size.
+
+Two placements, not one. Where a state's height ratio is **uniform** it
+reproduces the hand value to a hundredth of a percent, and nothing measured off
+a drawing competes with that — so the height ratio still goes first, and area
+answers for the other 26 states, which is the population that has never had a
+rule. A state with no measured pose ratio of its own runs on area alone and may
+not resize a pose by more than 35% (`MAX_AREA_SHIFT`), because a plate with an
+effect twice the fighter's size welded to it is a frame whose area is not the
+fighter.
+
+Over the whole manifest the rule has something to say about **335 poses** — the
+ones the pipeline sized and nobody has corrected since.
+
+## 9. Four cues from the hand pass, measured
+
+The tuning pass is done by eye against a handful of rules of thumb. Each of them
+was put to the corpus of 3,170 corrections to see whether it is something a tool
+can read. Two are, one already was, and one is not.
+
+**"Match the size of the head and the feet."** The head is the right instinct —
+it is the one part of a body that does not change size with the pose — and it is
+not findable. A neck detector (the first pronounced narrowing below the top of
+the silhouette) fires on 296 of 1,403 frames, and where it fires, matching head
+heights scores **29.3%** against area's 4.9% on the same frames. Hair defeats it,
+and so does every pose whose head is not the topmost thing in the drawing. What
+survives of the instinct is §8: area is the pose-invariant size reference that
+head height was being used as a proxy for. The **feet** half was measured in §1
+and lost there — an offset scaled by the drawn foot is 8.1px against the
+per-state fraction's 4.3px.
+
+**"How wide the fighter is."** Also measurable, also wrong: `coreLeft`/`coreRight`
+are already baked on every frame, and sizing to match the idle's core width
+scores **38.8%** — three times worse than doing nothing. A stance changes a
+torso's drawn width far more than a pose changes its area.
+
+**"Centre on the centre of mass, which is about where the navel is."** This is
+§5, and it is now applied: a `com` anchor that has been dragged away from the
+bake is a person's answer to exactly this question, and centring on it is 49px →
+22px in image pixels (~12 → ~5 on screen) on the 250 hand-centred frames that
+carry one.
+
+**"An a→b attack drifts forward a little, to let the reach extend."** Real, and
+too loose to apply. Measured as the change in where the centre of mass sits in
+the cell, paired within each fighter so their own habits divide out:
+
+| Pair | median lead | b ahead of a |
+|---|---:|---:|
+| `attack_light_a` → `_b` | +25.0px | 22 of 35 |
+| `attack_heavy_a` → `_b` | +28.6px | 26 of 35 |
+| `attack_air_a` → `_b` | +15.2px | 25 of 35 |
+| `idle_a` → `_b`, `crouch`, `walk`, `run_pass`, `run_reach` | **−0.2 to +0.6px** | ~half |
+
+The discrimination is the interesting part: the effect appears on exactly the
+pairs where a strike extends and on none of the four pairs where nothing does.
+But applying the median lead does not beat applying nothing — 40.1px against
+32.2px of median absolute error on `light`, 37.4 against 50.3 on `heavy` — so it
+is a real tendency with a spread wider than itself, which is the definition of
+the thing this file declines. It stays a judgement.
+
 ## What to do about it, in order
 
 1. ~~**Learn the foot fraction per state**~~ — **done.** Fifteen states carry
@@ -407,16 +519,24 @@ change: this stays a human's call.
    idles** (jogo, nobara, inumaki, yuta, sukuna, megumi), which would remove
    the 2.7% size step those fighters carry between their idle and everything
    else. `--report` names them until somebody does.
-3. **Apply the state size ratio as a derivation** on import, with the standing
-   the `centre` rule already has: only over a number the pipeline produced.
-   14.9% → 7.3%.
-4. **Fix `named_anims`** so `walk` and `teeter` resolve. Now worth more than it
-   was: with the per-state foot rule landed, those 102 poses would be placed on
-   a locomotion fraction instead of a standing one.
-5. **Seed `ox` from a hand-placed `com`** where there is one; keep the centroid
-   where there is not. 12.0px → 5.2px on 60% of the poses that get a hand `ox`.
+3. ~~**Apply the state size ratio as a derivation** on import~~ — **overtaken.**
+   §8 measures a better one off the drawing itself: ink area, 15.3% → 4.2%,
+   with the height ratio still going first on the states where it is uniform.
+4. ~~**Fix `named_anims`**~~ — **done.** `frames:` no longer has to sit on the
+   same line as the brace, so `WALK_ANIM` and `TEETER_ANIM` resolve. All 102
+   poses now measure their own foot fraction — `walk` 0.988, `teeter` 0.989,
+   which puts them with `run` and the dash where §1 predicted, and off the
+   standing 0.950 they had been getting and being lifted off by hand.
+5. ~~**Seed `ox` from a hand-placed `com`**~~ — **done.** An anchor more than 2px
+   from the art's own centroid is a judgement rather than the bake, and the
+   frame is centred on it. 49px → 22px in image pixels on the 250 frames that
+   have one; the 144 whose anchor is still the bake are unchanged, because there
+   the two are the same number.
 6. **Carry the foot fraction across a redraw** instead of resetting it, and
    either maintain or remove `centroidX`.
+7. **Re-measure the six idles** (§2) — still an art call, and now a slightly
+   louder one: the area rule is measured against the idle, so a fighter whose
+   idle sits 2.7% off carries that into every pose it sizes.
 
 None of this removes the placement pass, and the first audit's warning against
 claiming otherwise holds. What each one moves is the starting point: an import

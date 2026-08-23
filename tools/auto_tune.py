@@ -7,9 +7,9 @@ measurement of which of those moves are mechanical: it reads the `edited` map
 (which stores each hand-tuned field's PRE-edit value) and asks, for every
 correction ever made, whether the derived value was wrong in a predictable way.
 
-Three of them were, and this applies those three. It is deliberately narrow —
-the test for including a rule is not "usually right" but **"wrong in a way that
-has a direction"**, because a correction that guesses can land further from the
+Four of them are, and this applies those four. It is deliberately narrow — the
+test for including a rule is not "usually right" but **"wrong in a way that has
+a direction"**, because a correction that guesses can land further from the
 answer than doing nothing, and it does so silently.
 
   foot    the derived foot line is the bottom of the alpha box, which it can
@@ -26,6 +26,17 @@ answer than doing nothing, and it does so silently.
           everywhere and 8px on every run frame of every fighter, which is why
           all 128 of them were auto-tuned to 0.946 and then lifted by hand,
           round after round.
+
+  area    how big a drawing of a person is cannot be read off its bounding box:
+          a crouch is short, a lunge is long, and neither is a smaller or a
+          larger fighter. What does not change with the pose is HOW MUCH
+          CHARACTER IS DRAWN, and area goes as the square of linear size, so
+          the idle's scale times sqrt(the idle's area / this frame's) puts a
+          frame at the size that character is drawn at. 15.3% -> 4.2% median
+          error against the hand-set sizes, where the import default it
+          replaces — the predecessor's rendered height — is 15.3%. The residual
+          is a fact about the pose (a roll hides itself, an ult is drawn inside
+          its own cursed energy) and is measured per state on top.
 
   size    a set of animation states carry ONE height ratio across the whole
           size-reviewed roster; a leave-one-character-out test recovers them
@@ -45,6 +56,11 @@ answer than doing nothing, and it does so silently.
   centre  the derived `ox` centres the CONTENT BOX, which includes Maki's
           naginata and Gakuganji's guitar neck. The corrections track the
           alpha-weighted centroid — mass, not extent. Better by ~73%.
+
+          And where the frame's `com` anchor has been DRAGGED off the centroid
+          the bake put it at, that is a person's answer to the same question and
+          beats the measurement: 49px -> 22px in image pixels on the 250
+          hand-centred frames that carry one.
 
 Two rules it does NOT apply, and will not: rotation (118 corrections, all
 setting a value where none existed — a judgement about how a pose reads in
@@ -77,6 +93,7 @@ import argparse
 import collections
 import datetime
 import json
+import math
 import os
 import statistics
 import sys
@@ -169,6 +186,44 @@ NO_STANDING_FOOT_MARGIN = 1.5
 # Hand-tuned poses a character needs before their own foot level is used
 # instead of the roster's. Below this the median is noise.
 MIN_CHAR_FOOT_SAMPLES = 8
+# --- the size rule, measured from ink area ---------------------------------
+#
+# How big a drawing of a person is cannot be read off its bounding box: a crouch
+# is short, a lunge is long, and neither is a smaller or a larger fighter. What
+# does not change with the pose is HOW MUCH CHARACTER IS DRAWN — the opaque area
+# of the figure — because a body has the same amount of body in it whatever it
+# is doing. Area goes as the square of linear size, so
+#
+#     renderScale = idle renderScale x sqrt(idle area / this frame's area)
+#
+# puts a frame at the size the character's own idle is drawn at. Scored against
+# the 1,403 hand-set `renderScale` values it lands at 5.1% median relative error,
+# against 14.9% for the import default it replaces and 12.2% for the idle's own
+# scale — see sprites/docs/sprite-import-defaults.md.
+#
+# It is not exact, and the residual has a shape: a pose that folds up hides some
+# of itself (a roll reads small), and a pose carrying an effect welded to the
+# body reads large (an ult). That residual is measured per state exactly the way
+# the foot fraction is, and it takes the median error to 4.0%.
+MIN_STATE_AREA_SAMPLES = 6
+MIN_STATE_AREA_CHARS = 3
+# Where a state has NO measured ratio the rule is running on area alone, and a
+# frame whose area is not the character's silhouette — a plate with an effect
+# twice the fighter's size welded to it — would be sized off that. So a raw-area
+# proposal may not resize a pose by more than this; a state with its own ratio
+# has already accounted for what its area does, and is trusted with any move,
+# the same standing MAX_FOOT_SHIFT gives a measured foot fraction.
+MAX_AREA_SHIFT = 0.35
+
+# How far a frame's `com` anchor has to sit from the art's own centroid before
+# it counts as a judgement rather than the bake. `bake_anchors.py` writes the
+# anchor AT the alpha centroid (lifting only its y), and measures it on a
+# downsampled mask, so a baked anchor lands within a pixel or two of what
+# `measure` reads here and a dragged one is nowhere near: the gap is under 2px
+# on 144 of the hand-set frames and a median 22px on the other 250. There is
+# nothing in between to get wrong.
+COM_PLACED_PX = 2.0
+
 # Refuse to move a foot line further than this fraction of body height in one
 # go — but only where the rule is FALLING BACK on the roster fraction, because
 # there a big move means the frame is not what the rule thinks it is (a
@@ -226,14 +281,31 @@ def now_stamp():
 
 
 # ------------------------------------------------------------------- measuring
+_MEASURED = {}
+
+
 def measure(path):
-    """The three things the rules need from a drawing.
+    """The four things the rules need from a drawing.
 
     `body_bottom` is the bottom of the LARGEST connected component, which is
     what sprites/docs/asset-pipeline.md means by the foot line — a detached energy burst
     below the feet is not the floor. `centroid_x` is alpha-weighted, so it is
     the middle of the character's mass rather than of its bounding box.
+    `area` is how many pixels that largest component covers — how much CHARACTER
+    is drawn, which is what the size rule scales against (see `learn_area`).
+
+    Memoised by path. Three learners and the tuning pass all measure the same
+    ~1,800 drawings, and reading each of them once rather than four times is the
+    difference between a tool somebody runs and one they avoid.
     """
+    hit = _MEASURED.get(path)
+    if hit is not None:
+        return hit
+    _MEASURED[path] = out = _measure(path)
+    return out
+
+
+def _measure(path):
     a = np.asarray(Image.open(path).convert("RGBA"))
     alpha = a[:, :, 3]
     solid = alpha >= ALPHA_THRESHOLD
@@ -247,12 +319,15 @@ def measure(path):
         body = lab == int(np.argmax(sizes)) + 1
         rows = np.nonzero(body.any(axis=1))[0]
         body_bottom = int(rows[-1]) + 1
+        area = int(body.sum())
     else:
         body_bottom = box[3]
+        area = int(solid.sum())
     w = alpha[ys, xs].astype(np.float64)
     return {
         "box": box,
         "body_bottom": body_bottom,
+        "area": area,
         "centroid_x": float((xs * w).sum() / w.sum()),
         "art_h": box[3] - box[1],
     }
@@ -360,6 +435,100 @@ def foot_fraction(foot, char, states):
     return foot["global"] * level, f"foot={foot['global'] * level:.3f} ({src})", False
 
 
+IDLE_KEYS = ("idle_a", "r0c0")
+
+
+def area_reference(man, char):
+    """The drawing this character's sizes are measured against: their idle's
+    `renderScale` and the ink area it is drawn with.
+
+    The idle is already the reference frame for everything else about a
+    character's size — `src/heights.js` solves their on-screen scale from its
+    span, and `learn_sizes` divides every ratio by its `bodyH` — so a size rule
+    that answered to anything else would put a fighter's poses at odds with the
+    one drawing their whole scale is pinned to.
+    """
+    frames = man["characters"].get(char) or {}
+    for key in IDLE_KEYS:
+        meta = frames.get(key)
+        if not isinstance(meta, dict) or not meta.get("renderScale"):
+            continue
+        path = os.path.join(SPRITES, meta.get("file", ""))
+        if not meta.get("file") or not os.path.exists(path):
+            continue
+        m = measure(path)
+        if m and m["area"]:
+            return {"scale": meta["renderScale"], "area": m["area"], "key": key}
+    return None
+
+
+def area_scale(ref, m):
+    """The scale that draws `m` at the same size as the reference idle."""
+    if not ref or not m or not m["area"]:
+        return None
+    return ref["scale"] * math.sqrt(ref["area"] / m["area"])
+
+
+def learn_area(man, anims):
+    """What each state's ink area says about it, over the hand-set sizes.
+
+    The raw area rule assumes a pose shows as much of the character as the idle
+    does. Mostly it does. Where it does not, the departure is a fact about the
+    POSE and not about the fighter — a roll is curled up and hides its own
+    limbs, an ult is drawn inside its own cursed energy — so it is measured per
+    state, over the corrections humans have already made, and applied as a
+    multiplier on top.
+
+    A state without enough corrections of its own gets no ratio and is placed on
+    area alone, under MAX_AREA_SHIFT. That is the same shape as the foot rule:
+    the fallback is the general measurement, not a refusal, because an imported
+    pose is given a size whether anybody has an opinion about it or not.
+    """
+    refs, samples = {}, []
+    for char, poses in man["characters"].items():
+        ref = area_reference(man, char)
+        if not ref:
+            continue
+        refs[char] = ref
+        for key, meta in poses.items():
+            if not isinstance(meta, dict):
+                continue
+            if "renderScale" not in (meta.get("edited") or {}):
+                continue
+            if not meta.get("renderScale"):
+                continue
+            path = os.path.join(SPRITES, meta.get("file", ""))
+            if not meta.get("file") or not os.path.exists(path):
+                continue
+            want = area_scale(ref, measure(path))
+            if not want:
+                continue
+            samples.append((char, states_for(anims, char, key),
+                            meta["renderScale"] / want))
+
+    by_state = collections.defaultdict(list)
+    for char, states, ratio in samples:
+        for state in states:
+            by_state[state].append((char, ratio))
+    per_state = {}
+    for state, vals in by_state.items():
+        chars = {c for c, _ in vals}
+        if len(vals) < MIN_STATE_AREA_SAMPLES or len(chars) < MIN_STATE_AREA_CHARS:
+            continue
+        ratios = [r for _, r in vals]
+        per_state[state] = {"ratio": statistics.median(ratios), "n": len(ratios),
+                            "chars": len(chars), "sd": statistics.pstdev(ratios)}
+    return {"refs": refs, "per_state": per_state, "n": len(samples)}
+
+
+def area_ratio(area, states):
+    """The pose correction on top of raw area, and whether one was measured."""
+    known = [area["per_state"][s]["ratio"] for s in states if s in area["per_state"]]
+    if not known:
+        return 1.0, False
+    return statistics.median(known), True
+
+
 def learn_sizes(man, reviewed, anims):
     """Per state: the height-to-idle ratio, how much it varies, and per
     character: the level their whole set sits at.
@@ -413,7 +582,8 @@ def learn_sizes(man, reviewed, anims):
 
 
 # --------------------------------------------------------------------- applying
-def tune_frame(char, key, meta, states, foot, sizes, levels, idle_bodyh, want):
+def tune_frame(char, key, meta, states, foot, sizes, levels, idle_bodyh, want,
+               area=None):
     """The proposed changes for one frame, as {field: (old, new, why)}.
 
     Returns only fields that would actually move, and never one the pose's
@@ -428,7 +598,7 @@ def tune_frame(char, key, meta, states, foot, sizes, levels, idle_bodyh, want):
     if not m:
         return {}, "no visible pixels"
 
-    out = {}
+    out, notes = {}, []
 
     # ---- foot line
     if "foot" in want and "bodyBottom" not in edited and meta.get("oy") is not None:
@@ -476,14 +646,61 @@ def tune_frame(char, key, meta, states, foot, sizes, levels, idle_bodyh, want):
                     out["renderScale"] = (meta.get("renderScale"), new_scale,
                                           f"{'/'.join(sorted(states))} is uniform")
 
+    # ---- size, from ink area, for everything the uniform rule cannot speak for
+    #
+    # Second rather than first: where a state IS uniform its height ratio
+    # reproduces the hand values to a hundredth of a percent, and nothing
+    # measured from a drawing competes with that. This is what the other 31
+    # states get, which today is the predecessor's rendered height — the number
+    # the size corrections are made against.
+    if ("size" in want and "renderScale" not in edited and area
+            and "renderScale" not in out):
+        ref = area["refs"].get(char)
+        want_scale = area_scale(ref, m)
+        if want_scale and ref["key"] != key:
+            pose_ratio, measured = area_ratio(area, states)
+            new_scale = round(want_scale * pose_ratio, 4)
+            old_scale = meta.get("renderScale")
+            shift = abs(new_scale / old_scale - 1) if old_scale else 0
+            named = "/".join(st for st in states if st in area["per_state"])
+            why = (f"area x {pose_ratio:.3f} ({named})" if measured
+                   else "area, no pose ratio")
+            # Declining the size is not a reason to skip the pose — the foot and
+            # centring rules still have something to say about it — so this
+            # leaves the size alone rather than returning.
+            refused = not measured and old_scale and shift > MAX_AREA_SHIFT
+            if refused:
+                notes.append(f"area wants to resize by {shift:.0%} and "
+                             f"{'/'.join(states) or 'this pose'} has no measured "
+                             "ratio — size left alone")
+            elif m["art_h"] and abs(new_scale - (old_scale or 0)) >= 0.001:
+                out["bodyH"] = (meta.get("bodyH"), round(m["art_h"] * new_scale, 1), why)
+                out["renderScale"] = (old_scale, new_scale, why)
+
     # ---- horizontal centre
+    #
+    # The centroid is the derivation, and where the frame carries a com anchor
+    # SOMEBODY MOVED, that is a better answer than the measurement it replaced.
+    # The anchor is baked at the centroid, so an anchor that no longer sits
+    # there is one a person dragged in the workbench — a judgement about where
+    # the body is, made against a naginata, a guitar neck, an effect blooming
+    # off one shoulder. Scored against the 394 hand-set `ox` values, the split
+    # is the finding: on the 250 frames carrying a moved com the centroid is
+    # 49px out in image pixels (~12 on screen) and the anchor 22 (~5), and on
+    # the 144 where the anchor IS the bake the two are the same number. The
+    # correction was already made, in a field written for another purpose.
     if "centre" in want and "ox" not in edited:
-        new_ox = round(CELL_MID - m["centroid_x"], 1)
+        com = (meta.get("anchors") or {}).get("com")
+        placed = (isinstance(com, list) and len(com) == 2
+                  and abs(com[0] - m["centroid_x"]) > COM_PLACED_PX)
+        centre_x = com[0] if placed else m["centroid_x"]
+        new_ox = round(CELL_MID - centre_x, 1)
         old_ox = meta.get("ox")
         if old_ox is None or abs(new_ox - old_ox) >= 0.5:
-            out["ox"] = (old_ox, new_ox, "centre of mass, not of the box")
+            out["ox"] = (old_ox, new_ox, "on the placed centre of mass" if placed
+                         else "centre of mass, not of the box")
 
-    return out, None
+    return out, ("; ".join(notes) if notes and not out else None)
 
 
 def newest_round(man):
@@ -516,6 +733,7 @@ def main():
     anims = anims_by_frame(open(CHARACTERS_JS).read(), list(man["characters"]))
     foot = learn_foot(man, anims)
     sizes, levels = learn_sizes(man, args.reviewed, anims)
+    area = learn_area(man, anims)
 
     if args.report:
         print(f"foot line: learned from {foot['n']} hand-tuned poses")
@@ -546,6 +764,16 @@ def main():
             mark = "RULE  " if s["uniform"] else "judged"
             print(f"  {mark} {state:16} ratio {s['ratio']:.3f}  spread {s['cv']:6.1%}"
                   f"  (raw {s['raw_cv']:5.1%})  n={s['n']}")
+        print(f"\nsize from ink area: learned from {area['n']} hand-set scales, "
+              f"{len(area['refs'])} reference idles")
+        print(f"  {len(area['per_state'])} state(s) measured a pose ratio "
+              f"(>= {MIN_STATE_AREA_SAMPLES} poses over >= {MIN_STATE_AREA_CHARS} "
+              f"characters); the rest run on area alone under "
+              f"{MAX_AREA_SHIFT:.0%}")
+        for state, a in sorted(area["per_state"].items(), key=lambda x: x[1]["ratio"]):
+            print(f"     {state:16} x{a['ratio']:.3f}  sd {a['sd']:.3f}  "
+                  f"n={a['n']} over {a['chars']} characters")
+
         odd = {c: v for c, v in levels.items() if abs(v - 1) >= 0.005}
         if odd:
             print("\n  characters whose set sits away from the roster's level — their"
@@ -560,7 +788,7 @@ def main():
         return 0
 
     if args.backtest:
-        return backtest(man, foot, sizes, levels, anims, args)
+        return backtest(man, foot, sizes, levels, area, anims, args)
 
     stamp = None if (args.all or args.round_prefix) else newest_round(man)
     if not args.all and not args.round_prefix and not stamp:
@@ -591,7 +819,7 @@ def main():
                 continue
             states = tuple(sorted(s for s, keys in frames.items() if key in keys))
             out, why = tune_frame(char, key, meta, states, foot, sizes, levels,
-                                  idle_bodyh, args.rules)
+                                  idle_bodyh, args.rules, area)
             if why:
                 skipped += 1
                 notes.append(f"  {char}/{key}: {why}")
@@ -637,7 +865,7 @@ def main():
     return 0
 
 
-def backtest(man, foot, sizes, levels, anims, args):
+def backtest(man, foot, sizes, levels, area, anims, args):
     """Score each rule against the values humans actually chose.
 
     The rules are learned from the same hand tuning they are scored against, so
@@ -748,6 +976,75 @@ def backtest(man, foot, sizes, levels, anims, args):
         print(f"\nsize, on the {n_uniform} poses whose states are all uniform:")
         print(f"  median relative error {statistics.median(errs):.2%}  "
               f"p90 {pct(errs, .9):.2%}  worst {max(errs):.2%}")
+
+    backtest_area(man, area, anims, pct)
+    return 0
+
+
+def backtest_area(man, area, anims, pct):
+    """Score the area rule against the sizes humans chose, on the poses the
+    uniform rule cannot speak for — which is the population it is FOR.
+
+    Leave-one-character-out on the pose ratios, for the same reason the foot
+    rule is: they are learned from the corrections they are scored against.
+    """
+    rows = []
+    for char, poses in man["characters"].items():
+        ref = area["refs"].get(char)
+        if not ref:
+            continue
+        for key, meta in poses.items():
+            if not isinstance(meta, dict) or key == ref["key"]:
+                continue
+            if "renderScale" not in (meta.get("edited") or {}):
+                continue
+            was = (meta.get("edited") or {})["renderScale"]
+            path = os.path.join(SPRITES, meta.get("file", ""))
+            if not meta.get("renderScale") or not was or not meta.get("file"):
+                continue
+            if not os.path.exists(path):
+                continue
+            m = measure(path)
+            if not m:
+                continue
+            rows.append((char, states_for(anims, char, key), meta["renderScale"],
+                         was, ref, m))
+    if not rows:
+        return
+
+    def ratios_without(char, states):
+        vals = []
+        for c, st, hand, _, r, m in rows:
+            if c == char or not set(st) & set(states):
+                continue
+            want = area_scale(r, m)
+            if want:
+                vals.append(hand / want)
+        return vals
+
+    imported, idle_only, raw, tuned = [], [], [], []
+    for char, states, hand, was, ref, m in rows:
+        want = area_scale(ref, m)
+        if not want:
+            continue
+        imported.append(abs(was / hand - 1))
+        idle_only.append(abs(ref["scale"] / hand - 1))
+        raw.append(abs(want / hand - 1))
+        vals = ratios_without(char, states) if states else []
+        r = statistics.median(vals) if len(vals) >= MIN_STATE_AREA_SAMPLES else 1.0
+        tuned.append(abs(want * r / hand - 1))
+    for v in (imported, idle_only, raw, tuned):
+        v.sort()
+    print(f"\nsize, scored against {len(raw)} hand-set scales "
+          f"(leave-one-character-out), as relative error in rendered size:")
+    print(f"  import default   median {statistics.median(imported):6.2%}  "
+          f"p90 {pct(imported, .9):6.2%}")
+    print(f"  the idle's scale median {statistics.median(idle_only):6.2%}  "
+          f"p90 {pct(idle_only, .9):6.2%}")
+    print(f"  ink area         median {statistics.median(raw):6.2%}  "
+          f"p90 {pct(raw, .9):6.2%}")
+    print(f"  area x pose      median {statistics.median(tuned):6.2%}  "
+          f"p90 {pct(tuned, .9):6.2%}")
     return 0
 
 
