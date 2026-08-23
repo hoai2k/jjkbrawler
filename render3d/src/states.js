@@ -111,6 +111,14 @@ const STATE_ALIASES = {
   // drawing for, this path gets for free.
   diagUp: "light",
   airDiagDown: "airLight",
+  // Braking out of a run to go the other way (fighter.js). The sprite path
+  // holds ONE frame of the run cycle for it — the pass, legs under the body —
+  // because a four-frame sheet cycling through a stride is the thing that made
+  // a turnaround look like running on the spot. A rig has no such problem and
+  // no skid clip to play, so it keeps running while it brakes, which is what a
+  // fighter mid-turnaround is still doing. Drop the alias the day one is
+  // authored.
+  skid: "run",
   teeter: "idle",
   dashAttack: "light",
   dashAttackHeavy: "sideHeavy",

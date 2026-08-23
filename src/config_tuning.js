@@ -341,7 +341,13 @@ export const TAKEOFF_STRETCH_TIME = 0.13;
 export const MOTION = {
   airLean: 0.10,          // rad at full horizontal air speed
   dashLean: 0.085,
-  turnLean: 0.07,         // leaning against an abandoned direction mid-pivot
+  // Leaning INTO the direction being asked for, while the fighter is still
+  // travelling the other way — a body throwing its weight the new way to brake.
+  // It replaces `turnLean`, which leaned the other way (against the direction
+  // being abandoned) and lasted only the 0.08 s of one `turnLock` window, so it
+  // was over long before the quarter-second slide it was meant to describe.
+  // Scaled by how much momentum is left, so it eases out as the skid ends.
+  skidLean: 0.11,
   runSway: 0.022,
   runBob: 1.6,            // px
   idleSway: 0.011,
@@ -730,6 +736,41 @@ export const SWEETSPOT = {
 // Seconds a facing flip takes to sweep the sprite through side-on, rather than
 // snapping the mirror in one frame.
 export const TURN_TIME = 0.07;
+
+// THE SKID — turning around at a run, and the quarter second before the run
+// back actually starts.
+//
+// Reversing at speed does not reverse the fighter. `turnLock` refuses them any
+// acceleration while their velocity still opposes the stick, so all that
+// happens is friction, and from Gojo's 468 px/s top speed that takes FIFTEEN
+// FRAMES — a quarter of a second in which the body slides right while the
+// drawing faces left. It read as running on the spot, because it was drawn as
+// running: `pickAnim` only knows |vx|, so it played the run cycle for the first
+// eleven frames and then, once the slide dropped under the run threshold, the
+// standing idle for the last four. Neither picture says "braking".
+//
+// None of this changes the physics — the skid is exactly as long as it was, and
+// `turnLock` is untouched. It is the read that was missing: a pose of its own,
+// a lean into the direction being asked for, and dust off the feet that are
+// doing the sliding.
+export const SKID = {
+  // Below this much velocity against the stick, a fighter is not braking any
+  // more, they are simply slow. 20 px/s rather than the 50 the run cycle needs,
+  // so the tail of the slide — the frames that used to draw as a standing idle
+  // gliding along the floor — is still the skid.
+  minSpeed: 20,
+
+  // Seconds between puffs off the sliding foot, and how many each one is. The
+  // dust is the only part of this that says the floor is involved, so it is
+  // frequent enough to read as continuous over a 0.25 s brake and small enough
+  // that a fighter dithering left-right does not fog the stage.
+  dustEvery: 0.03,
+  dustCount: 3,
+
+  // How fast the fighter has to be sliding before any dust at all. Higher than
+  // `minSpeed`: the pose is worth holding all the way down, a scuff is not.
+  dustMinSpeed: 60,
+};
 
 // ---------------------------------------------------------------- defence
 //

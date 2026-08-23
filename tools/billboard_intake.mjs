@@ -82,6 +82,16 @@ function clipStates() {
   return names.filter((n) => n !== "dodge");
 }
 
+/** The states that play ANOTHER state's clip, read out of the same file. A rig
+ *  never delivers one of these, so they are not clip states — but they are
+ *  perfectly well KNOWN, which is a different question and the one the
+ *  SEMANTIC_ANIMS coverage check below is actually asking. */
+function aliasStates() {
+  const src = readFileSync(STATES_JS, "utf8");
+  const body = /const STATE_ALIASES = \{([\s\S]*?)\n\};/.exec(src)?.[1] || "";
+  return [...body.matchAll(/^  ([A-Za-z_]\w*):/gm)].map((m) => m[1]);
+}
+
 /** Prop/chain expectations per character, read out of props.js the same way. */
 function expectations() {
   const src = readFileSync(PROPS_JS, "utf8");
@@ -378,11 +388,20 @@ function cmdCheck() {
   // The state list itself must cover the sprite side's animation keys — a
   // state added to SEMANTIC_ANIMS but not states.js would silently draw the
   // default pose forever.
+  //
+  // KNOWN, not clip-bearing. An ALIASED state is covered: `clipNameFor`
+  // resolves it to the clip it borrows, which is the opposite of drawing the
+  // default pose. Checking only `clipStates()` therefore failed every state
+  // added the aliased way — `diagUp` and `airDiagDown` were both red here on
+  // arrival — and the `k !== "dodge"` this used to carry was that same fault
+  // patched one name at a time, `dodge` being the only alias in the table when
+  // it was written.
+  const known = new Set([...states, ...aliasStates()]);
   const chars = readFileSync(join(ROOT, "src", "characters.js"), "utf8");
   const sem = /export const SEMANTIC_ANIMS = \{([\s\S]*?)\n\};/.exec(chars)?.[1] || "";
   const animKeys = [...sem.matchAll(/^  (\w+):/gm)].map((m) => m[1]);
   for (const k of animKeys) {
-    if (!states.includes(k) && k !== "dodge") problems.push(`SEMANTIC_ANIMS has "${k}" but render3d/src/states.js does not`);
+    if (!known.has(k)) problems.push(`SEMANTIC_ANIMS has "${k}" but render3d/src/states.js does not`);
   }
   for (const p of problems) console.log(`ERROR  ${p}`);
   if (!problems.length) console.log(`${DIR} manifest ok: ${Object.keys(man.characters || {}).length} character(s), ${states.length} states cover the game's animation keys`);

@@ -135,6 +135,22 @@ export const DEFAULT_ANIMS = {
   walk: WALK_ANIM,
   run: RUN_ANIM,
   dash: { frames: ["r1c2"], fps: 1, loop: true },
+  // Braking out of a run to go the other way (fighter.js pickAnim).
+  //
+  // NOT A NEW POSE, and it does not want one. A fighter mid-turnaround is still
+  // running — that is the whole situation, they are running and cannot get
+  // anywhere yet — so this is the RUN, stopped on the one frame of its cycle
+  // that reads as a brake: the PASS, legs crossing beneath the body, which is
+  // what a plant looks like. Held at 1 fps rather than played, and motion.js
+  // leans it into the direction being asked for by however much momentum is
+  // left to shed.
+  //
+  // Cycling was the fault. Four frames of stride playing over a body that is
+  // sliding backwards is "running on the spot", which is exactly how it was
+  // reported; one frame of the same drawing, still, tilting, is a brake. Round
+  // 11 finished the four-frame conversion, so every fighter has the frame and
+  // no art round is owed for this.
+  skid: { frames: ["run_pass_a"], fps: 1, loop: true },
   jump: { frames: ["jump_rise"], fps: 1, loop: true },
   fall: { frames: ["fall"], fps: 1, loop: true },
   land: { frames: ["r4c0"], fps: 1, loop: false },
@@ -205,6 +221,8 @@ export const SEMANTIC_ANIMS = {
   walk: WALK_ANIM,
   run: RUN_ANIM,
   dash: { frames: ["dash"], fps: 1, loop: true },
+  // See DEFAULT_ANIMS above: the run, stopped on its legs-together pass frame.
+  skid: { frames: ["run_pass_a"], fps: 1, loop: true },
   jump: { frames: ["jump_rise"], fps: 1, loop: true },
   fall: { frames: ["fall"], fps: 1, loop: true },
   land: { frames: ["land"], fps: 1, loop: false },

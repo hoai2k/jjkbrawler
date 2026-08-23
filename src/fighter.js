@@ -8,7 +8,7 @@ import { spawnMelee, opponentOf, updateStatuses } from "./combat.js";
 import { performSpecial, updateSpecialState } from "./specials.js";
 import { performUltimate } from "./ultimates.js";
 import { performDomain, domainInput, canOpenDomain, activeDomain, domainSlotFor, domainSpecialSlot } from "./domains.js";
-import { burst, dust, popup, banner, ring } from "./particles.js";
+import { burst, dust, skidDust, popup, banner, ring } from "./particles.js";
 import { playSfx, playGrunt, playKoCry, startShieldLoop, stopShieldLoop, noteFireBurning } from "./audio.js";
 import { rumbleEvent } from "./rumble.js";
 import { counterShimmerFx, healMotesFx } from "./fx.js";
@@ -30,7 +30,7 @@ import {
   ATTACK_TILT_GROUND_DOWN_DEG,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
-import { TRAIL_LEN, TRAIL_STEP, MACH, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE, ART_SCALE } from "./config_tuning.js";
+import { TRAIL_LEN, TRAIL_STEP, MACH, TURN_TIME, SKID, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE, ART_SCALE } from "./config_tuning.js";
 import { mainPlatform, spawnXs } from "./stages.js";
 import { frameMeta } from "./assets.js";
 import { currentFrame, sweepsTurns } from "./render_backend.js";
@@ -62,6 +62,10 @@ export function makeFighter(id, charKey, x, facing) {
     jumpBuffer: 0, coyote: 0, jumpHeldT: 0, jumpCut: false,
     dashT: 0, dashDir: 0, lastTap: { dir: 0, t: -10 },
     turnLock: 0, landTimer: 0, dropTimer: 0, bufferedAction: null, landLag: 0,
+    // Braking out of a run to go the other way. `skidding` is this frame's
+    // reading (config_tuning.js SKID) and drives the pose and the lean;
+    // `skidFxT` is the dust metronome. Neither feeds the simulation.
+    skidding: false, skidFxT: 0,
     teeterT: 0, teeterDir: 0, comHoldW: 0,
     invuln: 1.4, hitstun: 0, hitPause: 0, shakeMag: 0,
     dizzy: 0, prone: 0, dodgeStale: 0, lastDodgeAt: -10,
@@ -1797,6 +1801,11 @@ export function updateFighter(f, dt, input) {
     f.charging || f.shielding || inHitstun || f.healing || (f.counter && f.counter.holdStill);
 
   const moveMul = speedMul(f);
+  // Cleared up front and set only by the branch that can see a reversal, so a
+  // fighter who stops holding a direction — or who is locked, crouching,
+  // shielding, in hitstun or off the ground — cannot be left skidding from a
+  // frame that no longer applies.
+  f.skidding = false;
   // How hard the stick is pushed, which is what separates a walk from a run
   // (constants.js). Only the ground cares: there is no such thing as strolling
   // through the air, so an aerial drift reads full either way.
@@ -1868,6 +1877,21 @@ export function updateFighter(f, dt, input) {
         f.vx *= Math.pow(friction, dt * 80);
       }
       if (!inHitstun && f.dashT <= 0) f.facing = dir;
+      // THE SKID, and it is a reading rather than a rule: nothing above this
+      // line changed, the fighter brakes exactly as long as they always have.
+      //
+      // The whole of the turnaround is the frames where the stick says one way
+      // and the body is still going the other, and `turnLock` only covers
+      // 0.08 s of it at a time. From a full run that is fifteen frames, and the
+      // animation layer had no idea any of them were happening — it reads |vx|,
+      // so it drew the run cycle while the fighter slid backwards and then the
+      // standing idle for the tail. See SKID in config_tuning.js.
+      //
+      // Read AFTER the velocity is spent for this frame, so the pose describes
+      // where the fighter IS rather than where they were: the skid ends on the
+      // frame the velocity comes round, and the run starts on the first frame
+      // they are genuinely travelling the way they asked to.
+      f.skidding = f.grounded && Math.abs(f.vx) > SKID.minSpeed && sign(f.vx) === -dir;
     } else if (f.grounded) {
       f.vx *= Math.pow(friction, dt * 60);
       if (Math.abs(f.vx) < 8) f.vx = 0;
@@ -1892,6 +1916,20 @@ export function updateFighter(f, dt, input) {
   if (f.dashT > 0) {
     f.dashT -= dt;
     if (input.dirX === -f.dashDir) f.dashT = 0;
+  }
+
+  // Grit off the sliding foot, while the skid lasts and it is fast enough to
+  // throw any. It leaves the way the fighter is actually TRAVELLING, which is
+  // the direction they are no longer facing — that opposition is the whole
+  // picture, and it is the one thing a pose alone cannot show.
+  if (f.skidding && Math.abs(f.vx) > SKID.dustMinSpeed) {
+    f.skidFxT -= dt;
+    if (f.skidFxT <= 0) {
+      f.skidFxT = SKID.dustEvery;
+      skidDust(f.x, f.y, sign(f.vx), SKID.dustCount);
+    }
+  } else {
+    f.skidFxT = 0;
   }
 
   // WHICH WAY A FIGHTER LOOKS IS THEIRS. A standing fighter used to snap
@@ -2106,6 +2144,22 @@ function pickAnim(f, input) {
   if (!f.grounded) { setAnim(f, f.vy < 0 ? "jump" : "fall"); return; }
   if (f.crouching) { setAnim(f, "crouch"); return; }
   if (f.dashT > 0) { setAnim(f, "dash"); return; }
+  // BRAKING OUT OF A RUN, before either cycle gets a look in — the fighter is
+  // not running the way they are facing yet, and drawing a run cycle over a
+  // body that is still travelling backwards is the thing this state exists to
+  // stop.
+  //
+  // ...AND ACROSS THE CROSSOVER. `f.skidding` is exact: it is false the frame
+  // the velocity comes round, which is right for the simulation and one frame
+  // early for the picture. A turn passes through zero, so between the last
+  // sliding frame and the first frame fast enough to be a run there is a beat
+  // at walking pace, and letting go of the pose there dropped a single frame of
+  // standing IDLE into the middle of the turnaround. So the pose holds, while a
+  // direction is still held, until the run below can take it — which is what
+  // "switch to the run once they are actually moving that way" means on a body
+  // that has to get up to speed first.
+  const holdingSkid = f.animKey === "skid" && input.dirX !== 0 && Math.abs(f.vx) <= 50;
+  if (f.skidding || holdingSkid) { setAnim(f, "skid"); return; }
   // A walk is its own cycle where the art exists and the run cycle at a walking
   // cadence where it does not (characters.js WALK_ANIM), so this line is the
   // whole of the switch-over when round 21 lands.

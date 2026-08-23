@@ -303,6 +303,30 @@ down-forward aerial is a real attack and the meteor at 90° is a real hand-off.
 - **Aerials** — neutral / up / **down air** in midair; down airs are
   **spikes** that launch downward — the edge-guard finisher.
 
+### Turning around at a run
+
+Reversing at speed does not reverse a fighter. Acceleration is refused for as
+long as their velocity still opposes the stick (`turnLock`), so all that happens
+is friction, and from a 468 px/s top speed that takes about **fifteen frames** —
+a quarter of a second in which the body travels one way and the drawing faces
+the other.
+
+That is deliberate, and unchanged. What was missing was any picture of it: the
+animation layer knew only how fast the fighter was going, so it played the run
+cycle for the first eleven frames and the standing idle for the last four — a
+stride cycling over a body sliding backwards, which reads as running on the
+spot.
+
+The brake now has its own reading (`SKID` in `src/config_tuning.js`). It is
+still the run — a fighter mid-turnaround is running and getting nowhere — but
+stopped on the one frame of the cycle that reads as a plant: the **pass**, legs
+crossing beneath the body, held rather than played. The body leans into the
+direction being asked for, by however much momentum is left to shed, and the
+sliding foot throws grit off the floor the way it is actually travelling. The
+pose holds until the fighter is genuinely up to speed the new way, so no idle
+frame lands in the middle of the turn. No new art: every fighter has had the
+four-frame run cycle since round 11.
+
 ### Dash attacks (the run's own attacks)
 
 Attacking out of a dash or a sprint — either attack button — throws a **dash
