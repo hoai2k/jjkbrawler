@@ -102,6 +102,56 @@ check(table.filter((t) => t.tierY === null).length >= 2,
   "and some boards deliberately keep a high floor",
   table.filter((t) => t.tierY === null).map((t) => t.key).join(", "));
 
+// EVERY BOARD, EVERY PLAYER COUNT, through the game's own placement rule.
+//
+// The rule is: a board with a starting tier opens ON that tier, and the only
+// boards that open on their lowest ground are the ones where the lowest ground
+// IS the starting ground. This swept up a real bug — the fixed 2/3/4-player x's
+// are the same numbers on every board, and on the two whose tier is narrower
+// than them (Neon Split, Cursed Teeth) the outer slots fell through to the
+// floor a storey below. An x past the tier's ends is pulled back onto it now.
+const placement = await page.evaluate(async () => {
+  const { STAGES, spawnXs, spawnPlatform, spawnSpot } = await import("/src/stages.js");
+  const rows = [];
+  for (const s of STAGES) {
+    const tier = spawnPlatform(s.platforms);
+    const tiered = tier.kind === "spawn";
+    for (const n of [2, 3, 4, 5, 6, 8]) {
+      const spots = spawnXs(n, tier).map((x) => spawnSpot(s.platforms, x));
+      rows.push({
+        key: s.key, n, tiered, tierY: tier.y,
+        offTier: spots.filter((p) => p.y !== tier.y).length,
+        // ...and wherever they are put, they must be standing ON something.
+        // Checked against the whole board rather than against the tier: a
+        // board with no tier is ALLOWED to open somebody on a side platform
+        // (Bridge Duel does, Battlefield-style), and that is not a fighter
+        // hanging in the air.
+        floating: spots.filter((p) => !s.platforms.some(
+          (q) => q.y === p.y && p.x >= q.x && p.x <= q.x + q.w)).length,
+      });
+    }
+  }
+  return rows;
+});
+const tiered = placement.filter((r) => r.tiered);
+const strays = tiered.filter((r) => r.offTier);
+check(strays.length === 0, "every tiered board opens on its tier, at every player count",
+  strays.length ? strays.map((r) => `${r.key} ${r.n}p:${r.offTier}`).join(", ")
+                : `${tiered.length} board/count combinations`);
+check(placement.every((r) => r.floating === 0), "and every fighter starts standing on something",
+  placement.filter((r) => r.floating).map((r) => `${r.key} ${r.n}p`).join(", "));
+// The other half of the rule: a board with no tier still opens on its ground.
+// The other half of the rule: on a board with NO tier the lowest ground is the
+// starting ground, so that is where a match opens — except where the board
+// deliberately puts an outer slot on a side platform, which only the narrowest
+// main (Bridge Duel) is small enough to trigger.
+const classic = placement.filter((r) => !r.tiered);
+check(classic.length > 0, "boards with no tier were exercised too",
+  [...new Set(classic.map((r) => r.key))].join(", "));
+check(classic.filter((r) => r.key !== "bridgeDuel").every((r) => r.offTier === 0),
+  "...and they open on their own ground",
+  classic.filter((r) => r.key !== "bridgeDuel" && r.offTier).map((r) => `${r.key} ${r.n}p`).join(", "));
+
 console.log("errors:", errors.length ? errors.slice(0, 4) : "none");
 await browser.close();
 console.log(fails || errors.length ? `\n${fails} check(s) failed` : "\nall stage-floor checks passed");

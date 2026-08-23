@@ -55,6 +55,24 @@ const plats = () => page.evaluate(async () => {
   return state.platforms.map((p) => ({ x: p.x, y: p.y, w: p.w, h: p.h, kind: p.kind }));
 });
 
+// --- the driven fighter starts where a MATCH would start them: on the board's
+//     spawn tier, not on the lowest ground a storey below it. The bench had its
+//     own copy of the placement rule and stood everybody on the floor, which
+//     made a tiered board look like it opened somewhere it does not.
+const stood = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { spawnPlatform, mainPlatforms } = await import("/src/stages.js");
+  const tier = spawnPlatform(state.platforms);
+  return {
+    fighterY: Math.round(state.fighters[0].y),
+    tierY: tier.y, tiered: tier.kind === "spawn",
+    floorY: mainPlatforms(state.platforms)[0].y,
+  };
+});
+check(stood.fighterY === stood.tierY && stood.tiered && stood.floorY > stood.tierY,
+  "the bench's fighter stands on the spawn tier, not the floor",
+  `fighter ${stood.fighterY}, tier ${stood.tierY}, floor ${stood.floorY}`);
+
 // --- select the main platform by clicking its middle
 let before = await plats();
 const main = before[0];

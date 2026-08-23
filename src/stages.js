@@ -1,4 +1,5 @@
 import { ART_SCALE } from "./config_tuning.js";
+import { clamp } from "./utils.js";
 // 20 stages. Each is one or two "main" platforms (solid ground, grabbable
 // ledges, the lowest surface) plus drop-through platforms in a deliberate
 // archetype — arenas, skylines, galleries, towers, staircases, orbit fields
@@ -266,6 +267,37 @@ export function spawnXs(count, main) {
   }
   const step = (right - left) / Math.max(1, count - 1);
   return Array.from({ length: count }, (_, i) => Math.round(left + step * i));
+}
+
+/**
+ * WHERE A FIGHTER STANDS AT THE START, for a nominal x.
+ *
+ * A board with a STARTING TIER opens on it, full stop. The tier is the height
+ * every board's ground used to be at, and the storey below it is board a match
+ * should not begin in the middle of — so an x past the tier's ends is pulled
+ * back ONTO it rather than dropped to the floor. That was the bug: the fixed
+ * 2/3/4-player x's are the same on every board, and on the boards whose tier is
+ * narrower than those numbers (Neon Split, Cursed Teeth) the outer two slots
+ * fell through to the floor a storey down.
+ *
+ * A board with NO tier keeps the old rule — the lowest surface under that x —
+ * which is what puts Bridge Duel's outer slots on its side platforms
+ * Battlefield-style, and what makes the walk-offs open on their street. On
+ * those boards the lowest ground IS the starting ground, so the two rules agree.
+ *
+ * Lives here rather than in `resetMatch` because the arena bench has to place a
+ * fighter too, and two copies of "where does a match begin" is how the bench
+ * came to stand its fighter on the floor while the game stood everyone on the
+ * tier.
+ */
+export function spawnSpot(platforms, x) {
+  const tier = spawnPlatform(platforms);
+  if (!tier) return { x, y: 568 };
+  const onto = () => ({ x: clamp(x, tier.x + 50, tier.x + tier.w - 50), y: tier.y });
+  if (tier.kind === "spawn") return onto();
+  const under = platforms.filter((p) => x >= p.x + 12 && x <= p.x + p.w - 12);
+  if (under.length) return { x, y: Math.max(...under.map((p) => p.y)) };
+  return onto();
 }
 
 export function mainPlatform(platforms) {

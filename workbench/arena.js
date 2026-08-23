@@ -34,7 +34,7 @@ import { advanceWorld, stepWorld, makeLatch, resetFrameClock } from "../src/sim.
 import { makeFighter } from "../src/fighter.js";
 import { draw } from "../src/render.js";
 import { applyCamera, releaseCamera, ZOOM_MIN } from "../src/camera.js";
-import { AUTHORED_STAGES, mainPlatform } from "../src/stages.js";
+import { AUTHORED_STAGES, mainPlatform, spawnPlatform, spawnSpot } from "../src/stages.js";
 import { initStageFx } from "../src/stage_fx.js";
 import { CHARACTER_KEYS, characterName } from "../src/characters.js";
 import { ART_SCALE } from "../src/config_tuning.js";
@@ -421,11 +421,20 @@ async function loadArena(key) {
   history.replaceState(null, "", next);
 }
 
+/** Stand the driven fighter where a MATCH would start them — the board's
+ *  spawn tier, through the game's own rule (stages.js spawnSpot) — rather than
+ *  on the lowest ground. The bench had its own copy of this and stood everybody
+ *  on the floor, which made a tiered board look like it opened a storey below
+ *  where it really does. */
+function benchSpawn() {
+  const tier = spawnPlatform(state.platforms);
+  return spawnSpot(state.platforms, tier.x + tier.w / 2);
+}
+
 function spawnFighter() {
-  const main = mainPlatform(state.platforms);
-  const x = main ? main.x + main.w / 2 : WORLD.w / 2;
-  const f = makeFighter(1, bench.charKey, x, 1);
-  f.y = main ? main.y : WORLD.h / 2;
+  const at = benchSpawn();
+  const f = makeFighter(1, bench.charKey, at.x, 1);
+  f.y = at.y;
   f.grounded = true;
   state.fighters = [f];
 }
@@ -436,9 +445,9 @@ function keepOnStage() {
   const f = state.fighters[0];
   if (!f) return;
   if (f.y < BLAST.bottom && f.x > BLAST.left && f.x < BLAST.right && f.y > BLAST.top) return;
-  const main = mainPlatform(state.platforms);
-  f.x = main ? main.x + main.w / 2 : WORLD.w / 2;
-  f.y = main ? main.y : WORLD.h / 2;
+  const at = benchSpawn();
+  f.x = at.x;
+  f.y = at.y;
   f.vx = 0; f.vy = 0; f.grounded = true; f.hitstun = 0; f.action = null;
 }
 
