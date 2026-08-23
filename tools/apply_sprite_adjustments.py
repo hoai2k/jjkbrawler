@@ -502,13 +502,18 @@ def main():
                     meta[field] = value
             else:
                 bank_superseded(man, char, key, note, meta)
+            # A first delivery and a replacement are different events and the
+            # line says which: "replacement approved" on a pose that never had
+            # art reads as though something was overwritten, and after a round
+            # of 89 held poses that line is the only record of which were which.
+            what = "replacement" if note.get("live") else "first delivery"
             applied.append(
                 (f"{char}/{key}: first delivery kept out, states go on playing "
                  "their fallback")
                 if verdict == "keep" and not note.get("live")
                 else f"{char}/{key}: replacement kept out, old art restored"
                 if verdict == "keep"
-                else f"{char}/{key}: replacement approved -> {meta.get('file')}")
+                else f"{char}/{key}: {what} approved -> {meta.get('file')}")
 
         for key, changes in (payload.get("adjustments") or {}).items():
             meta = frames.get(key)
