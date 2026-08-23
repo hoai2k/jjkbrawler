@@ -415,7 +415,7 @@ function nativeLeftApplies(charKey, frameKey, meta) {
   return options[0].file === meta.file;
 }
 
-/** A replacement that has landed but has not been approved into the game.
+/** A delivery that has landed but has not been approved into the game.
  *
  *  The pose's own fields are the NEW drawing — that is what the workbench edits,
  *  and placing it is the work the approval is waiting on. `awaitingApproval.live`
@@ -425,6 +425,14 @@ function nativeLeftApplies(charKey, frameKey, meta) {
  *  player saw the moment it ran. The roster is finished now, so a delivery is a
  *  proposal until it has been stood beside the thing it replaces. See
  *  hold_for_approval() in tools/intake_import.py.
+ *
+ *  `live` is NULL on a pose the manifest has never carried, and that is the
+ *  same promise rather than an exception to it. A state whose art has not been
+ *  drawn plays its `fallback` — the walk is the run replayed slowly, the teeter
+ *  is the idle — so a pose landing for the first time changes what a player
+ *  sees just as much as one landing on top of another. There is no old block of
+ *  this pose's own to bank because the pose was never in the game; null says
+ *  so, and `frameMeta` below keeps it out until it is approved.
  */
 export function awaitingApproval(charKey, frameKey) {
   return spriteManifest?.characters?.[charKey]?.[frameKey]?.awaitingApproval || null;
@@ -436,10 +444,17 @@ export function awaitingApproval(charKey, frameKey) {
 export function frameMeta(charKey, frameKey, { preview = false } = {}) {
   const char = spriteManifest?.characters?.[charKey];
   let meta = char ? char[frameKey] || null : null;
-  if (!preview && meta?.awaitingApproval?.live) {
+  if (!preview && meta?.awaitingApproval) {
+    const live = meta.awaitingApproval.live;
+    // Nothing of this pose's own was in the game — it is a first delivery, and
+    // its states are drawing their fallback. Answering null is what keeps them
+    // there: `presentFrames` filters a state's frames by whether this returns
+    // anything, so an unapproved newcomer has to look exactly as undrawn as it
+    // did the day before it arrived.
+    if (!live) return null;
     // The live block carries the whole placement of the drawing it names, so
     // the game reads it exactly as it read the pose before the delivery.
-    meta = { ...meta.awaitingApproval.live };
+    meta = { ...live };
   }
   if (!meta || meta.faceLeft !== undefined) return meta;
   return nativeLeftApplies(charKey, frameKey, meta) ? { ...meta, faceLeft: true } : meta;

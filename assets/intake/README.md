@@ -246,6 +246,8 @@ was to ship it and look. That is the wrong default for a finished game, so a
   "awaitingApproval": {
     "at": "2026-08-09T15:00:00+00:00",
     "live": { "file": "maki/crouch_b.png", … }   ← the game draws THIS
+                                                 (null on a FIRST delivery —
+                                                  see below)
   }
 }
 ```
@@ -265,6 +267,35 @@ single button would make rejecting the art the thing you do by not clicking:
   you just gave it, becomes what the game draws.
 - **Keep the current art** — the live drawing's fields go back onto the pose and
   the newcomer is discarded.
+
+### A pose the manifest has never carried is held too
+
+"New" describes the manifest, not the screen. A state whose art has not landed
+plays its `fallback` (`presentFrames` in `sprites/src/sprites.js`) — the walk is
+the run replayed slowly, the teeter is the idle, a diagonal attack is the strike
+it was declared beside — so a **first** delivery changes what a player sees
+exactly as a replacement does. It used to be the one case that went straight
+into the game, on the reasoning that there was nothing to compare it against.
+There is: the drawing its states are playing right now.
+
+So it is held like any other, with **`live: null`** — there is no block of this
+pose's own to bank, because the pose was never in the game. That null is the
+whole mechanism: `frameMeta` answers `null` for a hold with no live drawing, and
+every "is this drawn" question in the game is that lookup, so the states go on
+resolving to their fallback until somebody says yes. The panel reads **First
+delivery waiting** and names what is being drawn instead, and the **Alternate
+sprite** slot stands that drawing beside the newcomer — computed from
+`resolvedAnim` rather than recorded, so it cannot go stale.
+
+**Keep** means something different here, and does something different: there is
+no older drawing of this pose to put back, so the hold *stays*, carrying a
+`declined` stamp. The pose leaves the queue, the fallback goes on playing, and
+the drawing stays on the pose — one **Approve** away, whenever the answer
+changes. Dropping the marker is what "yes" means, so a no cannot drop it.
+
+`tools/check_approval_holds.mjs` asserts all of this against the real manifest
+and the game's own modules; `tools/test_intake_approval.py` asserts the intake
+half.
 
 To see them together, set **This character's idle → Alternate sprite**: the
 comparison slot fills with the drawing still in play, captioned *in the game

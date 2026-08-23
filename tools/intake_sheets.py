@@ -73,7 +73,14 @@ def sheet(char, items, man, anims, out_dir, bg):
                 # What the GAME draws, not what the pose is called. On a pose
                 # awaiting approval those are two different images, and the
                 # left pane is the one still in play.
-                live = (meta.get("awaitingApproval") or {}).get("live") or meta
+                waiting = meta.get("awaitingApproval") or {}
+                # A FIRST delivery has no drawing of its own in play — the
+                # states are on their fallback — so there is nothing to put in
+                # the left pane, and showing the newcomer there would claim the
+                # game is already drawing it.
+                if waiting and not waiting.get("live"):
+                    break
+                live = waiting.get("live") or meta
                 shown_file = live.get("file") or meta["file"]
                 before = load(os.path.join(SPRITES, shown_file))
                 break

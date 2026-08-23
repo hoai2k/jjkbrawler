@@ -342,6 +342,29 @@ function drawGhost(charKey, frameKey, alpha, x = canvas.width / 2, as = null, zo
  *  answer to "which other one" is about this pose's drawings. */
 const altPicked = new Map();
 
+/** What the game is drawing INSTEAD of this pose, while a first delivery of it
+ *  waits to be approved.
+ *
+ *  A replacement has an easy answer — the drawing it replaces, banked on the
+ *  hold as `live`. A first delivery has no such block, because the pose was
+ *  never in the game; what a player sees is the animation's `fallback`, and
+ *  `resolvedAnim` already knows what that resolves to today. So it is asked
+ *  rather than recorded: a stand-in that is computed cannot go stale the way
+ *  one written into the manifest at import time would, and the drawing it names
+ *  is a real pose of this fighter's with its own placement to stand beside.
+ *
+ *  Null when the states draw nothing at all — a pose whose fallback has not
+ *  been delivered either, which is a gap rather than a comparison. */
+function standInFor(charKey, frameKey) {
+  for (const [name, anim] of Object.entries(animsOf(charKey))) {
+    if (!anim.frames.includes(frameKey)) continue;
+    const drawn = (resolvedAnim(charKey, name)?.frames || [])
+      .filter((k) => k !== frameKey);
+    if (drawn.length) return { state: name, frame: drawn[0] };
+  }
+  return null;
+}
+
 /** Every drawing this pose has OTHER than the one on the canvas — the ones the
  *  comparison can stand beside it. */
 function altCandidates(charKey, frameKey) {
@@ -357,6 +380,21 @@ function altCandidates(charKey, frameKey) {
       caption: "in the game now",
       primary: true,
     });
+  } else if (meta.awaitingApproval) {
+    // A first delivery. Nothing of this pose's own is in the game, so the thing
+    // to stand it beside is the drawing its states are falling back on — which
+    // belongs to another pose, and is fetched by that pose's name.
+    const stand = standInFor(charKey, frameKey);
+    const standMeta = stand && frameMeta(charKey, stand.frame);
+    if (standMeta?.file) {
+      out.push({
+        meta: standMeta,
+        img: frameImage(charKey, stand.frame),
+        file: standMeta.file,
+        caption: `drawn instead, as ${stateLabel(stand.state)}`,
+        primary: true,
+      });
+    }
   }
   const others = poseVariants(charKey, frameKey).filter((o) => o.file !== meta.file);
   // The drawing this pose most recently displaced leads the rest: approving
@@ -2141,7 +2179,18 @@ async function settleApproval(charKey, frameKey, approve) {
   // same operation as switching between two alternates — and the answer can be
   // changed as often as you like without the pose losing either drawing.
   const pair = bankApprovalPair(charKey, frameKey, note, approve);
-  delete meta.awaitingApproval;
+  if (!approve && !note.live) {
+    // A first delivery turned down. There is no older drawing of this pose to
+    // put back — what the game shows is another pose's, through the fallback —
+    // so the marker is what keeps this one out, and dropping it would let the
+    // drawing in by exactly the door the answer closed. It stays, answered:
+    // out of the queue (approvalNote skips a declined note), still out of the
+    // game (frameMeta reads the hold, not the answer), and one Approve away
+    // from going in if the answer changes.
+    meta.awaitingApproval = { ...note, declined: new Date().toISOString() };
+  } else {
+    delete meta.awaitingApproval;
+  }
   approvalSettled.set(`${charKey}/${frameKey}`, approve ? "approve" : "keep");
   remember(charKey, frameKey);
   if (!isUpdateReviewed(charKey, frameKey)) toggleUpdateReviewed(charKey, frameKey);
@@ -2251,31 +2300,55 @@ function refreshApprovalControl() {
     // old one" is not true of them — nobody is drawing either. The decision is
     // still real: it settles which drawing the set carries when they ship.
     const staged = isStaged(state.char);
+    const firstStandIn = note.live ? null : standInFor(state.char, state.frame);
     $("approvalInfo").innerHTML =
       (staged
         ? "<b>The canvas is showing the new art</b> (the old one is <code>"
           + `${note.live?.file || "—"}</code>). This fighter is not on the `
           + "roster yet, so nothing is drawing either drawing today — "
           + "approving settles which one the set carries when they ship.<br>"
-        : "<b>The canvas is showing the new art; the game is still drawing the old "
-          + `one</b> (<code>${note.live?.file || "—"}</code>).<br>`)
+        : note.live
+          ? "<b>The canvas is showing the new art; the game is still drawing the old "
+            + `one</b> (<code>${note.live.file || "—"}</code>).<br>`
+          // A first delivery. "The old one" is not this pose at all — the
+          // states it serves are playing their fallback, and naming which
+          // drawing that is, and as what, is the whole comparison here.
+          : "<b>The canvas is showing new art for a pose that has never been "
+            + "drawn.</b> The game is playing the fallback for it"
+            + (firstStandIn
+                ? ` — <code>${firstStandIn.frame}</code>, as `
+                  + `${stateLabel(firstStandIn.state)}` : "")
+            + ".<br>")
       + "Place it, then decide. <b>Approve</b> lets it into the game with the "
-      + "placement you have given it; <b>keep</b> leaves the old drawing in "
-      + "play. Either answer takes the pose off the updated list, and either "
+      + "placement you have given it; <b>keep</b> leaves "
+      + (note.live || staged ? "the old drawing in play"
+                             : "the fallback playing and this drawing out")
+      + ". Either answer takes the pose off the updated list, and either "
       + "can be changed afterwards — both drawings stay on the pose.";
-    $("approvalLabel").textContent = "Replacement waiting";
+    $("approvalLabel").textContent = note.live ? "Replacement waiting"
+                                               : "First delivery waiting";
+    // "Keep the current art" is the wrong words for a pose that has no current
+    // art: what is being kept is the fallback, and what the answer does is
+    // leave this drawing out.
+    $("keepBtn").textContent = note.live || staged
+      ? "Keep the current art" : "Keep it out — the fallback stays";
     $("approvalState").textContent = staged ? "not on the roster yet" : "not in the game yet";
     return;
   }
   const approved = settled === "approve";
   const pair = approvalPairs.get(id);
   $("approvalLabel").textContent = "Replacement decided";
-  $("approvalState").textContent = approved ? "the new art is in" : "the old art stays";
+  $("approvalState").textContent = approved ? "the new art is in"
+    : pair?.live ? "the old art stays" : "still not in the game";
   $("approvalDoneInfo").innerHTML = approved
     ? `<b>Approved</b> — the pose draws <code>${state.frame && rawMeta(state.char, state.frame)?.file || "—"}</code>, `
       + `and <code>${pair?.live || "the drawing it replaced"}</code> is banked as an alternate.`
-    : `<b>Kept</b> — the pose still draws <code>${pair?.live || "the old art"}</code>, `
-      + `and <code>${pair?.delivered || "the replacement"}</code> is banked as an alternate.`;
+    : pair?.live
+      ? `<b>Kept</b> — the pose still draws <code>${pair.live}</code>, `
+        + `and <code>${pair?.delivered || "the replacement"}</code> is banked as an alternate.`
+      : "<b>Kept</b> — the pose stays out of the game and its states go on "
+        + `playing their fallback; <code>${pair?.delivered || "the delivery"}</code> `
+        + "is on the pose, waiting for a yes.";
   $("approvalSwitch").textContent = approved
     ? "Change to: keep the old art"
     : "Change to: approve the new art";
@@ -2404,8 +2477,14 @@ function buildPoseEntry(charKey, key, { owner = false, sub: subOverride = null,
     + (requested ? " — ⚠ new art is on order for this pose; placing it now is"
                  + " optional, the replacement is measured from scratch" : "")
     + (awaitingApproval(charKey, key)
-        ? " — a replacement has landed and is NOT in the game: stand the two"
-          + " side by side and approve or reject it" : "");
+        ? (approvalNote(charKey, key)?.live
+            ? " — a replacement has landed and is NOT in the game: stand the two"
+              + " side by side and approve or reject it"
+            // A first delivery. There is no "the two" until you know what the
+            // other one is, and it belongs to a different pose.
+            : " — a first delivery has landed and is NOT in the game: its states"
+              + " are still playing their fallback until you approve it")
+        : "");
   const selected = charKey === state.char && key === state.frame;
   // THE TWO THINGS THE CHARACTER DOT COUNTS, said per pose. The dropdown marks
   // a fighter with work left and names the reason in its tooltip, but the grid
