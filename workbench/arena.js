@@ -35,7 +35,7 @@ import { makeFighter } from "../src/fighter.js";
 import { draw } from "../src/render.js";
 import { applyCamera, releaseCamera, ZOOM_MIN } from "../src/camera.js";
 import { AUTHORED_STAGES, mainPlatform, spawnPlatform, spawnSpot } from "../src/stages.js";
-import { initStageFx } from "../src/stage_fx.js";
+import { initStageFx, STAGE_FX_NOTES } from "../src/stage_fx.js";
 import { CHARACTERS, CHARACTER_KEYS, characterName } from "../src/characters.js";
 import { ART_SCALE } from "../src/config_tuning.js";
 import { WORLD, BLAST, GRAVITY, AIR_JUMP_MULT } from "../src/constants.js";
@@ -228,6 +228,9 @@ root.innerHTML = `
         <input id="aTint" type="text">
       </label>
 
+      <h2>Active board</h2>
+      <p class="sub" id="fxNote">—</p>
+
       <h2>Reach</h2>
       <p class="sub" id="reachOut">—</p>
 
@@ -269,6 +272,7 @@ const propsBodyEl = document.getElementById("propsBody");
 const thickEl = document.getElementById("pThickness");
 const reachEl = document.getElementById("reachOut");
 const fxEl = document.getElementById("fxToggle");
+const fxNoteEl = document.getElementById("fxNote");
 // True while a burst of typing in one property field is still one undo step.
 let fieldDirty = false;
 
@@ -858,6 +862,22 @@ function paintBoard() {
   fields.gravity.value = String(a.mods.gravityMul ?? 1);
   fields.friction.value = String(a.mods.frictionPow ?? 1);
   fxEl.checked = !!state.activeBoards;
+  paintFxNote();
+}
+
+/** WHAT THIS BOARD DOES, in words. The gimmick's own note (stage_fx.js
+ *  STAGE_FX_NOTES), because half of what a platform asks of a player is what
+ *  the board does to it and none of that is visible in a still picture — a
+ *  platform that phases out, drifts, or stands in the path of a wave looks
+ *  exactly like one that does not. `asks` is the half that is about LAYOUT, so
+ *  it is the line that gets the emphasis. */
+function paintFxNote() {
+  const note = STAGE_FX_NOTES[bench.stageKey];
+  if (!note) { fxNoteEl.textContent = "no gimmick on this board"; return; }
+  const off = !state.activeBoards
+    ? `<em class="fx-off">stilled — hazards are off${bench.editing ? " while editing" : ""}</em>` : "";
+  fxNoteEl.innerHTML = `<strong>${note.name}</strong> ${note.what}`
+    + `<span class="fx-asks"><strong>Layout:</strong> ${note.asks}</span>${off}`;
 }
 
 /** Name one platform the tier, and take it off every other. Two ways to hold
@@ -951,6 +971,7 @@ function setHazards(on) {
   // platform leaves it wherever it stopped, and that is not the board.
   syncPlatforms();
   syncStageFx();
+  paintFxNote();
 }
 
 fxEl.addEventListener("change", () => setHazards(fxEl.checked));
@@ -1198,7 +1219,9 @@ function reachReportFor(arena) {
     if (tier[0].w < 300) problems.push(`the spawn tier is only ${tier[0].w}px wide`);
   }
   for (const p of others) {
-    if (p.y >= main.y) problems.push(`(${p.x},${p.y}) is not above the main`);
+    // Below the floor is a DESIGN (Bridge Duel's catch platforms), not a fault
+    // — the same call tools/audit_stage_reach.mjs makes.
+    if (p.y >= main.y) warnings.push(`(${p.x},${p.y}) hangs below the floor — no ledges to grab on it`);
   }
   const highest = Math.min(...plats.map((p) => p.y));
   // The same cap tools/audit_stage_reach.mjs enforces, and for the reason
@@ -1412,6 +1435,7 @@ editingEl.addEventListener("change", () => {
   // turning editing off arms them and turning it back on stills them. The
   // checkbox still overrides, for either mode.
   setHazards(!bench.editing);
+  paintFxNote();   // "stilled while editing" reads differently in either mode
   if (bench.editing) pinCamera();
   else resetFrameClock();
   const next = new URL(window.location.href);
@@ -1489,9 +1513,12 @@ async function boot() {
   state.matchTime = 0;
   state.timeLimit = 0;
   state.hudBand = 0;
-  // Off while editing: several boards MOVE their platforms, and a platform that
-  // walks away from the cursor is not something you can drag.
-  state.activeBoards = false;
+  // FROM THE MODE, not off. Off while editing, because several boards MOVE
+  // their platforms and one that walks away from the cursor cannot be dragged
+  // — but a bench opened straight into play mode (?editing=off) used to boot
+  // with the gimmicks stilled and no way to tell, because the toggle that arms
+  // them only fires when somebody changes it.
+  state.activeBoards = !bench.editing;
 
   editingEl.checked = bench.editing;
   canvas.classList.toggle("is-editing", bench.editing);

@@ -45,6 +45,17 @@ import { FIXED_DT, MAX_FIXED_STEPS } from "./constants.js";
  *                  Stage gimmicks have no owner and never stop.
  */
 export function stepWorld(dt, inputFor) {
+  // THE WORLD CLOCK, and why it lives here rather than in the match.
+  //
+  // `state.matchTime` is not a match rule — it is the simulation's own clock,
+  // and everything that reads it is at this level: a dash's double-tap window,
+  // the shield's parry window, animation phase, and every stage gimmick's
+  // schedule (stage_fx.js). It was incremented in main.js's step because that
+  // used to be the only step there was, which left the benches running a world
+  // frozen at t = 0 — and a board whose hazard is "every 20 seconds" never
+  // reached its first second. One step, one tick, whoever is driving.
+  state.matchTime += dt;
+
   for (const f of state.fighters) {
     f.lastInput = inputFor(f) || blankInput();
     updateFighter(f, dt, f.lastInput);

@@ -249,6 +249,12 @@
 .arenabench .props .sub.is-ok { color: #7fd6a8; }
 .arenabench .props .sub.is-warn { color: var(--warn); }
 .arenabench .props .sub.is-bad { color: #ff8b9c; }
+/* WHAT THE BOARD DOES. The gimmick's name leads, its behaviour follows, and
+   the layout line is set apart because that is the half you are editing
+   against. */
+.arenabench .props #fxNote strong { color: #cdd6ee; }
+.arenabench .props #fxNote .fx-asks { display: block; margin-top: 6px; color: #93b7d8; }
+.arenabench .props #fxNote .fx-off { display: block; margin-top: 6px; color: var(--warn); font-style: normal; }
 
 .arenabench .field {
   display: flex;

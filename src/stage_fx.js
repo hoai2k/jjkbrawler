@@ -15,7 +15,7 @@
 
 import { state } from "./state.js";
 import { ART_SCALE } from "./config_tuning.js";
-import { getStage, mainPlatform } from "./stages.js";
+import { getStage, mainPlatform, groundSpan } from "./stages.js";
 import { getImage } from "./assets.js";
 import { paintedHeight } from "./shared_sprites.js";
 import { paintShared } from "./shared_paint.js";
@@ -45,6 +45,117 @@ export function initStageFx() {
   const make = STAGE_FX[stage.key];
   if (make) state.entities.push({ owner: null, ...make(stage) });
 }
+
+// ---------------------------------------------------- what each board DOES
+//
+// One paragraph per gimmick, in the same file as the gimmick so the two cannot
+// drift apart. `asks` is the half a LAYOUT has to care about: which platforms
+// the board moves, phases or measures, and what it therefore expects to find.
+// Read by the arena bench (workbench/arena.js), which shows it beside the board
+// you are editing — half of what a platform demands of a player is what the
+// board does to it, and that is invisible in a static picture.
+export const STAGE_FX_NOTES = {
+  trainingBridge: {
+    name: "Falling leaves",
+    what: "Cosmetic only — leaves drift across the frame. The declared baseline: the one board that is exactly what it looks like.",
+    asks: "Nothing. Every platform stays where you put it.",
+  },
+  quietHall: {
+    name: "Silence bell",
+    what: "Every 25s, after a 2s telegraph, a 4s hush seals every special and ultimate — a pure-melee window for both players.",
+    asks: "Nothing — the layout is untouched.",
+  },
+  floodedGate: {
+    name: "The surge",
+    what: "Every 20s a knee-high wave crosses the floor, alternating direction, and shoves grounded fighters along. Push only: it never damages.",
+    asks: "Sweeps the full width of the floor, however many pieces it is in. Anyone above floor height is out of it.",
+  },
+  shibuyaNight: {
+    name: "The curtain",
+    what: "8s in every 30 the arena seals and cursed energy runs dense: everyone's meter builds fast. Expect ultimates.",
+    asks: "Nothing.",
+  },
+  curseMaw: {
+    name: "It bites",
+    what: "Every 20s the outer thirds of the jaw glow for 1.3s, then fangs snap up at both ends of the floor for 7%.",
+    asks: "Measures the floor's outer thirds, across every piece of it — the middle third is always safe, so widening the floor widens the safe centre. What it punishes is camping either end.",
+  },
+  gardenSteps: {
+    name: "The blooming",
+    what: "Every 25s a flower opens on a random platform; the first fighter to touch it heals 8% — the only healing in the game.",
+    asks: "Any platform can be picked, the floor included. More platforms spread the odds thinner.",
+  },
+  lanternCorridor: {
+    name: "The falling lantern",
+    what: "Every 18s a lantern shakes loose, drops, and burns the patch it lands on for 2.5s.",
+    asks: "Picks an x across the floor's width and lands on the topmost surface under it — a rafter in the way takes the hit instead.",
+  },
+  sunkenCrossing: {
+    name: "Slick street",
+    what: "The flooded street is slick — friction drops sharply, so stops become slides. The entity itself only paints the sheen and the ripples.",
+    asks: "Nothing: the change is a field modifier (frictionPow, in the board's own levers), not a platform one.",
+  },
+  neonSplit: {
+    name: "The bolt",
+    what: "Every 22s, after a 1.5s telegraph, an energy wall strikes down the centre line and holds for 5s. Crossing it costs 6%.",
+    asks: "The wall stands at the WORLD's centre (x 640), not the board's — leave a way past it, over the top or under through the floor.",
+  },
+  boneSanctum: {
+    name: "Brittle bones",
+    what: "Each platform rattles for 1s, phases intangible for 3s, then re-knits, on offset cycles so something is always solid.",
+    asks: "PHASES every platform that is not the floor or the starting tier. Add a drop-through here and it joins the cycle; the floor and the tier never phase.",
+  },
+  bridgeDuel: {
+    name: "The drifting bridge",
+    what: "The whole bridge slides ±70px on an 8s cycle, carrying fighters and ledge-hangers with it.",
+    asks: "MOVES the main platform. The rooftop platforms are fixed, so every gap to them opens and closes as it drifts.",
+  },
+  academyHall: {
+    name: "Class change",
+    what: "Every 30s the bell rings and the drop-throughs glide over 2s into the next of four arrangements. Solid the whole way.",
+    asks: "MOVES the drop-throughs (floor and starting tier excluded), matched by index to four authored arrangements — side, side, top, lectern. A fifth drop-through has no seat and stays where you put it.",
+  },
+  mistPier: {
+    name: "The fog",
+    what: "6s in every 30 both fighters dim to silhouettes and spacing goes by memory. Purely visual.",
+    asks: "Nothing.",
+  },
+  crosswalkRush: {
+    name: "Traffic",
+    what: "Every 15s the signal chirps and arrows flash for 1.5s, then light-trail traffic races across at ground level for 5%.",
+    asks: "Runs the full width of the floor at ground height. Anything above the street is off the road.",
+  },
+  cursedTeeth: {
+    name: "It swallows",
+    what: "A fang drops on a shadow telegraph every 12s, and every 25s the whole stage inhales for 2s and pulls everyone toward the centre.",
+    asks: "The fang picks an x across the floor's width and lands on the topmost surface under it — a platform can be hit as easily as the ground.",
+  },
+  riverGate: {
+    name: "The crosswind",
+    what: "A gentle wind flips direction every 15s and drifts airborne fighters only; the petals always show which way it is blowing.",
+    asks: "Nothing on the layout — but it lengthens every gap crossing one way and shortens it the other, so a jump that only just works is a jump that only half works.",
+  },
+  schoolWing: {
+    name: "Something in the windows",
+    what: "Every 20s a weak curse wanders in for 8s. Pop it for meter, or it latches onto someone for 4%.",
+    asks: "Walks the floor's width at ground level and turns at the ends.",
+  },
+  emptyCity: {
+    name: "Decay",
+    what: "A rooftop crumbles under a fighter's weight after about a second of shaking, phases out, and reforms 5s later.",
+    asks: "Every platform of kind `top` is its own crumble timer. Make a rooftop a `side` instead and it stops crumbling; the low platforms are sound.",
+  },
+  billboardRoof: {
+    name: "The storm",
+    what: "Every 22s: two flashes, then lightning takes the top platform for 8%.",
+    asks: "Strikes the FIRST `top` platform — the strongest position between strikes and a trap during them. Without a `top` it falls back to the fourth platform in the list.",
+  },
+  domainCore: {
+    name: "Inside a domain",
+    what: "Low gravity while the shards drift in a slow 9s orbit, ±46px across and ±24 up and down.",
+    asks: "MOVES every `side` platform, phases spread evenly around the circle however many there are. A shard you want to stay put should not be a `side`; gravity itself is the board's own lever.",
+  },
+};
 
 // ----------------------------------------------------------------- helpers
 
@@ -130,6 +241,22 @@ function surfaceUnder(x) {
     if (!best || p.y < best.y) best = p;
   }
   return best || mainPlatform(state.platforms);
+}
+
+/** THE FLOOR AS ONE RECTANGLE, across every piece of it.
+ *
+ *  `mainPlatform` answers "a main", which is the FIRST one — fine while every
+ *  board's floor was a single slab, and wrong the moment a floor comes in
+ *  pieces: Curse Maw's jaw is three teeth, so fangs measured off the first one
+ *  snapped at the two ends of the leftmost tooth instead of at the ends of the
+ *  jaw. Anything whose extent means "the floor" asks this instead, and on the
+ *  boards whose floor is one slab it is the same rectangle it always was.
+ *
+ *  `y` is the floor's height, which is the same for every piece of it (the
+ *  audit warns when it is not). */
+function floorRect() {
+  const g = groundSpan(state.platforms);
+  return { x: g.left, w: g.right - g.left, y: g.y };
 }
 
 // Soft telegraph glow over a platform section.
@@ -238,7 +365,7 @@ const STAGE_FX = {
     // The wave needs ~2.5 s to cross, so it launches with time left in its
     // own cycle rather than at the wrap (where `t % PERIOD` never lands).
     const WAVE_AT = PERIOD - 3.2;
-    const plat = mainPlatform(state.platforms);
+    const plat = floorRect();   // the whole floor, however many pieces it is in
     let wave = null;
     let warned = -1;
     let spawned = -1;
@@ -347,7 +474,7 @@ const STAGE_FX = {
   // snap up at both edges. Centre stage is always safe; ledge camping isn't.
   curseMaw(stage) {
     const PERIOD = 20, TELEGRAPH = 1.3, SNAP = 0.35;
-    const plat = mainPlatform(state.platforms);
+    const plat = floorRect();   // the whole floor, however many pieces it is in
     const zoneW = plat.w * 0.3;
     const zones = [
       { x: plat.x, w: zoneW },
@@ -507,7 +634,7 @@ const STAGE_FX = {
   // floor for a moment. The status system already knows how to burn.
   lanternCorridor(stage) {
     const PERIOD = 18, TELEGRAPH = 1.5, PATCH = 2.5;
-    const plat = mainPlatform(state.platforms);
+    const plat = floorRect();   // the whole floor, however many pieces it is in
     let lantern = null; // { x, y, phase: swing|fall|patch, t }
     let cycle = -1;
     return {
@@ -760,6 +887,10 @@ const STAGE_FX = {
           plats.forEach((p, i) => {
             const a = glide.from[i];
             const b = glide.to[i];
+            // A board is allowed to grow a drop-through the arrangements above
+            // do not have a seat for. It stays where it was authored rather
+            // than taking the whole gimmick down with it.
+            if (!b) return;
             movePlatform(p, a.x + (b.x - a.x) * k, a.y + (b.y - a.y) * k);
           });
           if (glide.t >= GLIDE) glide = null;
@@ -820,7 +951,7 @@ const STAGE_FX = {
   // then light-trail traffic races across at ground level.
   crosswalkRush(stage) {
     const PERIOD = 15, TELEGRAPH = 1.5;
-    const plat = mainPlatform(state.platforms);
+    const plat = floorRect();   // the whole floor, however many pieces it is in
     let cars = null; // [{x, started}], plus dir
     let warned = -1;
     return {
@@ -900,7 +1031,7 @@ const STAGE_FX = {
   // telegraph, and every so often the whole stage inhales.
   cursedTeeth(stage) {
     const FANG_EVERY = 12, INHALE_EVERY = 25, INHALE = 2;
-    const plat = mainPlatform(state.platforms);
+    const plat = floorRect();   // the whole floor, however many pieces it is in
     let fang = null; // { x, y, phase: shadow|fall, t }
     let fangCycle = -1;
     let inhaled = -1;
@@ -1063,7 +1194,7 @@ const STAGE_FX = {
   // grounds — pop it for meter before it latches onto someone.
   schoolWing(stage) {
     const SPAWN_EVERY = 20, LIFE = 8;
-    const plat = mainPlatform(state.platforms);
+    const plat = floorRect();   // the whole floor, however many pieces it is in
     let blob = null;
     let cycle = -1;
     return {

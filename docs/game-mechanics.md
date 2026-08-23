@@ -686,6 +686,11 @@ hazard can never KO by itself. The CPU steps out of telegraphed zones.
 | Billboard Roof | After two flashes, lightning strikes the top platform (8%) |
 | Domain Core | 0.88× gravity; side platforms orbit slowly |
 
+Each board's gimmick also carries its own note in code (`STAGE_FX_NOTES` in
+`src/stage_fx.js`): what it does, and what it asks of the LAYOUT — which
+platforms it moves, phases or measures. The arena bench shows that note beside
+the board you are editing.
+
 ## 7. Match structure & options
 
 - Stock battle: 1 / 2 / 3 / 5 stocks (default 3).

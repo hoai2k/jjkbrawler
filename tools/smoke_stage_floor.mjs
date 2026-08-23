@@ -100,12 +100,20 @@ const table = await page.evaluate(async () => {
     };
   });
 });
+// A CENSUS IS NOT AN INVARIANT. These counted how many boards had each shape
+// on the day the floor pass landed — 12 tiered, 4 split — and every one of
+// those numbers is a design decision somebody is allowed to change from the
+// arena bench, which is exactly what happened: boards that gained a storey
+// gave it back and opened on solid ground instead. What has to hold is that
+// the SET still carries a mix of the three shapes and that each one is built
+// correctly, so that is what is measured.
 const withTier = table.filter((t) => t.tierY !== null);
-check(withTier.length >= 12, "most boards gained a storey", `${withTier.length}/${table.length}`);
+check(withTier.length >= 3, "some boards open a storey above their floor",
+  `${withTier.length}/${table.length}`);
 check(withTier.every((t) => t.rise > 0 && t.rise <= 175),
   "every tier is one climb above its floor",
   `rises ${Math.min(...withTier.map((t) => t.rise))}-${Math.max(...withTier.map((t) => t.rise))}`);
-check(table.filter((t) => t.floors >= 2).length >= 4, "several boards split the floor",
+check(table.filter((t) => t.floors >= 2).length >= 2, "several boards split the floor",
   `${table.filter((t) => t.floors >= 2).length} split`);
 check(table.filter((t) => t.floors >= 2).every((t) => t.hole >= 90),
   "every split floor has a real hole");
