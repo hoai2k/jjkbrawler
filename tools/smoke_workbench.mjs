@@ -640,6 +640,62 @@ for (const [frame, expect] of [[DEL.idle, false], [DEL.drawn, true]]) {
     "...and the tag travels in the export", JSON.stringify(opts.map((o) => [o.file, o.needsReplacement])));
 }
 
+// ---- THE ACTIONS VIEW: one pose, every character
+//
+// The panel's two axes swapped. What can break is the swap itself — the select
+// under the grid has to become the POSE and go back to being the filter when
+// you leave, and the grid has to become characters without any of the controls
+// below it noticing, since every one of them still edits one real pose of one
+// real character.
+await page.goto(`${BASE}/sprites/workbench/?char=gojo`, { waitUntil: "domcontentloaded" });
+await until(() => /loaded/.test(document.getElementById("loadState").textContent), null, 120000);
+await page.waitForTimeout(800);
+await page.selectOption("#charSel", "__actions");
+await page.waitForTimeout(1200);
+
+const poses = await page.$$eval("#viewSel option", (o) => o.map((x) => x.value));
+check(poses.includes("idle_a") && poses.includes("attack_light_b") && poses.length > 20
+      && !poses.some((k) => /^r\dc\d$/.test(k)),
+  "the select becomes the poses the game draws, sheet cells left out",
+  `${poses.length}: ${poses.slice(0, 3).join(", ")}…`);
+check(await page.textContent("#poseLabelWord") === "Action",
+  "and the label says which question it is asking");
+
+await page.selectOption("#viewSel", "attack_light_b");
+await page.waitForTimeout(1000);
+const grid = await page.$$eval("#poseList button", (b) =>
+  b.filter((x) => !x.classList.contains("pose-variant")).map((x) => x.textContent));
+check(grid.length > 20 && grid.some((t) => t.startsWith("Gojo")) && grid.some((t) => t.startsWith("Maki")),
+  "the grid becomes the characters that have that pose", `${grid.length} cells`);
+check(/attack_light_b/.test(await page.textContent("#poseCount")),
+  "and the line above names the pose and the count", await page.textContent("#poseCount"));
+
+// A cell is still one character's one pose: clicking it moves the whole panel
+// there, and the address bar can bring it back.
+await page.evaluate(() => [...document.querySelectorAll("#poseList button")]
+  .find((b) => b.textContent.startsWith("Megumi")).click());
+await page.waitForTimeout(1200);
+const at = await page.evaluate(() => ({
+  title: document.getElementById("frameTitle")?.textContent || "",
+  url: location.search,
+}));
+check(/megumi/.test(at.url) && /action=attack_light_b/.test(at.url) && /list=actions/.test(at.url),
+  "picking a character opens their version of it, and the link says so", at.url);
+
+await page.reload({ waitUntil: "domcontentloaded" });
+await until(() => /loaded/.test(document.getElementById("loadState").textContent), null, 120000);
+await page.waitForTimeout(1000);
+check(await page.inputValue("#charSel") === "__actions"
+      && await page.inputValue("#viewSel") === "attack_light_b",
+  "and a reload comes back to the same pose across the roster");
+
+await page.selectOption("#charSel", "maki");
+await page.waitForTimeout(900);
+const back = await page.$$eval("#viewSel option", (o) => o.map((x) => x.value));
+check(back.includes("unedited") && !back.includes("idle_a")
+      && await page.textContent("#poseLabelWord") === "Pose",
+  "leaving gives the select back to the view filter", back.join(", "));
+
 check(!errors.length, "no page errors", errors.slice(0, 2).join(" | "));
 await browser.close();
 console.log(fails ? `\n${fails} check(s) failed` : "\nAll checks pass");

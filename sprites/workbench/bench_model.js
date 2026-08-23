@@ -767,6 +767,55 @@ export function hasDeleteTag(charKey, frameKey) {
   return !!entry?.options.some((o) => o.needsReplacement === "delete");
 }
 
+// ------------------------------------------------------- one pose, everybody
+//
+// The Actions view's two lists (bench_state.js ACTIONS_KEY): which poses there
+// are to audit, and who has each one. Both are answers about the whole roster,
+// so both are worked out once and kept — `statesUsing` walks every animation
+// state of a character, and asking it thirty-five times over sixty poses on
+// every repaint would be felt.
+//
+// The cache is never invalidated because nothing this session can change it:
+// which poses a character HAS is the manifest as it was loaded, and which
+// states draw them is `src/characters.js`. Pointing a pose at another drawing
+// changes the art, not whether the pose exists.
+let actionIndexCache = null;
+
+/** pose key -> the characters that have it, drawn poses only, in roster order.
+ *
+ *  DRAWN, not merely present: the sheet cells a fighter still carries are not
+ *  an action anybody audits, and they would bury the sixty real poses under
+ *  several hundred `r2c1`s. A pose counts as drawn if any character draws it,
+ *  and every character that HAS it is then listed — including one whose own
+ *  animation table has not been re-pointed at it yet, since "Toji has this
+ *  drawing and does not use it" is exactly the sort of thing this view is for.
+ */
+export function actionIndex() {
+  if (actionIndexCache) return actionIndexCache;
+  const roster = [...WB_FIGHTERS, ...ACTOR_KEYS];
+  const drawn = new Set();
+  const has = new Map();
+  for (const char of roster) {
+    for (const key of allFramesOf(char)) {
+      if (!peekMeta(char, key)?.file) continue;
+      has.set(key, [...(has.get(key) || []), char]);
+      if (statesUsing(char, key).length) drawn.add(key);
+    }
+  }
+  actionIndexCache = new Map(
+    [...has].filter(([key]) => drawn.has(key)).sort((a, b) => byPose(a[0], b[0])),
+  );
+  return actionIndexCache;
+}
+
+/** The characters that have this pose, and the ones that do not. */
+export function actionRoster(frameKey) {
+  const with_ = actionIndex().get(frameKey) || [];
+  const set = new Set(with_);
+  const without = [...WB_FIGHTERS, ...ACTOR_KEYS].filter((c) => !set.has(c));
+  return { with: with_, without };
+}
+
 /**
  * EVERY DRAWING THE GAME IS CURRENTLY PUTTING ON SCREEN for this character.
  *

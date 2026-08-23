@@ -52,7 +52,8 @@ import { makeEffectPreview, firingUse } from "./effect_preview.js";
 import {
   $, canvas, ctx, GROUND_Y, PLATFORM_W, platformX, BENCHMARK_INSET, CELL_W, stateLabel,
   stateRank, OTHER_KEY, OTHER_LABEL, ACTOR_KEYS, WB_FIGHTERS, isStaged, RECENT_KEY,
-  RECENT_LABEL, FLAGGED_KEY, FLAGGED_LABEL, isOther, inRecent, inFlagged, inList,
+  RECENT_LABEL, FLAGGED_KEY, FLAGGED_LABEL, ACTIONS_KEY, ACTIONS_LABEL,
+  isOther, inRecent, inFlagged, inList, inActions,
   BACKGROUNDS, state, HANDLE_R, round1,
 } from "./bench_state.js";
 import {
@@ -63,6 +64,7 @@ import {
   flaggedPoses, allFlagBearingPoses, updateSummary, autoTuneSummary, poseVariants,
   variantEntry, takeBanked, poseView, variantPicks, variantFlagEdits, currentOption,
   isDeleteTagged, hasDeleteTag, drawnFiles, ensureVariantOption,
+  actionIndex, actionRoster,
   rawMeta, headHeight, setHeadHeight, clearHeadHeight,
   pinHeightSpan, rememberSpan, rememberHead, snapshot, restore, ANCHOR_META, anchorNames,
   anchorValue, setAnchor, isAnchorShown, remember, isDirty, drawableSharedKey, hasSavedEdits,
@@ -2326,8 +2328,15 @@ function buildPoseList() {
   // different kind, so the select is locked while it is open rather than
   // silently ignored.
   $("viewSel").disabled = inList();
+  // The select answers whichever question this view is asking — the filter
+  // normally, the pose in the Actions view — so it is refilled when that
+  // changes and only then.
+  if (viewSelHolds !== (inActions() ? "actions" : "views")) fillViewSelect();
+  else $("viewSel").value = inActions() ? state.action : state.view;
+  $("poseLabelWord").textContent = inActions() ? "Action" : "Pose";
   if (inRecent()) { buildRecentPoseList(list); return; }
   if (inFlagged()) { buildFlaggedPoseList(list); return; }
+  if (inActions()) { buildActionCharList(list); return; }
 
   const frames = framesOf(state.char);
   const hidden = allFramesOf(state.char).length - frames.length;
@@ -2363,7 +2372,8 @@ function buildPoseList() {
 
 /** One cell of the pose grid. Takes the character rather than reading
  *  `state.char`, because the updated list mixes several in one grid. */
-function buildPoseEntry(charKey, key, { owner = false, sub: subOverride = null } = {}) {
+function buildPoseEntry(charKey, key, { owner = false, sub: subOverride = null,
+                                        name: nameOverride = null } = {}) {
   remember(charKey, key);
   const options = poseVariants(charKey, key);
   // A pose with a choice of drawings is a cell plus a chevron, so the two
@@ -2380,7 +2390,11 @@ function buildPoseEntry(charKey, key, { owner = false, sub: subOverride = null }
   // goes with it rather than `label.sub`, which on an undrawn cell is a remark
   // ("unused") rather than the pose's name.
   const sub = subOverride ?? (owner ? `${actorOf(charKey).name} · ${key}` : label.sub);
-  b.innerHTML = sub ? `${label.name}<i class="pose-file">${sub}</i>` : label.name;
+  // The Actions view turns the grid inside out — one pose, every character — so
+  // there the CHARACTER is what the cell is and the pose name would be the same
+  // word thirty-five times.
+  const name = nameOverride ?? label.name;
+  b.innerHTML = sub ? `${name}<i class="pose-file">${sub}</i>` : name;
   const states = statesUsing(charKey, key);
   const doomed = hasDeleteTag(charKey, key);
   // The dimmed cells need to say WHY they are dim, or they read as disabled.
@@ -2472,6 +2486,111 @@ function buildRecentPoseList(list) {
   }
   for (const entry of entries) {
     list.appendChild(buildPoseEntry(entry.char, entry.frame, { owner: true }));
+  }
+}
+
+// -------------------------------------------------------------- the Actions view
+//
+// The panel's two axes, swapped: the select above the grid becomes the POSE and
+// the grid becomes the CHARACTERS that have it. Nothing below the grid changes
+// — a cell still selects one character's one pose, and every control goes on
+// editing exactly that.
+//
+// The select is re-used rather than added beside: it already sits under the
+// "Pose" label in the place where "which of these am I looking at" is asked,
+// and a second dropdown that is blank five-sixths of the time is worse than
+// one that answers the question the current view is asking.
+
+/** Fill the select under the pose grid for whichever view is open: the filter
+ *  normally, the roster's poses in the Actions view. */
+// Which list the select is currently holding, so it is rebuilt when the view
+// flips and left alone on every ordinary repaint.
+let viewSelHolds = null;
+
+function fillViewSelect() {
+  const sel = $("viewSel");
+  viewSelHolds = inActions() ? "actions" : "views";
+  sel.innerHTML = "";
+  if (inActions()) {
+    for (const [key, chars] of actionIndex()) {
+      const o = document.createElement("option");
+      o.value = key;
+      // The count is the first thing an audit wants: a pose eleven characters
+      // have is a different kind of question from one all thirty-five do. The
+      // readable name only when there IS one — most pose keys are their own
+      // name, and "idle_a — idle_a" says it twice.
+      const name = frameLabel(state.char, key).name;
+      o.textContent = `${name === key ? key : `${name} — ${key}`} (${chars.length})`;
+      sel.appendChild(o);
+    }
+    sel.value = state.action;
+    return;
+  }
+  for (const [key, cfg] of Object.entries(VIEWS)) {
+    const o = document.createElement("option");
+    o.value = key; o.textContent = cfg.label;
+    sel.appendChild(o);
+  }
+  sel.value = state.view;
+}
+
+/** Open the Actions view on a pose, and on the character that has it.
+ *
+ *  `wantFrame` is the POSE to audit — the thing the select picks — and the
+ *  character it lands on is whoever is already open if they have it, so
+ *  flipping between poses does not keep throwing you back to Gojo. */
+function setActions(wantChar = null, wantFrame = null) {
+  const index = actionIndex();
+  const first = index.keys().next().value;
+  const pose = index.has(wantFrame) ? wantFrame
+    : index.has(state.action) ? state.action
+    : first;
+  if (!pose) { setChar(wantChar || state.char); return; }
+  state.action = pose;
+  state.group = ACTIONS_KEY;
+  state.effectsOwner = null;
+  defaultSelfIdleMode("alternate");
+  const chars = index.get(pose);
+  const on = chars.includes(wantChar) ? wantChar
+    : chars.includes(state.char) ? state.char
+    : chars[0];
+  fillViewSelect();
+  openChar(on, pose);
+}
+
+/** The grid, in the Actions view: one cell per character that has this pose. */
+function buildActionCharList(list) {
+  const { with: have, without } = actionRoster(state.action);
+  const label = frameLabel(state.char, state.action);
+  // Who has NOT got it is half the audit — a pose thirty-one characters draw
+  // and four do not is a gap worth seeing without counting the grid — so it is
+  // said on the count line rather than left to be worked out.
+  // Named, not just counted — "29 without it" is a number to go and look up,
+  // and the names are the answer. Capped: `attack_heavy` is a pose six
+  // characters have, and spelling out the other twenty-nine turns the line
+  // into a paragraph above the grid.
+  const names = without.map((c) => actorOf(c).name);
+  const missing = names.length > 6
+    ? `${names.slice(0, 6).join(", ")} and ${names.length - 6} more`
+    : names.join(", ");
+  $("poseCount").textContent = `${label.name} · ${have.length} character(s)`
+    + (without.length ? ` · ${without.length} without it: ${missing}`
+                      : " · the whole roster has it");
+  for (const char of have) {
+    // The character is what the cell IS here, so it is the cell's name; the
+    // pose key goes underneath, where the character's name sits in the other
+    // cross-character lists. Same cell in every other respect — the dirty dot,
+    // the flag colour, the redraw caution and the chevron all still mean what
+    // they mean everywhere else, which is the point of auditing here.
+    list.appendChild(buildPoseEntry(char, state.action, {
+      name: actorOf(char).name,
+      // The pose is the same in every cell and named twice above it, so the
+      // line underneath says the one thing that differs per character and is
+      // not already a colour: whether the game reaches this drawing at all.
+      // A character who HAS the pose and never plays it is a re-pointing job,
+      // and this view is where that becomes visible.
+      sub: statesUsing(char, state.action).length ? "" : "has it, draws it nowhere",
+    }));
   }
 }
 
@@ -2789,7 +2908,12 @@ function rememberInUrl() {
   // `char` is always the real character, so a link opens on the right sprite
   // set whether or not the updated list is what it was reached through; `list`
   // says which of the two the dropdown was on.
-  const list = inRecent() ? "updated" : inFlagged() ? "flagged" : null;
+  const list = inRecent() ? "updated" : inFlagged() ? "flagged"
+    : inActions() ? "actions" : null;
+  // Which pose the Actions view is on — the thing that view IS, and not
+  // recoverable from `frame`, which is the pose being edited on the character
+  // the grid happens to have landed on.
+  const action = inActions() ? state.action : null;
   // The VIEW is part of where you are, and it was the one thing not written
   // down: a reload of a fighter's effects list came back as Other Sprites on
   // the default filter, which is neither the drawing you were on nor the list
@@ -2800,10 +2924,11 @@ function rememberInUrl() {
   const owner = state.effectsOwner || null;
   const same = (k, v) => (url.searchParams.get(k) || null) === v;
   if (same("char", state.char) && same("frame", state.frame)
-      && same("list", list) && same("view", view) && same("owner", owner)) return;
+      && same("list", list) && same("view", view) && same("owner", owner)
+      && same("action", action)) return;
   url.searchParams.set("char", state.char);
   for (const [k, v] of [["frame", state.frame], ["list", list],
-                        ["view", view], ["owner", owner]]) {
+                        ["view", view], ["owner", owner], ["action", action]]) {
     if (v) url.searchParams.set(k, v);
     else url.searchParams.delete(k);
   }
@@ -3198,11 +3323,12 @@ async function boot() {
   rule.disabled = true;
   rule.textContent = "──────────";
   charSel.appendChild(rule);
-  for (const key of [...ACTOR_KEYS, OTHER_KEY, RECENT_KEY, FLAGGED_KEY]) {
+  for (const key of [...ACTOR_KEYS, OTHER_KEY, ACTIONS_KEY, RECENT_KEY, FLAGGED_KEY]) {
     const o = document.createElement("option");
     o.value = key;
     o.dataset.name = key === RECENT_KEY ? RECENT_LABEL
       : key === FLAGGED_KEY ? FLAGGED_LABEL
+      : key === ACTIONS_KEY ? ACTIONS_LABEL
       : isOther(key) ? OTHER_LABEL
       : `${actorOf(key).name} (not a fighter)`;
     o.textContent = o.dataset.name;
@@ -3211,6 +3337,7 @@ async function boot() {
   charSel.onchange = () =>
     (charSel.value === RECENT_KEY ? setRecent()
       : charSel.value === FLAGGED_KEY ? setFlagged()
+      : charSel.value === ACTIONS_KEY ? setActions()
       : setChar(charSel.value));
 
   $("updatedClear").onclick = () => toggleUpdateReviewed(state.char, state.frame);
@@ -3505,13 +3632,10 @@ async function boot() {
   canvas.addEventListener("pointercancel", endDrag);
 
   const viewSel = $("viewSel");
-  for (const [key, cfg] of Object.entries(VIEWS)) {
-    const o = document.createElement("option");
-    o.value = key; o.textContent = cfg.label;
-    viewSel.appendChild(o);
-  }
-  viewSel.value = state.view;
+  fillViewSelect();
   viewSel.onchange = () => {
+    // In the Actions view the same select is the POSE, not the filter.
+    if (inActions()) { setActions(null, viewSel.value); return; }
     const wasEffects = !!VIEWS[state.view]?.shared;
     state.view = viewSel.value;
     const nowEffects = !!VIEWS[state.view]?.shared;
@@ -3798,6 +3922,7 @@ async function boot() {
 
   if (startList === "updated") setRecent(startChar, wantedFrame);
   else if (startList === "flagged") setFlagged(startChar, wantedFrame);
+  else if (startList === "actions") setActions(startChar, params.get("action"));
   else if (startOwner) {
     state.effectsOwner = startOwner;
     openChar(OTHER_KEY, wantedFrame);

@@ -5984,8 +5984,6 @@
       398.6
      ]
     },
-    "needsReplacement": "pose",
-    "replacementNote": "Attack should be straight down instead of down and right (right? or?)",
     "edited": {
      "renderScale": 0.44,
      "ox": -415.7,
@@ -13731,6 +13729,10 @@
    },
    "attack_up": {
     "file": "jogo/ledge_hang.png",
+    "bodyLeft": 13,
+    "bodyRight": 249,
+    "coreLeft": 38.1,
+    "coreRight": 228.6,
     "borrowedFrom": "ledge_hang",
     "w": 262,
     "h": 1016,
@@ -13757,11 +13759,7 @@
      "bodyBottom": 310
     },
     "replacementNote": "We need a sprite with Jogo attacking directly upward.",
-    "needsReplacement": "pose",
-    "bodyLeft": 13,
-    "bodyRight": 249,
-    "coreLeft": 38.1,
-    "coreRight": 228.6
+    "needsReplacement": "pose"
    },
    "attack_air": {
     "file": "jogo/attack_air.png",
@@ -27530,7 +27528,6 @@
       584.3
      ]
     },
-    "needsReplacement": "quality",
     "edited": {
      "renderScale": 0.299,
      "bodyBottom": 310.4,
@@ -31558,7 +31555,7 @@
      ]
     },
     "needsReplacement": "pose",
-    "replacementNote": "Should be crouching and leaning rightward, stretching out her leg in a sweep attack rightward at full extension.",
+    "replacementNote": "Should be crouching and leaning rightward, stretching out her leg in a sweep attack rightward at full extension. (but not stretching out her arm, which should be supporting the motion from nearer to the body)",
     "edited": {
      "renderScale": 0.249,
      "bodyBottom": 242.9,
@@ -32264,8 +32261,8 @@
       477.3
      ]
     },
-    "needsReplacement": "character",
-    "replacementNote": "Costume",
+    "needsReplacement": "quality",
+    "replacementNote": "Costume should be more canonical, but also no smoke coming out of her hand, but do keep the strongly attacking pose with arm extended fully in an attack toward the right.",
     "edited": {
      "renderScale": 0.348,
      "ox": -357.0,
@@ -37287,7 +37284,6 @@
       529.4
      ]
     },
-    "needsReplacement": "quality",
     "edited": {
      "renderScale": 0.384,
      "bodyBottom": 270,
@@ -49143,7 +49139,7 @@
      ]
     },
     "needsReplacement": "pose",
-    "replacementNote": "Should be doing a punch with the close arm instead of the far arm",
+    "replacementNote": "Should be doing a punch with the close arm instead of the far arm (her right arm, the one that's on the left in her front-facing image).",
     "edited": {
      "renderScale": 0.256,
      "ox": -234.5,
