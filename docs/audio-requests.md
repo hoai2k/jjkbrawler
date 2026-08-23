@@ -982,7 +982,7 @@ own gain, not between the music and the fight.
 |---|---|---|
 | a heavy hit | -17.9 dBFS | **-9.1 dBFS** |
 | a 7:3 crit | -16.4 | **-7.6** |
-| a grunt | -20.3 | **-11.6** (now -14.8, see the bus split below) |
+| a grunt | -20.3 | **-11.6** (now -14.7, see the bus split below) |
 | a menu lock-in | -24.0 | **-15.2** |
 | a music track | -13.4 | **-4.7** |
 
@@ -995,24 +995,31 @@ go. Raising `master` instead would not help, because it would move the sfx and
 leave the music behind — which is exactly the balance this change exists not to
 touch.
 
-### The grunt has its own bus
+### A fighter makes three kinds of noise, so there are three buses
 
-Grunts and spoken lines used to share the `voice` trim, and that made them one
-dial: raising the Domain Expansion call-outs (1.1 → 1.25) and Inumaki's cursed
-speech (1.1 → 1.45) so they carry over their own moment dragged the effort
-grunts up with them, and a grunt is not an occasional line — it fires on every
-attack, several a second in a combo, and its whole job is to sit *under* the
-hit that follows it.
+They started as one `voice` trim, and that made them one dial: raising the
+Domain Expansion call-outs (1.1 → 1.25) and Inumaki's cursed speech (1.1 →
+1.45) so they carry over their own moment dragged the effort grunts up with
+them. Nothing in the grunt entries had changed; they were simply hanging off
+the dial that moved.
 
-So `categories` now carries **`grunt: 0.55`** alongside **`voice: 0.80`**. The
-six `grunt*` groups hang off the new bus; the KO cries stay on `voice`, because
-those are one per stock at the moment a fighter dies and that one should carry.
-The two dials now move independently — a louder call-out costs the grunts
-nothing.
+They are three different things and they are now three `categories`:
 
-| | before the split | after |
+| bus | what rides it | trim | what it is |
+|---|---|---|---|
+| `voice` | domain call-outs, Inumaki's commands | 0.80 | **Words.** The game's spoken narrative — one line at the biggest moment of a match, and it should be heard over everything. |
+| `cry` | the six `ko*` cries | 0.80 | The KO. Wordless, but not an effort noise: one per stock, at the moment a fighter dies, so it carries where a grunt does not. |
+| `grunt` | the six `grunt*` groups | 0.55 | The wordless effort noise under every attack, several a second in a combo. Its job is to sit *under* the hit that follows it. |
+
+A spoken line and a fighting noise are not the same kind of sound and no longer
+share a dial; the KO sits between them and has one of its own, because it
+belongs to neither neighbour. Set any of the three and the other two stay where
+they are put.
+
+| | before | after |
 |---|---|---|
 | an effort grunt | -11.4 dBFS | **-14.7** |
+| a KO cry | -11.4 | -11.4 (own bus, same level) |
 | a domain call-out | -10.6 | **-9.5** |
 | Inumaki's command | -10.6 | **-8.2** |
 
