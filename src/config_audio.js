@@ -62,20 +62,30 @@ export const AUDIO_MIX = {
   // to be re-tuned entry by entry. Combat is the reference at 1.0; everything
   // else is placed relative to it.
   //
-  // `voice` and `grunt` are deliberately two buses rather than one. They used
-  // to be a single `voice` trim, and that made the two things it carried move
-  // together: the grunt is a wordless noise fired on EVERY attack, several a
-  // second in a combo, and it has to stay under the hit that follows it or the
-  // fight turns into panting. A domain call-out is one line at the biggest
-  // moment of a match and wants to be heard over everything. Raising the
-  // call-outs on a shared bus dragged the grunts up with them, which is exactly
-  // the failure this split exists to prevent — set the two dials independently
-  // and they stay where they are put.
+  // A fighter makes three kinds of noise and they are three buses, not one.
+  // They started as a single `voice` trim, which made them one dial: raising
+  // the domain call-outs dragged the effort grunts up with them, and that is
+  // the failure this split exists to prevent.
+  //
+  //   `voice`  — WORDS. The domain call-outs and Inumaki's cursed speech: the
+  //              game's spoken narrative, one line at the biggest moment of a
+  //              match, and it wants to be heard over everything.
+  //   `cry`    — the KO. Wordless, but not an effort noise: one per stock, at
+  //              the moment a fighter dies, so it carries where a grunt does
+  //              not. Its own dial because it belongs to neither neighbour —
+  //              it is fighting noise like the grunt and a moment like the
+  //              call-out.
+  //   `grunt`  — the wordless effort noise under every attack, several a
+  //              second in a combo. Its whole job is to sit UNDER the hit that
+  //              follows it, or the fight turns into panting.
+  //
+  // Set any of the three and the other two stay where they are put.
   categories: {
     combat: 1.00,   // hits, slashes, blocks — the loudest, most frequent layer
     movement: 0.55, // jumps, landings, dashes: constant, must not fatigue
-    voice: 0.80,    // SPOKEN lines: domain call-outs, Inumaki's commands, cries
-    grunt: 0.55,    // the wordless effort noise under every attack — see below
+    voice: 0.80,    // SPOKEN lines: the call-outs and Inumaki's commands
+    cry: 0.80,      // the KO cry — one per stock, and it should land
+    grunt: 0.55,    // the wordless effort noise under every attack
     ui: 0.45,       // menus should never be as loud as a fight
     stinger: 0.85,  // countdown, match end, meter full — occasional and big
     energy: 0.90,   // projectiles, summons, installs
@@ -121,10 +131,11 @@ export const SFX = {
   // and one variant is drawn at random per call, so a repeated special does not
   // loop the identical sample.
   //
-  // The effort grunts ride the `grunt` bus, not `voice`: they fire on every
-  // attack a fighter throws and their whole job is to sit UNDER the hit that
-  // follows. The KO cries below stay on `voice` — one per stock, at the moment
-  // a fighter dies, and that one should carry.
+  // Three buses, one per kind of noise (see `categories` above): the effort
+  // grunts here ride `grunt`, the KO cries below ride `cry`, and `voice` is
+  // kept for the spoken lines further down. The KO cry is set at the level it
+  // has always played at — the split is so it can be moved WITHOUT moving a
+  // spoken call-out or an effort grunt, not because it wanted moving.
   gruntYoungMale: { file: ["grunt_young_male_alt_2.mp3", "grunt_young_male_alt_4.mp3", "grunt_young_male_alt_6.mp3"], category: "grunt" },
   gruntAdultMale: { file: ["grunt_adult_male_alt_6.mp3", "grunt_adult_male_alt_7.mp3"], category: "grunt" },
   gruntBig: { file: "grunt_big_alt_1.mp3", category: "grunt" },
@@ -132,12 +143,12 @@ export const SFX = {
   gruntMonster: { file: "grunt_monster_alt_1.mp3", category: "grunt" },
   gruntAnimal: { file: "grunt_animal_2.mp3", category: "grunt" },
 
-  koYoungMale: { file: "ko_young_male_alt_2.mp3", category: "voice" },
-  koAdultMale: { file: "ko_adult_male_alt_5.mp3", category: "voice" },
-  koBig: { file: "ko_big_alt_4.mp3", category: "voice" },
-  koFemale: { file: "ko_female_alt_2.mp3", category: "voice" },
-  koMonster: { file: "ko_monster_alt_4.mp3", category: "voice" },
-  koAnimal: { file: "ko_animal_alt_5.mp3", category: "voice" },
+  koYoungMale: { file: "ko_young_male_alt_2.mp3", category: "cry" },
+  koAdultMale: { file: "ko_adult_male_alt_5.mp3", category: "cry" },
+  koBig: { file: "ko_big_alt_4.mp3", category: "cry" },
+  koFemale: { file: "ko_female_alt_2.mp3", category: "cry" },
+  koMonster: { file: "ko_monster_alt_4.mp3", category: "cry" },
+  koAnimal: { file: "ko_animal_alt_5.mp3", category: "cry" },
 
   // ---- Tier 4: menus
   uiMove: { file: "ui_move.mp3", category: "ui" },
