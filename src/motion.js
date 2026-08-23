@@ -64,6 +64,7 @@ export const PIVOTED_STATES = new Set([
   "teeter",                      // the lean out over a lip, and the sway back
   "run", "walk",                 // stride sway and bob
   "dash",                        // lean into the sprint
+  "skid",                        // and the brake out of one, leaning the new way
   "jump", "fall",                // air lean, and the stretch into a fast fall
   "land",                        // landing squash
   "hurt", "dizzy",               // flinch, tumble, wobble
@@ -150,9 +151,18 @@ export function fighterTransform(f) {
     sx -= S.fall * 0.5 * dive * SQUASH;
   } else if (f.dashT > 0) {
     rot += f.dashDir * A.dashLean;
-  } else if (f.turnLock > 0) {
-    // caught mid-pivot: lean against the direction being abandoned
-    rot += -f.facing * A.turnLean * clamp(f.turnLock / 0.08, 0, 1);
+  } else if (f.skidding) {
+    // Braking out of a run: the body throws its weight the way the stick is
+    // asking for while the feet are still going the other, and eases upright as
+    // the slide runs out.
+    //
+    // This replaces a lean off `turnLock`, which had two problems. It leaned
+    // the wrong way — against the direction being abandoned, so a fighter
+    // digging in to reverse looked like they were being dragged — and it lasted
+    // one 0.08 s lock out of a slide four times that long, so it was gone
+    // before the interesting part.
+    const top = f.char.stats.speed || 1;
+    rot += f.facing * A.skidLean * clamp(Math.abs(f.vx) / top, 0, 1);
   } else if (f.animKey === "run" || f.animKey === "walk") {
     // Sway once per stride cycle, bob once per footfall — twice per cycle —
     // measured against however many frames the cycle resolved to, so the timing

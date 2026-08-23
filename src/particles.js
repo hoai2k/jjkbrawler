@@ -84,6 +84,32 @@ export function dust(x, y, count = 10) {
   }
 }
 
+/**
+ * Grit off a foot that is sliding — the skid (fighter.js).
+ *
+ * `dust` is the wrong shape for it: that one is a puff kicked UP by an impact,
+ * a landing or a launch, and it leaves in every direction at once. A skid is
+ * horizontal. The floor is throwing grit the way the foot is travelling, so
+ * these leave along `dirX` with barely any lift, and they are small and short
+ * because there is a fresh pair of them every couple of frames for as long as
+ * the brake lasts.
+ */
+export function skidDust(x, y, dirX, count = 2) {
+  if (state.particles.length >= MAX_PARTICLES) return;
+  for (let i = 0; i < count; i++) {
+    state.particles.push({
+      x: x + rand(-6, 6) * S, y: y - rand(0, 4) * S,
+      vx: dirX * (60 + rand(0, 150)) * S,
+      vy: -rand(10, 55) * S,
+      gravity: 300 * S,
+      size: (3 + rand(0, 6)) * S,
+      life: 0.18 + rand(0, 0.22),
+      maxLife: 0.4,
+      color: "rgba(198, 204, 224, 0.72)",
+    });
+  }
+}
+
 export function sparkLine(x, y, dirX, color, count = 12) {
   if (state.particles.length >= MAX_PARTICLES) return;
   for (let i = 0; i < count; i++) {
