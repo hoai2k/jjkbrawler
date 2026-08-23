@@ -17,19 +17,21 @@
     <script type="module" src="../src/deploystamp.js"></script>
 </head>
   <body>
-    <!-- Three benches answer at this address (router.js ROUTES): the audio
-         bench below, the verification queue, and the card workbench. The last
-         two build their own header and layout into a root of their own. Every
-         root but the one asked for is removed before any module runs, so no
-         bench can reach another's nodes. Adding a fourth is a root here, an
-         entry in ROOTS below, and the module and stylesheet in router.js. -->
+    <!-- Five benches answer at this address (router.js ROUTES): the audio
+         bench below, the verification queue, the card workbench, the character
+         bench and the arena bench. All but the audio one build their own header
+         and layout into a root of their own. Every root but the one asked for
+         is removed before any module runs, so no bench can reach another's
+         nodes. Adding another is a root here, an entry in ROOTS below, and the
+         module and stylesheet in router.js. -->
     <div id="verificationRoot" hidden></div>
     <div id="cardsRoot" hidden></div>
     <div id="characterRoot" hidden></div>
+    <div id="arenaRoot" hidden></div>
     <script>
       (function () {
         var ROOTS = { verification: "verificationRoot", cards: "cardsRoot",
-                      character: "characterRoot" };
+                      character: "characterRoot", arena: "arenaRoot" };
         var bench = document.documentElement.dataset.bench || "audio";
         Object.keys(ROOTS).forEach(function (name) {
           var node = document.getElementById(ROOTS[name]);
@@ -77,6 +79,8 @@
             <li><a href="?edit=pose"><code>?edit=pose</code></a><span>joint reads</span></li>
             <li><a href="?edit=verification"><code>?edit=verification</code></a><span>review queue</span></li>
             <li><a href="?edit=cards"><code>?edit=cards</code></a><span>card cropping</span></li>
+            <li><a href="?edit=character"><code>?edit=character</code></a><span>drive a fighter</span></li>
+            <li><a href="?edit=arena"><code>?edit=arena</code></a><span>board layouts</span></li>
           </ul>
           <p class="sub">Anything else you pass — <code>&amp;char=gojo</code> — travels with you.</p>
         </div>

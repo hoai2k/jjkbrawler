@@ -53,7 +53,7 @@ for (const [mode, expectPath] of ROUTES) {
   ok(url.pathname === expectPath, `?edit=${mode}`, `→ ${url.pathname}${url.search}`);
 }
 
-// Three benches live at /workbench/ itself, so a pathname cannot tell them
+// Five benches live at /workbench/ itself, so a pathname cannot tell them
 // apart — which is exactly why they are the easy ones to break. `data-bench` on
 // the root element is what the router decides and what index.html and the
 // module loader both act on, so that is the thing to assert.
@@ -63,6 +63,8 @@ for (const [mode, expect] of [
   ["cards", "cards"], ["card", "cards"], ["crop", "cards"], ["focus", "cards"],
   ["character", "character"], ["char", "character"], ["fighter", "character"],
   ["roster", "character"], ["moves", "character"],
+  ["arena", "arena"], ["arenas", "arena"], ["stage", "arena"], ["board", "arena"],
+  ["platforms", "arena"], ["terrain", "arena"],
 ]) {
   await page.goto(`${BASE}/workbench/?edit=${mode}`, { waitUntil: "load" });
   await page.waitForTimeout(600);
@@ -129,6 +131,8 @@ for (const [path, name] of [
   ["/workbench/?edit=audio", "audio"],
   ["/workbench/?edit=verification", "verification"],
   ["/workbench/?edit=cards", "cards"],
+  ["/workbench/?edit=character", "character"],
+  ["/workbench/?edit=arena", "arena"],
   ["/sprites/workbench/", "sprites"],
   ["/billboards/workbench/", "billboards"],
   ["/render3d/workbench/", "3d"],

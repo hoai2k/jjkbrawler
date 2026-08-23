@@ -304,3 +304,76 @@ throughout — collision, ledges, teeter all assume a flat top), a true flat
 Final Destination board (the audit's 2-minimum on non-main platforms is a
 deliberate archetype rule), and moving hazards beyond what Active Boards
 already does.
+
+
+## 6. The frame remembers the high ground (implemented)
+
+§5 left ~245 px of backdrop under the platform and said closing it meant
+re-tuning the camera's pads for every board. That was the wrong lever. The
+right one is that the waste is not constant — it is what is left over when the
+fight is on the floor, and it disappears on its own whenever the fight climbs,
+because the framing box grows upward to hold the high bodies and the ground
+drops down the screen. The camera was simply throwing that away the instant
+everyone landed.
+
+So `camera.js` now keeps a **high-play envelope** (`highPlayBias`, `cam.highT`):
+
+- **drive** — how far the highest alive fighter is above the main platform, as
+  a fraction of `HIGH_REF` (240 px, about a double jump's rise). 0 on the
+  ground, 1 on a top platform.
+- **attack** (`HIGH_ATTACK_DAMP` 0.5, ~1.4 s) — rising. Quick enough to follow a
+  fight that moves upstairs, slow enough that one hop barely registers, which is
+  what makes it "using the top of the screen *a lot*" rather than "jumped once".
+- **release** (`HIGH_RELEASE_DAMP` 0.9, ~9.5 s) — falling. The ground stays low
+  well past one player touching down, and only a real return to floor-level play
+  eases it back.
+- **bias** — `HIGH_BIAS_MAX` (170 × ART_SCALE) × `highT`, subtracted from the
+  framing target `cy`.
+
+This is the standard shape for "react fast, forget slowly" — an **attack/release
+envelope**, the same asymmetric damping Cinemachine applies to a framing target,
+and the same trick this file already played on the zoom (`ZOOM_IN_DAMP` vs
+`ZOOM_OUT_DAMP`: settle slowly, open instantly). One state variable, two rates,
+no modes and no thresholds to tune per board.
+
+It is a **preference, not a guarantee**: the containment pass still owes every
+body a place in frame and overrides the bias whenever it binds, so remembering
+the high ground can never be the reason somebody leaves the shot.
+
+Measured on Training Bridge (`tools/smoke_camera.mjs`, "the frame remembers the
+high ground"): ground play `highT` 0; four seconds on the top platform 0.94;
+one second after landing 0.83 with the ground still sitting ~90 px lower in
+frame than its floor-play baseline; twelve seconds later 0.24 and easing back.
+
+## 7. The arena bench
+
+`/workbench/?edit=arena` (`workbench/arena.js`) — pick a board, drag its
+platforms, drive a fighter over them, export the numbers. It runs the game's own
+`draw`, `advanceWorld` and `makeFighter`, so what it shows is what a match
+shows.
+
+- **Editing mode** (default on) pins the camera at `ZOOM_MIN` — the furthest the
+  game ever pulls back — and holds it there, because a framing camera is a
+  moving target and the thing under the cursor must not move as you reach for
+  it. Turn it off and the game's camera takes over, which is how the board's
+  *feel* gets judged.
+- **Guides** drawn in editing mode: the painted world rect, the blast lines, and
+  the widest shot the game will ever give this board. That last one is the frame
+  a platform has to reach to look like it reaches the edge — the exact thing §5
+  got wrong by measuring against the world rect instead.
+- **Levers**, per board: `gravityMul`, `frictionPow`, tint, Active Boards
+  (off by default while editing — several boards move their platforms, which
+  fights the thing you are dragging).
+- **Live reach report** — the same budget `tools/audit_stage_reach.mjs`
+  enforces, so a board that cannot land in `main` says so while you are building
+  it rather than in CI.
+- **Export** downloads `arena-<key>.json`: the authored numbers plus a
+  paste-ready `src/stages.js` line.
+
+The one trap worth knowing about: `stages.js` multiplies every platform's
+thickness by `ART_SCALE` **in place**, so the live table's `h` is not the number
+anybody typed. The bench edits `AUTHORED_STAGES` — a copy taken before that pass
+— and rebuilds the runtime platforms from it with the same rule. Without that, a
+round trip through the bench would shave 30% off every slab, every time.
+`tools/smoke_arena_bench.mjs` asserts it: a main platform exports as `h: 42`
+while the world is running it at 29.

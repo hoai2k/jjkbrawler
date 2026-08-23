@@ -62,7 +62,10 @@ export const state = {
 
   // aimX/aimY/aimZoom are the deadzoned framing target the pan eases toward —
   // camera.js owns them; nothing else should write them.
-  camera: { x: 640, y: 360, zoom: 1, shake: 0, kick: 0, aimX: null, aimY: null, aimZoom: null },
+  // highT is the high-play envelope (camera.js): how much of the recent fight
+  // has been above the main platform, 0..1, which carries the framing up so the
+  // ground stays low while play stays high.
+  camera: { x: 640, y: 360, zoom: 1, shake: 0, kick: 0, aimX: null, aimY: null, aimZoom: null, highT: 0 },
   slowMo: 0,
   screenFlash: null, // {color, life, maxLife}
   vignette: null,    // {color, alpha, life, maxLife} — Black Flash's dark beat

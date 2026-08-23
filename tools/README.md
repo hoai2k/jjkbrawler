@@ -39,9 +39,9 @@ running, and the gate is meant to pass on a bare checkout.
 
 | Prefix | What it is | Count |
 |---|---|---|
-| `check_*` | invariants — a non-zero exit means something drifted | 15 |
-| `smoke_*` | play the real game (mostly headless via Playwright) and measure the result | 34 |
-| `audit_*` | report on the data rather than pass/fail it — reach, hitboxes, frame sizes, model health | 12 |
+| `check_*` | invariants — a non-zero exit means something drifted | 22 |
+| `smoke_*` | play the real game (mostly headless via Playwright) and measure the result | 42 |
+| `audit_*` | report on the data rather than pass/fail it — reach, hitboxes, frame sizes, model health | 18 |
 | `build_*` | generate a checked-in file from the source of truth | 6 |
 | `debug_*` | probe one mechanism and print what it did — no pass/fail, for judging a look change | 5 |
 | `intake_*`, `*_intake` | take a delivery from `assets/intake/` or `render3d/intake/` into the game | |
@@ -49,7 +49,7 @@ running, and the gate is meant to pass on a bare checkout.
 | `blender_*` | run inside Blender against a rig; see `render3d/docs/blender-requests.md` | |
 | `generate_*`, `normalize_sfx` | audio: synthesise takes, then normalise the mix | |
 
-Roughly 140 scripts in total, most of them written for one round of work and
+Roughly 175 scripts in total, most of them written for one round of work and
 kept because the next round of the same shape will want them again.
 
 ## Where the rest is documented
