@@ -16,10 +16,34 @@ import { ART_SCALE } from "./config_tuning.js";
 // Crossing), widened across the board in the six-player pass (level-design-
 // review.md, "Second widening") so a crowd has ground to stand apart on.
 //
+// WALK-OFF WIDTH — why the two walk-offs are 1560 and start off-world.
+//
+// What the eye judges is the gap beside the platform ON SCREEN, and that gap
+// is the CAMERA's, not the platform's: the frame fits the fighters plus
+// FRAME_PAD_X (168 world px) each side, so with a fighter standing at each end
+// the margin is ~138 world px × zoom whatever the board is. Widening a board
+// only makes the camera zoom out to keep the same padding, and the gap comes
+// back the same size. Measured on the shipped camera: Sunken Crossing at 1192
+// wide left 120 screen px of background at each end, Training Bridge at 844
+// left 158 — the same 138 px, scaled by each board's zoom.
+//
+// The one thing that closes it is running out of zoom. The camera bottoms out
+// at ZOOM_MIN 0.78 (camera.js), which is a frame 1641 world px across, so a
+// board whose fighters can stand more than ~1305 apart cannot be padded any
+// further and the platform has to reach the edges. 1560 puts the ends at
+// x = -140 and 1420: at the floor the frame spans -180..1460, so ~40 world px
+// of street shows past each end, and the blast lines (-300/1580) stay 160 px
+// out — a real runway, not an instant side-kill.
+//
+// Both sit at the BOTTOM of the world (y 664/668, slab bottom ~697 against the
+// world's 720) so the street reads as ground rather than as a slab floating
+// over a pit — and their upper platforms came down with them to keep every hop
+// inside the reach budget.
+//
 // Two boards are WALK-OFFS in the Smash sense — Sunken Crossing and Crosswalk
-// Rush run their main nearly edge to edge and sit it lower, so the fight
-// happens at ground level and a kill is a shove past the screen edge rather
-// than a spike into the pit. Two boards build WALLS ({ kind: "wall" },
+// Rush run their main past both world edges and sit it at the bottom, so the
+// fight happens at ground level and a kill is a shove past the screen edge
+// rather than a spike into the pit. Two boards build WALLS ({ kind: "wall" },
 // fighter.js pushOutOfWalls): River Gate's torii pillars and Cursed Teeth's
 // molars — the one terrain element that blocks sideways movement, walkable on
 // top like anything else. Walls keep their authored height through the
@@ -55,11 +79,12 @@ export const STAGES = [
   { key: "lanternCorridor", name: "Lantern Corridor", bgFile: "lantern_corridor.jpg", tint: "rgba(255, 187, 93, 0.11)", platforms: [
     { x: 222, y: 570, w: 836, h: 42, kind: "main" }, { x: 210, y: 428, w: 210, h: 15, kind: "side" }, { x: 535, y: 428, w: 210, h: 15, kind: "side" }, { x: 860, y: 428, w: 210, h: 15, kind: "side" }
   ] },
-  // WALK-OFF: the flooded street runs nearly edge to edge and sits low, so on
-  // the slick surface a slide is a threat the whole way across — the Smash
-  // walk-off dynamic, where the kill is a shove past the screen edge.
+  // WALK-OFF: the flooded street runs past both world edges and sits at the
+  // bottom, so on the slick surface a slide is a threat the whole way across —
+  // the Smash walk-off dynamic, where the kill is a shove past the screen edge.
+  // Wide enough to pin the camera at its zoom floor (see WALK-OFF WIDTH below).
   { key: "sunkenCrossing", name: "Sunken Crossing", bgFile: "sunken_crossing.jpg", tint: "rgba(87, 196, 255, 0.12)", mods: { frictionPow: 0.35 }, platforms: [
-    { x: 44, y: 602, w: 1192, h: 42, kind: "main" }, { x: 160, y: 476, w: 300, h: 15, kind: "side" }, { x: 820, y: 476, w: 300, h: 15, kind: "side" }
+    { x: -140, y: 668, w: 1560, h: 42, kind: "main" }, { x: 170, y: 536, w: 320, h: 15, kind: "side" }, { x: 790, y: 536, w: 320, h: 15, kind: "side" }
   ] },
   { key: "neonSplit", name: "Neon Split", bgFile: "neon_split.jpg", tint: "rgba(224, 82, 192, 0.12)", platforms: [
     { x: 240, y: 568, w: 800, h: 42, kind: "main" }, { x: 190, y: 452, w: 230, h: 15, kind: "side" }, { x: 860, y: 452, w: 230, h: 15, kind: "side" }, { x: 250, y: 332, w: 200, h: 15, kind: "side" }, { x: 830, y: 332, w: 200, h: 15, kind: "side" }
@@ -76,10 +101,11 @@ export const STAGES = [
   { key: "mistPier", name: "Mist Pier", bgFile: "mist_pier.jpg", tint: "rgba(178, 226, 255, 0.1)", platforms: [
     { x: 222, y: 580, w: 836, h: 42, kind: "main" }, { x: 160, y: 462, w: 240, h: 15, kind: "side" }, { x: 870, y: 440, w: 240, h: 15, kind: "side" }, { x: 540, y: 352, w: 150, h: 15, kind: "top" }
   ] },
-  // WALK-OFF: the street IS the board — nearly edge to edge and low, with the
-  // traffic hazard sweeping the whole width. The signs are the only high ground.
+  // WALK-OFF: the street IS the board — past both world edges and at the
+  // bottom, with the traffic hazard sweeping the whole width. The overpass deck
+  // and its signs are the only high ground.
   { key: "crosswalkRush", name: "Crosswalk Rush", bgFile: "crosswalk_rush.jpg", tint: "rgba(76, 171, 255, 0.13)", platforms: [
-    { x: 54, y: 598, w: 1172, h: 42, kind: "main" }, { x: 380, y: 456, w: 520, h: 15, kind: "side" }, { x: 180, y: 326, w: 150, h: 15, kind: "top" }, { x: 950, y: 326, w: 150, h: 15, kind: "top" }
+    { x: -140, y: 664, w: 1560, h: 42, kind: "main" }, { x: 340, y: 532, w: 600, h: 15, kind: "side" }, { x: 130, y: 398, w: 170, h: 15, kind: "top" }, { x: 980, y: 398, w: 170, h: 15, kind: "top" }
   ] },
   // WALLED BOWL (Smash: walled stages): a molar juts up near each end of the
   // jaw, low enough to hop but tall enough to catch a grounded launch — the
@@ -194,10 +220,22 @@ const SPAWN_SETS = {
 };
 const CROWD_SPAN = { left: 320, right: 960 };
 
+// How wide the crowd may line up, however wide the board is. A walk-off's main
+// runs to x = 1420, and spreading six fighters over all of it would stand the
+// outer two within a launch of the blast line before the match has started.
+// Past this the line stays centred on the main and the extra ground is space
+// to fight OVER rather than space to start on.
+const CROWD_SPAN_MAX = 1100;
+
 export function spawnXs(count, main) {
   if (SPAWN_SETS[count]) return SPAWN_SETS[count];
-  const left = main ? main.x + 70 : CROWD_SPAN.left;
-  const right = main ? main.x + main.w - 70 : CROWD_SPAN.right;
+  let left = CROWD_SPAN.left;
+  let right = CROWD_SPAN.right;
+  if (main) {
+    const inset = Math.max(70, (main.w - CROWD_SPAN_MAX) / 2);
+    left = main.x + inset;
+    right = main.x + main.w - inset;
+  }
   const step = (right - left) / Math.max(1, count - 1);
   return Array.from({ length: count }, (_, i) => Math.round(left + step * i));
 }
