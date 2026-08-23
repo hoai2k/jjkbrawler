@@ -475,6 +475,37 @@ more than four rectangles:
 The reach panel mirrors the audit's new rules, so the bench says what CI will,
 and the kind list gained `spawn`.
 
+## 10. The bench shows the board's real shape
+
+Two viewing fixes, both reported from use.
+
+**The picture was squashed.** The canvas filled its box and took its transform
+as `width / 1280` by `height / 720` — two independent scales — so any box that
+was not 16:9 stretched the world to the window's shape. Measured before the
+fix, a 1500x860 window drew the board into a 934x707 stage: a **34% vertical
+stretch**, on the one bench whose entire job is judging where a platform sits.
+The `object-fit: contain` in the stylesheet could never have helped, because the
+bitmap was always sized to match the box exactly — there was nothing left to
+fit.
+
+`layoutCanvas` now sizes a frame to the largest 16:9 box that fits the space,
+fills it with the canvas, and takes **one** scale for both axes (from the width,
+so rounding the bitmap to whole device pixels cannot leave the two ratios a
+thousandth apart). `tools/smoke_arena_layout.mjs` asserts the property the way
+the eye does: a 200x200 square in world space has to come out square on screen,
+at every window shape.
+
+**The side panels fold.** A grip on each panel's inner edge collapses it to a
+26px rail — the button that brings it back stays where the panel was, so hiding
+one is not a thing you can only undo by knowing the URL. `[` and `]` do the same
+from the keyboard, and the state rides in the URL with `stage` and `editing`, so
+a link carries the layout you were looking at the board in. With both folded the
+picture goes from 934 to 1310px wide on a 1500px window.
+
+The character bench (`workbench/character.js`) has the same two-scale transform
+and would squash the same way in a non-16:9 box; it was left alone here because
+nothing asked it to change, not because it is right.
+
 ## The slab takes the room's light
 
 Every board declared its ambiance once — `tint` in `src/stages.js`, the wash the

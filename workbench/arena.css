@@ -9,18 +9,64 @@
 
 .arenabench {
   display: grid;
-  grid-template-columns: minmax(180px, 230px) 1fr minmax(230px, 280px);
+  /* Through custom properties so folding a panel is one class on the grid
+     rather than three rules that have to agree with each other. */
+  --left: minmax(180px, 230px);
+  --right: minmax(230px, 280px);
+  grid-template-columns: var(--left) 1fr var(--right);
   gap: 14px;
   padding: 14px;
   height: calc(100vh - 58px);
   box-sizing: border-box;
 }
+/* Folded to a GRIP, not to nothing: the button that brings the panel back has
+   to stay where the panel was. */
+.arenabench.left-off { --left: 26px; }
+.arenabench.right-off { --right: 26px; }
+
+/* ------------------------------------------------------------------- panes */
+
+.arenabench .pane { position: relative; }
+.arenabench .pane__body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+.arenabench.left-off #arenaPane .pane__body,
+.arenabench.right-off #propsPane .pane__body { display: none; }
+
+.arenabench .pane__grip {
+  position: absolute;
+  top: 8px;
+  z-index: 2;
+  width: 18px;
+  height: 34px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1d2231;
+  border: 1px solid #2d3346;
+  border-radius: 5px;
+  color: #8b95b0;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+.arenabench .pane__grip:hover { border-color: #3c6ea8; color: var(--text); }
+#arenaPane .pane__grip { right: 5px; }
+#propsPane .pane__grip { left: 5px; }
+/* Folded, the grip is the whole panel, so it centres in the rail instead of
+   tucking into a corner of one. */
+.arenabench.left-off #arenaPane .pane__grip,
+.arenabench.right-off #propsPane .pane__grip { left: 3px; right: 3px; width: auto; }
 
 /* ------------------------------------------------------------- board list */
 
 .arenabench .arenas {
-  display: flex;
-  flex-direction: column;
   min-height: 0;
   background: #171a24;
   border: 1px solid #2a2f3e;
@@ -77,16 +123,25 @@
 }
 
 .arenabench .viewer__stage {
-  position: relative;
   flex: 1;
   min-height: 0;
+  min-width: 0;
   display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sized in JS (layoutCanvas) to the largest 16:9 box that fits the stage. The
+   canvas fills it exactly, so the world is never stretched to the window's
+   shape — see the note over layoutCanvas for why CSS could not do this alone. */
+.arenabench .viewer__frame {
+  position: relative;
+  flex: none;
 }
 
 .arenabench .viewer canvas {
   width: 100%;
   height: 100%;
-  object-fit: contain;
   background: #05070f;
   border: 1px solid #2a2f3e;
   border-radius: 10px;
@@ -171,10 +226,13 @@
   background: #171a24;
   border: 1px solid #2a2f3e;
   border-radius: 10px;
-  padding: 12px;
-  overflow-y: auto;
   min-height: 0;
+  overflow: hidden;
 }
+.arenabench .props .pane__body { padding: 12px; overflow-y: auto; }
+/* The list header must clear the grip, which floats over the panel's corner. */
+.arenabench .arenas__head { padding-right: 28px; }
+.arenabench .props .pane__body > h2:first-child { padding-left: 20px; }
 
 .arenabench .props h2 {
   margin: 14px 0 8px;
@@ -227,6 +285,8 @@
 
 @media (max-width: 1100px) {
   .arenabench { grid-template-columns: 1fr; height: auto; }
+  .arenabench .pane__grip { display: none; }
+  .arenabench .pane__body { display: flex !important; }
 }
 
 /* The shortcut legend. Discoverability is the whole point of writing them
