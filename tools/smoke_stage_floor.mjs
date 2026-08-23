@@ -91,11 +91,11 @@ const table = await page.evaluate(async () => {
   const { STAGES, mainPlatforms, spawnPlatform } = await import("/src/stages.js");
   return STAGES.map((s) => {
     const mains = mainPlatforms(s.platforms);
-    const tier = s.platforms.find((p) => p.kind === "spawn");
+    const tier = s.platforms.find((p) => p.kind === "spawn");   // a DROP-THROUGH tier
     return {
       key: s.key, floors: mains.length, floorY: mains[0].y,
       tierY: tier ? tier.y : null, rise: tier ? mains[0].y - tier.y : 0,
-      hole: mains.length === 2
+      hole: mains.length >= 2
         ? Math.min(...mains.slice(1).map((m, i) => m.x - (mains[i].x + mains[i].w))) : 0,
     };
   });
@@ -105,9 +105,9 @@ check(withTier.length >= 12, "most boards gained a storey", `${withTier.length}/
 check(withTier.every((t) => t.rise > 0 && t.rise <= 175),
   "every tier is one climb above its floor",
   `rises ${Math.min(...withTier.map((t) => t.rise))}-${Math.max(...withTier.map((t) => t.rise))}`);
-check(table.filter((t) => t.floors === 2).length >= 4, "several boards split the floor",
-  `${table.filter((t) => t.floors === 2).length} split`);
-check(table.filter((t) => t.floors === 2).every((t) => t.hole >= 90),
+check(table.filter((t) => t.floors >= 2).length >= 4, "several boards split the floor",
+  `${table.filter((t) => t.floors >= 2).length} split`);
+check(table.filter((t) => t.floors >= 2).every((t) => t.hole >= 90),
   "every split floor has a real hole");
 check(table.filter((t) => t.tierY === null).length >= 2,
   "and some boards deliberately keep a high floor",
@@ -126,7 +126,7 @@ const placement = await page.evaluate(async () => {
   const rows = [];
   for (const s of STAGES) {
     const tier = spawnPlatform(s.platforms);
-    const tiered = tier.kind === "spawn";
+    const tiered = tier.kind === "spawn" || !!tier.spawn;
     for (const n of [2, 3, 4, 5, 6, 8]) {
       const spots = spawnXs(n, tier).map((x) => spawnSpot(s.platforms, x));
       rows.push({
@@ -162,6 +162,37 @@ check(classic.length > 0, "boards with no tier were exercised too",
 check(classic.filter((r) => r.key !== "bridgeDuel").every((r) => r.offTier === 0),
   "...and they open on their own ground",
   classic.filter((r) => r.key !== "bridgeDuel" && r.offTier).map((r) => `${r.key} ${r.n}p`).join(", "));
+
+// A GROUND CAN BE THE TIER. `spawn: true` on any platform names it the one a
+// match opens on — including a main, which the kind could never say because a
+// main's kind is already spent on being the ground. Exercised on a synthetic
+// board rather than a shipped one so it keeps testing the rule after the table
+// changes underneath it: a floor, a higher main flagged as the tier, and a
+// drop-through above both.
+const flagged = await page.evaluate(async () => {
+  const { spawnPlatform, spawnSpot, groundY } = await import("/src/stages.js");
+  const plats = [
+    { x: 100, y: 690, w: 1080, h: 42, kind: "main" },
+    { x: 300, y: 560, w: 680, h: 42, kind: "main", spawn: true },
+    { x: 400, y: 430, w: 200, h: 15, kind: "side" },
+  ];
+  return {
+    tierY: spawnPlatform(plats).y,
+    groundY: groundY(plats),
+    // an x past the tier's ends is pulled back ONTO it, not dropped to the floor
+    spots: [80, 640, 1240].map((x) => spawnSpot(plats, x)),
+    // ...and with no flag anywhere the old rule still stands: lowest surface
+    unflagged: spawnSpot(plats.map(({ spawn, ...p }) => p), 640),
+  };
+});
+console.log(JSON.stringify(flagged));
+check(flagged.tierY === 560 && flagged.groundY === 560,
+  "a main marked spawn:true is the tier", JSON.stringify(flagged));
+check(flagged.spots.every((p) => p.y === 560) &&
+      flagged.spots.every((p) => p.x >= 350 && p.x <= 930),
+  "and a match opens on it, pulled inside its ends", JSON.stringify(flagged.spots));
+check(flagged.unflagged.y === 690, "with no flag, the lowest ground is still the start",
+  JSON.stringify(flagged.unflagged));
 
 console.log("errors:", errors.length ? errors.slice(0, 4) : "none");
 await browser.close();

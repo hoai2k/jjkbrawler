@@ -51,7 +51,7 @@ const url = new URL(window.location.href);
 // that blocks sideways movement.
 const KINDS = [
   { key: "main", label: "main — the lowest ground, grabbable ledges, never drop-through" },
-  { key: "spawn", label: "spawn — the tier a match opens on (one per board)" },
+  { key: "spawn", label: "spawn — a drop-through tier a match opens on" },
   { key: "side", label: "side — drop-through platform" },
   { key: "top", label: "top — drop-through platform (highest tier by convention)" },
   { key: "wall", label: "wall — blocks sideways movement, walkable on top" },
@@ -199,6 +199,9 @@ root.innerHTML = `
         <label class="field">kind
           <select id="pKind"></select>
         </label>
+        <label class="toggle" title="Where a match opens: the crowd lines up here, ground effects draw here, and the camera measures 'play has gone high' from here. One per board — ticking it unticks whichever platform held it. A main can hold it too, for a board that wants to open on solid ground with a floor still underneath.">
+          <input type="checkbox" id="pSpawn"> spawn tier — where a match opens
+        </label>
         <div class="field-row">
           <label class="field">x <input id="pX" type="number" step="1"></label>
           <label class="field">y <input id="pY" type="number" step="1"></label>
@@ -269,6 +272,7 @@ const fxEl = document.getElementById("fxToggle");
 // True while a burst of typing in one property field is still one undo step.
 let fieldDirty = false;
 
+const spawnEl = document.getElementById("pSpawn");
 const fields = {
   kind: document.getElementById("pKind"),
   x: document.getElementById("pX"), y: document.getElementById("pY"),
@@ -281,9 +285,14 @@ const fields = {
 // which is most of the letters. Any keystroke that reaches it from a field in
 // this panel would both fail to type and drive the fighter, so the fields
 // swallow their own keys before they ever get there.
-for (const el of [filterEl, ...Object.values(fields)]) {
-  el.addEventListener("keydown", (e) => e.stopPropagation());
-  el.addEventListener("keyup", (e) => e.stopPropagation());
+// ...except the UNDO CHORD, which the window handler below insists on answering
+// wherever the caret is. Swallowing it here stopped it bubbling at all, so an
+// edit made from a panel control — a tick of the spawn box, a number typed into
+// a field — could not be taken back without clicking the picture first.
+const undoChord = (e) => (e.ctrlKey || e.metaKey) && ["z", "y"].includes(e.key.toLowerCase());
+for (const el of [filterEl, spawnEl, ...Object.values(fields)]) {
+  el.addEventListener("keydown", (e) => { if (!undoChord(e)) e.stopPropagation(); });
+  el.addEventListener("keyup", (e) => { if (!undoChord(e)) e.stopPropagation(); });
 }
 
 /**
@@ -827,6 +836,11 @@ function paintProps() {
   }
   if (!p) return;
   fields.kind.value = p.kind;
+  // The EFFECTIVE tier, not the flag: a board with nothing declared opens on
+  // its main (stages.js spawnPlatform), and the box has to say so or it reads
+  // as "this board has no spawn" on every classic board in the set.
+  spawnEl.checked = spawnPlatform(bench.arena.platforms) === p;
+  spawnEl.disabled = p.kind === "wall";
   fields.x.value = String(p.x);
   fields.y.value = String(p.y);
   fields.w.value = String(p.w);
@@ -846,6 +860,36 @@ function paintBoard() {
   fxEl.checked = !!state.activeBoards;
 }
 
+/** Name one platform the tier, and take it off every other. Two ways to hold
+ *  it, because a drop-through tier is a KIND (it is what makes the platform
+ *  fall-through-able) while a main that is also the tier is a main with a flag
+ *  — the kind is doing another job there and cannot be spent on this. */
+function setTier(p) {
+  for (const q of bench.arena.platforms) {
+    if (q === p) continue;
+    delete q.spawn;
+    // The old tier stops being one, but it is still a platform: a drop-through
+    // it stays, as a plain `side`.
+    if (q.kind === "spawn") q.kind = "side";
+  }
+  if (p.kind === "main") p.spawn = true;
+  else { p.kind = "spawn"; delete p.spawn; }
+}
+
+spawnEl.addEventListener("change", () => {
+  const p = onlySelected();
+  if (!p) return;
+  commit();
+  if (spawnEl.checked) setTier(p);
+  else if (p.kind === "spawn") { p.kind = "side"; delete p.spawn; }
+  else delete p.spawn;
+  syncPlatforms();
+  paintProps();
+  // Unticking the last tier leaves the board opening on its main, which the
+  // box then shows as ticked again — say so rather than looking like a no-op.
+  if (!spawnEl.checked) flash("no tier declared — this board opens on its main");
+});
+
 fields.kind.innerHTML = KINDS.map((k) => `<option value="${k.key}">${k.label}</option>`).join("");
 fields.kind.addEventListener("change", () => {
   const p = onlySelected();
@@ -857,6 +901,10 @@ fields.kind.addEventListener("change", () => {
   // thickness is different for each. Only nudged when the height still IS the
   // old kind's default, so a number somebody chose is never overwritten.
   if (p.h === KIND_H[was]) p.h = KIND_H[p.kind] ?? p.h;
+  // A wall is not somewhere a match can open, and choosing the spawn KIND is
+  // choosing the tier — either way the board still holds exactly one.
+  if (p.kind === "wall") delete p.spawn;
+  else if (p.kind === "spawn") setTier(p);
   syncPlatforms();
   paintProps();
 });
@@ -965,7 +1013,12 @@ function paste() {
   commit();
   const at = bench.arena.platforms.length;
   for (const p of bench.clip) {
-    bench.arena.platforms.push({ ...p, x: p.x + PASTE_OFFSET, y: p.y + PASTE_OFFSET });
+    // A COPY IS NOT THE TIER. Exactly one platform per board opens the match,
+    // and a paste that carried the flag would quietly give the board two — and
+    // hand the first one found a job the other thinks it has.
+    const { spawn, ...shape } = p;
+    if (shape.kind === "spawn") shape.kind = "side";
+    bench.arena.platforms.push({ ...shape, x: p.x + PASTE_OFFSET, y: p.y + PASTE_OFFSET });
   }
   // The PASTED copies become the selection, so the next drag moves what you
   // just made rather than what you copied it from.
@@ -1045,7 +1098,7 @@ function stagesJsLine(a) {
   const mods = Object.keys(a.mods || {}).length
     ? `mods: { ${Object.entries(a.mods).map(([k, v]) => `${k}: ${v}`).join(", ")} }, ` : "";
   const plats = a.platforms
-    .map((p) => `{ x: ${p.x}, y: ${p.y}, w: ${p.w}, h: ${p.h}, kind: "${p.kind}" }`)
+    .map((p) => `{ x: ${p.x}, y: ${p.y}, w: ${p.w}, h: ${p.h}, kind: "${p.kind}"${p.spawn ? ", spawn: true" : ""} }`)
     .join(", ");
   return `  { key: "${a.key}", name: "${a.name}", bgFile: "${a.bgFile}", tint: "${a.tint}", ${mods}platforms: [\n    ${plats}\n  ] },`;
 }
@@ -1123,18 +1176,21 @@ function reachReportFor(arena) {
   const main = mains[0] || plats[0];
   if (!main) return { problems: ["no main platform"], warnings: [] };
   const others = plats.filter((p) => !mains.includes(p));
-  const tier = plats.filter((p) => p.kind === "spawn");
+  const tier = plats.filter((p) => p.kind === "spawn" || p.spawn);
   const problems = [];
   const warnings = [];
-  if (mains.length > 2) problems.push(`${mains.length} main platforms (allowed 1 or 2)`);
-  if (mains.length === 2) {
-    const [a, b] = mains.slice().sort((p, q) => p.x - q.x);
-    const step = Math.abs(a.y - b.y);
-    if (step > LEVEL_SLOP) warnings.push(`the floor halves sit ${step}px apart — a step, not one floor`);
-    if (b.x - (a.x + a.w) < 90) problems.push(`the split floor's hole is under 90px`);
+  if (mains.length > 3) problems.push(`${mains.length} main platforms (allowed 1–3)`);
+  if (mains.length >= 2) {
+    const row = mains.slice().sort((p, q) => p.x - q.x);
+    for (let i = 1; i < row.length; i++) {
+      const [a, b] = [row[i - 1], row[i]];
+      const step = Math.abs(a.y - b.y);
+      if (step > LEVEL_SLOP) warnings.push(`the floor's pieces sit ${step}px apart — a step, not one floor`);
+      if (b.x - (a.x + a.w) < 90) problems.push(`the floor's hole is under 90px`);
+    }
   }
   if (tier.length > 1) problems.push(`${tier.length} spawn tiers (allowed 0 or 1)`);
-  if (tier.length === 1) {
+  if (tier.length === 1 && tier[0].kind !== "main") {
     const rise = main.y - tier[0].y;
     if (rise <= 0) problems.push("the spawn tier is not above the floor");
     else if (rise > maxRise) problems.push(`the spawn tier is a ${rise}px hop off the floor (max ${Math.round(maxRise)})`);
