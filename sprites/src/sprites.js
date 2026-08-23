@@ -513,6 +513,13 @@ export function animsOf(charKey) {
 //   some present  play those, in order — a half-delivered pair still animates
 //   none present  fall back to `fallback`, the single pose that shipped
 //   no fallback   keep the declared list, so a real gap stays visible
+//
+// `needsAll` inverts the first rule for a state that is only itself when it is
+// whole. A diagonal attack is a generic wind-up and ONE bespoke strike frame
+// (`diagUp` in characters.js): with the strike undrawn, "play what exists" is a
+// single held wind-up, which is worse than the two-frame swing the move plays
+// today. So the state asks for all of its frames or none, and its fallback is
+// exactly what it drew before the new pose was declared.
 const presentCache = new Map();
 
 export function clearAnimFrameCache() {
@@ -525,12 +532,15 @@ function presentFrames(charKey, anim) {
   // attacks draw `attack_dash` when it lands, and until then the light one
   // borrows the light strike and the heavy one the heavy strike. Keyed on the
   // frames alone, whichever resolved first answered for both.
-  const id = `${charKey}|${anim.frames.join(",")}|${(anim.fallback || []).join(",")}`;
+  const id = `${charKey}|${anim.frames.join(",")}|${(anim.fallback || []).join(",")}`
+    + `|${anim.needsAll ? "all" : ""}`;
   const hit = presentCache.get(id);
   if (hit) return hit;
   const has = (key) => !!frameMeta(charKey, key);
   let frames = anim.frames.filter(has);
   let fps = anim.fps;
+  // All or nothing, for a state whose point is the frame that is missing.
+  if (anim.needsAll && frames.length !== anim.frames.length) frames = [];
   if (!frames.length && anim.fallback) {
     frames = anim.fallback.filter(has);
     // Fallback art predates the animation it stands in for, so it can keep the
@@ -538,6 +548,9 @@ function presentFrames(charKey, anim) {
     // 10 fps rather than the four-frame cycle's 13.
     if (frames.length && anim.fallbackFps) fps = anim.fallbackFps;
   }
+  // A `needsAll` state whose fallback is missing too keeps whatever half of
+  // its own art exists — half a pair still beats drawing nothing.
+  if (!frames.length && anim.needsAll) frames = anim.frames.filter(has);
   const out = frames.length ? { ...anim, frames, fps } : anim;
   presentCache.set(id, out);
   return out;
