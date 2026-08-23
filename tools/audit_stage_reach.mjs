@@ -72,6 +72,11 @@ const COMFY_RISE = 175;      // above this it needs a real double jump — warn
 // the board, and the place to fix it if it ever shows up in play is the camera.
 const MIN_TOP_Y = 170;       // highest allowed platform
 const ORBIT_SLACK = 24;      // domainCore shards bob ±24 in y
+// How close a lip has to be to a wall's face to count as reachable off it. The
+// wall jump's own reach is 18px from the body's edge (constants.js
+// WALL_JUMP_REACH); this is that plus the sideways shove that carries you off
+// the face, which is what actually lands you on a neighbouring platform.
+const WALL_REACH = 120;
 
 // Horizontal gap budget for a hop: plenty of drift on low hops, little near
 // the apex of a maximum-height jump.
@@ -151,6 +156,28 @@ for (const stage of STAGES) {
       + `from it takes the strongest fighters entirely out of frame`);
   }
 
+  // A WALL IS A LADDER (fighter.js wallAgainst). A jump taken against a wall
+  // pushes off it without spending the air jump, so a tall wall can be climbed
+  // as long as you keep reaching it — which makes everything alongside its face
+  // reachable, whatever the rise from the nearest platform. A board can be
+  // built to climb, and an audit that did not know it would call a deliberate
+  // vertical layout broken.
+  //
+  // A wall counts once you can GET to it: its foot has to be standing at or
+  // above something already reached, or its face has to run past it.
+  const walls = plats.filter((p) => p.kind === "wall");
+  const reachesWall = (w, from) => {
+    const foot = w.y + w.h;
+    const beside = horizontalGap(w, from) <= WALL_REACH;
+    // ...level with the face, or standing on top of it
+    return beside && foot >= from.y - maxRise && w.y <= from.y + WALL_REACH;
+  };
+  /** Everything a climbable wall opens up: any platform whose lip is beside its
+   *  face, anywhere up its height, plus one hop above the top it ends at. */
+  const alongWall = (w, p) =>
+    horizontalGap(w, p) <= WALL_REACH
+    && p.y >= w.y - maxRise && p.y <= w.y + w.h + WALL_REACH;
+
   // Reachability: climb from the main, admitting any platform some already-
   // reached surface can hop to within the rise/gap budget.
   const reached = new Set(mains);
@@ -171,6 +198,16 @@ for (const stage of STAGES) {
       reached.add(p);
       if (best > comfyRise) warns.push(`(${p.x},${p.y}) needs a ${Math.round(best)}px hop`);
       grew = true;
+    }
+    // ...and everything a wall you can already get to puts within reach.
+    for (const w of walls) {
+      if (![...reached].some((from) => from === w || reachesWall(w, from))) continue;
+      reached.add(w);
+      for (const p of others) {
+        if (reached.has(p) || !alongWall(w, p)) continue;
+        reached.add(p);
+        grew = true;
+      }
     }
   }
   for (const p of others) {
