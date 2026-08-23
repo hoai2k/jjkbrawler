@@ -113,25 +113,25 @@ export const STAGES = [
     { x: -140, y: 668, w: 1560, h: 42, kind: "main" }, { x: 170, y: 536, w: 320, h: 15, kind: "side" }, { x: 790, y: 536, w: 320, h: 15, kind: "side" }
   ] },
   { key: "neonSplit", name: "Neon Split", bgFile: "neon_split.jpg", tint: "rgba(224, 82, 192, 0.12)", platforms: [
-    { x: 140, y: 688, w: 1000, h: 42, kind: "main" }, { x: 240, y: 568, w: 800, h: 15, kind: "spawn" }, { x: 190, y: 452, w: 230, h: 15, kind: "side" }, { x: 860, y: 452, w: 230, h: 15, kind: "side" }, { x: 250, y: 332, w: 200, h: 15, kind: "side" }, { x: 830, y: 332, w: 200, h: 15, kind: "side" }
+    { x: -104, y: 696, w: 641, h: 42, kind: "main" }, { x: 240, y: 568, w: 800, h: 15, kind: "spawn" }, { x: 42, y: 452, w: 378, h: 15, kind: "side" }, { x: 860, y: 452, w: 401, h: 15, kind: "side" }, { x: 134, y: 337, w: 315, h: 15, kind: "side" }, { x: 830, y: 332, w: 318, h: 15, kind: "side" }, { x: 787, y: 693, w: 573, h: 42, kind: "main" }, { x: 230, y: 193, w: 325, h: 15, kind: "side" }, { x: 767, y: 191, w: 304, h: 15, kind: "side" }
   ] },
   { key: "boneSanctum", name: "Bone Sanctum", bgFile: "bone_sanctum.jpg", tint: "rgba(76, 221, 210, 0.1)", platforms: [
     { x: 120, y: 694, w: 450, h: 42, kind: "main" }, { x: 760, y: 694, w: 450, h: 42, kind: "main" }, { x: 206, y: 574, w: 868, h: 15, kind: "spawn" }, { x: 160, y: 456, w: 190, h: 15, kind: "side" }, { x: 930, y: 456, w: 190, h: 15, kind: "side" }, { x: 400, y: 346, w: 180, h: 15, kind: "side" }, { x: 700, y: 346, w: 180, h: 15, kind: "side" }, { x: 315, y: 236, w: 200, h: 15, kind: "side" }, { x: 765, y: 236, w: 200, h: 15, kind: "side" }
   ] },
   { key: "bridgeDuel", name: "Bridge Duel", bgFile: "bridge_duel.jpg", tint: "rgba(49, 168, 134, 0.12)", platforms: [
-    { x: 340, y: 582, w: 600, h: 42, kind: "main" }, { x: 130, y: 448, w: 230, h: 15, kind: "side" }, { x: 920, y: 448, w: 230, h: 15, kind: "side" }
+    { x: 179, y: 475, w: 907, h: 42, kind: "main" }, { x: -21, y: 339, w: 263, h: 15, kind: "side" }, { x: 1039, y: 341, w: 265, h: 15, kind: "side" }
   ] },
   { key: "academyHall", name: "Academy Hall", bgFile: "academy_hall.jpg", tint: "rgba(140, 112, 80, 0.14)", platforms: [
-    { x: 60, y: 688, w: 1160, h: 42, kind: "main" }, { x: 110, y: 568, w: 1060, h: 15, kind: "spawn" }, { x: 230, y: 446, w: 220, h: 15, kind: "side" }, { x: 830, y: 446, w: 220, h: 15, kind: "side" }, { x: 512, y: 320, w: 256, h: 15, kind: "top" }, { x: 560, y: 452, w: 160, h: 15, kind: "side" }
+    { x: 60, y: 688, w: 1160, h: 42, kind: "main" }, { x: 110, y: 568, w: 1060, h: 15, kind: "spawn" }, { x: 230, y: 446, w: 220, h: 15, kind: "side" }, { x: 830, y: 446, w: 220, h: 15, kind: "side" }, { x: 512, y: 320, w: 256, h: 15, kind: "top" }, { x: 560, y: 452, w: 160, h: 15, kind: "side" }, { x: 560, y: 191, w: 160, h: 15, kind: "side" }
   ] },
   { key: "mistPier", name: "Mist Pier", bgFile: "mist_pier.jpg", tint: "rgba(178, 226, 255, 0.1)", platforms: [
-    { x: 120, y: 700, w: 450, h: 42, kind: "main" }, { x: 760, y: 700, w: 450, h: 42, kind: "main" }, { x: 222, y: 580, w: 836, h: 15, kind: "spawn" }, { x: 160, y: 462, w: 240, h: 15, kind: "side" }, { x: 870, y: 440, w: 240, h: 15, kind: "side" }, { x: 540, y: 352, w: 150, h: 15, kind: "top" }
+    { x: 129, y: 703, w: 1052, h: 42, kind: "main" }, { x: 222, y: 580, w: 836, h: 15, kind: "spawn" }, { x: 319, y: 410, w: 240, h: 15, kind: "side" }, { x: 752, y: 408, w: 240, h: 15, kind: "side" }, { x: 602, y: 294, w: 150, h: 15, kind: "top" }
   ] },
   { key: "crosswalkRush", name: "Crosswalk Rush", bgFile: "crosswalk_rush.jpg", tint: "rgba(76, 171, 255, 0.13)", platforms: [
     { x: -140, y: 664, w: 1560, h: 42, kind: "main" }, { x: 340, y: 532, w: 600, h: 15, kind: "side" }, { x: 130, y: 398, w: 170, h: 15, kind: "top" }, { x: 980, y: 398, w: 170, h: 15, kind: "top" }
   ] },
   { key: "cursedTeeth", name: "Cursed Teeth", bgFile: "cursed_teeth.jpg", tint: "rgba(42, 205, 204, 0.14)", platforms: [
-    { x: 150, y: 700, w: 980, h: 42, kind: "main" }, { x: 244, y: 584, w: 792, h: 15, kind: "spawn" }, { x: 180, y: 452, w: 220, h: 15, kind: "side" }, { x: 880, y: 452, w: 220, h: 15, kind: "side" }, { x: 542, y: 330, w: 195, h: 15, kind: "top" }, { x: 290, y: 524, w: 34, h: 60, kind: "wall" }, { x: 956, y: 524, w: 34, h: 60, kind: "wall" }
+    { x: 110, y: 699, w: 388, h: 42, kind: "main" }, { x: 98, y: 584, w: 1114, h: 15, kind: "spawn" }, { x: 167, y: 329, w: 292, h: 15, kind: "side" }, { x: 838, y: 331, w: 300, h: 15, kind: "side" }, { x: 554, y: 170, w: 195, h: 15, kind: "top" }, { x: -28, y: 191, w: 34, h: 310, kind: "wall" }, { x: 1297, y: 173, w: 34, h: 332, kind: "wall" }, { x: 755, y: 697, w: 425, h: 42, kind: "main" }
   ] },
   { key: "riverGate", name: "River Gate", bgFile: "river_gate.jpg", tint: "rgba(91, 205, 176, 0.13)", platforms: [
     { x: 110, y: 696, w: 1060, h: 42, kind: "main" }, { x: 244, y: 573, w: 538, h: 15, kind: "spawn" }, { x: -42, y: 488, w: 243, h: 15, kind: "side" }, { x: 189, y: 209, w: 200, h: 15, kind: "side" }, { x: 408, y: 350, w: 325, h: 15, kind: "top" }, { x: 60, y: 11, w: 26, h: 480, kind: "wall" }, { x: 1144, y: 77, w: 34, h: 430, kind: "wall" }, { x: -116, y: 617, w: 116, h: 15, kind: "side" }, { x: 896, y: 141, w: 244, h: 15, kind: "side" }, { x: 857, y: 87, w: 34, h: 430, kind: "wall" }, { x: 889, y: 501, w: 257, h: 15, kind: "side" }
@@ -140,7 +140,7 @@ export const STAGES = [
     { x: 86, y: 690, w: 1170, h: 42, kind: "main" }, { x: 230, y: 570, w: 903, h: 15, kind: "spawn" }, { x: 149, y: 446, w: 221, h: 15, kind: "side" }, { x: 844, y: 448, w: 200, h: 15, kind: "side" }, { x: 340, y: 330, w: 130, h: 15, kind: "side" }, { x: 790, y: 330, w: 170, h: 15, kind: "side" }, { x: 1123, y: 228, w: 130, h: 15, kind: "side" }, { x: -53, y: 290, w: 130, h: 15, kind: "side" }, { x: 76, y: 171, w: 130, h: 15, kind: "side" }
   ] },
   { key: "emptyCity", name: "Empty City", bgFile: "empty_city.jpg", tint: "rgba(159, 189, 214, 0.15)", platforms: [
-    { x: 98, y: 633, w: 460, h: 42, kind: "main" }, { x: 758, y: 633, w: 460, h: 42, kind: "main" }, { x: 168, y: 513, w: 920, h: 15, kind: "spawn" }, { x: 128, y: 409, w: 210, h: 15, kind: "side" }, { x: 918, y: 385, w: 210, h: 15, kind: "side" }, { x: 50, y: 256, w: 190, h: 15, kind: "top" }, { x: 611, y: 245, w: 389, h: 15, kind: "top" }
+    { x: -49, y: 640, w: 1394, h: 42, kind: "main" }, { x: 168, y: 513, w: 920, h: 15, kind: "spawn" }, { x: 128, y: 409, w: 210, h: 15, kind: "side" }, { x: 918, y: 385, w: 210, h: 15, kind: "side" }, { x: 50, y: 256, w: 190, h: 15, kind: "top" }, { x: 611, y: 245, w: 389, h: 15, kind: "top" }
   ] },
   { key: "billboardRoof", name: "Billboard Roof", bgFile: "billboard_roof.jpg", tint: "rgba(255, 83, 148, 0.1)", platforms: [
     { x: 120, y: 700, w: 450, h: 42, kind: "main" }, { x: 760, y: 700, w: 450, h: 42, kind: "main" }, { x: 214, y: 580, w: 852, h: 15, kind: "spawn" }, { x: 180, y: 470, w: 150, h: 15, kind: "side" }, { x: 950, y: 470, w: 150, h: 15, kind: "side" }, { x: 470, y: 370, w: 340, h: 15, kind: "side" }, { x: 540, y: 262, w: 200, h: 15, kind: "top" }, { x: -43, y: 323, w: 340, h: 15, kind: "side" }, { x: 1024, y: 323, w: 340, h: 15, kind: "side" }, { x: 980, y: 94, w: 150, h: 15, kind: "side" }

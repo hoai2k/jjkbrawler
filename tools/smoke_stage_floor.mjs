@@ -34,7 +34,18 @@ await page.click('[data-character="gojo"]');
 await page.waitForTimeout(300);
 await page.click("#startButton");
 await page.waitForSelector(".stage-card", { timeout: 15000 });
-await page.click('[data-stage="mistPier"]');          // a SPLIT board
+// FIND a split board rather than naming one. Which boards split their floor is
+// a design decision that changes whenever somebody lays one out differently —
+// this test named Mist Pier and broke the day Mist Pier became one floor, which
+// told us nothing about the code.
+const splitKey = await page.evaluate(async () => {
+  const { STAGES, mainPlatforms } = await import("/src/stages.js");
+  const s = STAGES.find((st) => mainPlatforms(st.platforms).length === 2);
+  return s ? s.key : null;
+});
+if (!splitKey) throw new Error("no board splits its floor — nothing to test here");
+console.log(`(split board under test: ${splitKey})`);
+await page.click(`[data-stage="${splitKey}"]`);
 for (let w = 0; ; w += 150) {
   if (await page.evaluate(async () => (await import("/src/state.js")).state.phase === "playing" && (await import("/src/state.js")).state.fighters.length > 1)) break;
   if (w > 120000) throw new Error("no match"); await page.waitForTimeout(150);

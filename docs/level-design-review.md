@@ -678,6 +678,51 @@ shelf, and the shelf is drawn later, so reaching for the grip handed you the
 shelf. The body underneath is still up for grabs, so clicking *into* another
 platform still selects it.
 
+## 17. One platform at a time
+
+Reported from play: pressing down+jump to fall through a platform sometimes fell
+through several. It did, and the mechanism was blunt — a drop switched off
+**every** non-main platform for 0.24s, and 0.24s of falling is about 87px, so
+anything stacked under the tier you meant to leave went with it.
+
+The fighter now remembers the ONE platform being dropped through
+(`f.dropThrough`) and ignores only that, so the next surface catches them
+however close it is. That is also the answer to "don't drop me through a
+platform with nothing below it": there is nothing special about the case, the
+rule just stops after one. `dropTimer` stays as the safety net behind it —
+identity is the rule, but a platform that phases out or is carried away
+underneath (Active Boards) must not be able to strand the flag.
+
+`tools/smoke_drop_through.mjs` builds a deliberately cruel stack — three
+drop-throughs 40px apart, well inside the old blanket window — and asserts one
+press falls exactly one shelf, a second press falls one more, and a shelf with
+nothing under it still drops to the floor.
+
+## 18. Hazards follow the mode
+
+The arena bench keeps stage gimmicks still while you are editing, because
+several boards MOVE their platforms or phase them out and one that walks away
+from the cursor cannot be dragged. Turning editing off now **arms them**: half
+of what a platform asks of a player is what the board does to it, and judging a
+layout with the hazards switched off is judging a different board. The checkbox
+still overrides either way, and flipping the mode re-syncs the platforms from
+the authored geometry first, so a gimmick that had moved one does not leave it
+wherever it stopped.
+
+While fixing that, the bench's reach panel turned out to be **out of date with
+the audit**: it had never learned that a wall is a route upward (§15), so it
+reported five unreachable platforms on a board CI passes. A panel that
+disagrees with CI is worse than no panel — it now runs the same rule.
+
+Two audit rules were also softened, both toward letting the person laying out
+the board decide:
+
+- **Split floor halves no longer have to be exactly level.** A couple of pixels
+  is a drag that landed a hair off, and a deliberate step between two halves is
+  a design. Past `LEVEL_SLOP` (12px) it warns rather than fails.
+- The highest-platform rule and the hop ceiling had already gone the same way
+  in §11.
+
 ## The slab takes the room's light
 
 Every board declared its ambiance once — `tint` in `src/stages.js`, the wash the
