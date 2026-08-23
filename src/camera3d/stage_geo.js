@@ -10,13 +10,15 @@
 
 import {
   Group, Mesh, BoxGeometry, PlaneGeometry, MeshBasicMaterial,
-  CanvasTexture, Texture, SRGBColorSpace, DoubleSide,
+  CanvasTexture, Texture, SRGBColorSpace, DoubleSide, Color,
 } from "../../vendor/three/three.module.js";
 import { ORDER } from "./quads.js";
 import { CAMERA as C } from "../config_camera.js";
 import { getImage } from "../assets.js";
 import { getStage } from "../stages.js";
 import { drawPlatformShape } from "../render.js";
+import { stagePalette } from "../stage_palette.js";
+import { state } from "../state.js";
 import { WORLD } from "../constants.js";
 import { clamp } from "../utils.js";
 
@@ -68,7 +70,7 @@ const faceCanvasCache = new Map(); // key -> CanvasTexture
  *  drawPlatformShape. Keyed by everything that changes the drawing, so state
  *  flips (ghost, accent) repaint and steady frames reuse. */
 function faceTexture(p) {
-  const key = `${p.kind}|${Math.round(p.w)}x${Math.round(p.h)}|${p.ghost ? "g" : ""}|${p.accent || ""}`;
+  const key = platKey(p);
   let tex = faceCanvasCache.get(key);
   if (tex) return tex;
   const pad = 16; // drawPlatformShape's drop shadow reaches +8/+12
@@ -81,17 +83,46 @@ function faceTexture(p) {
   drawPlatformShape(ctx, { ...p, x: 0, y: 0, shakeMag: 0 });
   tex = new CanvasTexture(canvas);
   tex.colorSpace = SRGBColorSpace;
+  // The key carries the board now, so this map holds a texture per slab size
+  // per stage rather than per slab size. That is still small, but it can only
+  // grow — so it resets rather than climbing, the same bargain render.js
+  // strikes with its gradient cache.
+  if (faceCanvasCache.size > 120) {
+    for (const t of faceCanvasCache.values()) t.dispose();
+    faceCanvasCache.clear();
+  }
   faceCanvasCache.set(key, tex);
   return tex;
+}
+
+/** Everything that changes a platform's drawing, the board included: the slab
+ *  is coloured per stage now (src/stage_palette.js), so a texture or a
+ *  material cached on one board must not be handed to the next. */
+function platKey(p) {
+  return `${state.stageKey}|${p.kind}|${Math.round(p.w)}x${Math.round(p.h)}|${p.ghost ? "g" : ""}|${p.accent || ""}`;
 }
 
 // The walkable surface, seen from the camera's slight down-angle. Lighter
 // than the sides — it is the face the (implied) sky lights — and tinted per
 // kind so the main stage reads warmer than the floating slabs, echoing the
-// face gradients drawPlatformShape paints.
-const topMat = { main: new MeshBasicMaterial({ color: 0x36405a }), other: new MeshBasicMaterial({ color: 0x2a3348 }) };
-const endMat = new MeshBasicMaterial({ color: 0x141b2c });
-const bottomMat = new MeshBasicMaterial({ color: 0x070a12 });
+// face gradients drawPlatformShape paints. The extrusion has to travel with
+// the board like the face does, or a stage's own slab colour would stop at
+// its front face and the sides would stay the shipped blue-grey.
+const sideMatCache = new Map(); // stage key -> { top: {main, other}, end, bottom }
+
+function sideMats(stageKey) {
+  let mats = sideMatCache.get(stageKey);
+  if (mats) return mats;
+  const pal = stagePalette(stageKey);
+  const mk = (css) => new MeshBasicMaterial({ color: new Color(css) });
+  mats = {
+    top: { main: mk(pal.top.main), other: mk(pal.top.other) },
+    end: mk(pal.end),
+    bottom: mk(pal.bottom),
+  };
+  sideMatCache.set(stageKey, mats);
+  return mats;
+}
 // A phased-out platform is only its dashed outline — no solid sides.
 const ghostSideMat = new MeshBasicMaterial({ visible: false });
 
@@ -104,9 +135,10 @@ function makePlatformMesh(p) {
   // geometry is in WORLD units (sim px × S): these meshes live directly in the
   // scene, not the negative-y sim group, so textures stay upright.
   const group = new Group();
-  const top = p.ghost ? ghostSideMat : (p.kind === "main" ? topMat.main : topMat.other);
-  const end = p.ghost ? ghostSideMat : endMat;
-  const bottom = p.ghost ? ghostSideMat : bottomMat;
+  const mats = sideMats(state.stageKey);
+  const top = p.ghost ? ghostSideMat : (p.kind === "main" ? mats.top.main : mats.top.other);
+  const end = p.ghost ? ghostSideMat : mats.end;
+  const bottom = p.ghost ? ghostSideMat : mats.bottom;
   // BoxGeometry material order: +x, -x, +y (top), -y, +z (front), -z. The
   // front face is covered by the texture plane; painting it the top colour
   // keeps any sub-pixel seam invisible.
@@ -144,7 +176,7 @@ export function updatePlatforms(scene, platforms) {
   while (list.length > platforms.length) scene.remove(list.pop());
   for (let i = 0; i < platforms.length; i++) {
     const p = platforms[i];
-    const key = `${p.kind}|${Math.round(p.w)}x${Math.round(p.h)}|${p.ghost ? "g" : ""}|${p.accent || ""}`;
+    const key = platKey(p);
     let mesh = list[i];
     if (!mesh || mesh.userData.key !== key) {
       if (mesh) scene.remove(mesh);
