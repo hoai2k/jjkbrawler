@@ -982,7 +982,7 @@ own gain, not between the music and the fight.
 |---|---|---|
 | a heavy hit | -17.9 dBFS | **-9.1 dBFS** |
 | a 7:3 crit | -16.4 | **-7.6** |
-| a grunt | -20.3 | **-11.6** |
+| a grunt | -20.3 | **-11.6** (now -14.8, see the bus split below) |
 | a menu lock-in | -24.0 | **-15.2** |
 | a music track | -13.4 | **-4.7** |
 
@@ -994,6 +994,27 @@ would leave a player who wants *more* music with a slider that has nowhere to
 go. Raising `master` instead would not help, because it would move the sfx and
 leave the music behind — which is exactly the balance this change exists not to
 touch.
+
+### The grunt has its own bus
+
+Grunts and spoken lines used to share the `voice` trim, and that made them one
+dial: raising the Domain Expansion call-outs (1.1 → 1.25) and Inumaki's cursed
+speech (1.1 → 1.45) so they carry over their own moment dragged the effort
+grunts up with them, and a grunt is not an occasional line — it fires on every
+attack, several a second in a combo, and its whole job is to sit *under* the
+hit that follows it.
+
+So `categories` now carries **`grunt: 0.55`** alongside **`voice: 0.80`**. The
+six `grunt*` groups hang off the new bus; the KO cries stay on `voice`, because
+those are one per stock at the moment a fighter dies and that one should carry.
+The two dials now move independently — a louder call-out costs the grunts
+nothing.
+
+| | before the split | after |
+|---|---|---|
+| an effort grunt | -11.4 dBFS | **-14.7** |
+| a domain call-out | -10.6 | **-9.5** |
+| Inumaki's command | -10.6 | **-8.2** |
 
 **`node tools/check_audio_mix.mjs` measures all of it**, rather than asserting
 it. For every registered sound it multiplies the mixer path out, reads the real

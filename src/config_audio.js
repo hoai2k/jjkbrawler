@@ -57,12 +57,25 @@ export const AUDIO_MIX = {
   // hits, a grunt and a hazard in the same 100 ms — cannot clip.
   master: 0.9,
 
-  // Per-category trim. Combat is the reference at 1.0; everything else is
-  // placed relative to it.
+  // Per-category trim — the mixer's buses. A sound's category decides which of
+  // these dials it hangs off, so a whole layer moves together and nothing has
+  // to be re-tuned entry by entry. Combat is the reference at 1.0; everything
+  // else is placed relative to it.
+  //
+  // `voice` and `grunt` are deliberately two buses rather than one. They used
+  // to be a single `voice` trim, and that made the two things it carried move
+  // together: the grunt is a wordless noise fired on EVERY attack, several a
+  // second in a combo, and it has to stay under the hit that follows it or the
+  // fight turns into panting. A domain call-out is one line at the biggest
+  // moment of a match and wants to be heard over everything. Raising the
+  // call-outs on a shared bus dragged the grunts up with them, which is exactly
+  // the failure this split exists to prevent — set the two dials independently
+  // and they stay where they are put.
   categories: {
     combat: 1.00,   // hits, slashes, blocks — the loudest, most frequent layer
     movement: 0.55, // jumps, landings, dashes: constant, must not fatigue
-    voice: 0.80,    // grunts sit just under their own hit so they blend
+    voice: 0.80,    // SPOKEN lines: domain call-outs, Inumaki's commands, cries
+    grunt: 0.55,    // the wordless effort noise under every attack — see below
     ui: 0.45,       // menus should never be as loud as a fight
     stinger: 0.85,  // countdown, match end, meter full — occasional and big
     energy: 0.90,   // projectiles, summons, installs
@@ -107,12 +120,17 @@ export const SFX = {
   // ---- Tier 3: character voices. Groups are picked in GRUNT_GROUPS (audio.js)
   // and one variant is drawn at random per call, so a repeated special does not
   // loop the identical sample.
-  gruntYoungMale: { file: ["grunt_young_male_alt_2.mp3", "grunt_young_male_alt_4.mp3", "grunt_young_male_alt_6.mp3"], category: "voice" },
-  gruntAdultMale: { file: ["grunt_adult_male_alt_6.mp3", "grunt_adult_male_alt_7.mp3"], category: "voice" },
-  gruntBig: { file: "grunt_big_alt_1.mp3", category: "voice" },
-  gruntFemale: { file: ["grunt_female_alt_1.mp3", "grunt_female_alt_2.mp3", "grunt_female_alt_3.mp3"], category: "voice" },
-  gruntMonster: { file: "grunt_monster_alt_1.mp3", category: "voice" },
-  gruntAnimal: { file: "grunt_animal_2.mp3", category: "voice" },
+  //
+  // The effort grunts ride the `grunt` bus, not `voice`: they fire on every
+  // attack a fighter throws and their whole job is to sit UNDER the hit that
+  // follows. The KO cries below stay on `voice` — one per stock, at the moment
+  // a fighter dies, and that one should carry.
+  gruntYoungMale: { file: ["grunt_young_male_alt_2.mp3", "grunt_young_male_alt_4.mp3", "grunt_young_male_alt_6.mp3"], category: "grunt" },
+  gruntAdultMale: { file: ["grunt_adult_male_alt_6.mp3", "grunt_adult_male_alt_7.mp3"], category: "grunt" },
+  gruntBig: { file: "grunt_big_alt_1.mp3", category: "grunt" },
+  gruntFemale: { file: ["grunt_female_alt_1.mp3", "grunt_female_alt_2.mp3", "grunt_female_alt_3.mp3"], category: "grunt" },
+  gruntMonster: { file: "grunt_monster_alt_1.mp3", category: "grunt" },
+  gruntAnimal: { file: "grunt_animal_2.mp3", category: "grunt" },
 
   koYoungMale: { file: "ko_young_male_alt_2.mp3", category: "voice" },
   koAdultMale: { file: "ko_adult_male_alt_5.mp3", category: "voice" },
