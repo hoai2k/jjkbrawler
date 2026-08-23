@@ -87,6 +87,12 @@ const bench = {
   future: [],
   loading: false,
   fps: 0,
+  // Which side panels are folded away. In the URL with everything else, so a
+  // link to a board carries the layout you were looking at it in.
+  panes: {
+    left: url.searchParams.get("left") !== "off",
+    right: url.searchParams.get("right") !== "off",
+  },
 };
 
 // How many boards back the undo stack remembers. Snapshots are a handful of
@@ -108,8 +114,12 @@ root.innerHTML = `
     <button id="arenaExport" class="ghost ghost--go" type="button"
             title="Download this board as JSON, with a ready-to-paste src/stages.js line inside it">⭳ Export arena</button>
   </header>
-  <div class="arenabench">
-    <aside class="arenas" id="arenaPane">
+  <div class="arenabench" id="benchGrid">
+    <aside class="arenas pane" id="arenaPane">
+      <button class="pane__grip" id="leftToggle" type="button"
+              title="Hide the board list (more room for the picture)"
+              aria-label="Hide the board list" aria-expanded="true">‹</button>
+      <div class="pane__body">
       <div class="arenas__head">
         <label class="arenas__search">
           <input id="arenaFilter" type="search" placeholder="Filter…" autocomplete="off">
@@ -117,12 +127,19 @@ root.innerHTML = `
         <p class="arenas__hint">Unsaved edits are lost when you switch board</p>
       </div>
       <ul id="arenaList" class="arenas__list" role="listbox"></ul>
+      </div>
     </aside>
 
     <section class="viewer">
-      <div class="viewer__stage">
-        <canvas id="arenaCanvas" width="1280" height="720"></canvas>
-        <div class="viewer__overlay" id="arenaOverlay"></div>
+      <div class="viewer__stage" id="arenaStage">
+        <!-- The frame is sized in JS to the largest 16:9 box that fits the
+             space (layoutCanvas). The canvas fills it, so the world's aspect
+             is never stretched — a squashed board is a board you cannot judge
+             the layout of, which is the one thing this bench is for. -->
+        <div class="viewer__frame" id="arenaFrame">
+          <canvas id="arenaCanvas" width="1280" height="720"></canvas>
+          <div class="viewer__overlay" id="arenaOverlay"></div>
+        </div>
       </div>
       <div class="viewer__foot">
         <label class="toggle" title="On: the camera is pinned at the furthest the game ever pulls back and never moves, so what you are dragging holds still. Off: the game's own framing camera takes over, which is how the board FEELS in a match.">
@@ -144,7 +161,11 @@ root.innerHTML = `
       </div>
     </section>
 
-    <aside class="props" id="propsPane">
+    <aside class="props pane" id="propsPane">
+      <button class="pane__grip" id="rightToggle" type="button"
+              title="Hide the properties panel (more room for the picture)"
+              aria-label="Hide the properties panel" aria-expanded="true">›</button>
+      <div class="pane__body">
       <h2>Platform</h2>
       <p class="sub" id="propsNone">Click a platform, or drag a box around several.</p>
       <div id="propsBody" hidden>
@@ -188,13 +209,18 @@ root.innerHTML = `
         <li><kbd>ctrl</kbd>+<kbd>C</kbd>/<kbd>V</kbd> copy, paste · <kbd>ctrl</kbd>+<kbd>D</kbd> duplicate</li>
         <li><kbd>ctrl</kbd>+<kbd>Z</kbd> undo · <kbd>ctrl</kbd>+<kbd>shift</kbd>+<kbd>Z</kbd> redo</li>
         <li><kbd>del</kbd> remove the selection</li>
+        <li><kbd>[</kbd> / <kbd>]</kbd> hide either side panel</li>
       </ul>
+      </div>
     </aside>
   </div>`;
 
 const canvas = document.getElementById("arenaCanvas");
 const ctx = canvas.getContext("2d");
 const overlayEl = document.getElementById("arenaOverlay");
+const gridEl = document.getElementById("benchGrid");
+const stageEl = document.getElementById("arenaStage");
+const frameEl = document.getElementById("arenaFrame");
 const listEl = document.getElementById("arenaList");
 const filterEl = document.getElementById("arenaFilter");
 const editingEl = document.getElementById("editingToggle");
@@ -204,6 +230,8 @@ const charPickEl = document.getElementById("charPick");
 const padEl = document.getElementById("arenaPads");
 const fpsEl = document.getElementById("arenaFps");
 const historyEl = document.getElementById("arenaHistory");
+const leftToggleEl = document.getElementById("leftToggle");
+const rightToggleEl = document.getElementById("rightToggle");
 const propsNoneEl = document.getElementById("propsNone");
 const propsBodyEl = document.getElementById("propsBody");
 const thickEl = document.getElementById("pThickness");
@@ -229,17 +257,43 @@ for (const el of [filterEl, ...Object.values(fields)]) {
   el.addEventListener("keyup", (e) => e.stopPropagation());
 }
 
-function resizeCanvas() {
+/**
+ * THE PICTURE KEEPS THE WORLD'S SHAPE.
+ *
+ * The game is 1280x720 and it has to be LOOKED at as 1280x720: this bench
+ * exists to judge where a platform sits, and a board stretched to whatever
+ * shape the window left over is a board you cannot judge. The canvas used to
+ * fill its box and take its transform as `width/1280` by `height/720` — two
+ * independent scales — so every non-16:9 box quietly squashed the world. The
+ * `object-fit: contain` in the stylesheet could never help: the bitmap was
+ * always sized to match the box exactly, so there was nothing left to fit.
+ *
+ * So the FRAME is sized here to the largest 16:9 box that fits the space, the
+ * canvas fills that, and the transform is ONE scale on both axes. Whatever the
+ * panels are doing, the picture is the right shape and as large as it can be.
+ */
+function layoutCanvas() {
+  const box = stageEl.getBoundingClientRect();
+  if (!box.width || !box.height) return;
+  const fit = Math.min(box.width / WORLD.w, box.height / WORLD.h);
+  frameEl.style.width = `${WORLD.w * fit}px`;
+  frameEl.style.height = `${WORLD.h * fit}px`;
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const rect = canvas.getBoundingClientRect();
-  if (!rect.width) return;
-  canvas.width = Math.round(rect.width * dpr);
-  canvas.height = Math.round(rect.height * dpr);
-  // The same transform the game sets: everything downstream draws in WORLD
-  // units and never learns how big the window is.
-  ctx.setTransform(canvas.width / WORLD.w, 0, 0, canvas.height / WORLD.h, 0, 0);
+  canvas.width = Math.max(1, Math.round(WORLD.w * fit * dpr));
+  canvas.height = Math.max(1, Math.round(WORLD.h * fit * dpr));
+  // ONE scale, taken from the width and used for both axes. Rounding the
+  // bitmap to whole device pixels can leave the two ratios a thousandth apart,
+  // and "a thousandth of a squash" is still the bug this is here to prevent.
+  const s = canvas.width / WORLD.w;
+  ctx.setTransform(s, 0, 0, s, 0, 0);
 }
-window.addEventListener("resize", resizeCanvas);
+window.addEventListener("resize", layoutCanvas);
+// The panels collapsing changes the space without the WINDOW changing size, and
+// so does anything else that reflows the page. Watching the box itself catches
+// every one of them, including the frame the CSS transition passes through.
+if (typeof ResizeObserver === "function") {
+  new ResizeObserver(layoutCanvas).observe(stageEl);
+}
 
 // ------------------------------------------------------- the board, and the game
 //
@@ -777,6 +831,8 @@ window.addEventListener("keydown", (e) => {
     setSelection(bench.arena.platforms.map((_, i) => i));
     return;
   }
+  if (e.key === "[") { setPane("left", !bench.panes.left); return; }
+  if (e.key === "]") { setPane("right", !bench.panes.right); return; }
   if (e.key === "Escape") { setSelection([]); return; }
   if (e.key === "Delete" || e.key === "Backspace") {
     e.preventDefault();
@@ -1048,6 +1104,34 @@ editingEl.addEventListener("change", () => {
   history.replaceState(null, "", next);
 });
 
+// ------------------------------------------------------------- the side panels
+//
+// Folded to a grip rather than removed: the button that brings a panel back has
+// to be where the panel was, or hiding one is a thing you cannot undo without
+// knowing the URL.
+
+function setPane(side, open) {
+  bench.panes[side] = open;
+  gridEl.classList.toggle(`${side}-off`, !open);
+  const btn = side === "left" ? leftToggleEl : rightToggleEl;
+  // The chevron points where pressing it will send the panel.
+  btn.textContent = side === "left" ? (open ? "‹" : "›") : (open ? "›" : "‹");
+  const what = side === "left" ? "the board list" : "the properties panel";
+  btn.title = `${open ? "Hide" : "Show"} ${what} (more room for the picture)`;
+  btn.setAttribute("aria-label", btn.title);
+  btn.setAttribute("aria-expanded", String(open));
+  const next = new URL(window.location.href);
+  next.searchParams.set(side, open ? "on" : "off");
+  history.replaceState(null, "", next);
+  // The grid has changed shape; the picture has to be re-fitted into what is
+  // left. The ResizeObserver catches this too — this makes it immediate rather
+  // than a frame later, so the canvas never flashes at the wrong size.
+  layoutCanvas();
+}
+
+leftToggleEl.addEventListener("click", () => setPane("left", !bench.panes.left));
+rightToggleEl.addEventListener("click", () => setPane("right", !bench.panes.right));
+
 viewEl.addEventListener("input", () => {
   bench.view = Number(viewEl.value);
   viewValueEl.textContent = `${bench.view.toFixed(2)}x`;
@@ -1085,11 +1169,13 @@ async function boot() {
 
   editingEl.checked = bench.editing;
   canvas.classList.toggle("is-editing", bench.editing);
+  setPane("left", bench.panes.left);
+  setPane("right", bench.panes.right);
   viewEl.value = String(bench.view);
   viewValueEl.textContent = `${bench.view.toFixed(2)}x`;
   charPickEl.value = bench.charKey;
 
-  resizeCanvas();
+  layoutCanvas();
   pinCamera();
   await loadArena(bench.stageKey);
   requestAnimationFrame((t) => { previous = t; fpsAt = t; loop(t); });
