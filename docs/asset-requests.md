@@ -512,10 +512,17 @@ applies as always.
 domain** (`domains` in `src/characters.js`). Nobody else: a fighter without an
 Expansion has nothing to open with it, and the pose would never be drawn.
 
-**Nothing draws it yet.** This is the one request in either open round that is
-art first and wiring second — the ultimate currently plays `ult_a`/`ult_b`
-throughout, and the sign is the moment before that which the game has never
-had. Delivered, it is one line of animation table to put in front of the ult.
+**The wiring has landed.** This was the one request in either open round that
+was art first and wiring second, and the second half is done: a `domain`
+animation state (`src/characters.js`) is held for the whole call-out, and
+`domains.js` plays it instead of the ultimate for that window. The barrier is
+still the ult — the seal is the declaration, and the ult is the fighter braced
+against what the declaration opened.
+
+So nothing waits on anything. A fighter whose sign has not been drawn falls
+back on their ult loop at the rate it plays today and declares their domain
+exactly as they always have; the drawing goes in the moment it is approved. Two
+of the nine have theirs.
 
 **The pose.** In Jujutsu Kaisen the incantation is opened with a hand seal —
 *shirushi*, a Buddhist **mudra** — held with both hands in front of the body,

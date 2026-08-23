@@ -284,6 +284,71 @@ const diag = await page.evaluate(async () => {
   return { before, after };
 });
 
+// THE HAND SEAL, driven rather than observed.
+//
+// A Domain Expansion is a spoken line and then a barrier, and the two halves
+// are drawn differently now: the seal is held while the words are said, the ult
+// while the barrier lands. Waiting for a CPU match to happen to open a domain
+// and happen to be sampled mid-sentence is the coin toss the aimed-attack probe
+// above was written to avoid, so this casts one and reads the fighter twice —
+// once during the call, once after the barrier has arrived.
+//
+// Gojo is the fighter the menu walk picks and he has a domain, which is why
+// this can be driven at all. He has no seal drawn, so the first cast is the
+// fallback case: the state exists and plays exactly what a domain played
+// before it did. Then the drawing is faked into the manifest and it is cast
+// again, which is the delivered case.
+const seal = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const { performDomain } = await import("/src/domains.js");
+  const { updateFighter } = await import("/src/fighter.js");
+  const { blankInput } = await import("/src/input.js");
+  const { resolvedAnim, clearAnimFrameCache } = await import("/sprites/src/sprites.js");
+  const { spriteManifest } = await import("/src/assets.js");
+
+  const f = state.fighters[0];
+  const key = f.spriteChar || f.charKey;
+  if (!f.char?.domains?.length) return { skipped: key };
+  const read = () => ({ anim: f.animKey, frames: resolvedAnim(key, f.animKey).frames.join("+") });
+
+  const cast = () => {
+    // A clean slate each time: a domain still standing refuses the next one,
+    // which is the rule this probe would otherwise trip over on its second run.
+    //
+    // The PHASE is part of that slate, and it is the one that caught this out.
+    // A CPU match can finish inside the sample window — the check above treats
+    // that as the correct outcome, not a failure — and a domain declared over a
+    // finished round never opens its barrier (`open` bails on the phase), so
+    // the seal was held for the whole action and the probe read it as never
+    // being let go. That is the game being right; this is the probe saying
+    // which match it is asking about.
+    state.phase = "playing";
+    state.domain = null;
+    state.domainCasting = null;
+    state.domainOverlay = null;
+    state.entities = state.entities.filter((e) => e.kind !== "domain");
+    Object.assign(f, {
+      action: null, meter: 999, dead: false, respawnTimer: 0,
+      hitstun: 0, hitPause: 0, invuln: 0,
+    });
+    performDomain(f, 0);
+    // How long the call lasts, read off the cast rather than recomputed: the
+    // barrier is an event scheduled on the action, and that number IS the
+    // window the seal is held for.
+    const at = f.action?.events?.[0]?.at ?? 0;
+    const during = read();
+    for (let t = 0; t < at + 0.2; t += 1 / 60) updateFighter(f, 1 / 60, blankInput());
+    return { at, during, after: read(), opened: !!state.domain };
+  };
+
+  const undrawn = cast();
+  spriteManifest.characters[key].domain_expansion =
+    { ...spriteManifest.characters[key].ult_a, file: `${key}/domain_expansion.png` };
+  clearAnimFrameCache();
+  const drawn = cast();
+  return { key, undrawn, drawn };
+});
+
 
 await browser.close();
 
@@ -438,6 +503,28 @@ check("...and the new strike frame the moment it is delivered",
   diag.after.up.frames === "attack_light_a+attack_diag_up_b"
     && diag.after.air.frames === "attack_air_a+attack_air_diag_down_b",
   `${diag.after.up.frames} | ${diag.after.air.frames}`);
+
+if (seal.skipped) {
+  check("a domain fighter was available to cast one", false,
+    `${seal.skipped} has no domain — the menu walk picks the fighter, so this `
+    + "probe follows whoever that is");
+} else {
+  check("a domain is declared on the hand seal, not on the ultimate",
+    seal.undrawn.during.anim === "domain" && seal.drawn.during.anim === "domain",
+    `${seal.undrawn.during.anim} for ${seal.undrawn.at.toFixed(2)}s of call`);
+  check("...drawing exactly what a domain played before, while the seal is undrawn",
+    seal.undrawn.during.frames === "ult_a+ult_b",
+    seal.undrawn.during.frames);
+  check("...and the seal itself the moment it is delivered",
+    seal.drawn.during.frames === "domain_expansion",
+    seal.drawn.during.frames);
+  check("...then lets it go for the barrier, either way",
+    seal.undrawn.after.anim === "ult" && seal.drawn.after.anim === "ult",
+    `${seal.undrawn.after.anim} / ${seal.drawn.after.anim}`);
+  check("...and the barrier it was declaring actually opened",
+    seal.undrawn.opened && seal.drawn.opened,
+    `${seal.undrawn.opened} / ${seal.drawn.opened}`);
+}
 
 console.log(`\n${samples.length} samples over ${samples.at(-1).t.toFixed(1)}s of match time`);
 console.log(failed ? `${failed} check(s) failed` : "all checks passed");

@@ -3409,20 +3409,10 @@
     "ox": -316.4,
     "oy": -1002,
     "bodyBottom": 256.5,
-    "bodyH": 398.4,
+    "bodyH": 251.0,
     "centroidX": 137.4,
-    "renderScale": 0.303,
-    "file": "nanami/incoming/attack_air_diag_down_b.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.1909,
+    "file": "nanami/attack_air_diag_down_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 985,
@@ -3440,6 +3430,9 @@
       "bodyBottom": "foot=0.959 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.303
     }
    },
    "attack_diag_up_b": {
@@ -3447,21 +3440,11 @@
     "h": 1679,
     "ox": -225.8,
     "oy": -1368,
-    "bodyBottom": 241.4,
-    "bodyH": 354.6,
+    "bodyBottom": 182.9,
+    "bodyH": 351.1,
     "centroidX": 96.3,
-    "renderScale": 0.2112,
-    "file": "nanami/incoming/attack_diag_up_b.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2091,
+    "file": "nanami/attack_diag_up_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 886,
@@ -3481,6 +3464,10 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2112,
+     "bodyBottom": 241.4
     }
    },
    "throw_back": {
@@ -3489,20 +3476,10 @@
     "ox": -316.6,
     "oy": -1379,
     "bodyBottom": 240.9,
-    "bodyH": 512.7,
+    "bodyH": 297.3,
     "centroidX": 227.1,
-    "renderScale": 0.303,
-    "file": "nanami/incoming/throw_back.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.1757,
+    "file": "nanami/throw_back.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 806,
@@ -3520,6 +3497,9 @@
       "bodyBottom": "foot=0.959 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.303
     }
    },
    "throw_down": {
@@ -3527,21 +3507,11 @@
     "h": 1230,
     "ox": -274.0,
     "oy": -919,
-    "bodyBottom": 260.0,
-    "bodyH": 266.2,
+    "bodyBottom": 243,
+    "bodyH": 258.2,
     "centroidX": 144.5,
-    "renderScale": 0.2164,
-    "file": "nanami/incoming/throw_down.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2099,
+    "file": "nanami/throw_down.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 886,
@@ -3561,6 +3531,10 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2164,
+     "bodyBottom": 260.0
     }
    },
    "throw_fwd": {
@@ -3568,21 +3542,11 @@
     "h": 1599,
     "ox": -170.1,
     "oy": -1288,
-    "bodyBottom": 244.7,
-    "bodyH": 329.2,
+    "bodyBottom": 226.2,
+    "bodyH": 299.6,
     "centroidX": 93.1,
-    "renderScale": 0.2059,
-    "file": "nanami/incoming/throw_fwd.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.1874,
+    "file": "nanami/throw_fwd.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 781,
@@ -3602,6 +3566,10 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2059,
+     "bodyBottom": 244.7
     }
    },
    "throw_up": {
@@ -3609,21 +3577,11 @@
     "h": 1689,
     "ox": -121.8,
     "oy": -1378,
-    "bodyBottom": 240.9,
-    "bodyH": 374.5,
+    "bodyBottom": 224.4,
+    "bodyH": 352.0,
     "centroidX": 166.3,
-    "renderScale": 0.2217,
-    "file": "nanami/incoming/throw_up.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2084,
+    "file": "nanami/throw_up.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 538,
@@ -3643,6 +3601,10 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2217,
+     "bodyBottom": 240.9
     }
    }
   },
@@ -8586,23 +8548,13 @@
    "attack_air_diag_down_b": {
     "w": 942,
     "h": 1455,
-    "ox": -285.9,
+    "ox": -231.4,
     "oy": -1144,
     "bodyBottom": 255.4,
     "bodyH": 332.8,
     "centroidX": 126.1,
     "renderScale": 0.2287,
-    "file": "momo/incoming/attack_air_diag_down_b.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "file": "momo/attack_air_diag_down_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 942,
@@ -8622,6 +8574,9 @@
       "renderScale": "area, no pose ratio",
       "ox": "on the placed centre of mass"
      }
+    },
+    "edited": {
+     "ox": -285.9
     }
    },
    "attack_diag_up_b": {
@@ -8633,17 +8588,7 @@
     "bodyH": 360.8,
     "centroidX": 29.0,
     "renderScale": 0.2596,
-    "file": "momo/incoming/attack_diag_up_b.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "file": "momo/attack_diag_up_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1090,
@@ -8670,21 +8615,11 @@
     "h": 1837,
     "ox": -236.9,
     "oy": -1526,
-    "bodyBottom": 240.8,
-    "bodyH": 609.3,
+    "bodyBottom": 228.3,
+    "bodyH": 344.3,
     "centroidX": 172.4,
-    "renderScale": 0.332,
-    "file": "momo/incoming/throw_back.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.1876,
+    "file": "momo/throw_back.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 756,
@@ -8702,6 +8637,10 @@
       "bodyBottom": "foot=0.962 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.332,
+     "bodyBottom": 240.8
     }
    },
    "throw_down": {
@@ -8713,17 +8652,7 @@
     "bodyH": 298.8,
     "centroidX": 148.6,
     "renderScale": 0.2543,
-    "file": "momo/incoming/throw_down.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "file": "momo/throw_down.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 930,
@@ -8751,20 +8680,10 @@
     "ox": -296.1,
     "oy": -978,
     "bodyBottom": 261.7,
-    "bodyH": 310.6,
+    "bodyH": 318.3,
     "centroidX": 123.6,
-    "renderScale": 0.241,
-    "file": "momo/incoming/throw_fwd.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.247,
+    "file": "momo/throw_fwd.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 972,
@@ -8784,7 +8703,12 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.241
+    },
+    "needsReplacement": "quality",
+    "replacementNote": "broken broom"
    },
    "throw_up": {
     "w": 755,
@@ -8792,20 +8716,10 @@
     "ox": -222.5,
     "oy": -1372,
     "bodyBottom": 246.7,
-    "bodyH": 376.8,
+    "bodyH": 361.7,
     "centroidX": 158.5,
-    "renderScale": 0.2239,
-    "file": "momo/incoming/throw_up.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2149,
+    "file": "momo/throw_up.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 755,
@@ -8825,6 +8739,9 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2239
     }
    }
   },
@@ -26448,23 +26365,13 @@
    "attack_air_diag_down_b": {
     "w": 1184,
     "h": 955,
-    "ox": -378.4,
+    "ox": -317.4,
     "oy": -644,
     "bodyBottom": 255.8,
-    "bodyH": 208.7,
+    "bodyH": 223.3,
     "centroidX": 99.9,
-    "renderScale": 0.2185,
-    "file": "panda/incoming/attack_air_diag_down_b.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2338,
+    "file": "panda/attack_air_diag_down_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1184,
@@ -26484,6 +26391,10 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2185,
+     "ox": -378.4
     }
    },
    "attack_diag_up_b": {
@@ -26492,20 +26403,10 @@
     "ox": -335.5,
     "oy": -1056,
     "bodyBottom": 232.0,
-    "bodyH": 292.3,
+    "bodyH": 306.9,
     "centroidX": 126.0,
-    "renderScale": 0.2138,
-    "file": "panda/incoming/attack_diag_up_b.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2245,
+    "file": "panda/attack_diag_up_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1046,
@@ -26525,6 +26426,9 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2138
     }
    },
    "throw_back": {
@@ -26533,20 +26437,10 @@
     "ox": -201.6,
     "oy": -1408,
     "bodyBottom": 211.6,
-    "bodyH": 513.8,
+    "bodyH": 298.0,
     "centroidX": 143.1,
-    "renderScale": 0.299,
-    "file": "panda/incoming/throw_back.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.1734,
+    "file": "panda/throw_back.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 744,
@@ -26564,6 +26458,9 @@
       "bodyBottom": "foot=0.942 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.299
     }
    },
    "throw_down": {
@@ -26571,21 +26468,11 @@
     "h": 910,
     "ox": -428.4,
     "oy": -599,
-    "bodyBottom": 258.4,
-    "bodyH": 212.8,
+    "bodyBottom": 264.4,
+    "bodyH": 229.8,
     "centroidX": 182.9,
-    "renderScale": 0.2338,
-    "file": "panda/incoming/throw_down.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2525,
+    "file": "panda/throw_down.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1118,
@@ -26605,6 +26492,10 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2338,
+     "bodyBottom": 258.4
     }
    },
    "throw_fwd": {
@@ -26613,20 +26504,10 @@
     "ox": -270.9,
     "oy": -853,
     "bodyBottom": 243.7,
-    "bodyH": 268.2,
+    "bodyH": 281.6,
     "centroidX": 54.4,
-    "renderScale": 0.2304,
-    "file": "panda/incoming/throw_fwd.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2419,
+    "file": "panda/throw_fwd.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1060,
@@ -26646,6 +26527,9 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2304
     }
    },
    "throw_up": {
@@ -26654,20 +26538,10 @@
     "ox": -205.6,
     "oy": -1361,
     "bodyBottom": 214.3,
-    "bodyH": 367.5,
+    "bodyH": 389.6,
     "centroidX": 169.6,
-    "renderScale": 0.2198,
-    "file": "panda/incoming/throw_up.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.233,
+    "file": "panda/throw_up.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 699,
@@ -26687,6 +26561,9 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2198
     }
    }
   },
@@ -28232,17 +28109,7 @@
     "bodyH": 314.4,
     "centroidX": 143.7,
     "renderScale": 0.2317,
-    "file": "todo/incoming/attack_air_diag_down_b.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "file": "todo/attack_air_diag_down_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1075,
@@ -28269,21 +28136,11 @@
     "h": 1320,
     "ox": -343.7,
     "oy": -1009,
-    "bodyBottom": 239.6,
-    "bodyH": 321.4,
+    "bodyBottom": 209.6,
+    "bodyH": 334.2,
     "centroidX": 127.2,
-    "renderScale": 0.2435,
-    "file": "todo/incoming/attack_diag_up_b.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2532,
+    "file": "todo/attack_diag_up_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1060,
@@ -28303,6 +28160,10 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2435,
+     "bodyBottom": 239.6
     }
    },
    "throw_back": {
@@ -28311,20 +28172,10 @@
     "ox": -220.8,
     "oy": -1534,
     "bodyBottom": 211.2,
-    "bodyH": 598.9,
+    "bodyH": 320.5,
     "centroidX": 152.3,
-    "renderScale": 0.325,
-    "file": "todo/incoming/throw_back.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.1739,
+    "file": "todo/throw_back.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 764,
@@ -28342,6 +28193,9 @@
       "bodyBottom": "foot=0.946 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.325
     }
    },
    "throw_down": {
@@ -28350,20 +28204,10 @@
     "ox": -362.2,
     "oy": -837,
     "bodyBottom": 248.9,
-    "bodyH": 273.0,
+    "bodyH": 251.2,
     "centroidX": 155.2,
-    "renderScale": 0.2378,
-    "file": "todo/incoming/throw_down.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2188,
+    "file": "todo/throw_down.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1041,
@@ -28383,6 +28227,9 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2378
     }
    },
    "throw_fwd": {
@@ -28390,21 +28237,11 @@
     "h": 1369,
     "ox": -280.4,
     "oy": -1058,
-    "bodyBottom": 237.0,
-    "bodyH": 316.8,
+    "bodyBottom": 232,
+    "bodyH": 312.0,
     "centroidX": 97.9,
-    "renderScale": 0.2314,
-    "file": "todo/incoming/throw_fwd.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2279,
+    "file": "todo/throw_fwd.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 992,
@@ -28424,6 +28261,10 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2314,
+     "bodyBottom": 237.0
     }
    },
    "throw_up": {
@@ -28432,20 +28273,10 @@
     "ox": -198.8,
     "oy": -1520,
     "bodyBottom": 212.0,
-    "bodyH": 404.5,
+    "bodyH": 394.4,
     "centroidX": 145.3,
-    "renderScale": 0.2209,
-    "file": "todo/incoming/throw_up.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2154,
+    "file": "todo/throw_up.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 734,
@@ -28465,6 +28296,9 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2209
     }
    }
   },
@@ -58414,17 +58248,7 @@
     "bodyH": 405.6,
     "centroidX": 31.9,
     "renderScale": 0.3174,
-    "file": "miwa/incoming/attack_air_diag_down_b.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "file": "miwa/attack_air_diag_down_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 891,
@@ -58451,21 +58275,11 @@
     "h": 1572,
     "ox": -188.5,
     "oy": -1261,
-    "bodyBottom": 211.4,
-    "bodyH": 460.6,
+    "bodyBottom": 239.9,
+    "bodyH": 481.4,
     "centroidX": 73.5,
-    "renderScale": 0.293,
-    "file": "miwa/incoming/attack_diag_up_b.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.3062,
+    "file": "miwa/attack_diag_up_b.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 857,
@@ -58485,6 +58299,10 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.293,
+     "bodyBottom": 211.4
     }
    },
    "throw_back": {
@@ -58492,21 +58310,11 @@
     "h": 1767,
     "ox": -266.3,
     "oy": -1456,
-    "bodyBottom": 199.1,
-    "bodyH": 404.1,
+    "bodyBottom": 173.1,
+    "bodyH": 412.2,
     "centroidX": 177.3,
-    "renderScale": 0.2287,
-    "file": "miwa/incoming/throw_back.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2333,
+    "file": "miwa/throw_back.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 805,
@@ -58526,6 +58334,10 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2287,
+     "bodyBottom": 199.1
     }
    },
    "throw_down": {
@@ -58537,17 +58349,7 @@
     "bodyH": 345.6,
     "centroidX": 176.8,
     "renderScale": 0.2732,
-    "file": "miwa/incoming/throw_down.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "file": "miwa/throw_down.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 755,
@@ -58574,21 +58376,11 @@
     "h": 1542,
     "ox": -193.9,
     "oy": -1231,
-    "bodyBottom": 213.3,
-    "bodyH": 396.6,
+    "bodyBottom": 182.8,
+    "bodyH": 426.4,
     "centroidX": 94.4,
-    "renderScale": 0.2572,
-    "file": "miwa/incoming/throw_fwd.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2765,
+    "file": "miwa/throw_fwd.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 826,
@@ -58608,6 +58400,10 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2572,
+     "bodyBottom": 213.3
     }
    },
    "throw_up": {
@@ -58616,20 +58412,10 @@
     "ox": -228.4,
     "oy": -1642,
     "bodyBottom": 187.3,
-    "bodyH": 460.5,
+    "bodyH": 495.1,
     "centroidX": 173.4,
-    "renderScale": 0.2358,
-    "file": "miwa/incoming/throw_up.png",
-    "replaced": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-23T18:46:00+00:00",
-     "live": null
-    },
+    "renderScale": 0.2535,
+    "file": "miwa/throw_up.png",
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 737,
@@ -58649,6 +58435,9 @@
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.2358
     }
    }
   }

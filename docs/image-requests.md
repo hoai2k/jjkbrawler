@@ -12,9 +12,9 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**235 images outstanding.** Every one of them is listed below, with a full URL for anything you need to look at.
+**236 images outstanding.** Every one of them is listed below, with a full URL for anything you need to look at.
 
-- **The sprite game** — 235 images: 222 asked for by rounds 24 and 25, plus [13 flagged in the workbench](#outstanding-by-manifest-not-by-request) as art that exists and is wrong
+- **The sprite game** — 236 images: 222 asked for by rounds 24 and 25, plus [14 flagged in the workbench](#outstanding-by-manifest-not-by-request) as art that exists and is wrong
 - **The live-3D anime path** — 0 images
 - Separately, 20 poses are drawing another pose's file. Not counted above: those are substitutions somebody chose, not images anybody is owed.
 
@@ -55,8 +55,8 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**235 images outstanding for this mode.** 222 asked for by rounds 24 and 25, authored in
-[docs/asset-requests.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests.md) and reproduced whole below, and 13 flagged in the workbench and listed in [Outstanding by manifest, not by request](#outstanding-by-manifest-not-by-request).
+**236 images outstanding for this mode.** 222 asked for by rounds 24 and 25, authored in
+[docs/asset-requests.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests.md) and reproduced whole below, and 14 flagged in the workbench and listed in [Outstanding by manifest, not by request](#outstanding-by-manifest-not-by-request).
 
 - **25A** — The two aimed attacks (70 sprites)
 - **25B** — The domain expansion sign (9 sprites)
@@ -151,10 +151,17 @@ applies as always.
 domain** (`domains` in `src/characters.js`). Nobody else: a fighter without an
 Expansion has nothing to open with it, and the pose would never be drawn.
 
-**Nothing draws it yet.** This is the one request in either open round that is
-art first and wiring second — the ultimate currently plays `ult_a`/`ult_b`
-throughout, and the sign is the moment before that which the game has never
-had. Delivered, it is one line of animation table to put in front of the ult.
+**The wiring has landed.** This was the one request in either open round that
+was art first and wiring second, and the second half is done: a `domain`
+animation state (`src/characters.js`) is held for the whole call-out, and
+`domains.js` plays it instead of the ultimate for that window. The barrier is
+still the ult — the seal is the declaration, and the ult is the fighter braced
+against what the declaration opened.
+
+So nothing waits on anything. A fighter whose sign has not been drawn falls
+back on their ult loop at the rate it plays today and declares their domain
+exactly as they always have; the drawing goes in the moment it is approved. Two
+of the nine have theirs.
 
 **The pose.** In Jujutsu Kaisen the incantation is opened with a hand seal —
 *shirushi*, a Buddhist **mudra** — held with both hands in front of the body,
@@ -599,11 +606,12 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**13 flagged, 20 drawing somebody else's art** (they overlap: a flagged pose can also be one).
+**14 flagged, 20 drawing somebody else's art** (they overlap: a flagged pose can also be one).
 
 | Fighter | Pose | Why | What is wrong | The drawing now | Canon reference |
 |---|---|---|---|---|---|
 | Mei Mei | `attack_air_diag_down_b` | quality | She doesn't have 3 braids, only 2 | [attack_air_diag_down_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/meimei/attack_air_diag_down_b.png) | [meimei_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/meimei_idle.png) |
+| Momo Nishimiya | `throw_fwd` | quality | broken broom | [throw_fwd.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/momo/throw_fwd.png) | [momo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/momo_idle.png) |
 | Takako Uro | `attack_heavy_b` | quality | Costume should be more canonical, but also no smoke coming out of her hand, but do keep the strongly attacking pose with arm extended fully in an attack toward the right. | [attack_heavy_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/uro/attack_heavy_b.png) | [uro_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/uro_idle.png) |
 | Jogo | `attack_up` | pose | We need a sprite with Jogo attacking directly upward. | [ledge_hang.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/ledge_hang.png) — `ledge_hang`'s drawing, not `attack_up`'s | [jogo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/jogo_idle.png) |
 | Takako Uro | `crouch_attack_b` | pose | Should be crouching and leaning rightward, stretching out her leg in a sweep attack rightward at full extension. (but not stretching out her arm, which should be supporting the motion from nearer to the body) | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/uro/attack_dash.png) — `attack_dash`'s drawing, not `crouch_attack_b`'s | [uro_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/uro_idle.png) |

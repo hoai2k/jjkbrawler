@@ -64,6 +64,23 @@ const REQUESTS = join(ROOT, "docs", "asset-requests.md");
 // anything else and the list has nothing left in it.
 const NOT_OWED = new Set();
 
+// States a fighter only reaches if they have the MECHANIC behind them.
+//
+// `domain` is the hand seal held while a Domain Expansion is declared
+// (src/domains.js), and a fighter with no `domains` entry has nothing to
+// declare — the state sits in the shared table because every fighter's table IS
+// the shared table, not because every fighter can play it. Round 25B asks for
+// the drawing from the nine sorcerers who have a domain and says in as many
+// words that nobody else is owed one: "a fighter without an Expansion has
+// nothing to open with it, and the pose would never be drawn."
+//
+// This is not NOT_OWED above, which is a pose nobody owes at all. These are
+// owed — by exactly the fighters who can reach the state, and this check still
+// holds those nine to it.
+const GATED_STATES = {
+  domain: (charKey) => !!CHARACTERS[charKey]?.domains?.length,
+};
+
 const man = JSON.parse(readFileSync(MANIFEST, "utf8"));
 const requests = readFileSync(REQUESTS, "utf8");
 
@@ -78,7 +95,9 @@ const SETS = [...CHARACTER_KEYS, ...Object.keys(SPRITE_ACTORS)];
 function owed(charKey) {
   const out = new Set();
   const anims = CHARACTERS[charKey]?.anims || SPRITE_ACTORS[charKey]?.anims || {};
-  for (const anim of Object.values(anims)) {
+  for (const [state, anim] of Object.entries(anims)) {
+    const gate = GATED_STATES[state];
+    if (gate && !gate(charKey)) continue;
     for (const frame of anim?.frames || []) if (!NOT_OWED.has(frame)) out.add(frame);
   }
   return [...out].sort();
