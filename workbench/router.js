@@ -1,6 +1,6 @@
 // The workbench hub. `/workbench/?edit=<mode>` reaches ANY bench in the repo.
 //
-// There are four benches and they live in four places — `/sprites/workbench/`,
+// The benches live in four places — `/sprites/workbench/`,
 // `/billboards/workbench/`, `/render3d/workbench/` and this one — because each
 // sits beside the code it drives. That is right for the code and useless for
 // the fingers: nobody remembers which directory the joint-reads editor is under.
@@ -24,7 +24,7 @@
   // one thing no cache argues with.
   //
   // BUMP THIS WHENEVER THE BENCH CHANGES.
-  var BENCH_VERSION = "21";
+  var BENCH_VERSION = "22";
   if (document.currentScript) document.currentScript.dataset.version = BENCH_VERSION;
   // Where each mode lives. Paths are RELATIVE, so the whole thing keeps working
   // under a subdirectory — the GitHub Pages build serves this at
@@ -37,6 +37,7 @@
     verification: null,
     cards: null,
     character: null,
+    arena: null,
     sprites: "../sprites/workbench/",
     actions: "../sprites/workbench/?edit=actions",
     billboards: "../billboards/workbench/",
@@ -73,6 +74,10 @@
     char: "character", characters: "character", fighter: "character",
     fighters: "character", roster: "character", moves: "character",
     animations: "character", anims: "character", drive: "character",
+    // The arena bench. Every word for "the board is the wrong shape".
+    arenas: "arena", stage: "arena", stages: "arena", board: "arena",
+    boards: "arena", level: "arena", levels: "arena", platform: "arena",
+    platforms: "arena", layout: "arena", layouts: "arena", terrain: "arena",
   };
 
   var here = new URL(window.location.href);
@@ -125,22 +130,22 @@
   var key = bust || version || "0";
   window.__benchCacheKey = key;
 
-  // Three benches live at this address (see ROUTES), and they do not share a
+  // Five benches live at this address (see ROUTES), and they do not share a
   // module or a stylesheet — so which files get the cache key depends on
   // which one was asked for. The shared palette and header classes are in
   // workbench.css either way; a bench with more of its own adds a second
   // sheet rather than duplicating that one.
   var bench = document.documentElement.dataset.bench || "audio";
   var MODULES = { audio: "audio.js", verification: "verification.js", cards: "cards.js",
-                  character: "character.js" };
+                  character: "character.js", arena: "arena.js" };
   var EXTRA_CSS = { verification: "verification.css", cards: "cards.css",
-                    character: "character.css" };
+                    character: "character.css", arena: "arena.css" };
 
   // The document's <title> is the audio bench's, because that is whose markup
   // index.html holds. A tab that says "Audio Workbench" over the card bench is
   // wrong in the one place a person looks when three of these are open.
   var TITLES = { verification: "Verification", cards: "Card Workbench",
-                 character: "Character Bench" };
+                 character: "Character Bench", arena: "Arena Bench" };
   if (TITLES[bench]) document.title = TITLES[bench] + " — JJK Brawler II";
 
   var sheets = ["workbench.css"];

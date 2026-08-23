@@ -12,8 +12,8 @@ import { ART_SCALE } from "./config_tuning.js";
 // deliberate perches (Crosswalk's signs, Mist Pier's lantern post). Drop-
 // throughs are a 15px sliver so attacks read through them; mains stay 42 —
 // they are the ground and should read heavy. Main widths deliberately spread
-// from 600 (Bridge Duel, the small scary duel board) to 1192 (Sunken
-// Crossing), widened across the board in the six-player pass (level-design-
+// from 600 (Bridge Duel, the small scary duel board) to 1560 (the two walk-
+// offs), widened across the board in the six-player pass (level-design-
 // review.md, "Second widening") so a crowd has ground to stand apart on.
 //
 // WALK-OFF WIDTH — why the two walk-offs are 1560 and start off-world.
@@ -133,6 +133,19 @@ export const STAGES = [
     { x: 166, y: 578, w: 948, h: 42, kind: "main" }, { x: 240, y: 458, w: 180, h: 15, kind: "side" }, { x: 860, y: 458, w: 180, h: 15, kind: "side" }, { x: 430, y: 338, w: 170, h: 15, kind: "side" }, { x: 680, y: 338, w: 170, h: 15, kind: "side" }
   ] }
 ];
+
+// THE TABLE AS SOMEBODY TYPED IT, taken before the thickness pass below bends
+// it. The arena workbench (/workbench/?edit=arena) edits and exports THESE
+// numbers — the authored ones — rather than the runtime thickness: `h` below is
+// multiplied by ART_SCALE in place, so a bench that read the live table, let you
+// move a platform, and wrote it back would shave every slab by 30% on every
+// round trip. Nothing in the game reads this; it exists so a tool can round-trip
+// a board without lying about it.
+export const AUTHORED_STAGES = STAGES.map((s) => ({
+  ...s,
+  mods: s.mods ? { ...s.mods } : undefined,
+  platforms: s.platforms.map((p) => ({ ...p })),
+}));
 
 // THE SLAB THINS WITH THE ROSTER.
 //

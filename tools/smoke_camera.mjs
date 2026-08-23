@@ -438,5 +438,72 @@ check(still.x - state.camera.x > 40, "a real move still moves the frame",
   `moved ${(still.x - state.camera.x).toFixed(1)} px`);
 pass("deadzone kills the jiggle without deadening the shot");
 
+// ---------------------------------------------------------- the high ground
+//
+// The high-play envelope (camera.js highPlayBias): a fight that climbs carries
+// the framing up, and the ground stays low for a while after it comes back
+// down rather than snapping to mid-screen the instant everyone lands.
+{
+  const settle = (steps) => { for (let i = 0; i < steps; i++) updateCamera(DT); };
+  const put = (y, steps) => {
+    for (let i = 0; i < steps; i++) {
+      state.fighters[0].y = y;
+      state.fighters[1].y = y;
+      updateCamera(DT);
+    }
+  };
+  const main = () => state.platforms[0];
+
+  // A fight that never leaves the floor earns no bias at all.
+  resetState();
+  state.fighters[0].x = 500; state.fighters[1].x = 780;
+  put(main().y, 240);
+  const groundT = state.camera.highT;
+  const groundY = state.camera.y;
+  check(groundT < 0.02, "ground-level play earns no lift", `highT=${groundT.toFixed(3)}`);
+
+  // Play that lives above the floor saturates it.
+  put(main().y - 300, 300);
+  check(state.camera.highT > 0.9, "sustained high play carries the frame up",
+    `highT=${state.camera.highT.toFixed(3)}`);
+
+  // ...and one landing does not throw it away.
+  put(main().y, 60);
+  const heldT = state.camera.highT;
+  const heldY = state.camera.y;
+  check(heldT > 0.6, "the lift survives a landing", `highT=${heldT.toFixed(3)}`);
+  // The whole point: same bodies, same places, and the ground sits LOWER in
+  // frame than it did before the fight went upstairs.
+  check(heldY < groundY - 20, "...so the ground still sits low in frame",
+    `cam.y ${groundY.toFixed(0)} -> ${heldY.toFixed(0)}`);
+
+  // Stay down and it eases back to where it started.
+  put(main().y, 1500);
+  check(state.camera.highT < 0.2, "and eases back once the fight stays down",
+    `highT=${state.camera.highT.toFixed(3)}`);
+
+  // A brief hop is not "using the top of the screen".
+  resetState();
+  state.fighters[0].x = 500; state.fighters[1].x = 780;
+  settle(120);
+  put(main().y - 240, 18);   // ~0.3s in the air, one jump's worth
+  put(main().y, 6);
+  check(state.camera.highT < 0.35, "a single hop barely moves it",
+    `highT=${state.camera.highT.toFixed(3)}`);
+
+  // The bias is a preference, never a way to lose somebody: a body on the floor
+  // under a saturated envelope is still inside the frame.
+  resetState();
+  state.fighters[0].x = 500; state.fighters[1].x = 780;
+  put(main().y - 300, 300);
+  state.fighters[1].y = main().y;          // one comes down, one stays up
+  for (let i = 0; i < 30; i++) updateCamera(DT);
+  const halfH = WORLD.h / 2 / state.camera.zoom;
+  const lowest = state.camera.y + halfH;
+  check(state.fighters[1].y < lowest, "containment still overrides the lift",
+    `body ${state.fighters[1].y} vs frame bottom ${lowest.toFixed(0)}`);
+  pass("the frame remembers the high ground");
+}
+
 console.log(failures ? `\n${failures} check(s) failed` : "\nall checks passed");
 process.exit(failures ? 1 : 0);

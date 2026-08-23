@@ -1,6 +1,7 @@
 import { state } from "./state.js";
 import { clamp, lerp } from "./utils.js";
 import { WORLD, RESPAWN_WAIT } from "./constants.js";
+import { mainPlatform } from "./stages.js";
 import { ART_SCALE } from "./config_tuning.js";
 
 // Smash-style framing: fit the alive fighters' bounding box, padded, and zoom
@@ -35,7 +36,7 @@ const ZOOM_SOLO = 1.12 / ART_SCALE;
 // blast zone did not move when the bodies shrank — it is board, not body. Held
 // at 0.78 the frame still covers 1641 x 923 world px, which is what holding two
 // fighters off opposite ledges actually costs.
-const ZOOM_MIN = 0.78;
+export const ZOOM_MIN = 0.78;
 // How far off the world the view centre may push the frame, so a fighter
 // scrapping for a ledge from off-stage stays on screen. Generous on purpose:
 // it is the containment pass below, not this clamp, that decides where the
@@ -213,6 +214,54 @@ const PAN_MAX_SPEED = 720;
 const ZOOM_IN_DAMP = 0.0015;
 const ZOOM_OUT_DAMP = 0.00002;
 
+// THE FRAME REMEMBERS THAT THE FIGHT WENT UPSTAIRS.
+//
+// The shot is framed around the bodies, so a fight that climbs to the top
+// platform pulls the camera up and the main platform drops down the screen —
+// which is right, and which the frame then throws away the moment everyone
+// lands, snapping the ground back to mid-screen with a band of empty backdrop
+// under it. On a board whose play LIVES up top that is a camera bobbing up and
+// down all match, and it is worst exactly where the headroom matters.
+//
+// So how much play is happening high up is remembered, and the framing keeps
+// the ground low for as long as it stays true. This is the standard shape for
+// "react fast, forget slowly" — an ATTACK/RELEASE ENVELOPE, the same asymmetric
+// damping Cinemachine gives a framing target and the same trick the zoom above
+// already plays (ZOOM_IN_DAMP vs ZOOM_OUT_DAMP: settle slowly, open instantly).
+// One state variable, two rates, no modes.
+//
+//   drive    how far the highest fighter is above the main platform, as a
+//            fraction of HIGH_REF — 0 on the ground, 1 at a top platform
+//   attack   ~1.4s: a single hop nudges it, a fight that stays up saturates it
+//   release  ~9.5s: the ground stays low well past one player touching down,
+//            and only a real return to ground-level play eases it back
+//
+// The bias is a PREFERENCE, applied to the framing target: the containment
+// pass below still owes every body a place in frame and overrides this
+// whenever it binds, so remembering the high ground can never lose somebody.
+const HIGH_REF = 240;                 // ~a double jump's rise: full deflection
+const HIGH_BIAS_MAX = 170 * ART_SCALE; // how far up the frame may be carried
+const HIGH_ATTACK_DAMP = 0.5;         // toward more headroom — quick, not instant
+const HIGH_RELEASE_DAMP = 0.9;        // back to the default — slow on purpose
+
+/** Step the high-play envelope and return this frame's upward framing bias in
+ *  world px. `alive` is the bodies actually on the stage. */
+function highPlayBias(dt, alive) {
+  const cam = state.camera;
+  const plat = mainPlatform(state.platforms);
+  let drive = 0;
+  if (plat && alive.length) {
+    // The HIGHEST body decides: it is the one whose headroom is in question,
+    // and it is what "the top of the screen is being used" means.
+    let above = -Infinity;
+    for (const f of alive) above = Math.max(above, plat.y - f.y);
+    drive = clamp(above / HIGH_REF, 0, 1);
+  }
+  const damp = drive > (cam.highT ?? 0) ? HIGH_ATTACK_DAMP : HIGH_RELEASE_DAMP;
+  cam.highT = lerp(cam.highT ?? 0, drive, 1 - Math.pow(damp, dt));
+  return HIGH_BIAS_MAX * cam.highT;
+}
+
 /** Clamp a view centre so the frame stays over the world, allowing `overscan`
  *  px of gutter past each edge. A view wider than world+gutter just centres. */
 function clampView(c, half, size, overscan) {
@@ -306,6 +355,11 @@ export function updateCamera(dt) {
   // Down by half the band: the fight lands in the middle of the strip under
   // the HUD instead of the middle of the canvas.
   cy -= bandWorld(clamp(zoomTarget, ZOOM_MIN, ZOOM_MAX)) / 2;
+
+  // ...and up by whatever the fight's recent altitude has earned, which keeps
+  // the ground low in frame while play stays high. Stepped every frame, so it
+  // decays on the menu and between matches rather than freezing mid-lift.
+  cy -= highPlayBias(dt, alive);
 
   // The deadzone, on the framing target rather than on the camera: everything
   // downstream — the ease, the speed limit, the containment pass — still works

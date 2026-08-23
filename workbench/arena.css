@@ -1,0 +1,229 @@
+/* The arena bench. The shared palette, the header bar and the ghost buttons
+   come from workbench.css; this is the three-column body, the editing chrome
+   and the property fields.
+
+   Everything is scoped under .arenabench on purpose. The viewer furniture has
+   the same names the character bench uses (.viewer, .viewer__foot, .toggle) —
+   and .viewer means something ELSE again on the card bench — so nothing here
+   is allowed out of this bench's own subtree. */
+
+.arenabench {
+  display: grid;
+  grid-template-columns: minmax(180px, 230px) 1fr minmax(230px, 280px);
+  gap: 14px;
+  padding: 14px;
+  height: calc(100vh - 58px);
+  box-sizing: border-box;
+}
+
+/* ------------------------------------------------------------- board list */
+
+.arenabench .arenas {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: #171a24;
+  border: 1px solid #2a2f3e;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.arenabench .arenas__head { padding: 10px 10px 6px; border-bottom: 1px solid #232838; }
+
+.arenabench .arenas__search input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  background: #10131b;
+  border: 1px solid #2d3346;
+  border-radius: 6px;
+  color: var(--text);
+  font: inherit;
+}
+
+.arenabench .arenas__hint { margin: 6px 0 0; font-size: 11px; color: #7a839c; line-height: 1.45; }
+
+.arenabench .arenas__list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.arenabench .arena {
+  padding: 7px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.arenabench .arena:hover { background: #1d2231; }
+.arenabench .arena.is-on { background: #223052; border-color: #3c6ea8; }
+.arenabench .arena b { font-size: 13px; font-weight: 600; }
+.arenabench .arena span { font-size: 11px; color: #8b95b0; font-family: ui-monospace, monospace; }
+
+/* ----------------------------------------------------------------- viewer */
+
+.arenabench .viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.arenabench .viewer__stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.arenabench .viewer canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #05070f;
+  border: 1px solid #2a2f3e;
+  border-radius: 10px;
+  display: block;
+}
+/* Editing is a pointer activity, so the picture stops behaving like a picture:
+   no text selection, no touch panning, no drag-the-image. */
+.arenabench .viewer canvas.is-editing {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.arenabench .viewer__overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 8, 15, 0.72);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+  pointer-events: none;
+}
+.arenabench .viewer__overlay.is-on { display: flex; }
+/* A message rather than a curtain: a flash says what just happened without
+   hiding the board it happened to. */
+.arenabench .viewer__overlay.is-flash {
+  background: none;
+  align-items: flex-start;
+  justify-content: center;
+}
+.arenabench .viewer__overlay.is-flash::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+}
+.arenabench .viewer__overlay.is-flash {
+  color: #bff3dc;
+  text-shadow: 0 1px 6px #000, 0 0 18px rgba(0, 0, 0, 0.9);
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  padding-top: 14px;
+}
+
+.arenabench .viewer__foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--dim);
+}
+.arenabench .viewer__foot .toggle { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+.arenabench .viewer__foot .zoom { cursor: default; }
+.arenabench .viewer__foot .zoom input { width: 90px; accent-color: #6ba8ff; }
+.arenabench .viewer__foot .zoom span { min-width: 38px; font-family: ui-monospace, monospace; }
+.arenabench .viewer__fps, .arenabench .viewer__pads {
+  font-family: ui-monospace, monospace;
+}
+.arenabench .viewer__fps { margin-left: auto; }
+
+.arenabench .dummyPick {
+  padding: 4px 7px;
+  background: #10131b;
+  border: 1px solid #2d3346;
+  border-radius: 6px;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+.arenabench .dummyPick:hover { border-color: #3c6ea8; }
+
+/* ------------------------------------------------------------ properties */
+
+.arenabench .props {
+  background: #171a24;
+  border: 1px solid #2a2f3e;
+  border-radius: 10px;
+  padding: 12px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.arenabench .props h2 {
+  margin: 14px 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8b95b0;
+}
+.arenabench .props h2:first-child { margin-top: 0; }
+
+.arenabench .props .sub { margin: 0 0 8px; font-size: 11px; color: #7a839c; line-height: 1.5; }
+.arenabench .props .sub.is-ok { color: #7fd6a8; }
+.arenabench .props .sub.is-warn { color: var(--warn); }
+.arenabench .props .sub.is-bad { color: #ff8b9c; }
+
+.arenabench .field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 7px;
+  font-size: 12px;
+  color: var(--dim);
+}
+.arenabench .field input,
+.arenabench .field select {
+  flex: 1;
+  min-width: 0;
+  padding: 5px 7px;
+  background: #10131b;
+  border: 1px solid #2d3346;
+  border-radius: 6px;
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-family: ui-monospace, monospace;
+}
+.arenabench .field-row { display: flex; gap: 8px; }
+.arenabench .field-row .field { flex: 1; }
+
+.arenabench .props .toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 9px;
+  font-size: 12px;
+  color: var(--dim);
+  cursor: pointer;
+}
+
+@media (max-width: 1100px) {
+  .arenabench { grid-template-columns: 1fr; height: auto; }
+}
