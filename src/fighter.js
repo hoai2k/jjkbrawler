@@ -857,11 +857,17 @@ function standMargin(plat) {
  * like standing against it; stopping the origin at the face buries half of
  * them in it, and that is the one thing this is for looking at.
  */
-function pushOutOfWalls(f) {
+function pushOutOfWalls(f, prevY) {
   for (const w of state.platforms) {
     if (w.kind !== "wall" || w.ghost) continue;
     if (f.y <= w.y) continue;                    // on top of it, or over it
     if (f.y > w.y + w.h + 1) continue;           // below its foot
+    // LANDING on it, not walking into it: a fighter dropping onto the top has
+    // feet a few pixels below the lip for exactly one frame before the
+    // platform test (same prevY window) sets them on it. Ejecting them
+    // sideways here made a wall's top unlandable — you were spat off the face
+    // in the frame you arrived.
+    if (prevY <= w.y + 4 && f.vy >= 0) continue;
     // WHICH SIDE, from where they are rather than from where they were: a wall
     // is thin and a step is small, so the near face is the one they are
     // nearest, and nothing has to be remembered between frames for it.
@@ -983,7 +989,7 @@ export function isTeetering(f) {
 }
 
 function resolvePlatforms(f, prevY) {
-  pushOutOfWalls(f);
+  pushOutOfWalls(f, prevY);
   f.grounded = false;
   // A fighter's own revival platform is checked first and only for them, so
   // they can stand on it, walk along it, and step off the end of it exactly the
@@ -1148,7 +1154,7 @@ export function respawnX(f) {
   if (set) return set[f.id] || RESPAWN_X[f.id] || 640;
   // Five or more (the Players vs CPUs and Battle Royal modes): come back where
   // this fighter started, which is already spread across the stage.
-  return spawnXs(state.fighters.length)[f.id - 1] ?? RESPAWN_X[f.id] ?? 640;
+  return spawnXs(state.fighters.length, mainPlatform(state.platforms))[f.id - 1] ?? RESPAWN_X[f.id] ?? 640;
 }
 
 function respawn(f) {
@@ -1904,7 +1910,7 @@ export function updateFighter(f, dt, input) {
   if (f.vy >= 0 || f.grounded) resolvePlatforms(f, prevY);
   // Rising skips the floor test — there is no floor to catch on the way up —
   // but a wall stops you whichever way you are travelling.
-  else { pushOutOfWalls(f); f.grounded = false; }
+  else { pushOutOfWalls(f, prevY); f.grounded = false; }
 
   if (!f.grounded) tryGrabLedge(f);
   // After the contact test, so it reads the platform this step actually left

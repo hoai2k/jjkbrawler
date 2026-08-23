@@ -163,7 +163,7 @@ async function resetMatch() {
     return { x: clamp(x, main.x + 50, main.x + main.w - 50), y: main.y };
   };
 
-  const spawns = spawnXs(entrantCount);
+  const spawns = spawnXs(entrantCount, main);
   state.fighters = Array.from({ length: entrantCount }, (_, i) => {
     const id = i + 1;
     const spot = spawnSpot(spawns[i]);
