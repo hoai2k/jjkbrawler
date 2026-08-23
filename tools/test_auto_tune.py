@@ -38,6 +38,7 @@ def main():
     anims = A.anims_by_frame(open(A.CHARACTERS_JS).read(), list(man["characters"]))
     foot = A.learn_foot(man, anims)
     sizes, levels = A.learn_sizes(man, A.DEFAULT_REVIEWED, anims)
+    area = A.learn_area(man, anims)
 
     check(foot["global"] is not None and 0.85 < foot["global"] < 1.0,
           "the foot fraction learns to something plausible", f"{foot['global']:.4f}")
@@ -95,11 +96,12 @@ def main():
     states = tuple(sorted(s for s, ks in anims[char].items() if key in ks))
     want = ["foot", "size", "centre"]
 
-    out, why = A.tune_frame(char, key, stored, states, foot, sizes, levels, idle, want)
+    out, why = A.tune_frame(char, key, stored, states, foot, sizes, levels, idle, want,
+                         area)
     check(not why and out, "it has something to say about a freshly imported pose",
           why or ", ".join(out))
-    check("bodyBottom" in out and "ox" in out,
-          "the ground contact and the centring", ", ".join(sorted(out)))
+    check("bodyBottom" in out and "ox" in out and "renderScale" in out,
+          "the ground contact, the centring and the size", ", ".join(sorted(out)))
     # The foot line is the one with a guaranteed direction: every one of the 513
     # hand corrections raised it off the bottom of the art, so the tuner must
     # never lower it past there.
@@ -113,7 +115,8 @@ def main():
     settled = dict(stored)
     for field, (_, new, _) in out.items():
         settled[field] = new
-    again, _ = A.tune_frame(char, key, settled, states, foot, sizes, levels, idle, want)
+    again, _ = A.tune_frame(char, key, settled, states, foot, sizes, levels, idle, want,
+                          area)
     check(not again, "running it twice changes nothing the second time",
           ", ".join(sorted(again)) or "(nothing)")
 
@@ -121,14 +124,16 @@ def main():
     for field in ("bodyBottom", "ox", "renderScale"):
         guarded = dict(stored)
         guarded["edited"] = {field: 1.0}
-        got, _ = A.tune_frame(char, key, guarded, states, foot, sizes, levels, idle, want)
+        got, _ = A.tune_frame(char, key, guarded, states, foot, sizes, levels, idle,
+                          want, area)
         check(field not in got, f"a hand-edited {field} is left alone",
               ", ".join(sorted(got)) or "(nothing)")
 
     # An `edited` map covering everything leaves nothing to do at all.
     locked = dict(stored)
     locked["edited"] = {"bodyBottom": 1.0, "ox": 1.0, "renderScale": 1.0}
-    got, _ = A.tune_frame(char, key, locked, states, foot, sizes, levels, idle, want)
+    got, _ = A.tune_frame(char, key, locked, states, foot, sizes, levels, idle, want,
+                          area)
     check(not got, "a fully tuned pose is not touched at all",
           ", ".join(sorted(got)) or "(nothing)")
 
@@ -149,12 +154,67 @@ def main():
 
     # ---- 3. a rule that is not a rule is not applied
     #
-    # This pose's states are hand-judged, so the size rule must decline it even
-    # though it was asked for.
+    # This pose's states are hand-judged, so the height-ratio rule must decline
+    # it. What sizes it instead is the area rule, which does not need the state
+    # to be uniform because it is measuring the drawing rather than recalling a
+    # ratio — and it says so in its reason, which is how the two are told apart
+    # on the round's output.
     check(all(not sizes[s]["uniform"] for s in states if s in sizes),
           f"{'/'.join(states)} is a judged state, not a uniform one")
-    check("renderScale" not in out and "bodyH" not in out,
-          "so the size rule declines it", ", ".join(sorted(out)))
+    check(out.get("renderScale") and "area" in out["renderScale"][2],
+          "so it is sized from ink area instead",
+          out.get("renderScale", (0, 0, "not sized"))[2])
+    check(("bodyH" in out) == ("renderScale" in out),
+          "and the area rule moves both size fields together")
+
+    # The area rule is measured against the character's idle, so the idle must
+    # come out of it unmoved — a reference frame that resizes itself would walk
+    # the whole set every time the tuner ran.
+    idle_key = area["refs"][char]["key"]
+    idle_meta = dict(man["characters"][char][idle_key])
+    idle_meta.pop("edited", None)
+    idle_states = tuple(sorted(s for s, ks in anims[char].items() if idle_key in ks))
+    got, _ = A.tune_frame(char, idle_key, idle_meta, idle_states, foot, sizes,
+                          levels, idle, ["size"], area)
+    check("renderScale" not in got, "the reference idle is never resized by it",
+          ", ".join(sorted(got)) or "(nothing)")
+
+    # A pose whose state has no measured ratio is running on area alone, and a
+    # frame whose area is not the fighter's silhouette would be sized off it.
+    # Past MAX_AREA_SHIFT it declines — and declining the SIZE is not declining
+    # the pose, so the centring still lands.
+    stranger = dict(stored)
+    stranger["renderScale"] = stored["renderScale"] * 3
+    got, _ = A.tune_frame(char, key, stranger, ("nobody_measured_this",), foot,
+                          sizes, levels, idle, ["size", "centre"], area)
+    check("renderScale" not in got and "ox" in got,
+          "a huge resize on an unmeasured state is refused, and the centring is not",
+          ", ".join(sorted(got)) or "(nothing)")
+
+    # ---- the centring prefers an anchor somebody placed
+    #
+    # `bake_anchors.py` writes `com` AT the centroid, so an anchor that has been
+    # dragged away from it is a person's answer to the same question and beats
+    # the measurement. One that has not been dragged IS the measurement, and
+    # must not change anything.
+    m_art = A.measure(os.path.join(A.SPRITES, stored["file"]))
+    moved = dict(stored)
+    moved["anchors"] = {"com": [m_art["centroid_x"] + 40, 100]}
+    got, _ = A.tune_frame(char, key, moved, states, foot, sizes, levels, idle,
+                          ["centre"], area)
+    check(got.get("ox") and "placed" in got["ox"][2],
+          "a dragged com anchor is what the frame is centred on",
+          got.get("ox", (0, 0, "not centred"))[2])
+    baked = dict(stored)
+    baked["anchors"] = {"com": [m_art["centroid_x"], 100]}
+    got_b, _ = A.tune_frame(char, key, baked, states, foot, sizes, levels, idle,
+                            ["centre"], area)
+    check(got_b.get("ox") and "placed" not in got_b["ox"][2],
+          "an untouched one is the centroid, and says so",
+          got_b.get("ox", (0, 0, "not centred"))[2])
+    check(abs(got["ox"][1] - got_b["ox"][1] + 40) < 0.2,
+          "and the two differ by exactly how far the anchor was dragged",
+          f"{got['ox'][1]:g} vs {got_b['ox'][1]:g}")
 
     # A pose on a uniform state does get sized.
     for cand_char, cand_key in (("maki", "hurt"), ("gojo", "hurt"), ("gojo", "fall")):
@@ -167,7 +227,8 @@ def main():
         m2 = dict(frames[cand_key])
         m2.pop("edited", None)
         base = man["characters"][cand_char]["idle_a"]["bodyH"]
-        got, _ = A.tune_frame(cand_char, cand_key, m2, st, foot, sizes, levels, base, ["size"])
+        got, _ = A.tune_frame(cand_char, cand_key, m2, st, foot, sizes, levels, base,
+                          ["size"], area)
         check("renderScale" in got and "bodyH" in got,
               f"a uniform state ({'/'.join(st)}) is sized", ", ".join(sorted(got)))
         # bodyH and renderScale have to move together or the manifest disagrees
@@ -194,7 +255,7 @@ def main():
         mp = A.measure(os.path.join(A.SPRITES, fresh["file"]))
         fresh["bodyBottom"] = round(fresh["oy"] + mp["body_bottom"], 1)
         got, why2 = A.tune_frame(cand_char, pk, fresh, ("prone",), foot, sizes, levels,
-                                 None, ["foot"])
+                                 None, ["foot"], area)
         moved = got.get("bodyBottom")
         check(bool(moved) and not why2,
               f"a prone pose ({cand_char}) is placed rather than refused", why2 or "")
@@ -209,7 +270,8 @@ def main():
     # ---- the foot guard
     absurd = dict(stored)
     absurd["bodyBottom"] = stored["bodyBottom"] + 10_000
-    got, why = A.tune_frame(char, key, absurd, states, foot, sizes, levels, idle, ["foot"])
+    got, why = A.tune_frame(char, key, absurd, states, foot, sizes, levels, idle,
+                          ["foot"], area)
     check("bodyBottom" not in got and why,
           "a foot line that is nowhere near the drawing is refused, with a reason",
           why or "")
