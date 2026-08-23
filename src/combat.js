@@ -212,8 +212,23 @@ export function spawnMelee(owner, cfg) {
     heavy: !!cfg.heavy,
     spike: !!cfg.spike,
     critBand: cfg.critBand || null,
-    // Carried purely so the strike arc can show how hard this swing is
-    // (drawStrikeArcs in render.js). Nothing in the simulation reads it.
+    // ---- carried for the STRIKE ARC, and read by nothing in the simulation.
+    //
+    // These three are how a swing says what it looks like, and they were the
+    // one part of a move that did not survive being spawned. `strikeArcs` is
+    // handed the HITBOX (drawStrikeArcs, render.js), so a field the move set
+    // and this list did not copy simply was not there when the crescent was
+    // drawn — and every one of them defaults to the answer for a level
+    // standing swing, which is why nothing ever looked obviously broken.
+    //
+    // What it cost: an AIMED attack drew its arc dead level, at every angle,
+    // for as long as aiming has existed. The two checks that cover this
+    // (tools/smoke_attack_dirs.mjs, tools/check_strike_arcs.mjs) both called
+    // `strikeArcs` on the move rather than on the spawned box, so both passed
+    // while the game drew something else. They read the box now.
+    sweep: cfg.sweep || null,
+    aimTilt: cfg.aimTilt || 0,
+    pivotY: Number.isFinite(cfg.pivotY) ? cfg.pivotY : null,
     charge: cfg.charge || 0,
     critChance: cfg.critChance || 0,
     stunBonus: cfg.stunBonus || 0,

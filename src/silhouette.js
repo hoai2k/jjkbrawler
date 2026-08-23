@@ -63,7 +63,8 @@
 import { spriteManifest, frameMeta } from "./assets.js";
 import { MODEL_REACH } from "./config_model_reach.js";
 import {
-  spriteReach, verifiedReach, reachGuard, contactFrame,
+  spriteReach, verifiedReach, verifiedHeight, reachGuard, heightGuard,
+  contactFrame,
 } from "./strike_reach.js";
 import { resolvedAnim, frameFootY } from "../sprites/src/sprites.js";
 import { headHeightTarget, referenceSpan } from "./heights.js";
@@ -101,6 +102,7 @@ const AIR_STATES = ["jump", "fall"];
 
 const cache = new Map();
 const moveCache = new Map();
+const heightCache = new Map();
 const paintedCache = new Map();
 let rosterCache = null;
 let rosterSpanCache = null;
@@ -151,6 +153,7 @@ export function refreshSilhouettes(charKey = null) {
   // refresh cannot just delete one entry — and there are a few hundred of
   // them at most, so rebuilding the lot costs nothing worth a smarter index.
   moveCache.clear();
+  heightCache.clear();
   paintedCache.clear();
   rosterCache = null;
   rosterSpanCache = null;
@@ -267,6 +270,49 @@ export function moveReach(charKey, state) {
   const out = raw == null ? b.reach : band(raw, BODY.reachBand, g.lo, g.hi);
   moveCache.set(key, out);
   return out;
+}
+
+/**
+ * How high one attack's blow LANDS, in world px above the foot line — or null
+ * when the art has not answered for this move.
+ *
+ * `moveReach`'s vertical twin, and it exists because the up attacks had no
+ * equivalent. A forward swing's range has come off the drawings since the
+ * strike points landed; a RISING one's did not, and could not, because nothing
+ * read the contact point's `y`. Its box was a literal written for a
+ * reference-height fighter and scaled by height alone, so every fighter's up
+ * attack topped out at the same 1.88 body heights — and since the strike arc is
+ * drawn at the box's far edge, every fighter's up attack marked itself most of
+ * a body height above the fist throwing it.
+ *
+ * Null rather than a fallback, deliberately: the caller is a move that already
+ * has an authored literal to fall back to, and quietly substituting a fighter's
+ * scalar reach here would put an up smash's ceiling at arm's length.
+ *
+ * Under the model source this reads the rig's own baked contact height, the
+ * same swap `bodyMetrics` makes for reach: the backend a player is looking at
+ * is the shape they are measured off.
+ */
+export function moveHeight(charKey, state) {
+  if (!state) return null;
+  const key = `${charKey}/${state}`;
+  const hit = heightCache.get(key);
+  if (hit !== undefined) return hit;
+  const out = reachSource === "sprite"
+    ? verifiedHeight(charKey, state)
+    : modelHeight(charKey, state);
+  heightCache.set(key, out);
+  return out;
+}
+
+/** The rig's answer to the same question — `sy` is baked metres-up turned to
+ *  px-up, so it is already the number this wants. Held to the same guard the
+ *  verified points are, because a mis-gripped prop reports the prop. */
+function modelHeight(charKey, state) {
+  const sy = MODEL_REACH[charKey]?.states?.[state]?.sy;
+  if (!Number.isFinite(sy)) return null;
+  const { lo, hi } = heightGuard(charKey);
+  return sy >= lo && sy <= hi ? sy : null;
 }
 
 /**

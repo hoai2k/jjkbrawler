@@ -414,6 +414,31 @@ export const ATTACK_TILT_LEVEL_DEG = 12;
 export const ATTACK_TILT_CARDINAL_DEG = 62;
 export const ATTACK_TILT_MIN_MAG = 0.42;
 
+// ...except DOWNWARD ON THE GROUND, where the hand-off comes much sooner.
+//
+// The two cardinals are not symmetric, because the two moves behind them are
+// not. Up is a genuine vertical: a rising attack whose box goes over the head,
+// so the stick sweeping past 62° hands one skyward swing to another and the arc
+// steps 62° -> 90°. Down is not. A grounded fighter cannot swing below the
+// floor they are standing on, and the move that owns "low" — the crouch poke —
+// is a FORWARD attack along the ground, so the same hand-off ran the arc from
+// 62° down back to level and a player sweeping the stick saw it snap
+// backwards through 62 degrees at the one angle they were aiming hardest.
+//
+// Ending the aimed band just past the corner is where the two pictures meet
+// instead: the last aimed swing puts its crescent a little ahead of the fighter
+// and level with their shins, and the crouch poke picks up from there and
+// reaches further along the floor. In the AIR the full band still applies both
+// ways — a down-forward aerial is a real attack and the meteor at 90° is a real
+// hand-off.
+//
+// 46 and not 40, which is where the arithmetic wanted it, because 45 is not an
+// arbitrary angle: it is the ONLY down-diagonal a keyboard or a d-pad can hold,
+// down and forward both pressed. Ending the band under it would have taken the
+// grounded down-diagonal away from every digital input in the game to buy six
+// degrees of tidiness (tools/smoke_crouch.mjs holds this).
+export const ATTACK_TILT_GROUND_DOWN_DEG = 46;
+
 export const SMASH_TILT = 0.42;
 export const SMASH_TILT_ANGLE = 0.6;
 

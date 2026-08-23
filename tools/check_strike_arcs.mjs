@@ -37,11 +37,17 @@ globalThis.fetch = async (url) => {
   return { ok: true, json: async () => JSON.parse(text), text: async () => text };
 };
 
+// `combat.js` reaches audio, which reaches the DOM. Same stub the stick-angle
+// check uses, for the same reason: this is a headless read of the geometry.
+globalThis.window ??= { addEventListener() {}, removeEventListener() {} };
+
 const { loadCoreAssets } = await import("../src/assets.js");
 await loadCoreAssets();
 const { CHARACTERS, CHARACTER_KEYS } = await import("../src/characters.js");
-const { lightMove, heavyMove, strikeArcs } = await import("../src/moves.js");
+const { lightMove, heavyMove, strikeArcs, swingMove } = await import("../src/moves.js");
 const { bodyMetrics } = await import("../src/silhouette.js");
+const { spawnMelee } = await import("../src/combat.js");
+const { state } = await import("../src/state.js");
 
 let bad = 0;
 const fail = (msg) => { console.log("FAIL " + msg); bad += 1; };
@@ -124,6 +130,57 @@ if (shapeOf(tall).shape !== "up") {
   fail(`an unlabelled forward box drew ${shapeOf(flat).shape}`);
 } else {
   ok("an unlabelled box (a projectile, a special) still gets the geometry guess");
+}
+
+// -------------------------------------------- and the box that gets DRAWN
+//
+// Everything above asks the MOVE what it draws. The renderer does not have the
+// move — `drawStrikeArcs` is handed the spawned HITBOX (render.js), which is a
+// copy `spawnMelee` makes field by field (combat.js). So a field the move sets
+// and that copy forgets is invisible to every check on this page, and to the
+// smoke that drives a real pad through a real match: both called `strikeArcs`
+// on the move and both passed while the game drew something else.
+//
+// `aimTilt` was exactly that, for as long as aiming has existed. Every angled
+// attack in the game drew its crescent dead level, at every angle, because
+// nothing that could see the difference ever looked at the box that reaches
+// the screen. This is the check that would have.
+{
+  const key = CHARACTER_KEYS[0];
+  const char = CHARACTERS[key];
+  const bodyH = bodyMetrics(key).height;
+  const spawn = (move) => {
+    state.hitboxes.length = 0;
+    spawnMelee({ facing: 1 }, { ...move, base: move.baseKb });
+    return state.hitboxes[0];
+  };
+  const same = (a, b) => a.length === b.length && a.every((x, i) =>
+    Math.abs(x.aim - b[i].aim) < 1e-6 && Math.abs(x.radius - b[i].radius) < 1e-6
+    && Math.abs(x.pivotY - b[i].pivotY) < 1e-6);
+
+  const cases = [
+    ["the up smash", heavyMove(char, "up")],
+    ["the quake", heavyMove(char, "down")],
+    ["the meteor", lightMove(char, "downAir")],
+    ["the crouch poke", lightMove(char, "down")],
+    ["a side tilt aimed 45° up", swingMove(lightMove(char, "side"), -Math.PI / 4)],
+    ["a side smash aimed 30° down", swingMove(heavyMove(char, "side"), Math.PI / 6)],
+  ];
+  const lost = [];
+  for (const [label, move] of cases) {
+    const want = strikeArcs(move, bodyH);
+    const got = strikeArcs(spawn(move), bodyH);
+    if (!same(want, got)) {
+      lost.push(`${label}: move draws ${JSON.stringify(shapeOf(want))}, `
+        + `spawned box draws ${JSON.stringify(shapeOf(got))}`);
+    }
+  }
+  if (lost.length) {
+    fail("the hitbox that reaches the renderer does not draw what the move does — "
+      + `spawnMelee is dropping a field the arc needs. ${lost.join(" · ")}`);
+  } else {
+    ok("the spawned hitbox draws the same arc the move does");
+  }
 }
 
 console.log(bad ? `\n${bad} check(s) failed` : "\nevery attack's arc is a fact about the attack");

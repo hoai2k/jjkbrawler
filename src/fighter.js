@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { clamp, sign } from "./utils.js";
 import { getCharacter } from "./characters.js";
-import { lightMove, heavyMove, swingMove } from "./moves.js";
+import { lightMove, heavyMove, swingMove, crouchPivot } from "./moves.js";
 import { bodyMetrics } from "./silhouette.js";
 import { comFrac } from "./body_points.js";
 import { spawnMelee, opponentOf, updateStatuses } from "./combat.js";
@@ -27,6 +27,7 @@ import {
   TEETER_EDGE, TEETER_DELAY,
   RESPAWN_X, SMASH_TILT, SMASH_TILT_ANGLE,
   ATTACK_TILT_LEVEL_DEG, ATTACK_TILT_CARDINAL_DEG, ATTACK_TILT_MIN_MAG,
+  ATTACK_TILT_GROUND_DOWN_DEG,
   RESPAWN_WAIT, RESPAWN_PLATFORM_Y, RESPAWN_PLATFORM_HALF_W, RESPAWN_PLATFORM_TIME, RESPAWN_GRACE,
 } from "./constants.js";
 import { TRAIL_LEN, TRAIL_STEP, MACH, TURN_TIME, LAND_SQUASH_TIME, TAKEOFF_STRETCH_TIME, COM_HOLD_EASE, ART_SCALE } from "./config_tuning.js";
@@ -297,10 +298,17 @@ function attackTilt(f, input) {
     return tilt;
   };
 
+  // The far edge of the band, and it is not the same in both directions on the
+  // ground — a grounded fighter cannot swing under the floor, and the move that
+  // takes over below is a forward poke rather than a vertical. See
+  // ATTACK_TILT_GROUND_DOWN_DEG.
+  const cardinal = up < 0 && f.grounded
+    ? ATTACK_TILT_GROUND_DOWN_DEG
+    : ATTACK_TILT_CARDINAL_DEG;
   if (mag < ATTACK_TILT_MIN_MAG) return read("too near centre", 0);
   if (h <= 0) return read("straight up or down", 0);
   if (deg < ATTACK_TILT_LEVEL_DEG) return read("level", 0);
-  if (deg > ATTACK_TILT_CARDINAL_DEG) return read("cardinal", 0);
+  if (deg > cardinal) return read("cardinal", 0);
   return read("aimed", -up);                  // positive downward, as y is
 }
 
@@ -335,7 +343,15 @@ function beginLight(f, input) {
     // for, which is what makes this a poke at the legs and not simply the
     // down attack again. Without it the game disagreed with itself on screen —
     // a fighter visibly crouched, swinging bolt upright.
-    if (f.grounded && crouched(f, input)) move.anim = "crouchAttack";
+    if (f.grounded && crouched(f, input)) {
+      move.anim = "crouchAttack";
+      // ...and the crescent comes off the DUCKED shoulder with it. The move was
+      // built standing, so it is carrying the standing attack's contact height
+      // (moves.js pivotOf), and leaving it there is the exact complaint this
+      // branch exists to answer one layer down: a fighter drawn crouched with
+      // an arc swinging out of a shoulder they are not standing on.
+      move.pivotY = crouchPivot(f.char);
+    }
     aimAlong(f, tilt);
     executeMove(f, move);
     return;
@@ -408,17 +424,37 @@ function beginHeavy(f, input) {
     executeMove(f, heavyMove(f.char, "air"));
     return;
   }
+  // A DIAGONAL IS A SIDE SMASH, aimed — the same grammar the light button has
+  // had since aiming arrived, and the heavy button did not. Up and down picked
+  // the vertical smashes off two independent half-plane flags, so a stick held
+  // anywhere between them resolved to whichever of the two won: sweeping it
+  // round its circle stepped straight from the side smash to the up smash with
+  // no diagonal anywhere in between, which is the missing diagonal the audit
+  // opened on. `attackTilt` reads the angle the stick is actually at, and the
+  // whole quadrant is live now.
+  //
+  // Recorded on the charge rather than applied here, because a smash is not
+  // thrown yet — it is planted. `releaseHeavy` swings the box by whatever is
+  // still being asked for at the moment it comes out.
+  const tilt = attackTilt(f, input);
   // Out of a run the heavy button throws its dash attack instead of planting
   // for a charge: a smash is a fighter standing still deciding to, and stopping
   // a sprint dead to start one is not a decision anybody was making on purpose.
-  // Holding a direction does not change it — up and down smashes are standing
+  // Holding a CARDINAL does not change it — up and down smashes are standing
   // moves, and at a run the input already means "keep going that way".
-  if (isRunning(f) && !f.crouching) {
+  //
+  // An AIM does, and it is read first for that reason — the same order
+  // `beginLight` has always used. Deciding the dash attack first meant a
+  // shallow diagonal was swallowed by the run on the way to being aimed, so
+  // the heavy button's new diagonal only appeared at angles steep enough to
+  // slow the fighter below the run threshold: 45° aimed and 30° did not, which
+  // is a stranger rule than either of the two it sits between.
+  if (!tilt && isRunning(f) && !f.crouching) {
     executeMove(f, heavyMove(f.char, "dash"), { grunt: true });
     return;
   }
-  const variant = crouched(f, input) ? "down" : input.up ? "up" : "side";
-  f.charging = { variant, t: 0 };
+  const variant = tilt ? "side" : crouched(f, input) ? "down" : input.up ? "up" : "side";
+  f.charging = { variant, t: 0, tilt };
   setAnim(f, "charge");
 }
 
@@ -445,11 +481,27 @@ function releaseHeavy(f, input) {
   const charge = clamp(c.t / 0.8, 0, 1);
   const move = heavyMove(f.char, c.variant, charge);
   const aim = clamp(input?.tiltY || 0, -1, 1);
-  if (c.variant === "side" && Math.abs(aim) > 0.25) {
-    const tilt = aim * SMASH_TILT;                 // + is downward, as y is
+  // The RIGHT stick still wins when it is saying anything: it is the deliberate
+  // aim, held on purpose during the charge. The LEFT stick's angle — read at
+  // the press and re-read now, so a player who leans the stick mid-charge is
+  // heard — is what a diagonal press already meant, and it carries through
+  // rather than being thrown away at release.
+  const tilt = Math.abs(aim) > 0.25
+    ? aim * SMASH_TILT                             // + is downward, as y is
+    : attackTilt(f, input) || c.tilt || 0;
+  if (c.variant === "side" && tilt) {
     swingMove(move, tilt);
+    if (f.grounded && crouched(f, input)) {
+      move.anim = "crouchAttack";
+      move.pivotY = crouchPivot(f.char);
+    }
     move.label = (tilt < 0 ? "High " : "Low ") + move.label;
-    aimAlong(f, -tilt);
+    // `tilt`, not `-tilt`, which is what this said. `swingMove` takes positive
+    // as DOWNWARD and so does `aimAlong`, so negating one of the two pointed
+    // the fighter's body at the mirror image of their own hitbox: an angled
+    // smash aimed high was thrown by a fighter leaning down at it. The light
+    // button's aimed swing has always passed the same number to both.
+    aimAlong(f, tilt);
   }
   executeMove(f, move, { grunt: charge > 0.5 });
   if (charge > 0.25) {

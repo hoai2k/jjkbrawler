@@ -193,6 +193,23 @@ export const STRIKE_REACH = {
   min: 0.10,
   max: 1.20,
 
+  // ...and how HIGH a rising attack's contact point may be above the foot
+  // line, on the same terms, as a fraction of the fighter's own drawn height.
+  //
+  // The vertical twin of the band above, and it exists for the same reason the
+  // forward one does. An up attack's box used to be a hardcoded literal — its
+  // top edge 1.88 body heights above the feet for everybody — while the fist
+  // it is drawn around lands at 1.05 on Gojo and 1.34 on Maki. The strike arc
+  // is drawn at the box's far edge, so every fighter's up attack marked itself
+  // most of a body height above the arm throwing it.
+  //
+  // Same guard, same treatment: a point outside the band is not clamped, the
+  // move keeps its authored literal, and the bench asks about the drawing.
+  // 0.60 is under the shortest reach on the roster (Sukuna's 0.83) and 1.80 is
+  // over the tallest (Maki's 1.34) with room for a redraw either way.
+  upMin: 0.60,
+  upMax: 1.80,
+
   // Where a strike point goes for a move nobody has verified and no rig has
   // measured, along the fighter's own reach (src/strike_points.js). Short of
   // their tip on purpose: the blow lands with the arm out, not at the far edge
@@ -661,6 +678,13 @@ export const MELEE_SPAN = {
   downHeavy: 1.9,     // the quake
   nearLow: 0.8,       // the crouch poke
   nearAir: 0.7,       // every aerial
+
+  // The least vertical span a rising box may keep once its top comes off the
+  // art (`rising`, moves.js), written for a reference-height fighter like every
+  // other vertical literal. It is a backstop against a contact point pointed
+  // low enough to collapse the box onto the hip line it starts from, not a
+  // number anybody should need to tune.
+  risingMin: 60,
 
   // The narrowest a forward box may be, as a fraction of the fighter's own body
   // width. It only binds on a move whose tip barely clears the near edge — a

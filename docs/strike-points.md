@@ -67,6 +67,22 @@ each hitbox from the point for THAT move plus a fixed grace margin
   struck along the centre line — their `x` is a few px of shoulder lean, not a
   reach — so those moves use the fighter's scalar, the furthest they get in
   anything forward.
+* **...but their `y` is not wasted.** The number a rising attack is *about* is
+  how high it gets, and nothing read it until the attack-angle audit: every up
+  tilt in the game topped out at 1.88 body heights and every up smash at 2.17,
+  literals written for a reference fighter and scaled by height alone, while the
+  fist those moves are drawn around gets to 1.05 on Gojo and 1.34 on Maki. Since
+  the arc is drawn at the box's far edge, the mark hung 87 px over Gojo's own
+  arm. `moveHeight` (silhouette.js) reads `upHeavy`'s `y` exactly as `moveReach`
+  reads `x`, guarded by `STRIKE_REACH.upMin`/`upMax` and falling back to the
+  literal — the roster's up attacks vary with the drawings now, mean 1.54 and
+  1.63.
+* **And every melee normal's `y` sets where its crescent hangs.** The arc used
+  to be placed at a fraction of body height with a low-box escape hatch, which
+  drew the ground quake's shockwave at the fighter's shoulders and a steeply
+  aimed swing's at their ankles. `moves.js pivotOf` records the contact height
+  on the move instead; a swing aimed out of a crouch pivots at the ducked
+  shoulder (`crouchPivot`), so the picture and the pose cannot disagree.
 * **A point that cannot be read as a reach is rejected, not clamped.** Behind
   the centre line, or past `STRIKE_REACH.max` of the fighter's own height: the
   move falls back to the scalar, `tools/audit_hitboxes.mjs` prints it, and
