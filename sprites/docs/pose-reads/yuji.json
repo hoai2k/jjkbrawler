@@ -29,6 +29,14 @@
              "footL": [78.7, 46.8], "toeL": [80.5, 41.6], "hipR": [35.9, 49.8], "kneeR": [30.4, 62.1],
              "footR": [20.3, 76.2], "toeR": [22.2, 81.5]}
     },
+    "attack_air_diag_down_b": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [51.5, 14.3], "neck": [48, 20], "chest": [48, 25], "pelvis": [44.4, 47.2],
+             "shoulderL": [58.6, 23.3], "elbowL": [65.7, 34.9], "handL": [72.4, 37.8], "shoulderR": [37.3, 23.3],
+             "elbowR": [29.1, 35.1], "handR": [28.8, 44.9], "hipL": [53.6, 51.1], "kneeL": [30.2, 64.5],
+             "footL": [16.7, 58.7], "toeL": [66.4, 78.8], "hipR": [33.8, 47.2], "kneeR": [58.6, 64.5],
+             "footR": [67.5, 78.9], "toeR": [83.5, 82.3]}
+    },
     "attack_dash": {
       "seed": "fitted from yuji/idle_a",
       "j": {"head": [55, 12.8], "neck": [48, 16.4], "chest": [48, 22], "pelvis": [44.4, 47],
@@ -36,6 +44,14 @@
              "elbowR": [26.9, 30], "handR": [20.4, 38.9], "hipL": [55.1, 47], "kneeL": [30.2, 66.4],
              "footL": [16.7, 78], "toeL": [59.7, 89.1], "hipR": [33.8, 47], "kneeR": [58.6, 66.4],
              "footR": [57.7, 92.7], "toeR": [56.9, 69.1]}
+    },
+    "attack_diag_up_b": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.8, 7], "neck": [48.2, 14], "chest": [48.2, 20], "pelvis": [45.7, 47],
+             "shoulderL": [55.8, 18], "elbowL": [48.4, 29.9], "handL": [54.4, 53.4], "shoulderR": [40.6, 18],
+             "elbowR": [34.8, 32.3], "handR": [31.2, 44.5], "hipL": [53.3, 47], "kneeL": [35.6, 68],
+             "footL": [26.3, 80.8], "toeL": [56.6, 92.6], "hipR": [38.1, 47], "kneeR": [55.8, 68],
+             "footR": [63.4, 90], "toeR": [71.4, 92.3]}
     },
     "attack_down": {
       "read": "Downward ground smash \u2014 near fist driven straight into the floor with debris, torso folded down over it, far arm cocked back at chest height, legs in a wide low split.",
@@ -363,6 +379,38 @@
              "elbowR": [38.6, 31.9], "handR": [39.9, 43.8], "hipL": [53.2, 47], "kneeL": [43.3, 71.5],
              "footL": [37.4, 93.4], "toeL": [42.6, 82], "hipR": [39.4, 47], "kneeR": [51.3, 67.3],
              "footR": [70.9, 89.3], "toeR": [71.6, 89.5]}
+    },
+    "throw_back": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.5, 7], "neck": [48.5, 14], "chest": [48.5, 20], "pelvis": [46.4, 47],
+             "shoulderL": [54.6, 18], "elbowL": [58.7, 32], "handL": [60.7, 45], "shoulderR": [42.4, 18],
+             "elbowR": [37.7, 32.3], "handR": [34.8, 44.5], "hipL": [52.6, 47], "kneeL": [38.3, 68],
+             "footL": [26.2, 92], "toeL": [68.2, 85.5], "hipR": [42, 48.4], "kneeR": [43.3, 59.6],
+             "footR": [66, 86.5], "toeR": [68.8, 89.5]}
+    },
+    "throw_down": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [51.5, 7], "neck": [48, 14], "chest": [48, 20], "pelvis": [44.4, 47],
+             "shoulderL": [58.6, 18], "elbowL": [65.7, 32], "handL": [69.3, 45], "shoulderR": [37.3, 18],
+             "elbowR": [29.1, 32.3], "handR": [27.4, 43.8], "hipL": [55.1, 47], "kneeL": [30.2, 68],
+             "footL": [15.3, 80.8], "toeL": [59.7, 92.6], "hipR": [33.8, 47], "kneeR": [58.6, 68],
+             "footR": [69.3, 90], "toeR": [74.4, 97.2]}
+    },
+    "throw_fwd": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [51, 7], "neck": [48, 14], "chest": [48, 20], "pelvis": [45.1, 47],
+             "shoulderL": [56.8, 18], "elbowL": [62.4, 23.6], "handL": [60.6, 54.8], "shoulderR": [39.2, 18],
+             "elbowR": [36.7, 31.2], "handR": [34.8, 44.5], "hipL": [53.9, 47], "kneeL": [33.4, 68],
+             "footL": [23.3, 81.5], "toeL": [67.2, 91.8], "hipR": [36.3, 47], "kneeR": [60.6, 63.8],
+             "footR": [65.6, 90], "toeR": [77.3, 89.5]}
+    },
+    "throw_up": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [48.5, 9.8], "neck": [48.7, 14], "chest": [48.7, 20], "pelvis": [47, 47],
+             "shoulderL": [53.7, 18], "elbowL": [57.1, 32], "handL": [58.7, 45], "shoulderR": [43.6, 18],
+             "elbowR": [43.6, 31.2], "handR": [44.5, 46.6], "hipL": [52, 47], "kneeL": [40.3, 68],
+             "footL": [30.7, 89.2], "toeL": [64.4, 86.9], "hipR": [41.9, 47], "kneeR": [61.8, 64.5],
+             "footR": [62.6, 87.9], "toeR": [65.4, 89.5]}
     },
     "ult_a": {
       "read": "Ultimate, first beat \u2014 near arm at full extension with the red burst on the fist, far fist chambered at the ribs, deep long stance, torso upright. Skeletally this is attack_heavy_b with a different effect.",

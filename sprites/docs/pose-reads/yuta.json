@@ -29,6 +29,14 @@
              "footL": [12.4, 84.9], "toeL": [12.8, 87.4], "hipR": [45.5, 48.1], "kneeR": [53.5, 47.8],
              "footR": [47, 49.8], "toeR": [48.2, 53.6]}
     },
+    "attack_air_diag_down_b": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.9, 7], "neck": [48.1, 14], "chest": [48.1, 20], "pelvis": [40.7, 45.6],
+             "shoulderL": [56.6, 18], "elbowL": [55.6, 35.5], "handL": [61.5, 47.8], "shoulderR": [39.6, 18],
+             "elbowR": [33.1, 32.3], "handR": [29.2, 44.5], "hipL": [53.7, 47], "kneeL": [29.1, 62.4],
+             "footL": [11.8, 85.7], "toeL": [78.5, 79.9], "hipR": [36.8, 47], "kneeR": [59.3, 67.3],
+             "footR": [75.5, 80.9], "toeR": [76.3, 89.5]}
+    },
     "attack_dash": {
       "seed": "fitted from yuji/idle_a",
       "j": {"head": [51.5, 22], "neck": [48, 26.6], "chest": [48, 30.5], "pelvis": [41.7, 53.6],
@@ -36,6 +44,14 @@
              "elbowR": [65.4, 35.8], "handR": [73.1, 34.5], "hipL": [33.8, 48], "kneeL": [32, 55.2],
              "footL": [16, 62.3], "toeL": [17.6, 66], "hipR": [45.2, 58.5], "kneeR": [48, 65.7],
              "footR": [57, 82.4], "toeR": [60.5, 80.5]}
+    },
+    "attack_diag_up_b": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [54.5, 21], "neck": [52.7, 19.6], "chest": [48.4, 20], "pelvis": [45.8, 47],
+             "shoulderL": [56.3, 18], "elbowL": [53.8, 17.3], "handL": [52.7, 53.4], "shoulderR": [40.6, 18],
+             "elbowR": [34.5, 32.3], "handR": [30.8, 44.5], "hipL": [52, 48.4], "kneeL": [35.3, 68],
+             "footL": [24.4, 81.5], "toeL": [57.1, 92.6], "hipR": [37.9, 47], "kneeR": [56.3, 68],
+             "footR": [61.8, 94.9], "toeR": [58.3, 95.8]}
     },
     "attack_down": {
       "seed": "fitted from yuji/attack_down",
@@ -156,6 +172,14 @@
              "elbowR": [61.7, 47.3], "handR": [63.7, 52.6], "hipL": [41.8, 44.9], "kneeL": [21.9, 49.6],
              "footL": [19.9, 64.7], "toeL": [19.1, 64.2], "hipR": [47.8, 48.5], "kneeR": [29.8, 53.2],
              "footR": [36.4, 66.1], "toeR": [40, 64.3]}
+    },
+    "domain_expansion": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.2, 7], "neck": [48.8, 14], "chest": [48.8, 20], "pelvis": [47.5, 47],
+             "shoulderL": [52.8, 18], "elbowL": [55.4, 32], "handL": [56.8, 45], "shoulderR": [44.9, 18],
+             "elbowR": [41.8, 32.3], "handR": [43.5, 45.2], "hipL": [51.5, 47], "kneeL": [42.2, 68],
+             "footL": [39.6, 92], "toeL": [59.9, 93.2], "hipR": [43.6, 47], "kneeR": [55.2, 68],
+             "footR": [59.2, 90], "toeR": [62.1, 89.5]}
     },
     "fall": {
       "seed": "fitted from yuji/fall",
@@ -492,6 +516,38 @@
              "elbowR": [38.7, 34.7], "handR": [39.5, 46.6], "hipL": [53.7, 47], "kneeL": [37, 70.1],
              "footL": [30.1, 92], "toeL": [75.9, 83.4], "hipR": [37.9, 47], "kneeR": [60.8, 65.9],
              "footR": [74.4, 87.9], "toeR": [74.7, 89.5]}
+    },
+    "throw_back": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.8, 7], "neck": [48.7, 14], "chest": [48.7, 20], "pelvis": [46.6, 47],
+             "shoulderL": [55.1, 18], "elbowL": [59.3, 32], "handL": [61.4, 45], "shoulderR": [42.3, 18],
+             "elbowR": [37.4, 32.3], "handR": [34.4, 44.5], "hipL": [52.9, 47], "kneeL": [38.1, 68],
+             "footL": [29.9, 92], "toeL": [75.7, 92.5], "hipR": [40.2, 47], "kneeR": [59.9, 66.6],
+             "footR": [72, 85.8], "toeR": [69.9, 89.5]}
+    },
+    "throw_down": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [51.4, 7], "neck": [48.1, 14], "chest": [48.1, 20], "pelvis": [44.8, 47],
+             "shoulderL": [58, 18], "elbowL": [64.6, 32], "handL": [67.9, 45], "shoulderR": [38.2, 18],
+             "elbowR": [30.6, 32.3], "handR": [26, 44.5], "hipL": [54.7, 47], "kneeL": [31.6, 68],
+             "footL": [16.6, 78], "toeL": [59, 92.6], "hipR": [34.9, 47], "kneeR": [58, 68],
+             "footR": [67.9, 90], "toeR": [67.7, 94.4]}
+    },
+    "throw_fwd": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [50.6, 7.5], "neck": [48.4, 14.4], "chest": [48.4, 20.4], "pelvis": [46.2, 47.3],
+             "shoulderL": [54.9, 18.4], "elbowL": [62.4, 37.5], "handL": [56.6, 39.3], "shoulderR": [41.9, 18.4],
+             "elbowR": [36.9, 32.6], "handR": [33.8, 44.8], "hipL": [52.8, 47.3], "kneeL": [37.5, 68.2],
+             "footL": [23.8, 92], "toeL": [55.6, 92.6], "hipR": [39.7, 47.3], "kneeR": [54.9, 68.2],
+             "footR": [61.5, 90], "toeR": [69.2, 93]}
+    },
+    "throw_up": {
+      "seed": "fitted from yuji/idle_a",
+      "j": {"head": [51.7, 19.6], "neck": [49.2, 17.5], "chest": [48.6, 20], "pelvis": [53.5, 47],
+             "shoulderL": [55.3, 18], "elbowL": [59.8, 32], "handL": [62, 45], "shoulderR": [38.5, 20.1],
+             "elbowR": [39.2, 29.8], "handR": [47.4, 30.5], "hipL": [53.1, 47], "kneeL": [37.5, 68],
+             "footL": [30.9, 88.5], "toeL": [63.7, 96], "hipR": [52.7, 37.2], "kneeR": [53.5, 65.9],
+             "footR": [62, 90], "toeR": [71, 89.5]}
     },
     "ult_a": {
       "seed": "fitted from yuji/ult_a",

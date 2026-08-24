@@ -148,6 +148,16 @@ const DIVERGES = new Map([
   ["attack_air_b", "the striking limb is a LEG — a flying kick, which is a fair "
     + "reading of \"fully extended through the aerial arc\" and not something "
     + "the frame's name could have told anyone"],
+  ["attack_air_diag_down_b", "the same flying kick as attack_air_b, aimed at the "
+    + "floor ahead — so it departs from `air_strike` for the same reason and by "
+    + "the same limb, and it would be strange if it did not"],
+  ["throw_up", "BOTH arms drive straight overhead; `strike_up` is an uppercut, "
+    + "which is one arm with the elbow bent through contact. A two-armed launch "
+    + "is the nearest intent in the library and still a different animal"],
+  ["throw_down", "hinges over a LOADED FRONT LEG with the rear heel lifted; "
+    + "`strike_down` is a wide split lunge with the rear leg folded to near "
+    + "kneeling. Both put the hands at the floor ahead and they get there off "
+    + "completely different stances"],
 ]);
 
 /** Root-mean-square difference between two pose tables, in degrees. */
