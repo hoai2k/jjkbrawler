@@ -274,11 +274,27 @@ const diag = await page.evaluate(async () => {
     return { anim: f.animKey, frames: resolvedAnim(key, f.animKey).frames.join("+") };
   };
 
+  // BOTH halves are staged, and neither asks what the roster happens to hold.
+  //
+  // This used to read the undrawn case straight off the manifest, on the
+  // reasoning that nobody had drawn the aimed strikes yet. Round 25 drew them
+  // for all 34 fighters, and the check started failing on a game that was
+  // working perfectly — the fixture had gone stale, not the renderer. So the
+  // pose is taken OUT for the fallback case and put back for the delivered
+  // one, and the probe answers the same question on any future roster.
+  const staged = ["attack_diag_up_b", "attack_air_diag_down_b"];
+  const held = {};
+  for (const k of staged) {
+    held[k] = spriteManifest.characters[key][k];
+    delete spriteManifest.characters[key][k];
+  }
+  clearAnimFrameCache();
   const before = { up: fire(45, true), air: fire(-45, false), level: fire(0, true) };
-  spriteManifest.characters[key].attack_diag_up_b =
-    { ...spriteManifest.characters[key].attack_light_b, file: `${key}/attack_diag_up_b.png` };
-  spriteManifest.characters[key].attack_air_diag_down_b =
-    { ...spriteManifest.characters[key].attack_air_b, file: `${key}/attack_air_diag_down_b.png` };
+
+  spriteManifest.characters[key].attack_diag_up_b = held.attack_diag_up_b
+    || { ...spriteManifest.characters[key].attack_light_b, file: `${key}/attack_diag_up_b.png` };
+  spriteManifest.characters[key].attack_air_diag_down_b = held.attack_air_diag_down_b
+    || { ...spriteManifest.characters[key].attack_air_b, file: `${key}/attack_air_diag_down_b.png` };
   clearAnimFrameCache();
   const after = { up: fire(45, true), air: fire(-45, false) };
   return { before, after };
@@ -294,10 +310,11 @@ const diag = await page.evaluate(async () => {
 // once during the call, once after the barrier has arrived.
 //
 // Gojo is the fighter the menu walk picks and he has a domain, which is why
-// this can be driven at all. He has no seal drawn, so the first cast is the
-// fallback case: the state exists and plays exactly what a domain played
-// before it did. Then the drawing is faked into the manifest and it is cast
-// again, which is the delivered case.
+// this can be driven at all. His seal is TAKEN OUT for the first cast and put
+// back for the second, so the two cases are the fallback and the delivered one
+// whatever the roster currently holds — round 25 drew his, and a probe that
+// read the undrawn case off the manifest started failing on a game that was
+// working.
 const seal = await page.evaluate(async () => {
   const { state } = await import("/src/state.js");
   const { performDomain } = await import("/src/domains.js");
@@ -341,9 +358,13 @@ const seal = await page.evaluate(async () => {
     return { at, during, after: read(), opened: !!state.domain };
   };
 
+  const seal = spriteManifest.characters[key].domain_expansion;
+  delete spriteManifest.characters[key].domain_expansion;
+  clearAnimFrameCache();
   const undrawn = cast();
-  spriteManifest.characters[key].domain_expansion =
-    { ...spriteManifest.characters[key].ult_a, file: `${key}/domain_expansion.png` };
+
+  spriteManifest.characters[key].domain_expansion = seal
+    || { ...spriteManifest.characters[key].ult_a, file: `${key}/domain_expansion.png` };
   clearAnimFrameCache();
   const drawn = cast();
   return { key, undrawn, drawn };
