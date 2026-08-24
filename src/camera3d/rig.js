@@ -12,9 +12,18 @@ import { CAMERA as C, DRAMA, BOARD_CAMERA, CUES } from "../config_camera.js";
 import { addCameraCueListener } from "../camera_mode.js";
 import { getStage, mainPlatform } from "../stages.js";
 import { WORLD } from "../constants.js";
+import { framedFighters } from "../camera.js";
 import { clamp, lerp } from "../utils.js";
 
 const DEG = Math.PI / 180;
+
+// The room every fighter is owed inside the frame, world units (100 sim px =
+// 1). Deliberately UNDER camera.js's own keep-pads (110/250/70 sim px times
+// ART_SCALE), so in ordinary play the flat framing is the binding one and this
+// pass is inert — it exists for the shots that override that framing.
+const KEEP_X = 0.7;
+const KEEP_ABOVE = 1.6;
+const KEEP_BELOW = 0.45;
 
 /** Sim space -> world space. Sim is 1280×720 pixels with +y down; world is
  *  metres-ish with +y up, stage centre at the origin, the gameplay plane at
@@ -225,7 +234,56 @@ export function updateRig(st, dt) {
 
   // ---- pose the camera
   const fov = smooth.fov - kickDrop;
-  const D = dollyFor(cam.zoom, C.fov) * smooth.dollyMul;
+  let D = dollyFor(cam.zoom, C.fov) * smooth.dollyMul;
+
+  // A DRAMA SHOT IS STILL A SHOT OF THE FIGHT.
+  //
+  // The focus blend above pulls the frame onto ONE fighter — the ult caster,
+  // the domain caster, the winner — and the dolly tightens on them at the same
+  // time. Both are the point of the shot, and together they were losing the
+  // rest of the match: the opponent an ultimate is aimed AT could sit off the
+  // side of the screen for the whole cast, which is the one thing the player
+  // holding them most needs to see.
+  //
+  // So the drama shot is bounded rather than trusted. Everyone the sim camera
+  // still owes a place to (camera.js framedFighters — alive, on stage, not
+  // already lost to the blast zone) must be inside this frame: the dolly backs
+  // off until they all fit, and the focus is clamped to the nearest position
+  // that holds them. Both are cheap and both are silent when the shot is
+  // already wide enough, which in ordinary play it always is — the flat camera
+  // frames with bigger pads than these, so this only ever binds under a
+  // drama shot or a hard cue.
+  //
+  // Written as a clamp on the composed frame rather than as a rule inside the
+  // drama branches, so a treatment added later cannot lose anybody either.
+  const kept = framedFighters(st);
+  if (kept.length > 1) {
+    let lo = Infinity, hi = -Infinity, bot = Infinity, top = -Infinity;
+    for (const f of kept) {
+      lo = Math.min(lo, simToWorldX(f.x) - KEEP_X);
+      hi = Math.max(hi, simToWorldX(f.x) + KEEP_X);
+      // Sim y is the foot line and world y is up: the body goes UP from it.
+      bot = Math.min(bot, simToWorldY(f.y) - KEEP_BELOW);
+      top = Math.max(top, simToWorldY(f.y) + KEEP_ABOVE);
+    }
+    // The dolly that fits the wider of the two axes, never tighter than the
+    // shot already asked for. Folded back into smooth.dollyMul so the lerp
+    // above eases OUT of it as the fighters close, instead of fighting it.
+    const halfH = D * Math.tan(fov * DEG / 2);
+    const need = Math.max((hi - lo) / 2 / (halfH * camera.aspect), (top - bot) / 2 / halfH);
+    if (need > 1) {
+      smooth.dollyMul *= need;
+      D *= need;
+    }
+    // ...and the smallest slide that holds them, on the axis the drama shot
+    // actually moves. Wider than the frame (a scramble the flat camera has
+    // already given up on fitting): centre it and lose the least, exactly as
+    // camera.js does.
+    const half = D * Math.tan(fov * DEG / 2) * camera.aspect;
+    const want = hi - lo > half * 2 ? (lo + hi) / 2 : clamp(camX + lookX + cuePan, hi - half, lo + half);
+    camX = want - lookX - cuePan;
+  }
+
   const yawRad = smooth.yaw * DEG;
   const shake = (cam.shake * C.shakeScale + cueShake) * C.simScale;
   const sx = (Math.random() - 0.5) * shake;
