@@ -18,13 +18,29 @@
 // is why GARMENTS is an opt-in table of one rather than something every
 // character gets. Sheet: docs/experiments/uro-seethrough/.
 //
-// SPRITE BACKEND ONLY. The hook is in `sprites/src/sprites.js drawCharFrame`,
-// which is one of three implementations of the render backend
-// (src/render_backend.js). Under Settings -> Render: Billboards or 3D there is
-// no drawing to key — a card is a rendered rig and a model has real materials —
-// so the setting draws nothing there. Those paths would express this as a
-// material on the garment, which is a different piece of work and a better
-// effect when it exists.
+// IT KEYS SPRITE ART, WHEREVER SPRITE ART IS DRAWN — and there are TWO places,
+// which is the bug this feature shipped with and the reason for this notice.
+//
+//   sprites/src/sprites.js  drawCharFrame — the flat 2D blit
+//   src/camera3d/billboards.js  drawChar  — the 2.5D camera's sprite card,
+//                                           which deliberately does NOT call
+//                                           drawCharFrame: it replays the same
+//                                           transform chain as a matrix and
+//                                           blits the image itself
+//
+// The 2.5D camera is ON by default, so the second one is the path a player
+// actually sees. Hooking only the first left the effect invisible in every
+// real match while the settings toggle, the pass and the arena bench all
+// worked — the bench draws flat. Anything that reaches for `frameImage()` to
+// put a CHARACTER on screen has to come through here, or it silently opts out
+// of the effect. tools/smoke_clothing_fx.mjs asserts on the framebuffer of a
+// real match for exactly this reason.
+//
+// The MODEL backends (Settings -> Render: Billboards, 3D) draw rigs, not
+// drawings, so there is nothing to key for a character who has one; a
+// character without a rig falls through to the sprite card above and is keyed
+// like any other. Expressing this as a material on the garment is what those
+// paths would want, and is different work.
 //
 // DEPENDENCY-FREE ON PURPOSE. The spike tool (tools/uro_seethrough_test.mjs)
 // imports this same file into a browser page to render its comparison sheets,

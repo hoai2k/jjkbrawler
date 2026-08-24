@@ -26,6 +26,7 @@ import {
   matIdentity, matTranslate, matScale, matRotate,
 } from "./quads.js";
 import { frameMeta, frameImage, getImage } from "../assets.js";
+import { clothingFrame } from "../clothing_fx.js";
 import { paintProceduralAura, AURA_ELLIPSE } from "../render.js";
 import { paintedHeight, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "../shared_sprites.js";
 import { sharedPlacement } from "../shared_paint.js";
@@ -227,7 +228,15 @@ export function makeBillboards() {
   /** One character frame as a billboard. Returns false when the art is
    *  missing, so the caller can fall back like the flat renderer does. */
   function drawChar(charKey, frameKey, x, y, opts, z, order) {
-    const img = frameImage(charKey, frameKey);
+    // Clothing FX, the same swap sprites.js drawCharFrame makes (Settings, off
+    // by default). It has to be repeated HERE rather than inherited, because
+    // this path deliberately does not call drawCharFrame — it replays the
+    // transform chain and blits the image itself, which is exactly the kind of
+    // second copy that goes stale. The keyed canvas is the same size as the
+    // source, so `charFrameMatrix` below is unaffected; `imageTexture` caches
+    // one texture per distinct image object, so a keyed frame gets its own and
+    // the count stays bounded by the character's frame count.
+    const img = clothingFrame(charKey, frameKey, frameImage(charKey, frameKey));
     const m = charFrameMatrix(charKey, frameKey, x, y, opts);
     if (!img || !m) return false;
     pool.draw(imageTexture(img), m, { z, order, alpha: opts.alpha ?? 1 });
