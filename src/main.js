@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { loadCoreAssets, startBackgroundLoad, ensureMatchAssets, matchAssetsPending } from "./assets.js";
+import { loadCoreAssets, startBackgroundLoad, ensureMatchAssets, matchAssetsPending, warmMatchClothingFx } from "./assets.js";
 import { initInput, readGamepads, endInputFrame, playerInput, keyPressed, consumeKey, anyPadPausePressed, connectedPadCount, padForPlayer, joinedPlayerCount, occupiedSeats, blankInput, clearHeldKeys, disconnectedSeats, freezePadSeats } from "./input.js";
 import { initAudio, playSfx, setBattleStage, syncMusic, stepAudio, stopDomainLoop, stopShieldLoop, setAudioSuspended, setMatchLive } from "./audio.js";
 import { updateRumble } from "./rumble.js";
@@ -145,6 +145,11 @@ async function resetMatch() {
     // took the splash down with it (setPhase).
     if (token !== matchToken) return;
   }
+  // After the art is in memory and while the splash is still up: keying a
+  // fighter's garments is a pass over every pixel of every pose, and this is
+  // the one moment in a match where that is free. No-op unless Clothing FX is
+  // on and somebody in the match has garments to key.
+  warmMatchClothingFx(entrants);
 
   const stage = getStage(state.stageKey);
   // Pick this match's battle track before the phase flips to "playing".

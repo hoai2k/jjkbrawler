@@ -1,0 +1,373 @@
+{
+  "note": "What Clothing FX (src/clothing_fx.js) takes out of each frame, and the hash of the drawing it was verified against. Regenerated with `node tools/check_clothing_fx.mjs --bless` after LOOKING at the frames. See sprites/docs/asset-pipeline.md.",
+  "frames": {
+    "uro/attack_air": {
+      "art": "410d3dc8ef86",
+      "share": 0.0419,
+      "top": 0.324,
+      "bottom": 0.651,
+      "hem": 998
+    },
+    "uro/attack_air_a": {
+      "art": "8a987879d5db",
+      "share": 0.0343,
+      "top": 0.36,
+      "bottom": 0.662,
+      "hem": 756
+    },
+    "uro/attack_air_b": {
+      "art": "66abe05bfe0f",
+      "share": 0.0837,
+      "top": 0.219,
+      "bottom": 0.695,
+      "hem": 1820
+    },
+    "uro/attack_air_diag_down_b": {
+      "art": "66cfcc00ffcc",
+      "share": 0.0389,
+      "top": 0.348,
+      "bottom": 0.681,
+      "hem": 980
+    },
+    "uro/attack_dash": {
+      "art": "13477c58bc9a",
+      "share": 0.0238,
+      "top": 0.331,
+      "bottom": 0.657,
+      "hem": 656
+    },
+    "uro/attack_diag_up_b": {
+      "art": "20a1a5419595",
+      "share": 0.0424,
+      "top": 0.281,
+      "bottom": 0.621,
+      "hem": 960
+    },
+    "uro/attack_down": {
+      "art": "9dd9a3bfcbfa",
+      "share": 0.042,
+      "top": 0.412,
+      "bottom": 0.733,
+      "hem": 1060
+    },
+    "uro/attack_heavy": {
+      "art": "63c08836224a",
+      "share": 0.041,
+      "top": 0.326,
+      "bottom": 0.654,
+      "hem": 976
+    },
+    "uro/attack_heavy_a": {
+      "art": "3e9d92701b08",
+      "share": 0.0702,
+      "top": 0.308,
+      "bottom": 0.656,
+      "hem": 1082
+    },
+    "uro/attack_heavy_b": {
+      "art": "274db2e8d09f",
+      "share": 0.0291,
+      "top": 0.326,
+      "bottom": 0.655,
+      "hem": 612
+    },
+    "uro/attack_light_a": {
+      "art": "4ad7f30bcc48",
+      "share": 0.0535,
+      "top": 0.323,
+      "bottom": 0.639,
+      "hem": 964
+    },
+    "uro/attack_light_b": {
+      "art": "76d1b2e470ea",
+      "share": 0.027,
+      "top": 0.311,
+      "bottom": 0.611,
+      "hem": 464
+    },
+    "uro/attack_up": {
+      "art": "f4f261acf438",
+      "share": 0.0599,
+      "top": 0.234,
+      "bottom": 0.586,
+      "hem": 986
+    },
+    "uro/charge": {
+      "art": "af31e6312ca4",
+      "share": 0.0427,
+      "top": 0.339,
+      "bottom": 0.691,
+      "hem": 902
+    },
+    "uro/crouch_a": {
+      "art": "b40705a78ed4",
+      "share": 0.0739,
+      "top": 0.375,
+      "bottom": 0.817,
+      "hem": 1030
+    },
+    "uro/crouch_attack_a": {
+      "art": "678655200afa",
+      "share": 0.0441,
+      "top": 0.412,
+      "bottom": 0.824,
+      "hem": 866
+    },
+    "uro/crouch_attack_b": {
+      "art": "392cca2a35ea",
+      "share": 0.0382,
+      "top": 0.468,
+      "bottom": 0.917,
+      "hem": 848
+    },
+    "uro/crouch_b": {
+      "art": "ed4bccc5f76c",
+      "share": 0.0869,
+      "top": 0.472,
+      "bottom": 0.868,
+      "hem": 1144
+    },
+    "uro/dash": {
+      "art": "67c7f673de9c",
+      "share": 0.0467,
+      "top": 0.372,
+      "bottom": 0.721,
+      "hem": 768
+    },
+    "uro/dizzy": {
+      "art": "5c143e798699",
+      "share": 0.0504,
+      "top": 0.306,
+      "bottom": 0.611,
+      "hem": 822
+    },
+    "uro/dodge_air": {
+      "art": "113628ab3a14",
+      "share": 0.0689,
+      "top": 0.292,
+      "bottom": 0.64,
+      "hem": 836
+    },
+    "uro/dodge_roll": {
+      "art": "8639a4f40990",
+      "share": 0.0519,
+      "top": 0.446,
+      "bottom": 0.887,
+      "hem": 780
+    },
+    "uro/fall": {
+      "art": "7a8845ed7f25",
+      "share": 0.0427,
+      "top": 0.313,
+      "bottom": 0.612,
+      "hem": 820
+    },
+    "uro/grab_hold": {
+      "art": "237b9bb5d334",
+      "share": 0.0487,
+      "top": 0.305,
+      "bottom": 0.63,
+      "hem": 992
+    },
+    "uro/grab_reach": {
+      "art": "f863ec2217a1",
+      "share": 0.0404,
+      "top": 0.352,
+      "bottom": 0.723,
+      "hem": 958
+    },
+    "uro/grabbed": {
+      "art": "30dbec1acdf5",
+      "share": 0.0437,
+      "top": 0.296,
+      "bottom": 0.622,
+      "hem": 1004
+    },
+    "uro/guard": {
+      "art": "0ffc94139dcc",
+      "share": 0.0469,
+      "top": 0.298,
+      "bottom": 0.628,
+      "hem": 748
+    },
+    "uro/hurt": {
+      "art": "d71379c6e78b",
+      "share": 0.0455,
+      "top": 0.282,
+      "bottom": 0.609,
+      "hem": 966
+    },
+    "uro/idle_a": {
+      "art": "831ad0e8c595",
+      "share": 0.0702,
+      "top": 0.283,
+      "bottom": 0.609,
+      "hem": 876
+    },
+    "uro/idle_b": {
+      "art": "6d3d76ec8184",
+      "share": 0.064,
+      "top": 0.289,
+      "bottom": 0.599,
+      "hem": 864
+    },
+    "uro/jump_rise": {
+      "art": "394ef9e5774a",
+      "share": 0.0472,
+      "top": 0.368,
+      "bottom": 0.721,
+      "hem": 776
+    },
+    "uro/land": {
+      "art": "be0fa1f12e73",
+      "share": 0.064,
+      "top": 0.411,
+      "bottom": 0.825,
+      "hem": 1008
+    },
+    "uro/ledge_hang": {
+      "art": "6e27ff23ddfe",
+      "share": 0.0564,
+      "top": 0.332,
+      "bottom": 0.596,
+      "hem": 732
+    },
+    "uro/prone": {
+      "art": "d1fc56f319a6",
+      "skipped": true
+    },
+    "uro/run_a": {
+      "art": "68e65b3e7041",
+      "share": 0.0369,
+      "top": 0.308,
+      "bottom": 0.619,
+      "hem": 820
+    },
+    "uro/run_b": {
+      "art": "6055b1611bf4",
+      "share": 0.0363,
+      "top": 0.361,
+      "bottom": 0.675,
+      "hem": 722
+    },
+    "uro/run_pass_a": {
+      "art": "57b7d37f608f",
+      "share": 0.048,
+      "top": 0.291,
+      "bottom": 0.59,
+      "hem": 820
+    },
+    "uro/run_pass_b": {
+      "art": "4afe9ad0a9a8",
+      "share": 0.0528,
+      "top": 0.288,
+      "bottom": 0.593,
+      "hem": 778
+    },
+    "uro/run_reach_a": {
+      "art": "79a5364881e7",
+      "share": 0.032,
+      "top": 0.297,
+      "bottom": 0.628,
+      "hem": 728
+    },
+    "uro/run_reach_b": {
+      "art": "b6eb71484827",
+      "share": 0.0336,
+      "top": 0.327,
+      "bottom": 0.634,
+      "hem": 710
+    },
+    "uro/special_down": {
+      "art": "8a38c52943e1",
+      "share": 0.039,
+      "top": 0.284,
+      "bottom": 0.601,
+      "hem": 950
+    },
+    "uro/special_neutral": {
+      "art": "254941265566",
+      "share": 0.0459,
+      "top": 0.283,
+      "bottom": 0.609,
+      "hem": 912
+    },
+    "uro/special_side": {
+      "art": "7bfd883112db",
+      "share": 0.0464,
+      "top": 0.418,
+      "bottom": 0.801,
+      "hem": 758
+    },
+    "uro/teeter": {
+      "art": "f6779b484112",
+      "share": 0.055,
+      "top": 0.263,
+      "bottom": 0.582,
+      "hem": 806
+    },
+    "uro/throw_back": {
+      "art": "57c3d98f31a1",
+      "share": 0.0295,
+      "top": 0.289,
+      "bottom": 0.581,
+      "hem": 864
+    },
+    "uro/throw_down": {
+      "art": "067e69b768b5",
+      "share": 0.0293,
+      "top": 0.408,
+      "bottom": 0.703,
+      "hem": 984
+    },
+    "uro/throw_fwd": {
+      "art": "8b7438179d81",
+      "share": 0.0358,
+      "top": 0.327,
+      "bottom": 0.636,
+      "hem": 858
+    },
+    "uro/throw_up": {
+      "art": "90c88e68b9ee",
+      "share": 0.044,
+      "top": 0.3,
+      "bottom": 0.589,
+      "hem": 862
+    },
+    "uro/ult_a": {
+      "art": "82ee83e222d6",
+      "share": 0.0666,
+      "top": 0.293,
+      "bottom": 0.609,
+      "hem": 956
+    },
+    "uro/ult_b": {
+      "art": "887014b35da1",
+      "share": 0.0529,
+      "top": 0.278,
+      "bottom": 0.61,
+      "hem": 880
+    },
+    "uro/victory": {
+      "art": "ed0be6c9fa68",
+      "share": 0.0582,
+      "top": 0.279,
+      "bottom": 0.609,
+      "hem": 870
+    },
+    "uro/walk_a": {
+      "art": "3ed0ada4b050",
+      "share": 0.049,
+      "top": 0.27,
+      "bottom": 0.605,
+      "hem": 734
+    },
+    "uro/walk_b": {
+      "art": "237bf3030a03",
+      "share": 0.0576,
+      "top": 0.283,
+      "bottom": 0.592,
+      "hem": 706
+    }
+  }
+}

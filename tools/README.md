@@ -33,13 +33,20 @@ relative links. It is not in `npm run check`; run it after moving a doc.
 
 `node tools/smoke_stats.mjs` covers /stats/ and the visitor counter. Also
 outside `npm run check`, for a different reason: it needs `node server.mjs`
-running, and the gate is meant to pass on a bare checkout.
+running, and the gate is meant to pass on a bare checkout. So does
+`node tools/smoke_clothing_fx.mjs`, which drives the settings screen and the
+real draw path; the half of Clothing FX that can be checked on a bare checkout —
+that the key still takes the same thing out of the same art — is
+`check_clothing_fx.mjs`, and that one IS in the gate.
+
+`tools/png.mjs` is not a script. It decodes 8-bit RGBA PNGs in plain node, so a
+check that needs to look at actual pixels does not need a browser to do it.
 
 ## The families
 
 | Prefix | What it is | Count |
 |---|---|---|
-| `check_*` | invariants — a non-zero exit means something drifted | 22 |
+| `check_*` | invariants — a non-zero exit means something drifted | 23 |
 | `smoke_*` | play the real game (mostly headless via Playwright) and measure the result | 52 |
 | `audit_*` | report on the data rather than pass/fail it — reach, hitboxes, frame sizes, model health | 18 |
 | `build_*` | generate a checked-in file from the source of truth | 6 |

@@ -4,6 +4,7 @@ import { STAGES, backgroundFile } from "./stages.js";
 import { cameraMode } from "./camera_mode.js";
 import { transformActorsFor } from "./config_transform.js";
 import { SUMMON_ART, SUMMON_POSES } from "./config_summons.js";
+import { hasClothingFx, warmClothingFx } from "./clothing_fx.js";
 
 export const images = new Map();
 export let spriteManifest = null;
@@ -854,6 +855,28 @@ export async function ensureMatchAssets(charKeys, stageKey, onProgress) {
   } finally {
     off?.();
   }
+}
+
+/** Run the Clothing FX pass over every frame of the given fighters NOW.
+ *
+ *  A no-op unless the setting is on AND one of them has a garment profile, so
+ *  the normal case costs a table lookup. When it does run it is about a second
+ *  for a whole character on a desktop (tools/bench_clothing_fx.mjs), which is
+ *  why the call sits behind the VS splash with the rest of the match's loading
+ *  rather than landing on the first frame she throws a palm on.
+ *
+ *  Here rather than in clothing_fx.js because this is the file that knows what
+ *  art a character HAS and which of it is loaded; that one stays dependency-
+ *  free so the spike tool can import it into a bare page.
+ */
+export function warmMatchClothingFx(charKeys) {
+  let n = 0;
+  for (const charKey of new Set(charKeys.filter(Boolean))) {
+    if (!hasClothingFx(charKey)) continue;
+    const frames = Object.keys(spriteManifest?.characters?.[charKey] || {});
+    n += warmClothingFx(charKey, frames.map((f) => [f, frameImage(charKey, f)]));
+  }
+  return n;
 }
 
 /** True when ensureMatchAssets would actually have to wait, so the caller can
