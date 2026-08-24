@@ -17,6 +17,7 @@
 // No clock, no stocks, no KO, no intro. `main.js` keeps all of that, and this
 // returns nothing — the callers read `state` like everything else does.
 import { state } from "./state.js";
+import { stepScreenShatter } from "./screen_shatter.js";
 import { updateFighter } from "./fighter.js";
 import { updateHitboxes, updateProjectiles, stepHitCredit } from "./combat.js";
 import { blankInput, playerInput } from "./input.js";
@@ -176,8 +177,19 @@ export function advanceWorld(dt, { latch, read, step, scale = 1 }) {
   //
   // `state.slowMo` still drains on real time, so a hit-stop lasts as long as
   // it should on the clock rather than being stretched by the slider too.
-  const simDt = (state.slowMo > 0 ? dt * SLOW_MO_SCALE : dt) * scale;
+  let simDt = (state.slowMo > 0 ? dt * SLOW_MO_SCALE : dt) * scale;
   state.slowMo = Math.max(0, state.slowMo - dt);
+  // THE HARD HOLD, distinct from slow motion: while it drains (on real time,
+  // like slowMo) the sim step is ZERO — fighters, entities, particles and the
+  // camera all stand still. Uro's sky-shatter arms it for the crack beat, and
+  // the shatter's own clock is stepped below on the raw dt so the cracks keep
+  // spreading across the stopped world. That contrast IS the effect; a hold
+  // that merely slowed everything would read as lag.
+  if (state.simHold > 0) {
+    state.simHold = Math.max(0, state.simHold - dt);
+    simDt = 0;
+  }
+  stepScreenShatter(dt);
 
   accumulator = Math.min(accumulator + simDt, FIXED_DT * MAX_FIXED_STEPS);
   while (accumulator >= FIXED_DT) {

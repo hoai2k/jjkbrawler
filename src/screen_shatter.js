@@ -22,11 +22,15 @@
 // capture right there, where the GL buffer is guaranteed fresh. Flat mode is
 // the same call with one canvas.
 //
-// CLOCK. The animation is stepped by the entity the trigger pushes, which
-// means it runs on the SIM clock and inherits slow motion — and the ultimate
-// sets slowMo on its slam, so the pane breaks in the same slow-motion beat as
-// the blow that broke it. That is not a coincidence; it is the reason the
-// clock is the sim's.
+// CLOCK, AND THE FREEZE. The sequence is deliberately paced as BEATS — the
+// world stops while the cracks spread and hold, the break releases it, the
+// shards fall over a dark not-sky, the darkness stands a moment, and the sky
+// heals. For the first beats to read, the world must actually stand still
+// while the cracks keep animating, so the two run on different clocks:
+// `triggerScreenShatter` arms `state.simHold` (sim.js zeroes the sim step
+// while it drains, on real time) and the shatter's own clock is stepped by
+// `stepScreenShatter`, called from advanceWorld on the raw frame dt. Pausing
+// stops advanceWorld and so stops both, which is the behaviour a pause owes.
 //
 // All geometry is in WORLD units (the space drawScreenFlash and the banners
 // already draw in); the capture is in canvas pixels and the two meet through
@@ -44,14 +48,20 @@ const SHATTER = {
   // The pane is LOCAL: at scale 1 this radius keeps the broken region to
   // roughly a third of the screen's area.
   reach: 330,          // web radius in WORLD units at scale 1
-  crackTime: 0.10,     // frozen pane + web drawing itself
-  splitTime: 0.16,     // shards parted along the fracture, still in place
-  fallTime: 0.6,       // shards dropping away
-  regenTime: 0.55,     // the hole healing over — the sky regenerating
+  // THE BEATS, in order, each given its own moment so the whole reads as a
+  // sequence — crack, hold, break, fall, dark, heal — rather than one flinch.
+  // The world is FROZEN through crack + hold (state.simHold) and released on
+  // the break, so "things start moving again" is the same instant the pane
+  // gives way. `opts.tempo` scales all six together: the ultimate takes the
+  // full stately version, the special a brisker one.
+  crackTime: 0.55,     // the web races across the frozen pane
+  holdTime: 0.25,      // complete web, trembling — the moment before it gives
+  splitTime: 0.22,     // the pieces part; the world resumes underneath
+  fallTime: 0.85,      // shards drop away over the darkness behind
+  darkTime: 0.30,      // the hole stands alone, fully dark
+  regenTime: 0.75,     // the sky fades back in over the blank
   maxShards: 40,       // safety valve; the web above yields ~27
 };
-
-const TOTAL = SHATTER.crackTime + SHATTER.splitTime + SHATTER.fallTime + SHATTER.regenTime;
 
 /** Where a sim-space point sits on screen, as fractions, under the flat
  *  camera's framing (translate to centre, scale by zoom). The 2.5D rig frames
@@ -67,6 +77,19 @@ export function simToScreenFrac(x, y) {
   };
 }
 
+/** The six beat lengths for one shatter, in seconds, after its tempo. */
+function beats(sh) {
+  const k = sh.tempo;
+  return {
+    crack: SHATTER.crackTime * k,
+    hold: SHATTER.holdTime * k,
+    split: SHATTER.splitTime * k,
+    fall: SHATTER.fallTime * k,
+    dark: SHATTER.darkTime * k,
+    regen: SHATTER.regenTime * k,
+  };
+}
+
 /** Ask for the screen to shatter around a point at the end of THIS frame.
  *
  *  `opts.cx, cy`  the impact, as fractions of the screen (default centre-ish).
@@ -74,36 +97,50 @@ export function simToScreenFrac(x, y) {
  *                 technique could tint a fracture without a signature change.
  *  `opts.scale`   0..1 overall violence — radius, separation and shard speed
  *                 all follow it (default 1).
+ *  `opts.tempo`   0..1 pacing — scales every beat together. The ultimate runs
+ *                 the full 1; a special that fires often wants ~0.7.
  *
  *  One at a time: a second request while one is playing replaces it, because
  *  two half-broken panes on top of each other read as a renderer bug.
  */
 export function triggerScreenShatter(opts = {}) {
-  state.skyShatter = {
+  const sh = {
     pending: true,
     cx: opts.cx ?? 0.5,
     cy: opts.cy ?? 0.42,
     color: opts.color || "#8fd7e8",
     scale: Math.max(0.3, Math.min(1, opts.scale ?? 1)),
+    tempo: Math.max(0.4, Math.min(1, opts.tempo ?? 1)),
     t: 0,
+    broke: false,
     shards: null,
     rays: null,
   };
-  // The clock. An entity, so the sim steps it, slow motion stretches it, and a
-  // round ending throws it away with everything else.
-  state.entities.push({
-    kind: "skyShatterClock", owner: opts.owner || null, t: 0, dead: false,
-    update(dt) {
-      const sh = state.skyShatter;
-      if (!sh) { this.dead = true; return; }
-      sh.t += dt;
-      if (sh.t >= TOTAL) {
-        state.skyShatter = null;
-        this.dead = true;
-      }
-    },
-  });
+  state.skyShatter = sh;
+  // The world stands still while the cracks spread and hold. Released exactly
+  // on the break, so the moment the pane gives is the moment things move.
+  const b = beats(sh);
+  state.simHold = Math.max(state.simHold || 0, b.crack + b.hold);
   playSfx("parry", 0.8, 1.4);
+}
+
+/** Advance the shatter's own clock. Called from sim.js advanceWorld on the RAW
+ *  frame dt — never the sim step, which is zero while the world is held for
+ *  the crack beat, and the cracks animating across a stopped world is the
+ *  whole picture. */
+export function stepScreenShatter(dt) {
+  const sh = state.skyShatter;
+  if (!sh) return;
+  sh.t += dt;
+  const b = beats(sh);
+  // The break: one glassy report as the pane gives way and the world resumes.
+  if (!sh.broke && sh.t >= b.crack + b.hold) {
+    sh.broke = true;
+    playSfx("parry", 1, 0.65);
+  }
+  if (sh.t >= b.crack + b.hold + b.split + b.fall + b.dark + b.regen) {
+    state.skyShatter = null;
+  }
 }
 
 /** Draw (and on the first frame, capture). Called by render.js after
@@ -117,21 +154,33 @@ export function drawScreenShatter(ctx, layers) {
     build(sh, layers);
     sh.pending = false;
   }
-  if (!sh.shards) { state.skyShatter = null; return; }
+  if (!sh.shards) {
+    // Capture failed (no readable canvas). Do not leave the world frozen for
+    // a beat of nothing — release the hold and drop the effect.
+    state.simHold = 0;
+    state.skyShatter = null;
+    return;
+  }
 
   const t = sh.t;
-  const { crackTime, splitTime, fallTime, regenTime } = SHATTER;
-  const fallStart = crackTime + splitTime;
+  const b = beats(sh);
+  const splitStart = b.crack + b.hold;
+  const fallStart = splitStart + b.split;
+  const darkStart = fallStart + b.fall;
+  const regenStart = darkStart + b.dark;
   ctx.save();
 
-  // --- the hole where the pane was --------------------------------------
-  // Opens as the shards leave and heals over afterwards — the sky
-  // regenerating. Drawn first, so the falling shards pass in front of it.
-  if (t > fallStart) {
-    const opened = Math.min(1, (t - fallStart) / 0.15);
-    const healed = Math.max(0, (t - fallStart - fallTime) / regenTime);
-    const holeAlpha = 0.7 * opened * (1 - healed * healed);
-    if (holeAlpha > 0.01) {
+  // --- the darkness behind ----------------------------------------------
+  // Rises as the pieces part, stands fully dark for its own beat once the
+  // shards are gone, then heals — the sky fading back in over the blank.
+  // Drawn first, so the falling shards pass in front of it.
+  if (t >= splitStart) {
+    let holeA = 0.85 * Math.min(1, (t - splitStart) / (b.split + 0.2));
+    if (t >= regenStart) {
+      const k = Math.min(1, (t - regenStart) / b.regen);
+      holeA = 0.85 * (1 - k * k);
+    }
+    if (holeA > 0.01) {
       ctx.save();
       ctx.beginPath();
       const hull = sh.rays.map((pts) => pts[pts.length - 1]);
@@ -139,10 +188,10 @@ export function drawScreenShatter(ctx, layers) {
       for (let i = 1; i < hull.length; i++) ctx.lineTo(hull[i].x, hull[i].y);
       ctx.closePath();
       ctx.clip();
-      ctx.globalAlpha = holeAlpha;
+      ctx.globalAlpha = holeA;
       const g = ctx.createRadialGradient(sh.ix, sh.iy, 0, sh.ix, sh.iy, sh.reach);
       g.addColorStop(0, "#040612");
-      g.addColorStop(0.7, "#0a1030");
+      g.addColorStop(0.82, "#0a1030");
       g.addColorStop(1, "rgba(10, 16, 48, 0)");
       ctx.fillStyle = g;
       ctx.fillRect(sh.ix - sh.reach, sh.iy - sh.reach, sh.reach * 2, sh.reach * 2);
@@ -150,42 +199,53 @@ export function drawScreenShatter(ctx, layers) {
     }
   }
 
-  // --- phase 1: the frozen pane, cracking -------------------------------
-  // Only the pane — outside the web the live game never stops, which is what
-  // keeps the break a place in the scene rather than a whole-screen wipe.
-  if (t < fallStart) {
-    for (const s of sh.shards) drawShard(ctx, s, 0, 0, 0, 1);
-  }
-  if (t < crackTime + splitTime * 0.6) {
-    drawWeb(ctx, sh, Math.min(1, t / crackTime), t < crackTime ? 1 : 0.85);
+  // --- beat 1: the cracks race across the frozen pane ---------------------
+  // Only the pane — outside the web the picture is the held world, and the
+  // pane over it is seamless because the pane IS that frame.
+  if (t < b.crack) {
+    for (const sd of sh.shards) drawShard(ctx, sd, 0, 0, 0, 1);
+    drawWeb(ctx, sh, Math.min(1, t / b.crack), 1);
   }
 
-  // --- phase 2: the pane splits ------------------------------------------
-  // The pieces part along the fracture. No stroke on the shard edges — the
-  // gap between two pieces of the frozen picture, with the live game showing
-  // through it, is the line.
-  if (t >= crackTime && t < fallStart) {
-    const k = (t - crackTime) / splitTime;
-    const part = k * k * 10 * sh.scale;
-    for (const s of sh.shards) {
-      drawShard(ctx, s, Math.cos(s.away) * part, Math.sin(s.away) * part, s.spin * k * 0.05, 1);
+  // --- beat 2: the finished web holds, trembling ---------------------------
+  // The moment before it gives. The tremble is a fraction of a pixel of
+  // shared jitter — the pane straining, not an earthquake.
+  if (t >= b.crack && t < splitStart) {
+    const jx = Math.sin(t * 62) * 0.8;
+    const jy = Math.cos(t * 47) * 0.6;
+    for (const sd of sh.shards) drawShard(ctx, sd, jx, jy, 0, 1);
+    drawWeb(ctx, sh, 1, 1);
+  }
+
+  // --- beat 3: the break — pieces part, world resumes underneath -----------
+  // No stroke on the shard edges: the widening gap between two pieces of the
+  // held picture, with darkness rising through it, is the line.
+  if (t >= splitStart && t < fallStart) {
+    const k = (t - splitStart) / b.split;
+    const part = k * k * 12 * sh.scale;
+    for (const sd of sh.shards) {
+      drawShard(ctx, sd, Math.cos(sd.away) * part, Math.sin(sd.away) * part, sd.spin * k * 0.05, 1);
     }
+    drawWeb(ctx, sh, 1, Math.max(0, 1 - k * 1.6));
   }
 
-  // --- phase 3: the pieces fall away -------------------------------------
+  // --- beat 4: the pieces fall away ----------------------------------------
   // Glass drops: a little outward shove, a lot of gravity. The alpha holds
   // until a piece is well on its way — a shard that dissolves the frame it
   // moves reads as fog, not glass.
-  if (t >= fallStart && t < fallStart + fallTime) {
+  if (t >= fallStart && t < darkStart) {
     const ft = t - fallStart;
-    const fade = ft < fallTime * 0.4 ? 1 : Math.max(0, 1 - (ft - fallTime * 0.4) / (fallTime * 0.6));
-    for (const s of sh.shards) {
-      const dx = Math.cos(s.away) * s.speed * 0.35 * ft * sh.scale;
-      const dy = Math.sin(s.away) * s.speed * 0.2 * ft * sh.scale + 1500 * ft * ft;
-      drawShard(ctx, s, 10 * sh.scale * Math.cos(s.away) + dx, 10 * sh.scale * Math.sin(s.away) + dy,
-                s.spin * (0.05 + ft * 1.6), fade);
+    const fade = ft < b.fall * 0.45 ? 1 : Math.max(0, 1 - (ft - b.fall * 0.45) / (b.fall * 0.55));
+    for (const sd of sh.shards) {
+      const dx = Math.cos(sd.away) * sd.speed * 0.3 * ft * sh.scale;
+      const dy = Math.sin(sd.away) * sd.speed * 0.18 * ft * sh.scale + 1400 * ft * ft;
+      drawShard(ctx, sd, 12 * sh.scale * Math.cos(sd.away) + dx, 12 * sh.scale * Math.sin(sd.away) + dy,
+                sd.spin * (0.06 + ft * 1.5), fade);
     }
   }
+
+  // Beats 5 and 6 — the standing darkness and the heal — are the hole alone,
+  // drawn above.
 
   ctx.restore();
 }
@@ -210,8 +270,8 @@ function drawWeb(ctx, sh, grow, alpha) {
   ctx.save();
   ctx.lineJoin = "round";
   for (const pass of [
-    { width: 2.6, style: "rgba(12, 20, 38, 0.5)", a: 0.8 },
-    { width: 1.1, style: "rgba(240, 249, 255, 0.9)", a: 0.95 },
+    { width: 2.8, style: "rgba(12, 20, 38, 0.5)", a: 0.8 },
+    { width: 1.5, style: "rgba(244, 251, 255, 1)", a: 1 },
   ]) {
     ctx.globalAlpha = pass.a * alpha;
     ctx.strokeStyle = pass.style;

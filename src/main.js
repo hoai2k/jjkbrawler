@@ -199,6 +199,8 @@ async function resetMatch() {
   stopDomainLoop();
   state.screenFlash = null;
   state.slowMo = 0;
+  state.simHold = 0;
+  state.skyShatter = null;
   state.matchTime = 0;
   state.timeLeft = state.timeLimit;
   state.suddenDeath = false;
