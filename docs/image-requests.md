@@ -16,7 +16,7 @@ is exactly how 172 images once went missing from this list.
 
 - **The sprite game** — 12 images: [12 flagged in the workbench](#outstanding-by-manifest-not-by-request) as art that exists and is wrong
 - **The live-3D anime path** — 0 images
-- Separately, 7 poses are drawing another pose's file. Not counted above: those are substitutions somebody chose, not images anybody is owed.
+- Separately, 9 poses are drawing another pose's file. Not counted above: those are substitutions somebody chose, not images anybody is owed.
 
 ## Rules that hold everywhere here
 
@@ -288,7 +288,7 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**12 flagged, 7 drawing somebody else's art**.
+**12 flagged, 9 drawing somebody else's art**.
 
 | Fighter | Pose | Why | What is wrong | The drawing now | Canon reference |
 |---|---|---|---|---|---|
@@ -304,15 +304,17 @@ the rounds above are for.
 | Jogo | `crouch_attack_a` | delete | — | [r4c3.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/r4c3.png) | [jogo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/jogo_idle.png) |
 | Jogo | `dash` | delete | — | [r1c2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/r1c2.png) | [jogo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/jogo_idle.png) |
 | Jogo | `ult_a` | delete | — | [r3c2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/r3c2.png) | [jogo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/jogo_idle.png) |
+| Hanami | `attack_light_b` | drawing another pose's file | it is `special_neutral`, not `attack_light_b` | [special_neutral.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hanami/special_neutral.png) | [hanami_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/hanami_idle.png) |
 | Yuta Okkotsu | `attack_light_a` | drawing another pose's file | it is `attack_air_a`, not `attack_light_a` | [attack_air_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuta/attack_air_a.png) | [yuta_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yuta_idle.png) |
 | Yuta Okkotsu | `attack_light_b` | drawing another pose's file | it is `attack_air_b`, not `attack_light_b` | [attack_air_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuta/attack_air_b.png) | [yuta_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yuta_idle.png) |
 | Panda | `attack_light_a` | drawing another pose's file | it is `r0c2`, not `attack_light_a` | [r0c2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/panda/r0c2.png) | [panda_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/panda_idle.png) |
 | Panda | `crouch_attack_a` | drawing another pose's file | it is `crouch_a`, not `crouch_attack_a` | [r4c1.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/panda/r4c1.png) | [panda_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/panda_idle.png) |
 | Aoi Todo | `attack_heavy_b` | drawing another pose's file | it is `attack_dash`, not `attack_heavy_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/todo/attack_dash.png) | [todo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/todo_idle.png) |
 | Aoi Todo | `attack_light_b` | drawing another pose's file | it is `attack_heavy_b`, not `attack_light_b` | [special_side.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/todo/special_side.png) | [todo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/todo_idle.png) |
+| Yoshinobu Gakuganji | `crouch_attack_b` | drawing another pose's file | it is `attack_dash`, not `crouch_attack_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gakuganji/attack_dash.png) | [gakuganji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/gakuganji_idle.png) |
 | Naoya Zen'in | `attack_heavy_a` | drawing another pose's file | it is `run_pass_a`, not `attack_heavy_a` | [run_pass_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/run_pass_a.png) | [naoya_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_idle.png) |
 
-Separately, **2 improvement requests** — the art works and is just
+Separately, **12 improvement requests** — the art works and is just
 not as good as it should be. Nothing is blocked by one, and the standing
 ones are alpha fixes to delivered files, which is repo work rather than a
 request.
