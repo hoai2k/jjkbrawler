@@ -69,10 +69,10 @@ async function measure(page, { mode }) {
     await page.waitForTimeout(700);
   }
 
-  // Cycle the setting to the mode under test. The cycle is Off -> Hem ->
-  // Alpha -> Off, and the labels are checked on the way round: a mode that
-  // cannot be reached from the button is a mode no player has.
-  if (mode !== "off") {
+  // Cycle the setting to the mode under test — the cycle is Off -> Hem ->
+  // Alpha -> Off and it starts on Alpha, the shipped default. A mode the
+  // button cannot reach is a mode no player has.
+  {
     await page.click("#settingsButton");
     await page.waitForSelector("#settingsClothingButton", { state: "visible" });
     const seen = [await page.textContent("#settingsClothingButton")];
@@ -80,7 +80,7 @@ async function measure(page, { mode }) {
       await page.click("#settingsClothingButton");
       seen.push(await page.textContent("#settingsClothingButton"));
     }
-    check(seen[0] === "Clothing FX: Off", "settings: the default is Off", `got ${JSON.stringify(seen[0])}`);
+    check(seen[0] === "Clothing FX: Alpha", "settings: the default is Alpha", `got ${JSON.stringify(seen[0])}`);
     check(seen[seen.length - 1] === `Clothing FX: ${LABEL[mode]}`,
           `settings: the cycle reaches ${LABEL[mode]}`, `saw ${JSON.stringify(seen)}`);
     await page.click("#settingsBackButton");

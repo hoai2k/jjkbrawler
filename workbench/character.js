@@ -31,6 +31,7 @@
 // removed rather than defaulted off, and this bench is where each of them was
 // looked at and found wanting.
 import { state } from "../src/state.js";
+import { clothingFx, setClothingFx } from "../src/clothing_fx.js";
 import { loadCoreAssets, ensureMatchAssets, startBackgroundLoad,
          sharedArtSettled } from "../src/assets.js";
 import { initInput, readGamepads, endInputFrame, playerInput, blankInput,
@@ -143,6 +144,13 @@ root.innerHTML = `
         <label class="toggle" title="A pillar up the middle of the board, floor to the height of the side platforms, solid to walk into and cleared by going over the top. Somewhere to push up against: holding a diagonal to throw an angled attack also walks you forward, so on an open board the swing is studied from off the edge.">
           <input type="checkbox" id="wallToggle"> wall
         </label>
+        <label class="toggle" title="How the game's Clothing FX setting draws this character's garments (src/clothing_fx.js). Only characters with a garment profile — Uro today — look any different; Alpha is the game's default. The bench IS the game's renderer, so what this shows is what a match draws.">clothing fx
+          <select class="dummyPick" id="clothingFxSel">
+            <option value="off">Off</option>
+            <option value="hem">Hem</option>
+            <option value="alpha">Alpha</option>
+          </select>
+        </label>
         <button class="drill" id="ledgeDrill" type="button" title="Walks off the edge, hangs, and climbs back — the real grab, the real transition, no state poked in by hand. Getting there on a pad takes a dozen tries and the interesting part is four frames long; turn the speed down and watch it.">ledge drill</button>
         <label class="toggle zoom">zoom
           <input type="range" id="zoomRange" min="0.6" max="3" step="0.05">
@@ -171,6 +179,15 @@ const overlayEl = document.getElementById("viewerOverlay");
 const lightsEl = document.getElementById("lights");
 const lightsStateEl = document.getElementById("lightsState");
 const dummyEl = document.getElementById("dummyToggle");
+{
+  // Clothing FX viewer. The bench draws through the game's renderer and runs a
+  // live loop, so setting the mode is the whole wiring.
+  const fxSel = document.getElementById("clothingFxSel");
+  if (fxSel) {
+    fxSel.value = clothingFx.mode;
+    fxSel.onchange = () => setClothingFx(fxSel.value);
+  }
+}
 const wallEl = document.getElementById("wallToggle");
 const dummyCharEl = document.getElementById("dummyChar");
 const zoomEl = document.getElementById("zoomRange");

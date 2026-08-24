@@ -704,8 +704,8 @@ the board you are editing.
 
 ### Clothing FX
 
-**Settings → Clothing FX** (default Off, cosmetic only). It cycles **Off → Hem →
-Alpha → Off**, and keys a character's garments out of their own drawing so the
+**Settings → Clothing FX** (default **Alpha**, cosmetic only). It cycles
+**Off → Hem → Alpha → Off**, and keys a character's garments out of their own drawing so the
 stage shows through them — Uro's cloud outfit, the way the anime sometimes draws
 her. She is the only one it does anything to; `src/clothing_fx.js` carries the
 table, and adding to it is a question about how a character is drawn rather than
