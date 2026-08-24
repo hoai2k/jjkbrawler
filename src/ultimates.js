@@ -5,6 +5,8 @@
 // time the meter fills.
 
 import { state } from "./state.js";
+import { spawnSkyCrack } from "./sky_crack.js";
+import { triggerScreenShatter, simToScreenFrac } from "./screen_shatter.js";
 import { groundY as stageGroundY } from "./stages.js";
 import { ART_SCALE } from "./config_tuning.js";
 import { clamp, sign, rand } from "./utils.js";
@@ -961,6 +963,14 @@ const DIRECTORS = {
     beginUltAction(f, 1.9);
     state.domainOverlay = { color: p.color, life: 1.9, maxLife: 1.9, label: "Inverted Sky", ownerId: f.id };
     opp.hitstun = Math.max(opp.hitstun, 1.7);
+    // The sky over the victim fractures for the whole lift and breaks open on
+    // the slam — the crack's growth is timed to the ult's own beats, so the
+    // shatter and the blow are one moment (src/sky_crack.js).
+    if (p.crack) {
+      spawnSkyCrack(opp.x, opp.y - 220, {
+        r: 240, crackTime: 0.25 + p.liftTime, color: p.color, owner: f, flash: false,
+      });
+    }
     state.entities.push({
       owner: f, t: 0, phase: 0, dead: false,
       update(dt) {
@@ -982,6 +992,13 @@ const DIRECTORS = {
             t2.vx = 0;
             state.screenFlash = { color: p.color, life: 0.25, maxLife: 0.25 };
             playSfx("blast", 1, 0.6);
+            // The sky folds shut: the whole frame becomes broken glass and
+            // bursts as the slam lands (src/screen_shatter.js). slowMo from
+            // the hit stretches it, which is the shot.
+            if (p.crack) {
+              const at = simToScreenFrac(t2.x, t2.y - 120);
+              triggerScreenShatter({ cx: at.x, cy: at.y, color: p.color, scale: 1, owner: f });
+            }
           }
         }
         if (this.phase === 2 && (t2.grounded || this.t > 2.2)) {
@@ -996,6 +1013,7 @@ const DIRECTORS = {
         }
       },
       draw(ctx) {
+        if (p.crack) return;   // the breaking sky is the whole picture
         const t2 = opponentOf(f);
         if (!t2) return;
         const img = p.sprite ? getImage(p.sprite) : null;

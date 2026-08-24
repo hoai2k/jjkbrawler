@@ -4,6 +4,8 @@
 // get bespoke handlers; common shapes share primitives.
 
 import { state } from "./state.js";
+import { spawnSkyCrack } from "./sky_crack.js";
+import { triggerScreenShatter, simToScreenFrac } from "./screen_shatter.js";
 import { groundY as stageGroundY } from "./stages.js";
 import { ART_SCALE } from "./config_tuning.js";
 // Effects spawned from CODE draw here rather than through render.js, so the
@@ -660,6 +662,9 @@ const HANDLERS = {
       t: p.window || 0.55, holdStill: true,
       dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: p.angle,
       label: cfg.name, name: "SKY FOLD",
+      // The lens is a fold in the SKY, so answering a blow cracks it — a
+      // small, no-shatter web at the point of the parry (src/sky_crack.js).
+      skyCrack: !!p.crack,
     };
     f.reflect = { t: p.window || 0.55, color: p.color || f.char.theme };
     ring(f.x, f.y - 90 * ART_SCALE, p.color || f.char.theme, 110);
@@ -747,6 +752,14 @@ const HANDLERS = {
     const tx = opp && !opp.dead ? opp.x : f.x + f.facing * 240;
     const ty = opp && !opp.dead ? opp.y - 70 : f.y - 70;
     const delay = p.delay || 0.32;
+    // `crack: true` swaps the telegraph sprite for the sky itself breaking:
+    // the fracture grows for exactly the windup and shatters on the impact
+    // frame, so the crack IS the tell (src/sky_crack.js).
+    if (p.crack) {
+      spawnSkyCrack(tx, ty - 40, {
+        r: (p.r || 95) * 1.5, crackTime: delay, color: p.color, owner: f, flash: false,
+      });
+    }
     state.entities.push({
       owner: f, t: 0, dead: false,
       update(dt) {
@@ -756,6 +769,12 @@ const HANDLERS = {
         burst(tx, ty, p.color, 20, 1.0);
         ring(tx, ty, p.color, 90);
         playSfx("blast", 0.85, 1.15);
+        // The impact: the crack that grew through the windup gives, and the
+        // whole frame breaks with it (src/screen_shatter.js).
+        if (p.crack) {
+          const at = simToScreenFrac(tx, ty - 40);
+          triggerScreenShatter({ cx: at.x, cy: at.y, color: p.color, scale: 0.55, owner: f });
+        }
         debugShape({ x: tx, y: ty, r: p.r || 95 });
         for (const t of state.fighters) {
           if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
@@ -768,6 +787,7 @@ const HANDLERS = {
         }
       },
       draw(ctx) {
+        if (p.crack) return;   // the sky crack is the whole telegraph
         const prog = Math.min(1, this.t / delay);
         const img = p.sprite ? getImage(p.sprite) : null;
         ctx.save();
