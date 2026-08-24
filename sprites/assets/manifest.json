@@ -2036,7 +2036,7 @@
     "bodyH": 231.5,
     "centroidX": 234.9,
     "renderScale": 0.1803,
-    "file": "gojo/incoming/throw_down.png",
+    "file": "gojo/throw_down.png",
     "anchors": {
      "com": [
       429.6,
@@ -2048,38 +2048,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "ox",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 943,
-      "h": 1284,
-      "ox": -192.4,
-      "oy": -973,
-      "bodyBottom": 250.4,
-      "bodyH": 231.5,
-      "bodyTop": 0,
-      "centroidX": 112.4,
-      "renderScale": 0.1803,
-      "anchors": {
-       "com": [
-        429.6,
-        534.0
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "ox": -272.9
-      },
-      "file": "gojo/throw_down.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -5708,7 +5680,7 @@
     "bodyH": 278.2,
     "centroidX": 152.3,
     "renderScale": 0.268,
-    "file": "hanami/incoming/attack_air_diag_down_b.png",
+    "file": "hanami/attack_air_diag_down_b.png",
     "anchors": {
      "com": [
       489.6,
@@ -5720,38 +5692,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 986,
-      "h": 1038,
-      "ox": -332.3,
-      "oy": -727,
-      "bodyBottom": 228.7,
-      "bodyH": 278.3,
-      "bodyTop": 0,
-      "centroidX": 152.8,
-      "renderScale": 0.268,
-      "anchors": {
-       "com": [
-        489.6,
-        412.1
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "renderScale": 0.231
-      },
-      "file": "hanami/attack_air_diag_down_b.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -5775,7 +5719,7 @@
     "bodyH": 344.5,
     "centroidX": 154.0,
     "renderScale": 0.2317,
-    "file": "hanami/incoming/attack_diag_up_b.png",
+    "file": "hanami/attack_diag_up_b.png",
     "anchors": {
      "com": [
       442.2,
@@ -5788,39 +5732,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 979,
-      "h": 1487,
-      "ox": -286.5,
-      "oy": -1176,
-      "bodyBottom": 109.6,
-      "bodyH": 344.6,
-      "bodyTop": 0,
-      "centroidX": 110.5,
-      "renderScale": 0.2317,
-      "anchors": {
-       "com": [
-        442.2,
-        665.7
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "edited": {
-       "renderScale": 0.2952,
-       "bodyBottom": 58.6
-      },
-      "file": "hanami/attack_diag_up_b.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -5877,7 +5792,7 @@
     "bodyH": 240.6,
     "centroidX": 162.7,
     "renderScale": 0.2475,
-    "file": "hanami/incoming/throw_down.png",
+    "file": "hanami/throw_down.png",
     "anchors": {
      "com": [
       509.5,
@@ -5889,37 +5804,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 1038,
-      "h": 972,
-      "ox": -352.2,
-      "oy": -661,
-      "bodyBottom": 205.4,
-      "bodyH": 240.6,
-      "bodyTop": 0,
-      "centroidX": 146.7,
-      "renderScale": 0.2475,
-      "anchors": {
-       "com": [
-        509.5,
-        452.9
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "edited": {
-       "renderScale": 0.269
-      },
-      "file": "hanami/throw_down.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -5943,7 +5831,7 @@
     "bodyH": 339.5,
     "centroidX": 158.5,
     "renderScale": 0.2319,
-    "file": "hanami/incoming/throw_fwd.png",
+    "file": "hanami/throw_fwd.png",
     "anchors": {
      "com": [
       456.3,
@@ -5956,39 +5844,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 1018,
-      "h": 1464,
-      "ox": -300.0,
-      "oy": -1153,
-      "bodyBottom": 117.9,
-      "bodyH": 339.5,
-      "bodyTop": 0,
-      "centroidX": 104.5,
-      "renderScale": 0.2319,
-      "anchors": {
-       "com": [
-        456.3,
-        660.6
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "edited": {
-       "renderScale": 0.2681,
-       "bodyBottom": 194.9
-      },
-      "file": "hanami/throw_fwd.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -6005,7 +5864,7 @@
     "bodyH": 412.6,
     "centroidX": 156.8,
     "renderScale": 0.282,
-    "file": "hanami/incoming/throw_up.png",
+    "file": "hanami/throw_up.png",
     "anchors": {
      "com": [
       243.4,
@@ -6017,37 +5876,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 496,
-      "h": 1463,
-      "ox": -87.3,
-      "oy": -1152,
-      "bodyBottom": 195.0,
-      "bodyH": 412.5,
-      "bodyTop": 0,
-      "centroidX": 152.8,
-      "renderScale": 0.282,
-      "anchors": {
-       "com": [
-        243.4,
-        733.5
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "edited": {
-       "renderScale": 0.3547
-      },
-      "file": "hanami/throw_up.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -9636,7 +9468,7 @@
     "bodyH": 361.7,
     "centroidX": 156.1,
     "renderScale": 0.2149,
-    "file": "momo/incoming/throw_up.png",
+    "file": "momo/throw_up.png",
     "anchors": {
      "com": [
       380.9,
@@ -9648,38 +9480,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 755,
-      "h": 1683,
-      "ox": -222.5,
-      "oy": -1372,
-      "bodyBottom": 246.7,
-      "bodyH": 361.7,
-      "bodyTop": 0,
-      "centroidX": 158.5,
-      "renderScale": 0.2149,
-      "anchors": {
-       "com": [
-        380.9,
-        733.6
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "renderScale": 0.2239
-      },
-      "file": "momo/throw_up.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -35698,7 +35502,7 @@
     "bodyH": 293.3,
     "centroidX": 156.7,
     "renderScale": 0.1908,
-    "file": "meimei/incoming/throw_fwd.png",
+    "file": "meimei/throw_fwd.png",
     "anchors": {
      "com": [
       358.9,
@@ -35711,40 +35515,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 869,
-      "h": 1537,
-      "ox": -203.5,
-      "oy": -1226,
-      "bodyBottom": 284.9,
-      "bodyH": 293.3,
-      "bodyTop": 0,
-      "centroidX": 82.5,
-      "renderScale": 0.1908,
-      "anchors": {
-       "com": [
-        358.9,
-        637.6
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "renderScale": 0.18,
-       "bodyBottom": 257.9
-      },
-      "file": "meimei/throw_fwd.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -37305,7 +37079,7 @@
     "bodyH": 324.5,
     "centroidX": 156.3,
     "renderScale": 0.2287,
-    "file": "uro/incoming/attack_air_diag_down_b.png",
+    "file": "uro/attack_air_diag_down_b.png",
     "anchors": {
      "com": [
       378.0,
@@ -37314,34 +37088,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 960,
-      "h": 1419,
-      "ox": -221.6,
-      "oy": -1108,
-      "bodyBottom": 238.3,
-      "bodyH": 324.5,
-      "bodyTop": 0,
-      "centroidX": 55.1,
-      "renderScale": 0.2287,
-      "anchors": {
-       "com": [
-        378.0,
-        583.0
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "file": "uro/attack_air_diag_down_b.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -37395,7 +37145,7 @@
     "bodyH": 368.0,
     "centroidX": 156.6,
     "renderScale": 0.2286,
-    "file": "uro/incoming/throw_back.png",
+    "file": "uro/throw_back.png",
     "anchors": {
      "com": [
       460.2,
@@ -37404,34 +37154,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 813,
-      "h": 1610,
-      "ox": -301.8,
-      "oy": -1299,
-      "bodyBottom": 228.5,
-      "bodyH": 377.2,
-      "bodyTop": 0,
-      "centroidX": 208.8,
-      "renderScale": 0.2343,
-      "anchors": {
-       "com": [
-        460.2,
-        608.1
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "file": "uro/throw_back.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -39069,7 +38795,7 @@
     "bodyH": 255.7,
     "centroidX": 156.6,
     "renderScale": 0.2275,
-    "file": "yuji/incoming/throw_back-2.png",
+    "file": "yuji/throw_back.png",
     "anchors": {
      "com": [
       317.1,
@@ -39081,38 +38807,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 647,
-      "h": 1124,
-      "ox": -160.4,
-      "oy": -813,
-      "bodyBottom": 197.9,
-      "bodyH": 263.9,
-      "bodyTop": 0,
-      "centroidX": 150.4,
-      "renderScale": 0.2348,
-      "anchors": {
-       "com": [
-        317.1,
-        444.0
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "bodyBottom": 233.4
-      },
-      "file": "yuji/incoming/throw_back.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -39218,7 +38916,7 @@
     "bodyH": 306.3,
     "centroidX": 157.4,
     "renderScale": 0.2194,
-    "file": "yuji/incoming/throw_up-2.png",
+    "file": "yuji/throw_up.png",
     "anchors": {
      "com": [
       333.7,
@@ -39227,34 +38925,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 666,
-      "h": 1396,
-      "ox": -178.0,
-      "oy": -1085,
-      "bodyBottom": 238.2,
-      "bodyH": 308.5,
-      "bodyTop": 0,
-      "centroidX": 158.5,
-      "renderScale": 0.221,
-      "anchors": {
-       "com": [
-        333.7,
-        575.2
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "file": "yuji/incoming/throw_up.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -41866,7 +41540,7 @@
     "bodyH": 288.4,
     "centroidX": 152.3,
     "renderScale": 0.2519,
-    "file": "gakuganji/incoming/attack_air_b.png",
+    "file": "gakuganji/attack_air_b.png",
     "anchors": {
      "com": [
       407.2,
@@ -41878,38 +41552,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 1070,
-      "h": 1145,
-      "ox": -248.6,
-      "oy": -834,
-      "bodyBottom": 310.4,
-      "bodyH": 288.4,
-      "bodyTop": 0,
-      "centroidX": 27.1,
-      "renderScale": 0.2519,
-      "anchors": {
-       "com": [
-        407.2,
-        404.8
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "renderScale": 0.247
-      },
-      "file": "gakuganji/attack_air_b.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -42446,7 +42092,7 @@
     "bodyH": 267.8,
     "centroidX": 156.8,
     "renderScale": 0.2335,
-    "file": "gakuganji/incoming/attack_air_diag_down_b.png",
+    "file": "gakuganji/attack_air_diag_down_b.png",
     "anchors": {
      "com": [
       430.6,
@@ -42458,38 +42104,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 1080,
-      "h": 1147,
-      "ox": -272.3,
-      "oy": -836,
-      "bodyBottom": 262.7,
-      "bodyH": 267.8,
-      "bodyTop": 0,
-      "centroidX": 45.8,
-      "renderScale": 0.2335,
-      "anchors": {
-       "com": [
-        430.6,
-        491.3
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "renderScale": 0.2267
-      },
-      "file": "gakuganji/attack_air_diag_down_b.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -42512,7 +42130,7 @@
     "bodyH": 368.7,
     "centroidX": 151.0,
     "renderScale": 0.2243,
-    "file": "gakuganji/incoming/attack_diag_up_b.png",
+    "file": "gakuganji/attack_diag_up_b.png",
     "anchors": {
      "com": [
       380.7,
@@ -42525,40 +42143,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 920,
-      "h": 1644,
-      "ox": -223.9,
-      "oy": -1333,
-      "bodyBottom": 213.3,
-      "bodyH": 368.7,
-      "bodyTop": 0,
-      "centroidX": 75.0,
-      "renderScale": 0.2243,
-      "anchors": {
-       "com": [
-        380.7,
-        824.6
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "renderScale": 0.2039,
-       "bodyBottom": 241.8
-      },
-      "file": "gakuganji/attack_diag_up_b.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -42609,7 +42197,7 @@
     "bodyH": 276.5,
     "centroidX": 155.7,
     "renderScale": 0.2002,
-    "file": "gakuganji/incoming/throw_down.png",
+    "file": "gakuganji/throw_down.png",
     "anchors": {
      "com": [
       401.1,
@@ -42621,38 +42209,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 924,
-      "h": 1381,
-      "ox": -244.0,
-      "oy": -1070,
-      "bodyBottom": 222.3,
-      "bodyH": 270.0,
-      "bodyTop": 0,
-      "centroidX": 95.5,
-      "renderScale": 0.1955,
-      "anchors": {
-       "com": [
-        401.1,
-        614.9
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "bodyBottom": 252.8
-      },
-      "file": "gakuganji/throw_down.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -42711,7 +42271,7 @@
     "bodyH": 322.8,
     "centroidX": 155.1,
     "renderScale": 0.1999,
-    "file": "gakuganji/incoming/throw_up.png",
+    "file": "gakuganji/throw_up.png",
     "anchors": {
      "com": [
       380.8,
@@ -42723,38 +42283,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 780,
-      "h": 1615,
-      "ox": -225.0,
-      "oy": -1304,
-      "bodyBottom": 243.0,
-      "bodyH": 322.8,
-      "bodyTop": 0,
-      "centroidX": 148.5,
-      "renderScale": 0.1999,
-      "anchors": {
-       "com": [
-        380.8,
-        748.0
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "renderScale": 0.195
-      },
-      "file": "gakuganji/throw_up.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -48044,7 +47576,7 @@
     "bodyH": 306.3,
     "centroidX": 156.1,
     "renderScale": 0.2931,
-    "file": "yuki/incoming/attack_heavy_b.png",
+    "file": "yuki/attack_heavy_b.png",
     "anchors": {
      "com": [
       572.7,
@@ -48061,43 +47593,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "anchors",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 1496,
-      "h": 1045,
-      "ox": -422.1,
-      "oy": -781,
-      "bodyBottom": 215.0,
-      "bodyH": 306.3,
-      "bodyTop": 0,
-      "centroidX": -12.4,
-      "renderScale": 0.2931,
-      "anchors": {
-       "com": [
-        572.7,
-        350.3
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "anchors": {
-        "com": [
-         579.2,
-         307.0
-        ]
-       }
-      },
-      "file": "yuki/attack_heavy_b.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -52860,7 +52359,7 @@
     "bodyH": 217.7,
     "centroidX": 148.3,
     "renderScale": 0.2369,
-    "file": "kashimo/incoming/attack_air_diag_down_b.png",
+    "file": "kashimo/attack_air_diag_down_b.png",
     "anchors": {
      "com": [
       531.9,
@@ -52869,33 +52368,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 1205,
-      "h": 919,
-      "ox": -374.6,
-      "oy": -608,
-      "bodyBottom": 165.3,
-      "bodyH": 229.7,
-      "bodyTop": 0,
-      "centroidX": 85.6,
-      "renderScale": 0.2499,
-      "anchors": {
-       "com": [
-        531.9,
-        323.8
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "file": "kashimo/attack_air_diag_down_b.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -52921,7 +52397,7 @@
     "bodyH": 273.5,
     "centroidX": 159.2,
     "renderScale": 0.2425,
-    "file": "kashimo/incoming/attack_diag_up_b.png",
+    "file": "kashimo/attack_diag_up_b.png",
     "anchors": {
      "com": [
       476.1,
@@ -52934,39 +52410,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "ox",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 1281,
-      "h": 1128,
-      "ox": -313.8,
-      "oy": -817,
-      "bodyBottom": 252.4,
-      "bodyH": 290.5,
-      "bodyTop": 0,
-      "centroidX": -8.2,
-      "renderScale": 0.258,
-      "anchors": {
-       "com": [
-        476.1,
-        475.6
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "edited": {
-       "ox": -483.8,
-       "bodyBottom": 310.4
-      },
-      "file": "kashimo/attack_diag_up_b.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -52990,7 +52437,7 @@
     "bodyH": 275.1,
     "centroidX": 156.7,
     "renderScale": 0.1979,
-    "file": "kashimo/incoming/throw_back.png",
+    "file": "kashimo/throw_back.png",
     "anchors": {
      "com": [
       435.0,
@@ -53002,37 +52449,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 885,
-      "h": 1390,
-      "ox": -277.3,
-      "oy": -1079,
-      "bodyBottom": 231.8,
-      "bodyH": 275.0,
-      "bodyTop": 0,
-      "centroidX": 148.3,
-      "renderScale": 0.1979,
-      "anchors": {
-       "com": [
-        435.0,
-        574.3
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "edited": {
-       "renderScale": 0.2083
-      },
-      "file": "kashimo/throw_back.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -53055,7 +52475,7 @@
     "bodyH": 220.4,
     "centroidX": 153.3,
     "renderScale": 0.1961,
-    "file": "kashimo/incoming/throw_down.png",
+    "file": "kashimo/throw_down.png",
     "anchors": {
      "com": [
       463.7,
@@ -53067,37 +52487,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 924,
-      "h": 1124,
-      "ox": -306.9,
-      "oy": -813,
-      "bodyBottom": 247.0,
-      "bodyH": 220.5,
-      "bodyTop": 0,
-      "centroidX": 156.4,
-      "renderScale": 0.1961,
-      "anchors": {
-       "com": [
-        463.7,
-        470.4
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "edited": {
-       "renderScale": 0.2109
-      },
-      "file": "kashimo/throw_down.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -53120,7 +52513,7 @@
     "bodyH": 280.9,
     "centroidX": 141.1,
     "renderScale": 0.2262,
-    "file": "kashimo/incoming/throw_fwd.png",
+    "file": "kashimo/throw_fwd.png",
     "anchors": {
      "com": [
       557.7,
@@ -53133,39 +52526,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 1152,
-      "h": 1242,
-      "ox": -419.2,
-      "oy": -931,
-      "bodyBottom": 222.4,
-      "bodyH": 281.5,
-      "bodyTop": 0,
-      "centroidX": 139.5,
-      "renderScale": 0.2262,
-      "anchors": {
-       "com": [
-        557.7,
-        507.0
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "edited": {
-       "renderScale": 0.257,
-       "bodyBottom": 310.4
-      },
-      "file": "kashimo/throw_fwd.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -53188,7 +52552,7 @@
     "bodyH": 291.1,
     "centroidX": 158.2,
     "renderScale": 0.2019,
-    "file": "kashimo/incoming/throw_up.png",
+    "file": "kashimo/throw_up.png",
     "anchors": {
      "com": [
       317.8,
@@ -53200,37 +52564,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 700,
-      "h": 1442,
-      "ox": -159.1,
-      "oy": -1131,
-      "bodyBottom": 226.0,
-      "bodyH": 291.1,
-      "bodyTop": 0,
-      "centroidX": 122.6,
-      "renderScale": 0.2019,
-      "anchors": {
-       "com": [
-        317.8,
-        590.7
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "edited": {
-       "renderScale": 0.2281
-      },
-      "file": "kashimo/throw_up.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -56886,7 +56223,7 @@
     "bodyH": 330.7,
     "centroidX": 156.9,
     "renderScale": 0.2284,
-    "file": "kirara/incoming/attack_light_b.png",
+    "file": "kirara/attack_light_b.png",
     "anchors": {
      "com": [
       445.3,
@@ -56898,38 +56235,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 954,
-      "h": 1448,
-      "ox": -289.9,
-      "oy": -1251,
-      "bodyBottom": 135.7,
-      "bodyH": 330.7,
-      "bodyTop": 0,
-      "centroidX": 126.4,
-      "renderScale": 0.2284,
-      "anchors": {
-       "com": [
-        445.3,
-        591.7
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "renderScale": 0.2496
-      },
-      "file": "kirara/attack_light_b.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -58213,7 +57522,7 @@
     "bodyH": 297.7,
     "centroidX": 155.8,
     "renderScale": 0.256,
-    "file": "kirara/incoming/attack_air_diag_down_b.png",
+    "file": "kirara/attack_air_diag_down_b.png",
     "anchors": {
      "com": [
       469.6,
@@ -58222,34 +57531,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 946,
-      "h": 1163,
-      "ox": -312.9,
-      "oy": -852,
-      "bodyBottom": 261.8,
-      "bodyH": 286.3,
-      "bodyTop": 0,
-      "centroidX": 153.4,
-      "renderScale": 0.246,
-      "anchors": {
-       "com": [
-        469.6,
-        448.9
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "file": "kirara/attack_air_diag_down_b.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -58306,7 +57591,7 @@
     "bodyH": 360.5,
     "centroidX": 152.6,
     "renderScale": 0.2151,
-    "file": "kirara/incoming/throw_back.png",
+    "file": "kirara/throw_back.png",
     "anchors": {
      "com": [
       431.8,
@@ -58318,38 +57603,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 770,
-      "h": 1676,
-      "ox": -275.1,
-      "oy": -1365,
-      "bodyBottom": 240.0,
-      "bodyH": 360.5,
-      "bodyTop": 0,
-      "centroidX": 200.2,
-      "renderScale": 0.2151,
-      "anchors": {
-       "com": [
-        431.8,
-        688.8
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "renderScale": 0.2672
-      },
-      "file": "kirara/throw_back.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -58372,7 +57629,7 @@
     "bodyH": 301.5,
     "centroidX": 158.0,
     "renderScale": 0.2389,
-    "file": "kirara/incoming/throw_down.png",
+    "file": "kirara/throw_down.png",
     "anchors": {
      "com": [
       418.6,
@@ -58381,34 +57638,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 975,
-      "h": 1262,
-      "ox": -260.2,
-      "oy": -951,
-      "bodyBottom": 257.6,
-      "bodyH": 295.2,
-      "bodyTop": 0,
-      "centroidX": 86.2,
-      "renderScale": 0.2339,
-      "anchors": {
-       "com": [
-        418.6,
-        498.3
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "file": "kirara/throw_down.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -58434,7 +57667,7 @@
     "bodyH": 368.4,
     "centroidX": 157.2,
     "renderScale": 0.2539,
-    "file": "kirara/incoming/throw_fwd.png",
+    "file": "kirara/throw_fwd.png",
     "anchors": {
      "com": [
       319.1,
@@ -58443,34 +57676,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 817,
-      "h": 1451,
-      "ox": -162.1,
-      "oy": -1140,
-      "bodyBottom": 249.6,
-      "bodyH": 351.4,
-      "bodyTop": 0,
-      "centroidX": 67.1,
-      "renderScale": 0.2422,
-      "anchors": {
-       "com": [
-        319.1,
-        595.3
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "file": "kirara/throw_fwd.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -58495,7 +57704,7 @@
     "bodyH": 387.9,
     "centroidX": 157.6,
     "renderScale": 0.2283,
-    "file": "kirara/incoming/throw_up.png",
+    "file": "kirara/throw_up.png",
     "anchors": {
      "com": [
       303.9,
@@ -58507,38 +57716,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 651,
-      "h": 1699,
-      "ox": -148.3,
-      "oy": -1388,
-      "bodyBottom": 239.1,
-      "bodyH": 387.9,
-      "bodyTop": 0,
-      "centroidX": 136.3,
-      "renderScale": 0.2283,
-      "anchors": {
-       "com": [
-        303.9,
-        731.3
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "renderScale": 0.2639
-      },
-      "file": "kirara/throw_up.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -60203,7 +59384,7 @@
     "bodyH": 400.8,
     "centroidX": 153.6,
     "renderScale": 0.2566,
-    "file": "haruta/incoming/throw_up.png",
+    "file": "haruta/throw_up.png",
     "anchors": {
      "com": [
       428.0,
@@ -60215,38 +59396,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 835,
-      "h": 1562,
-      "ox": -271.2,
-      "oy": -1251,
-      "bodyBottom": 205.3,
-      "bodyH": 400.8,
-      "bodyTop": 0,
-      "centroidX": 164.4,
-      "renderScale": 0.2566,
-      "anchors": {
-       "com": [
-        428.0,
-        699.4
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "edited": {
-       "bodyBottom": 227.3
-      },
-      "file": "haruta/throw_up.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -63559,7 +62712,7 @@
     "bodyH": 355.8,
     "centroidX": 156.9,
     "renderScale": 0.2813,
-    "file": "miwa/incoming/throw_down.png",
+    "file": "miwa/throw_down.png",
     "anchors": {
      "com": [
       396.0,
@@ -63568,34 +62721,10 @@
     },
     "replaced": {
      "at": "2026-08-24T03:13:55+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "live": {
-      "w": 755,
-      "h": 1265,
-      "ox": -240.8,
-      "oy": -954,
-      "bodyBottom": 230.9,
-      "bodyH": 345.6,
-      "bodyTop": 0,
-      "centroidX": 176.8,
-      "renderScale": 0.2732,
-      "anchors": {
-       "com": [
-        396.0,
-        506.6
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
-      "file": "miwa/throw_down.png"
-     }
+     "kept": "keep",
+     "how": "approved",
+     "lost": [],
+     "approvedAt": "2026-08-24T09:25:24+00:00"
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -66251,6 +65380,261 @@
       "supersededAt": "2026-08-09T23:23:22+00:00"
      }
     ]
+   },
+   "attack_air_diag_down_b": {
+    "options": [
+     {
+      "w": 986,
+      "h": 1038,
+      "ox": -332.9,
+      "oy": -727,
+      "bodyBottom": 227.8,
+      "bodyH": 278.2,
+      "bodyTop": 0,
+      "centroidX": 152.3,
+      "renderScale": 0.268,
+      "anchors": {
+       "com": [
+        489.6,
+        412.1
+       ]
+      },
+      "edited": {
+       "renderScale": 0.231
+      },
+      "file": "hanami/attack_air_diag_down_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 986,
+      "h": 1038,
+      "ox": -332.3,
+      "oy": -727,
+      "bodyBottom": 228.7,
+      "bodyH": 278.3,
+      "bodyTop": 0,
+      "centroidX": 152.8,
+      "renderScale": 0.268,
+      "anchors": {
+       "com": [
+        489.6,
+        412.1
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "renderScale": 0.231
+      },
+      "file": "hanami/archive/attack_air_diag_down_b_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "attack_diag_up_b": {
+    "options": [
+     {
+      "w": 979,
+      "h": 1487,
+      "ox": -283.7,
+      "oy": -1176,
+      "bodyBottom": 109.6,
+      "bodyH": 344.5,
+      "bodyTop": 0,
+      "centroidX": 154.0,
+      "renderScale": 0.2317,
+      "anchors": {
+       "com": [
+        442.2,
+        665.7
+       ]
+      },
+      "edited": {
+       "renderScale": 0.2952,
+       "bodyBottom": 58.6
+      },
+      "file": "hanami/attack_diag_up_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 979,
+      "h": 1487,
+      "ox": -286.5,
+      "oy": -1176,
+      "bodyBottom": 109.6,
+      "bodyH": 344.6,
+      "bodyTop": 0,
+      "centroidX": 110.5,
+      "renderScale": 0.2317,
+      "anchors": {
+       "com": [
+        442.2,
+        665.7
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.2952,
+       "bodyBottom": 58.6
+      },
+      "file": "hanami/archive/attack_diag_up_b_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_down": {
+    "options": [
+     {
+      "w": 1038,
+      "h": 972,
+      "ox": -352.8,
+      "oy": -661,
+      "bodyBottom": 219.9,
+      "bodyH": 240.6,
+      "bodyTop": 0,
+      "centroidX": 162.7,
+      "renderScale": 0.2475,
+      "anchors": {
+       "com": [
+        509.5,
+        452.9
+       ]
+      },
+      "edited": {
+       "renderScale": 0.269
+      },
+      "file": "hanami/throw_down.png",
+      "label": "In game"
+     },
+     {
+      "w": 1038,
+      "h": 972,
+      "ox": -352.2,
+      "oy": -661,
+      "bodyBottom": 205.4,
+      "bodyH": 240.6,
+      "bodyTop": 0,
+      "centroidX": 146.7,
+      "renderScale": 0.2475,
+      "anchors": {
+       "com": [
+        509.5,
+        452.9
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.269
+      },
+      "file": "hanami/archive/throw_down_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_fwd": {
+    "options": [
+     {
+      "w": 1018,
+      "h": 1464,
+      "ox": -300.0,
+      "oy": -1153,
+      "bodyBottom": 117.9,
+      "bodyH": 339.5,
+      "bodyTop": 0,
+      "centroidX": 158.5,
+      "renderScale": 0.2319,
+      "anchors": {
+       "com": [
+        456.3,
+        660.6
+       ]
+      },
+      "edited": {
+       "renderScale": 0.2681,
+       "bodyBottom": 194.9
+      },
+      "file": "hanami/throw_fwd.png",
+      "label": "In game"
+     },
+     {
+      "w": 1018,
+      "h": 1464,
+      "ox": -300.0,
+      "oy": -1153,
+      "bodyBottom": 117.9,
+      "bodyH": 339.5,
+      "bodyTop": 0,
+      "centroidX": 104.5,
+      "renderScale": 0.2319,
+      "anchors": {
+       "com": [
+        456.3,
+        660.6
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.2681,
+       "bodyBottom": 194.9
+      },
+      "file": "hanami/archive/throw_fwd_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_up": {
+    "options": [
+     {
+      "w": 496,
+      "h": 1463,
+      "ox": -87.3,
+      "oy": -1152,
+      "bodyBottom": 183.2,
+      "bodyH": 412.6,
+      "bodyTop": 0,
+      "centroidX": 156.8,
+      "renderScale": 0.282,
+      "anchors": {
+       "com": [
+        243.4,
+        733.5
+       ]
+      },
+      "edited": {
+       "renderScale": 0.3547
+      },
+      "file": "hanami/throw_up.png",
+      "label": "In game"
+     },
+     {
+      "w": 496,
+      "h": 1463,
+      "ox": -87.3,
+      "oy": -1152,
+      "bodyBottom": 195.0,
+      "bodyH": 412.5,
+      "bodyTop": 0,
+      "centroidX": 152.8,
+      "renderScale": 0.282,
+      "anchors": {
+       "com": [
+        243.4,
+        733.5
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.3547
+      },
+      "file": "hanami/archive/throw_up_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
    }
   },
   "geto": {
@@ -68243,6 +67627,57 @@
       "bodyRight": 937,
       "coreLeft": 59.5,
       "coreRight": 789.9
+     }
+    ]
+   },
+   "throw_down": {
+    "options": [
+     {
+      "w": 943,
+      "h": 1284,
+      "ox": -192.4,
+      "oy": -973,
+      "bodyBottom": 230.3,
+      "bodyH": 231.5,
+      "bodyTop": 0,
+      "centroidX": 234.9,
+      "renderScale": 0.1803,
+      "anchors": {
+       "com": [
+        429.6,
+        534.0
+       ]
+      },
+      "edited": {
+       "ox": -272.9
+      },
+      "file": "gojo/throw_down.png",
+      "label": "In game"
+     },
+     {
+      "w": 943,
+      "h": 1284,
+      "ox": -192.4,
+      "oy": -973,
+      "bodyBottom": 250.4,
+      "bodyH": 231.5,
+      "bodyTop": 0,
+      "centroidX": 112.4,
+      "renderScale": 0.1803,
+      "anchors": {
+       "com": [
+        429.6,
+        534.0
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "ox": -272.9
+      },
+      "file": "gojo/archive/throw_down_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
      }
     ]
    }
@@ -83893,6 +83328,57 @@
       }
      }
     ]
+   },
+   "throw_up": {
+    "options": [
+     {
+      "w": 755,
+      "h": 1683,
+      "ox": -224.1,
+      "oy": -1372,
+      "bodyBottom": 228.5,
+      "bodyH": 361.7,
+      "bodyTop": 0,
+      "centroidX": 156.1,
+      "renderScale": 0.2149,
+      "anchors": {
+       "com": [
+        380.9,
+        733.6
+       ]
+      },
+      "edited": {
+       "renderScale": 0.2239
+      },
+      "file": "momo/throw_up.png",
+      "label": "In game"
+     },
+     {
+      "w": 755,
+      "h": 1683,
+      "ox": -222.5,
+      "oy": -1372,
+      "bodyBottom": 246.7,
+      "bodyH": 361.7,
+      "bodyTop": 0,
+      "centroidX": 158.5,
+      "renderScale": 0.2149,
+      "anchors": {
+       "com": [
+        380.9,
+        733.6
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "renderScale": 0.2239
+      },
+      "file": "momo/archive/throw_up_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
    }
   },
   "choso": {
@@ -84596,6 +84082,59 @@
       "file": "meimei/archive/attack_heavy_b_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-20T00:58:52+00:00"
+     }
+    ]
+   },
+   "throw_fwd": {
+    "options": [
+     {
+      "w": 869,
+      "h": 1537,
+      "ox": -203.5,
+      "oy": -1226,
+      "bodyBottom": 284.9,
+      "bodyH": 293.3,
+      "bodyTop": 0,
+      "centroidX": 156.7,
+      "renderScale": 0.1908,
+      "anchors": {
+       "com": [
+        358.9,
+        637.6
+       ]
+      },
+      "edited": {
+       "renderScale": 0.18,
+       "bodyBottom": 257.9
+      },
+      "file": "meimei/throw_fwd.png",
+      "label": "In game"
+     },
+     {
+      "w": 869,
+      "h": 1537,
+      "ox": -203.5,
+      "oy": -1226,
+      "bodyBottom": 284.9,
+      "bodyH": 293.3,
+      "bodyTop": 0,
+      "centroidX": 82.5,
+      "renderScale": 0.1908,
+      "anchors": {
+       "com": [
+        358.9,
+        637.6
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "renderScale": 0.18,
+       "bodyBottom": 257.9
+      },
+      "file": "meimei/archive/throw_fwd_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
      }
     ]
    }
@@ -85430,6 +84969,96 @@
       "supersededAt": "2026-08-24T02:10:11+00:00"
      }
     ]
+   },
+   "attack_air_diag_down_b": {
+    "options": [
+     {
+      "w": 960,
+      "h": 1419,
+      "ox": -221.6,
+      "oy": -1108,
+      "bodyBottom": 237.3,
+      "bodyH": 324.5,
+      "bodyTop": 0,
+      "centroidX": 156.3,
+      "renderScale": 0.2287,
+      "anchors": {
+       "com": [
+        378.0,
+        583.0
+       ]
+      },
+      "file": "uro/attack_air_diag_down_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 960,
+      "h": 1419,
+      "ox": -221.6,
+      "oy": -1108,
+      "bodyBottom": 238.3,
+      "bodyH": 324.5,
+      "bodyTop": 0,
+      "centroidX": 55.1,
+      "renderScale": 0.2287,
+      "anchors": {
+       "com": [
+        378.0,
+        583.0
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "file": "uro/archive/attack_air_diag_down_b_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_back": {
+    "options": [
+     {
+      "w": 813,
+      "h": 1610,
+      "ox": -301.8,
+      "oy": -1299,
+      "bodyBottom": 179.0,
+      "bodyH": 368.0,
+      "bodyTop": 0,
+      "centroidX": 156.6,
+      "renderScale": 0.2286,
+      "anchors": {
+       "com": [
+        460.2,
+        608.1
+       ]
+      },
+      "file": "uro/throw_back.png",
+      "label": "In game"
+     },
+     {
+      "w": 813,
+      "h": 1610,
+      "ox": -301.8,
+      "oy": -1299,
+      "bodyBottom": 228.5,
+      "bodyH": 377.2,
+      "bodyTop": 0,
+      "centroidX": 208.8,
+      "renderScale": 0.2343,
+      "anchors": {
+       "com": [
+        460.2,
+        608.1
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "file": "uro/archive/throw_back_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
    }
   },
   "mahito": {
@@ -85981,25 +85610,24 @@
      {
       "w": 1070,
       "h": 1145,
-      "ox": -248.6,
+      "ox": -250.4,
       "oy": -834,
       "bodyBottom": 310.4,
-      "bodyH": 282.8,
+      "bodyH": 288.4,
       "bodyTop": 0,
-      "centroidX": 27.1,
-      "renderScale": 0.247,
+      "centroidX": 152.3,
+      "renderScale": 0.2519,
       "anchors": {
        "com": [
         407.2,
         404.8
        ]
       },
+      "edited": {
+       "renderScale": 0.247
+      },
       "file": "gakuganji/attack_air_b.png",
-      "label": "In game",
-      "bodyLeft": 0,
-      "bodyRight": 1070,
-      "coreLeft": 64.4,
-      "coreRight": 880.2
+      "label": "In game"
      },
      {
       "file": "gakuganji/archive/attack_air_b_2.png",
@@ -86049,6 +85677,31 @@
       "file": "gakuganji/attack_air.png",
       "label": "Superseded",
       "supersededAt": "2026-08-23T18:46:00+00:00"
+     },
+     {
+      "w": 1070,
+      "h": 1145,
+      "ox": -248.6,
+      "oy": -834,
+      "bodyBottom": 310.4,
+      "bodyH": 288.4,
+      "bodyTop": 0,
+      "centroidX": 27.1,
+      "renderScale": 0.2519,
+      "anchors": {
+       "com": [
+        407.2,
+        404.8
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "renderScale": 0.247
+      },
+      "file": "gakuganji/archive/attack_air_b_3.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
      }
     ]
    },
@@ -86262,6 +85915,212 @@
       },
       "label": "Not approved",
       "supersededAt": "2026-08-23T18:46:00+00:00"
+     }
+    ]
+   },
+   "attack_air_diag_down_b": {
+    "options": [
+     {
+      "w": 1080,
+      "h": 1147,
+      "ox": -272.3,
+      "oy": -836,
+      "bodyBottom": 259.1,
+      "bodyH": 267.8,
+      "bodyTop": 0,
+      "centroidX": 156.8,
+      "renderScale": 0.2335,
+      "anchors": {
+       "com": [
+        430.6,
+        491.3
+       ]
+      },
+      "edited": {
+       "renderScale": 0.2267
+      },
+      "file": "gakuganji/attack_air_diag_down_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 1080,
+      "h": 1147,
+      "ox": -272.3,
+      "oy": -836,
+      "bodyBottom": 262.7,
+      "bodyH": 267.8,
+      "bodyTop": 0,
+      "centroidX": 45.8,
+      "renderScale": 0.2335,
+      "anchors": {
+       "com": [
+        430.6,
+        491.3
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "renderScale": 0.2267
+      },
+      "file": "gakuganji/archive/attack_air_diag_down_b_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "attack_diag_up_b": {
+    "options": [
+     {
+      "w": 920,
+      "h": 1644,
+      "ox": -223.9,
+      "oy": -1333,
+      "bodyBottom": 213.3,
+      "bodyH": 368.7,
+      "bodyTop": 0,
+      "centroidX": 151.0,
+      "renderScale": 0.2243,
+      "anchors": {
+       "com": [
+        380.7,
+        824.6
+       ]
+      },
+      "edited": {
+       "renderScale": 0.2039,
+       "bodyBottom": 241.8
+      },
+      "file": "gakuganji/attack_diag_up_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 920,
+      "h": 1644,
+      "ox": -223.9,
+      "oy": -1333,
+      "bodyBottom": 213.3,
+      "bodyH": 368.7,
+      "bodyTop": 0,
+      "centroidX": 75.0,
+      "renderScale": 0.2243,
+      "anchors": {
+       "com": [
+        380.7,
+        824.6
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "renderScale": 0.2039,
+       "bodyBottom": 241.8
+      },
+      "file": "gakuganji/archive/attack_diag_up_b_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_down": {
+    "options": [
+     {
+      "w": 924,
+      "h": 1381,
+      "ox": -243.0,
+      "oy": -1070,
+      "bodyBottom": 222.3,
+      "bodyH": 276.5,
+      "bodyTop": 0,
+      "centroidX": 155.7,
+      "renderScale": 0.2002,
+      "anchors": {
+       "com": [
+        401.1,
+        614.9
+       ]
+      },
+      "edited": {
+       "bodyBottom": 252.8
+      },
+      "file": "gakuganji/throw_down.png",
+      "label": "In game"
+     },
+     {
+      "w": 924,
+      "h": 1381,
+      "ox": -244.0,
+      "oy": -1070,
+      "bodyBottom": 222.3,
+      "bodyH": 270.0,
+      "bodyTop": 0,
+      "centroidX": 95.5,
+      "renderScale": 0.1955,
+      "anchors": {
+       "com": [
+        401.1,
+        614.9
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "bodyBottom": 252.8
+      },
+      "file": "gakuganji/archive/throw_down_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_up": {
+    "options": [
+     {
+      "w": 780,
+      "h": 1615,
+      "ox": -223.4,
+      "oy": -1304,
+      "bodyBottom": 225.9,
+      "bodyH": 322.8,
+      "bodyTop": 0,
+      "centroidX": 155.1,
+      "renderScale": 0.1999,
+      "anchors": {
+       "com": [
+        380.8,
+        748.0
+       ]
+      },
+      "edited": {
+       "renderScale": 0.195
+      },
+      "file": "gakuganji/throw_up.png",
+      "label": "In game"
+     },
+     {
+      "w": 780,
+      "h": 1615,
+      "ox": -225.0,
+      "oy": -1304,
+      "bodyBottom": 243.0,
+      "bodyH": 322.8,
+      "bodyTop": 0,
+      "centroidX": 148.5,
+      "renderScale": 0.1999,
+      "anchors": {
+       "com": [
+        380.8,
+        748.0
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "renderScale": 0.195
+      },
+      "file": "gakuganji/archive/throw_up_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
      }
     ]
    }
@@ -87472,6 +87331,102 @@
       "supersededAt": "2026-08-20T00:58:52+00:00"
      }
     ]
+   },
+   "throw_back": {
+    "options": [
+     {
+      "w": 647,
+      "h": 1124,
+      "ox": -160.4,
+      "oy": -813,
+      "bodyBottom": 197.9,
+      "bodyH": 255.7,
+      "bodyTop": 0,
+      "centroidX": 156.6,
+      "renderScale": 0.2275,
+      "anchors": {
+       "com": [
+        317.1,
+        444.0
+       ]
+      },
+      "edited": {
+       "bodyBottom": 233.4
+      },
+      "file": "yuji/throw_back.png",
+      "label": "In game"
+     },
+     {
+      "w": 647,
+      "h": 1124,
+      "ox": -160.4,
+      "oy": -813,
+      "bodyBottom": 197.9,
+      "bodyH": 263.9,
+      "bodyTop": 0,
+      "centroidX": 150.4,
+      "renderScale": 0.2348,
+      "anchors": {
+       "com": [
+        317.1,
+        444.0
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "bodyBottom": 233.4
+      },
+      "file": "yuji/archive/throw_back_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_up": {
+    "options": [
+     {
+      "w": 666,
+      "h": 1396,
+      "ox": -178.7,
+      "oy": -1085,
+      "bodyBottom": 227.2,
+      "bodyH": 306.3,
+      "bodyTop": 0,
+      "centroidX": 157.4,
+      "renderScale": 0.2194,
+      "anchors": {
+       "com": [
+        333.7,
+        575.2
+       ]
+      },
+      "file": "yuji/throw_up.png",
+      "label": "In game"
+     },
+     {
+      "w": 666,
+      "h": 1396,
+      "ox": -178.0,
+      "oy": -1085,
+      "bodyBottom": 238.2,
+      "bodyH": 308.5,
+      "bodyTop": 0,
+      "centroidX": 158.5,
+      "renderScale": 0.221,
+      "anchors": {
+       "com": [
+        333.7,
+        575.2
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "file": "yuji/archive/throw_up_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
    }
   },
   "yuki": {
@@ -87480,18 +87435,26 @@
      {
       "w": 1496,
       "h": 1045,
-      "ox": -422.1,
+      "ox": -416.0,
       "oy": -781,
-      "bodyBottom": 215.0,
+      "bodyBottom": 214.2,
       "bodyH": 306.3,
       "bodyTop": 0,
-      "centroidX": -12.4,
+      "centroidX": 156.1,
       "renderScale": 0.2931,
       "anchors": {
        "com": [
         572.7,
         350.3
        ]
+      },
+      "edited": {
+       "anchors": {
+        "com": [
+         579.2,
+         307.0
+        ]
+       }
       },
       "file": "yuki/attack_heavy_b.png",
       "label": "In game"
@@ -87561,6 +87524,36 @@
       "file": "yuki/ult_b.png",
       "label": "Superseded",
       "supersededAt": "2026-08-23T19:25:10+00:00"
+     },
+     {
+      "w": 1496,
+      "h": 1045,
+      "ox": -422.1,
+      "oy": -781,
+      "bodyBottom": 215.0,
+      "bodyH": 306.3,
+      "bodyTop": 0,
+      "centroidX": -12.4,
+      "renderScale": 0.2931,
+      "anchors": {
+       "com": [
+        572.7,
+        350.3
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "anchors": {
+        "com": [
+         579.2,
+         307.0
+        ]
+       }
+      },
+      "file": "yuki/archive/attack_heavy_b_4.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
      }
     ]
    },
@@ -90249,6 +90242,304 @@
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
     ]
+   },
+   "attack_air_diag_down_b": {
+    "options": [
+     {
+      "w": 1205,
+      "h": 919,
+      "ox": -375.1,
+      "oy": -608,
+      "bodyBottom": 260.0,
+      "bodyH": 217.7,
+      "bodyTop": 0,
+      "centroidX": 148.3,
+      "renderScale": 0.2369,
+      "anchors": {
+       "com": [
+        531.9,
+        323.8
+       ]
+      },
+      "file": "kashimo/attack_air_diag_down_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 1205,
+      "h": 919,
+      "ox": -374.6,
+      "oy": -608,
+      "bodyBottom": 165.3,
+      "bodyH": 229.7,
+      "bodyTop": 0,
+      "centroidX": 85.6,
+      "renderScale": 0.2499,
+      "anchors": {
+       "com": [
+        531.9,
+        323.8
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "file": "kashimo/archive/attack_air_diag_down_b_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "attack_diag_up_b": {
+    "options": [
+     {
+      "w": 1281,
+      "h": 1128,
+      "ox": -313.8,
+      "oy": -817,
+      "bodyBottom": 252.4,
+      "bodyH": 273.5,
+      "bodyTop": 0,
+      "centroidX": 159.2,
+      "renderScale": 0.2425,
+      "anchors": {
+       "com": [
+        476.1,
+        475.6
+       ]
+      },
+      "edited": {
+       "ox": -483.8,
+       "bodyBottom": 310.4
+      },
+      "file": "kashimo/attack_diag_up_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 1281,
+      "h": 1128,
+      "ox": -313.8,
+      "oy": -817,
+      "bodyBottom": 252.4,
+      "bodyH": 290.5,
+      "bodyTop": 0,
+      "centroidX": -8.2,
+      "renderScale": 0.258,
+      "anchors": {
+       "com": [
+        476.1,
+        475.6
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "ox": -483.8,
+       "bodyBottom": 310.4
+      },
+      "file": "kashimo/archive/attack_diag_up_b_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_back": {
+    "options": [
+     {
+      "w": 885,
+      "h": 1390,
+      "ox": -277.3,
+      "oy": -1079,
+      "bodyBottom": 192.3,
+      "bodyH": 275.1,
+      "bodyTop": 0,
+      "centroidX": 156.7,
+      "renderScale": 0.1979,
+      "anchors": {
+       "com": [
+        435.0,
+        574.3
+       ]
+      },
+      "edited": {
+       "renderScale": 0.2083
+      },
+      "file": "kashimo/throw_back.png",
+      "label": "In game"
+     },
+     {
+      "w": 885,
+      "h": 1390,
+      "ox": -277.3,
+      "oy": -1079,
+      "bodyBottom": 231.8,
+      "bodyH": 275.0,
+      "bodyTop": 0,
+      "centroidX": 148.3,
+      "renderScale": 0.1979,
+      "anchors": {
+       "com": [
+        435.0,
+        574.3
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.2083
+      },
+      "file": "kashimo/archive/throw_back_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_down": {
+    "options": [
+     {
+      "w": 924,
+      "h": 1124,
+      "ox": -306.9,
+      "oy": -813,
+      "bodyBottom": 233.1,
+      "bodyH": 220.4,
+      "bodyTop": 0,
+      "centroidX": 153.3,
+      "renderScale": 0.1961,
+      "anchors": {
+       "com": [
+        463.7,
+        470.4
+       ]
+      },
+      "edited": {
+       "renderScale": 0.2109
+      },
+      "file": "kashimo/throw_down.png",
+      "label": "In game"
+     },
+     {
+      "w": 924,
+      "h": 1124,
+      "ox": -306.9,
+      "oy": -813,
+      "bodyBottom": 247.0,
+      "bodyH": 220.5,
+      "bodyTop": 0,
+      "centroidX": 156.4,
+      "renderScale": 0.1961,
+      "anchors": {
+       "com": [
+        463.7,
+        470.4
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.2109
+      },
+      "file": "kashimo/archive/throw_down_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_fwd": {
+    "options": [
+     {
+      "w": 1152,
+      "h": 1242,
+      "ox": -401.0,
+      "oy": -931,
+      "bodyBottom": 222.4,
+      "bodyH": 280.9,
+      "bodyTop": 0,
+      "centroidX": 141.1,
+      "renderScale": 0.2262,
+      "anchors": {
+       "com": [
+        557.7,
+        507.0
+       ]
+      },
+      "edited": {
+       "renderScale": 0.257,
+       "bodyBottom": 310.4
+      },
+      "file": "kashimo/throw_fwd.png",
+      "label": "In game"
+     },
+     {
+      "w": 1152,
+      "h": 1242,
+      "ox": -419.2,
+      "oy": -931,
+      "bodyBottom": 222.4,
+      "bodyH": 281.5,
+      "bodyTop": 0,
+      "centroidX": 139.5,
+      "renderScale": 0.2262,
+      "anchors": {
+       "com": [
+        557.7,
+        507.0
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.257,
+       "bodyBottom": 310.4
+      },
+      "file": "kashimo/archive/throw_fwd_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_up": {
+    "options": [
+     {
+      "w": 700,
+      "h": 1442,
+      "ox": -160.6,
+      "oy": -1131,
+      "bodyBottom": 217.6,
+      "bodyH": 291.1,
+      "bodyTop": 0,
+      "centroidX": 158.2,
+      "renderScale": 0.2019,
+      "anchors": {
+       "com": [
+        317.8,
+        590.7
+       ]
+      },
+      "edited": {
+       "renderScale": 0.2281
+      },
+      "file": "kashimo/throw_up.png",
+      "label": "In game"
+     },
+     {
+      "w": 700,
+      "h": 1442,
+      "ox": -159.1,
+      "oy": -1131,
+      "bodyBottom": 226.0,
+      "bodyH": 291.1,
+      "bodyTop": 0,
+      "centroidX": 122.6,
+      "renderScale": 0.2019,
+      "anchors": {
+       "com": [
+        317.8,
+        590.7
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.2281
+      },
+      "file": "kashimo/archive/throw_up_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
    }
   },
   "haruta": {
@@ -90470,6 +90761,57 @@
       "file": "haruta/archive/special_down_4.png",
       "label": "Superseded",
       "supersededAt": "2026-08-18T23:44:53+00:00"
+     }
+    ]
+   },
+   "throw_up": {
+    "options": [
+     {
+      "w": 835,
+      "h": 1562,
+      "ox": -271.2,
+      "oy": -1251,
+      "bodyBottom": 205.3,
+      "bodyH": 400.8,
+      "bodyTop": 0,
+      "centroidX": 153.6,
+      "renderScale": 0.2566,
+      "anchors": {
+       "com": [
+        428.0,
+        699.4
+       ]
+      },
+      "edited": {
+       "bodyBottom": 227.3
+      },
+      "file": "haruta/throw_up.png",
+      "label": "In game"
+     },
+     {
+      "w": 835,
+      "h": 1562,
+      "ox": -271.2,
+      "oy": -1251,
+      "bodyBottom": 205.3,
+      "bodyH": 400.8,
+      "bodyTop": 0,
+      "centroidX": 164.4,
+      "renderScale": 0.2566,
+      "anchors": {
+       "com": [
+        428.0,
+        699.4
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "bodyBottom": 227.3
+      },
+      "file": "haruta/archive/throw_up_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
      }
     ]
    }
@@ -90868,6 +91210,51 @@
       "supersededAt": "2026-08-18T23:44:53+00:00"
      }
     ]
+   },
+   "throw_down": {
+    "options": [
+     {
+      "w": 755,
+      "h": 1265,
+      "ox": -240.8,
+      "oy": -954,
+      "bodyBottom": 211.9,
+      "bodyH": 355.8,
+      "bodyTop": 0,
+      "centroidX": 156.9,
+      "renderScale": 0.2813,
+      "anchors": {
+       "com": [
+        396.0,
+        506.6
+       ]
+      },
+      "file": "miwa/throw_down.png",
+      "label": "In game"
+     },
+     {
+      "w": 755,
+      "h": 1265,
+      "ox": -240.8,
+      "oy": -954,
+      "bodyBottom": 230.9,
+      "bodyH": 345.6,
+      "bodyTop": 0,
+      "centroidX": 176.8,
+      "renderScale": 0.2732,
+      "anchors": {
+       "com": [
+        396.0,
+        506.6
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "file": "miwa/archive/throw_down_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
    }
   },
   "kirara": {
@@ -90932,23 +91319,22 @@
       "h": 1448,
       "ox": -289.9,
       "oy": -1251,
-      "bodyBottom": 135.7,
-      "bodyH": 361.4,
+      "bodyBottom": 129.7,
+      "bodyH": 330.7,
       "bodyTop": 0,
-      "centroidX": 126.4,
-      "renderScale": 0.2496,
+      "centroidX": 156.9,
+      "renderScale": 0.2284,
       "anchors": {
        "com": [
         445.3,
         591.7
        ]
       },
+      "edited": {
+       "renderScale": 0.2496
+      },
       "file": "kirara/attack_light_b.png",
-      "label": "In game",
-      "bodyLeft": 0,
-      "bodyRight": 954,
-      "coreLeft": 63.4,
-      "coreRight": 841.7
+      "label": "In game"
      },
      {
       "w": 923,
@@ -91021,6 +91407,31 @@
       "file": "kirara/archive/attack_light_b_4.png",
       "label": "Superseded",
       "supersededAt": "2026-08-23T18:46:00+00:00"
+     },
+     {
+      "w": 954,
+      "h": 1448,
+      "ox": -289.9,
+      "oy": -1251,
+      "bodyBottom": 135.7,
+      "bodyH": 330.7,
+      "bodyTop": 0,
+      "centroidX": 126.4,
+      "renderScale": 0.2284,
+      "anchors": {
+       "com": [
+        445.3,
+        591.7
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "renderScale": 0.2496
+      },
+      "file": "kirara/archive/attack_light_b_5.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
      }
     ]
    },
@@ -91360,6 +91771,243 @@
       "file": "kirara/archive/crouch_attack_a_3.png",
       "label": "Superseded",
       "supersededAt": "2026-08-23T18:46:00+00:00"
+     }
+    ]
+   },
+   "attack_air_diag_down_b": {
+    "options": [
+     {
+      "w": 946,
+      "h": 1163,
+      "ox": -312.0,
+      "oy": -852,
+      "bodyBottom": 257.0,
+      "bodyH": 297.7,
+      "bodyTop": 0,
+      "centroidX": 155.8,
+      "renderScale": 0.256,
+      "anchors": {
+       "com": [
+        469.6,
+        448.9
+       ]
+      },
+      "file": "kirara/attack_air_diag_down_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 946,
+      "h": 1163,
+      "ox": -312.9,
+      "oy": -852,
+      "bodyBottom": 261.8,
+      "bodyH": 286.3,
+      "bodyTop": 0,
+      "centroidX": 153.4,
+      "renderScale": 0.246,
+      "anchors": {
+       "com": [
+        469.6,
+        448.9
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "file": "kirara/archive/attack_air_diag_down_b_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_back": {
+    "options": [
+     {
+      "w": 770,
+      "h": 1676,
+      "ox": -275.1,
+      "oy": -1365,
+      "bodyBottom": 182.4,
+      "bodyH": 360.5,
+      "bodyTop": 0,
+      "centroidX": 152.6,
+      "renderScale": 0.2151,
+      "anchors": {
+       "com": [
+        431.8,
+        688.8
+       ]
+      },
+      "edited": {
+       "renderScale": 0.2672
+      },
+      "file": "kirara/throw_back.png",
+      "label": "In game"
+     },
+     {
+      "w": 770,
+      "h": 1676,
+      "ox": -275.1,
+      "oy": -1365,
+      "bodyBottom": 240.0,
+      "bodyH": 360.5,
+      "bodyTop": 0,
+      "centroidX": 200.2,
+      "renderScale": 0.2151,
+      "anchors": {
+       "com": [
+        431.8,
+        688.8
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "renderScale": 0.2672
+      },
+      "file": "kirara/archive/throw_back_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_down": {
+    "options": [
+     {
+      "w": 975,
+      "h": 1262,
+      "ox": -261.4,
+      "oy": -951,
+      "bodyBottom": 234.7,
+      "bodyH": 301.5,
+      "bodyTop": 0,
+      "centroidX": 158.0,
+      "renderScale": 0.2389,
+      "anchors": {
+       "com": [
+        418.6,
+        498.3
+       ]
+      },
+      "file": "kirara/throw_down.png",
+      "label": "In game"
+     },
+     {
+      "w": 975,
+      "h": 1262,
+      "ox": -260.2,
+      "oy": -951,
+      "bodyBottom": 257.6,
+      "bodyH": 295.2,
+      "bodyTop": 0,
+      "centroidX": 86.2,
+      "renderScale": 0.2339,
+      "anchors": {
+       "com": [
+        418.6,
+        498.3
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "file": "kirara/archive/throw_down_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_fwd": {
+    "options": [
+     {
+      "w": 817,
+      "h": 1451,
+      "ox": -162.1,
+      "oy": -1140,
+      "bodyBottom": 196.8,
+      "bodyH": 368.4,
+      "bodyTop": 0,
+      "centroidX": 157.2,
+      "renderScale": 0.2539,
+      "anchors": {
+       "com": [
+        319.1,
+        595.3
+       ]
+      },
+      "file": "kirara/throw_fwd.png",
+      "label": "In game"
+     },
+     {
+      "w": 817,
+      "h": 1451,
+      "ox": -162.1,
+      "oy": -1140,
+      "bodyBottom": 249.6,
+      "bodyH": 351.4,
+      "bodyTop": 0,
+      "centroidX": 67.1,
+      "renderScale": 0.2422,
+      "anchors": {
+       "com": [
+        319.1,
+        595.3
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "file": "kirara/archive/throw_fwd_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "throw_up": {
+    "options": [
+     {
+      "w": 651,
+      "h": 1699,
+      "ox": -149.1,
+      "oy": -1388,
+      "bodyBottom": 219.4,
+      "bodyH": 387.9,
+      "bodyTop": 0,
+      "centroidX": 157.6,
+      "renderScale": 0.2283,
+      "anchors": {
+       "com": [
+        303.9,
+        731.3
+       ]
+      },
+      "edited": {
+       "renderScale": 0.2639
+      },
+      "file": "kirara/throw_up.png",
+      "label": "In game"
+     },
+     {
+      "w": 651,
+      "h": 1699,
+      "ox": -148.3,
+      "oy": -1388,
+      "bodyBottom": 239.1,
+      "bodyH": 387.9,
+      "bodyTop": 0,
+      "centroidX": 136.3,
+      "renderScale": 0.2283,
+      "anchors": {
+       "com": [
+        303.9,
+        731.3
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "renderScale": 0.2639
+      },
+      "file": "kirara/archive/throw_up_2.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-24T03:13:55+00:00"
      }
     ]
    }

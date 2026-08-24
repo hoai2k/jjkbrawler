@@ -370,7 +370,7 @@ def free_pending_path(man, char, key):
     raise RuntimeError(f"{char}/{key}: 99 pending drawings, something is wrong")
 
 
-def hold_for_approval(man, char, key, src, meta, stored, at):
+def hold_for_approval(man, char, key, src, meta, stored, at, keeps="discard"):
     """Land a replacement without letting it into the game yet.
 
     Two pointers on one pose, and they mean different things:
@@ -428,8 +428,15 @@ def hold_for_approval(man, char, key, src, meta, stored, at):
     # Carried rather than re-derived: an approval that has already happened once
     # must not be undone by a second delivery landing on the same pose.
     meta["awaitingApproval"] = {"at": at, "live": live}
+    # `keeps`, not a flat "discard". The pipeline decides per delivery whether
+    # the hand tuning carries — an alpha re-cut keeps it, a redraw rolls it back
+    # (KIND_PLACEMENT) — and the meta being held already reflects that decision.
+    # Stamping every hold as though nothing carried made the workbench count
+    # thirty-two re-keys as "to re-tune" when their tuning was sitting on them
+    # untouched, and put them at the head of a list ordered by how much work
+    # each one needs.
     meta["replaced"] = {"at": at, "kept": "await", "how": "await",
-                        "lost": lost_work(stored, "discard")}
+                        "lost": lost_work(stored, keeps)}
     man["characters"].setdefault(char, {})[key] = meta
 
 
@@ -502,7 +509,7 @@ def main():
             holding = not args.replace_now
             if holding:
                 if not args.dry_run:
-                    hold_for_approval(man, char, key, src, meta, stored, at)
+                    hold_for_approval(man, char, key, src, meta, stored, at, keeps)
                 done.append(f"{char}/{key}: {meta['w']}x{meta['h']} "
                             f"renderScale={meta['renderScale']}  [awaiting approval]"
                             + ("  -> updated list, game still draws the old art"

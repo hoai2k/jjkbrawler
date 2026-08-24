@@ -849,6 +849,13 @@ other outcome — the new art needed nothing — and exports as `clearUpdated`, 
 `apply_sprite_adjustments.py` reads. Neither takes effect until the export is
 applied, so a pose stays on the list, ticked or dotted, while it is worked on.
 
+**Approving is not one of the two exits.** A held delivery sits on the list as
+*replacement waiting*; approving it moves it to **approved into the game —
+placement not agreed with** and leaves it there, because the size and ground
+contact it went in wearing were measured off the new matte rather than chosen by
+anyone. The two exits above are still the only exits: tune it, or say it needed
+nothing.
+
 Directly beneath it is its mirror image, **All Needing Regeneration**: every pose
 carrying a `needsReplacement` flag, across the whole roster, grouped by kind. The
 updated list is what *arrived*; this one is what was *sent back*, and it is the
