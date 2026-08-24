@@ -971,7 +971,20 @@ export function applyHit(owner, target, hit, source) {
   if (target.invuln > 0 || target.dead || target.respawnTimer > 0) return "ignored";
   if (owner.dead || owner.respawnTimer > 0) return "ignored";
 
-  const dir = sign(target.x - owner.x) || owner.facing;
+  // WHICH WAY THIS SENDS THEM. Normally it is away from the attacker's body,
+  // which is the same thing as away from the blow. It stops being the same
+  // thing the moment the thing that swung is not the fighter who owns it: a
+  // summon's hit is credited to its summoner (so damage, meter and staling all
+  // land on the right person), but the summoner may be standing anywhere. A
+  // player jumping over a creature that is out ahead of its owner was being
+  // flung further out, away from a fighter who never touched them.
+  //
+  // So a hit may name the point it actually came FROM — `originX`, the centre
+  // of the box that connected — and the launch is read off that. The fallback
+  // chain is unchanged for everything that does not: attacker's body, then
+  // their facing when the two are exactly level.
+  const from = hit.originX ?? owner.x;
+  const dir = sign(target.x - from) || sign(target.x - owner.x) || owner.facing;
 
   // active counter (Gojo Infinity)
   if (target.counter && target.counter.t > 0) {

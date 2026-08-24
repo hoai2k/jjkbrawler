@@ -895,6 +895,9 @@ export function spawnSummon(owner, cfg) {
             dmg: def.dmg, baseKb: def.base, growth: def.growth, angle: def.angle,
             effect: cfg.attack?.effect || null, label: cfg.label,
             sfx: def.sfx, heavy: !!def.heavy,
+            // Away from the SWING, not away from the summoner (combat.js
+            // applyHit `originX`).
+            originX: rect.x + rect.w / 2,
           }, "script");
           if (def.heavy) state.camera.shake = Math.max(state.camera.shake, 9);
         }
@@ -957,7 +960,12 @@ export function spawnSummon(owner, cfg) {
       // What it HITS with, not what it can be hit on: the front of the creature
       // by default, and wherever the workbench put it when somebody has placed
       // one. Its hurt box is still the whole drawing (combat.js summonBox).
-      if (!rectsOverlap(attackRect(this, cfg), hurtbox(target))) return;
+      const box = attackRect(this, cfg);
+      if (!rectsOverlap(box, hurtbox(target))) return;
+      // Everything below launches away from the centre of THIS box rather than
+      // away from the owner, so a fighter stood over the creature is thrown off
+      // the side of it they were actually on (combat.js applyHit `originX`).
+      const originX = box.x + box.w / 2;
 
       if (this.behavior === "bomber") {
         this.dead = true;
@@ -969,7 +977,7 @@ export function spawnSummon(owner, cfg) {
         applyHit(owner, target, {
           dmg: cfg.attack.dmg, baseKb: cfg.attack.base, growth: cfg.attack.growth,
           angle: cfg.attack.angle, effect: cfg.attack.effect || null,
-          label: cfg.label, sfx: "blast",
+          label: cfg.label, sfx: "blast", originX,
         }, "script");
         return;
       }
@@ -981,7 +989,7 @@ export function spawnSummon(owner, cfg) {
       applyHit(owner, target, {
         dmg: cfg.attack.dmg, baseKb: cfg.attack.base, growth: cfg.attack.growth,
         angle: cfg.attack.angle, effect: cfg.attack.effect || null,
-        label: cfg.label, sfx: cfg.attack.sfx || "slash",
+        label: cfg.label, sfx: cfg.attack.sfx || "slash", originX,
       }, "script");
       burst(target.x, target.y - 80 * ART_SCALE, cfg.color, 10, 0.7);
     },
