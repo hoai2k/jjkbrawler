@@ -571,6 +571,9 @@ export function recentUpdates() {
         kept: note.kept || "discard",
         how: note.how || "import",
         lost: Array.isArray(note.lost) ? note.lost : [],
+        // Carried, not dropped: the list rebuilds these entries field by field,
+        // and an approved pose's summary dates itself from this one.
+        ...(note.approvedAt ? { approvedAt: note.approvedAt } : {}),
       });
     }
   }
@@ -580,7 +583,11 @@ export function recentUpdates() {
   // surfaced ones, which belong to no round at all.
   // A machine-placed number leads the undecided ones: it is a claim waiting to
   // be agreed with, which is more urgent than a drawing nobody has touched.
-  const rank = (e) => (e.how === "placed" ? 2 : e.how === "unreviewed" ? 3
+  // An approved drawing sits with the machine-placed ones: it is on screen
+  // wearing numbers nobody chose, which is a claim to be agreed with rather
+  // than work that is missing.
+  const rank = (e) => (e.how === "placed" || e.how === "approved" ? 2
+                       : e.how === "unreviewed" ? 3
                        : e.how === "surfaced" ? 2.5 : e.how === "new" ? 1 : 0);
   return out.sort((a, b) =>
     rank(a) - rank(b)
@@ -693,6 +700,16 @@ export function updateSummary(note) {
     return "New art for this pose is in the repo and <b>the game is still drawing "
       + "the old drawing</b>. Place it, compare the two, then approve or keep — "
       + "the buttons are below the sliders.";
+  }
+  if (note.how === "approved") {
+    const ok = note.approvedAt ? new Date(note.approvedAt) : null;
+    const said = ok && !Number.isNaN(ok.getTime()) ? ok.toLocaleString() : "an earlier pass";
+    return `This drawing was <b>approved into the game</b> on ${said}, and it `
+      + `arrived on ${landed}.<br>`
+      + "Its size and ground contact were measured off the new art, not chosen — "
+      + "so what is on screen is a machine's placement of art you have said yes "
+      + "to. Adjust it, mark it reviewed to agree with it, or flag it to ask for "
+      + "another pass at the drawing.";
   }
   if (note.how === "alternate") {
     const at = note.at ? new Date(note.at) : null;

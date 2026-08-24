@@ -319,6 +319,18 @@ Either answer exports as `approvals` and is applied by
 `apply_sprite_adjustments.py`, like every other change. Characters with a
 replacement still waiting carry a dot in the workbench's character dropdown.
 
+**A yes does not take the pose off the updated list.** It changes what the list
+says about it: the marker intake wrote as *replacement waiting* becomes
+**approved into the game — placement not agreed with**, and the pose stays on
+**All Recently Updated Poses** until it is tuned or marked reviewed. That is not
+bureaucracy. The numbers an approved drawing carries were measured off it rather
+than chosen — `auto_tune.py` reads the foot line and the size straight off the
+matte — so approving is the moment a machine's placement of art you said yes to
+goes on screen, which is the same claim `placed` describes and wants the same
+answer. Before this the marker still read *the game is still drawing the old
+drawing* after the game had stopped doing so, and an approve-only export left
+the pose on the list asking a question that had been answered.
+
 `--replace-now` skips all of this and overwrites immediately, the way imports
 worked before.
 

@@ -2114,6 +2114,7 @@ function refreshUpdatedControl() {
     // the opposite of a drawing that has never had any.
     : note.how === "unreviewed" ? "in the game — never placed"
     : note.how === "placed" ? "placed by a machine — never agreed with"
+    : note.how === "approved" ? "approved into the game — placement not agreed with"
     : note.lost?.length ? "tuning rolled back" : "tuning carried over";
   $("updatedInfo").innerHTML = updateSummary(note);
   refreshReviewButton();
@@ -2546,10 +2547,12 @@ function buildRecentPoseList(list) {
   const retune = entries.filter((e) => e.lost.length).length;
   const surfaced = entries.filter((e) => e.how === "surfaced").length;
   const fresh = entries.filter((e) => e.how === "new").length;
+  const okd = entries.filter((e) => e.how === "approved").length;
   $("poseCount").textContent = entries.length
     ? `${entries.length} updated`
       + (retune ? ` · ${retune} to re-tune` : "")
       + (fresh ? ` · ${fresh} new` : "")
+      + (okd ? ` · ${okd} newly approved` : "")
       + (surfaced ? ` · ${surfaced} newly in game` : "")
       + (reviewed ? ` · ${reviewed} reviewed` : "")
     : "none";

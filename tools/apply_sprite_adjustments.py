@@ -502,6 +502,26 @@ def main():
                     meta[field] = value
             else:
                 bank_superseded(man, char, key, note, meta)
+                # The pose stays on the updated list, saying something true.
+                #
+                # Intake stamps `replaced` as `how: "await"`, which the workbench
+                # reads as "new art is in the repo and the game is still drawing
+                # the old drawing — approve or keep". Approving makes that
+                # sentence false, and nothing was rewriting it: an approve-only
+                # export left the pose on the list still asking a question that
+                # had been answered.
+                #
+                # It should not leave the list either. The numbers this drawing
+                # carries were derived from it, not chosen — auto_tune measures
+                # the foot line and the size off the matte — so an approval is
+                # the moment a machine's placement goes on screen. That is the
+                # same claim `how: "placed"` describes, and it wants the same
+                # answer: agree with it, adjust it, or send the art back.
+                marker = meta.get("replaced")
+                if marker and marker.get("how") == "await":
+                    marker["how"] = "approved"
+                    marker["kept"] = "keep"
+                    marker["approvedAt"] = now_stamp()
             # A first delivery and a replacement are different events and the
             # line says which: "replacement approved" on a pose that never had
             # art reads as though something was overwritten, and after a round
