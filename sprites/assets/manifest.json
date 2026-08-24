@@ -2680,7 +2680,7 @@
    "attack_air_a": {
     "w": 602,
     "h": 1347,
-    "ox": -144.2,
+    "ox": -193.2,
     "oy": -1036,
     "bodyBottom": 310.4,
     "bodyH": 389.3,
@@ -2695,7 +2695,8 @@
      ]
     },
     "edited": {
-     "renderScale": 0.289
+     "renderScale": 0.289,
+     "ox": -144.2
     },
     "bodyLeft": 0,
     "bodyRight": 602,
@@ -2705,7 +2706,7 @@
    "attack_air_b": {
     "w": 893,
     "h": 1120,
-    "ox": -159.8,
+    "ox": -127.3,
     "oy": -809,
     "bodyBottom": 310.4,
     "bodyH": 323.7,
@@ -2769,7 +2770,7 @@
     },
     "w": 722,
     "h": 1426,
-    "ox": -270.7,
+    "ox": -285.2,
     "oy": -1115,
     "bodyBottom": 235.9,
     "bodyH": 412.1,
@@ -2825,7 +2826,7 @@
    "attack_light_a": {
     "w": 907,
     "h": 1319,
-    "ox": -436.8,
+    "ox": -456.8,
     "oy": -1008,
     "bodyBottom": 235.9,
     "bodyH": 381.2,
@@ -2852,7 +2853,7 @@
    "attack_light_b": {
     "w": 955,
     "h": 1340,
-    "ox": -221.3,
+    "ox": -191.3,
     "oy": -1029,
     "bodyBottom": 275.4,
     "bodyH": 387.3,
@@ -2905,7 +2906,7 @@
    "crouch_attack_a": {
     "w": 996,
     "h": 922,
-    "ox": -457.3,
+    "ox": -486.3,
     "oy": -611,
     "bodyBottom": 258.7,
     "bodyH": 308.7,
@@ -2932,7 +2933,8 @@
     },
     "edited": {
      "renderScale": 0.335,
-     "bodyBottom": 274.7
+     "bodyBottom": 274.7,
+     "ox": -457.3
     }
    },
    "crouch_attack_b": {
@@ -3670,7 +3672,7 @@
    "attack_diag_up_b": {
     "w": 886,
     "h": 1679,
-    "ox": -225.8,
+    "ox": -201.3,
     "oy": -1368,
     "bodyBottom": 182.9,
     "bodyH": 351.1,
@@ -3699,7 +3701,8 @@
     },
     "edited": {
      "renderScale": 0.2112,
-     "bodyBottom": 241.4
+     "bodyBottom": 241.4,
+     "ox": -225.8
     }
    },
    "throw_back": {

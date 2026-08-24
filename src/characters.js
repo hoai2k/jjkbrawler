@@ -858,20 +858,30 @@ export const CHARACTERS = {
     //
     // `critBand` is matched against the distance between the two fighters'
     // CENTRES (combat.js), and these were authored at 132 and 160 — numbers
-    // from the era when reach was a per-move literal. Once range came off the
-    // drawings his hitboxes ended at 53 px (light) and 58 px (heavy) from his
-    // own centre, so against an ordinary body the furthest he could connect was
-    // about 71 and 76 centre-to-centre. His light band began 61 px past
-    // anything the move could reach and his heavy band cleared it by 44. The
-    // roster's signature passive fired on its owner's normals NEVER; the only
-    // 7:3 left in the kit was the neutral special's 30% dice roll and the ult.
+    // from the era when reach was a per-move literal. Measured range left them
+    // stranded: swinging at every distance from contact outwards, his light
+    // connects out to 70-90 px centre-to-centre depending on how wide the body
+    // is and his heavy to 82-100. The old light band opened at 102 and the old
+    // heavy at 124. NEITHER was reachable, against any body on the roster. The
+    // roster's signature passive could not fire on its owner's normals at all,
+    // and the only 7:3 left in the kit was the neutral special's 30% dice roll
+    // and the ultimate.
     //
-    // Placed at the outer half of what each move can actually touch, so the
-    // ratio is still something a player spaces for — walk into him and you lose
-    // it, which is the whole read on the technique — and reachable against the
+    // THESE NUMBERS ARE MEASURED BY SWINGING, not derived from the box, and
+    // that is worth stating because deriving them is a trap this walked into
+    // twice. A hitbox's nominal far edge is not how far the move connects: it
+    // is scaled through the swing by `swingExtent` (combat.js hitboxRect), so
+    // the box only approaches its authored width at the end of an arc that has
+    // usually stopped being active by then. Reading `ox + w` overstates the
+    // real limit by about a third, and reading `ox + w/2` understates it —
+    // sweep the distance and let the game answer.
+    //
+    // Placed on the outer quarter of that measured range, so the ratio is
+    // something a player spaces for — walk inside it and you lose it, which is
+    // the whole read on the technique — and it holds that shape against the
     // narrowest body on the roster as well as the widest. Tolerances are
-    // proportionally tighter than SWEETSPOT's 26, because these are distances
-    // a third the size of the ones that number was chosen for.
+    // tighter than SWEETSPOT's 26 because a band a fighter must FIND should be
+    // narrower than one handed to a spear for being long.
     //
     // Authored rather than derived because his is not a tipper: 7:3 is a
     // specific point at a specific spacing, it has no sourspot — outside the

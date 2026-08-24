@@ -287,16 +287,24 @@ spacing — hit at the 7:3 distance and everything crits.
   efficiently and leaving at six.
 - *Signature mechanic:* his lights and heavies have a **crit band** — struck
   from the sweet-spot range they automatically deal 7:3 criticals (+36%
-  damage, more launch). **The bands were unreachable and are now placed on the
-  art.** Authored at 132 and 160 px centre-to-centre when reach was a per-move
-  literal, they survived the move to measured range — where his hitboxes end at
-  53 and 58 px from his own centre, so the furthest he could connect was about
-  71 and 76. His light band started 61 px past anything he could touch. The
-  roster's signature passive fired on its owner's normals **never**; the only
-  7:3 in the kit was the neutral special's dice roll and the ultimate. They sit
-  at the outer half of each move's real range now, so the ratio is still
-  something a player spaces for — walk into him and you lose it — and reachable
+  damage, more launch). **The bands were unreachable and are now placed on
+  measured range.** Authored at 132 and 160 px centre-to-centre when reach was
+  a per-move literal, they survived the move to measured range without being
+  re-checked. Swinging at every distance from contact outwards, his light
+  connects out to 70–90 px depending on how wide the body is and his heavy to
+  82–100; the old bands opened at 102 and 124. **Neither could fire against any
+  body on the roster.** The only 7:3 left in the kit was the neutral special's
+  dice roll and the ultimate. They sit on the outer quarter of the measured
+  range now (light 54–74, heavy 58–82), so the ratio is still something a
+  player spaces for — walk inside it and you lose it — and it holds that shape
   against the narrowest body on the roster as well as the widest.
+
+  *Measure these by swinging, not by reading the box.* A hitbox's nominal far
+  edge is not how far the move connects: `swingExtent` scales the box through
+  the arc, so it only approaches its authored width near the end of a window
+  that has usually closed by then. `ox + w` overstates the real limit by about
+  a third and `ox + w/2` understates it. Sweep the distance and let the game
+  answer — this was got wrong twice by deriving it.
 - **Ratio Wave** (neutral): blade wave with a 30% crit chance, on a shorter
   cooldown.
 - **Collapse** (side): **the environment strike, as the manga uses it.** The
@@ -307,7 +315,7 @@ spacing — hit at the 7:3 distance and everything crits.
   Geyser and Hanami's Roots). It is also the one move in his kit that does not
   care how long his arms are, which was the hole in the rest of it.
 - **Overtime** (down): the tie comes off: +20% speed and damage for 5 s — **and
-  the 7:3 band widens by 1.8×**. The vow is "past my contracted hours my output
+  the 7:3 band widens by 1.8×** (light 46–82, heavy 48–92). The vow is "past my contracted hours my output
   rises", and for him output *is* finding the point, so the install makes him
   better at the thing he is rather than simply hitting harder. A panic button
   becomes the engine, and the cooldown came down to match.
@@ -317,11 +325,10 @@ spacing — hit at the 7:3 distance and everything crits.
   doing the job properly.
 - *Passive — Ratio Technique:* the crit bands themselves.
 
-*Still outstanding:* his measured reach is the shortest on the roster (42 px)
-for a man carrying a sword, which is a question about his four forward strike
-points rather than about his kit. `REACH_NUDGE` cannot answer it — the audit
-fails any nudge that reorders the roster — so it wants a pass in the bench, on
-the drawings.
+*Reach:* a placement pass over seven of his attack poses took his shipped reach
+from 42 px to 48 — still short for a man carrying a sword, and deliberately so
+for now: the rest of the kit is what carries him, and Collapse does not care how
+long his arms are.
 
 ## Toji Fushiguro — "The Sorcerer Killer"
 **Canon:** Born Zen'in with a Heavenly Restriction: zero cursed energy,
