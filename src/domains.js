@@ -124,12 +124,20 @@ export function performDomain(f, slot = 0) {
   // What makes that fair rather than merely punishing is that the bar is not
   // spent until the barrier lands (above). Being cut off costs the tempo and
   // the telegraph, not the resource — you can go again.
+  //
+  // And the pose is now the HAND SEAL rather than the ultimate. An incantation
+  // is opened with a mudra, held in both hands, square to the viewer — the one
+  // moment a sorcerer is not drawn in profile — and this is the window it
+  // belongs in: the fighter is saying the words, and the barrier has not
+  // arrived. `domain` falls back on the ult loop for a fighter whose sign has
+  // not been drawn (characters.js), so this line is the whole integration and
+  // nothing waits on the art.
   f.action = {
-    kind: "ult", t: 0, dur: lead + DOMAIN_OPEN_TIME, anim: "ult",
+    kind: "ult", t: 0, dur: lead + DOMAIN_OPEN_TIME, anim: "domain",
     lockMovement: true, events: [], ...spokenCast(f, lineEl, call),
   };
   f.animTime = 0;
-  f.animKey = "ult";
+  f.animKey = "domain";
 
   // A second domain must not start during the call. `state.domain` is not set
   // until the barrier lands, so without this the window between the shout and
@@ -150,6 +158,9 @@ export function performDomain(f, slot = 0) {
     f.meter = 0;
     // The barrier going up is the part nobody can take from them: a fixed
     // opening pose, untouchable, exactly as it was before the call existed.
+    // Still the ULT here, deliberately: the seal is the declaration, and this
+    // is the fighter braced against what the declaration has just opened. The
+    // sign is made once and let go of.
     f.action = { kind: "ult", t: 0, dur: DOMAIN_OPEN_TIME, anim: "ult", lockMovement: true, uninterruptible: true };
     f.animTime = 0;
     f.animKey = "ult";

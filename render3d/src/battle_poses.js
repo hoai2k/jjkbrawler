@@ -610,6 +610,106 @@ export const BATTLE_POSES = {
     LeftArm: [-24, -18, -62], LeftForeArm: [-80, 0, -45],
   }),
 
+  // ------------------------------------------------------------ the throws
+  //
+  // Four poses of one mechanic, and all four are the FOLLOW-THROUGH: the
+  // victim is released the instant the throw begins (`executeThrow` in
+  // src/grab.js), so every one of these is a body that has just let go of
+  // something heavy and is still travelling. That is what separates them from
+  // `grab_hold`, which is the load still in the hands.
+  //
+  // The shapes come from the drawings, and the drawings came from a request
+  // that had to be rewritten twice before they did — the first passes put the
+  // hands behind the back on `throw_back` and left them hanging limp on
+  // `throw_down` (sprites/docs/pose-brief.md §6). Both faults are exactly the
+  // thing a matched pose is for: a real body finishing a real throw cannot do
+  // either.
+
+  // RELEASED STRAIGHT AHEAD. Both arms extended forward at chest height with
+  // the elbows nearly out, chest rotated through, weight fully over the front
+  // foot and the rear leg trailing straight. It is `grab_reach` after the
+  // shove rather than before it, so the elbows open and the spine keeps
+  // turning.
+  throw_fwd: p({
+    Spine: [10, 18, 0], Spine1: [4, 11, 0], Head: [-4, -6, 0],
+    LeftUpLeg: [-34, 0, 4], LeftLeg: [18, 0, 0], LeftFoot: [-4, 0, 0],
+    RightUpLeg: [26, 0, -4], RightLeg: [16, 0, 0], RightFoot: [-26, 0, 0],
+    RightArm: [0, 78, 14], RightForeArm: [-10, 0, 10],
+    LeftArm: [0, -70, -18], LeftForeArm: [-14, 0, -14],
+  }),
+
+  // RELEASED OVER THE SHOULDER. The opponent goes backward; the ARMS DO NOT.
+  // Both sweep across the FRONT of the chest and finish toward the far side,
+  // which is what a body does to send something behind it — the hands never
+  // pass the spine, and a pose that puts them there is the fault the request
+  // kept producing. The trunk twists with them and the head follows the throw.
+  throw_back: p({
+    Spine: [4, 26, 0], Spine1: [2, 16, 0], Head: [-4, 20, 0],
+    LeftUpLeg: [-24, 0, 4], LeftLeg: [22, 0, 0], LeftFoot: [-4, 0, 0],
+    RightUpLeg: [18, 0, -4], RightLeg: [26, 0, 0], RightFoot: [-12, 0, 0],
+    RightArm: [-6, 50, 28], RightForeArm: [-54, 0, 62],
+    LeftArm: [-4, -26, -36], LeftForeArm: [-42, 0, -22],
+  }),
+
+  // LAUNCHED STRAIGHT UP. Both arms driven overhead and finishing there,
+  // chest open, chin up tracking the rise — and the KNEES are the half that
+  // makes it a throw rather than a cheer: they are coming out of a loaded dip,
+  // which is where the launch came from.
+  throw_up: p({
+    Spine: [-14, 0, 0], Spine1: [-6, 0, 0], Head: [-24, 0, 0],
+    LeftUpLeg: [-12, 0, 6], LeftLeg: [16, 0, 0], LeftFoot: [-4, 0, 0],
+    RightUpLeg: [-8, 0, -6], RightLeg: [18, 0, 0], RightFoot: [-6, 0, 0],
+    RightArm: [-148, 10, 42], RightForeArm: [-14, 0, 10],
+    LeftArm: [-148, -10, -42], LeftForeArm: [-16, 0, -10],
+  }),
+
+  // SLAMMED INTO THE FLOOR ahead. Trunk hinged over a BRACED back, both arms
+  // rigid and driving down-and-forward past the knees to one point on the
+  // ground, front knee loaded, rear heel lifted. Every one of those is there
+  // to keep it from reading as the bow it kept coming back as: an exhausted
+  // body hangs its arms straight down and lets its back round, and this does
+  // neither.
+  throw_down: p({
+    Spine: [40, 6, 0], Spine1: [16, 4, 0], Head: [-18, -6, 0],
+    LeftUpLeg: [-44, 0, 4], LeftLeg: [34, 0, 0], LeftFoot: [-6, 0, 0],
+    RightUpLeg: [26, 0, -4], RightLeg: [18, 0, 0], RightFoot: [-34, 0, 0],
+    RightArm: [-30, 16, 68], RightForeArm: [-12, 0, 10],
+    LeftArm: [-28, -14, -68], LeftForeArm: [-14, 0, -10],
+  }),
+
+  // ----------------------------------------------------------- aimed strikes
+  //
+  // The same two attacks he already throws, turned onto a diagonal. The engine
+  // aims the hitbox at the stick's own angle and the sprite path needed a
+  // second drawing to match it; a rig would not have, which is why these two
+  // states alias to their level cousins in states.js. The matched poses exist
+  // because Yuji HAS the drawings, and the editor compares against them.
+
+  // THE RISING STRAIGHT — the cross of `attack_light_b` thrown forty-five
+  // degrees higher. Same near arm, same hand, same commitment: the shoulder
+  // turns into it, the hips and back leg drive up through the line, and the
+  // chin follows the fist rather than staying level.
+  attack_diag_up_b: p({
+    Spine: [-6, 18, 0], Spine1: [-2, 10, 0], Head: [-10, -6, 0],
+    LeftUpLeg: [-30, 0, 2], LeftLeg: [14, 0, 0], LeftFoot: [-4, 0, 0],
+    RightUpLeg: [22, 0, -2], RightLeg: [18, 0, 0], RightFoot: [-22, 0, 0],
+    RightArm: [-46, 58, 34], RightForeArm: [-16, 0, 16],
+    LeftArm: [-44, -12, -62], LeftForeArm: [-116, 0, -45],
+  }),
+
+  // THE DIVING KICK. His level aerial is already a kick (`attack_air_b`), so
+  // the diagonal is the same leg aimed at the floor ahead: thigh dropped out
+  // of the flying-kick chamber, knee straight, ankle plantarflexed so the foot
+  // is the furthest thing down the line. The other leg folds up behind and the
+  // trunk pitches over the top of it, which is the counterweight.
+  attack_air_diag_down_b: p({
+    Spine: [26, 8, 0], Spine1: [10, 4, 0], Head: [-14, -4, 0],
+    RightUpLeg: [-26, 0, 6], RightLeg: [8, 0, 0], RightFoot: [-28, 0, 0],
+    LeftUpLeg: [34, 0, -6], LeftLeg: [72, 0, 0], LeftFoot: [-16, 0, 0],
+    RightArm: [10, -34, 58], RightForeArm: [-26, 0, 18],
+    LeftArm: [-20, 20, -66], LeftForeArm: [-34, 0, -22],
+  }),
+
   // ----------------------------------------------------------------- victory
   // One fist raised, weight settled, chest open — the celebration, which is
   // the one pose on the sheet that is not a fighting pose at all.

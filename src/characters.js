@@ -193,6 +193,20 @@ export const DEFAULT_ANIMS = {
   specialSide: { frames: ["r3c0"], fps: 8, loop: false },
   specialDown: { frames: ["r3c2"], fps: 8, loop: false },
   ult: { frames: ["r3c2", "r3c3"], fps: 7, loop: true },
+  // THE HAND SEAL, held while the Domain Expansion is declared (round 25B).
+  //
+  // A domain is opened by a spoken line and then a barrier, and the fighter
+  // has been playing the ULTIMATE through both — the same loop for the
+  // sentence and for the thing the sentence summons. This is the first half:
+  // one drawing, held still, for as long as the call-out lasts (domains.js
+  // performDomain). The barrier is still the ult, because that pose is the
+  // fighter braced against what they have just opened.
+  //
+  // `fps: 1` because it is a HELD pose and not a cycle — the sign is made once
+  // and kept. The fallback is the ult loop at the rate it plays today, so a
+  // fighter whose sign has not been drawn declares their domain exactly as
+  // they always have, and lands the drawing the day it is approved.
+  domain: { frames: ["domain_expansion"], fallback: ["r3c2", "r3c3"], fps: 1, fallbackFps: 7, loop: true },
   dizzy: { frames: ["dizzy"], fps: 1, loop: true },
   // Knocked flat (round-12 art request). Until the pose is delivered the
   // renderer simulates it: `hurt` swept 90 degrees onto the back (fighter.js).
@@ -293,6 +307,10 @@ export const SEMANTIC_ANIMS = {
   specialSide: { frames: ["special_side"], fps: 8, loop: false },
   specialDown: { frames: ["special_down"], fps: 8, loop: false },
   ult: { frames: ["ult_a", "ult_b"], fps: 7, loop: true },
+  // The hand seal — see DEFAULT_ANIMS above for what it is and why it is held
+  // rather than cycled. Two of the nine fighters with a domain have the drawing
+  // so far; the other seven fall back on their ult loop and are unchanged.
+  domain: { frames: ["domain_expansion"], fallback: ["ult_a", "ult_b"], fps: 1, fallbackFps: 7, loop: true },
   dizzy: { frames: ["dizzy"], fps: 1, loop: true },
   // Knocked flat (round-12 art request). Until the pose is delivered the
   // renderer simulates it: `hurt` swept 90 degrees onto the back (fighter.js).
@@ -972,6 +990,10 @@ export const CHARACTERS = {
     // Inherits the semantic table; these keep this fighter's own timing.
     anims: { ...SEMANTIC_ANIMS,
       ult: { frames: ["ult_a", "ult_b"], fps: 8, loop: true },
+      // His ult runs a beat faster than the roster's, and the seal falls back
+      // on it — so his fallback runs at his rate rather than the shared 7. The
+      // held drawing, when it lands, is a single frame and has no rate.
+      domain: { frames: ["domain_expansion"], fallback: ["ult_a", "ult_b"], fps: 1, fallbackFps: 8, loop: true },
     },
     light: { dmg: 8, speed: 1.08, angle: 0.31, effect: "soulMark", label: "Soul Touch", sfx: "punch" },
     heavy: { dmg: 15, speed: 1.0, angle: 0.44, effect: "soulMark", label: "Distorted Limb", sfx: "punch", shieldMul: 1.6 },
