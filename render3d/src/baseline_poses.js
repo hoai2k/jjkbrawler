@@ -395,6 +395,29 @@ const INTENT_OF = {
   grab_hold: "grab_hold",
   grabbed: "grabbed",
   victory: "celebrate",
+  // Round 24 and 25's seven, mapped to the nearest intent this library
+  // already has rather than left on the generic stance. Every fighter now
+  // carries all seven drawings, so "stance" was answering for 238 frames
+  // across the roster — a fighter throwing somebody over their shoulder,
+  // baselined to standing still.
+  //
+  // These are approximations and they are meant to be: a throw is not a
+  // strike, and the day somebody authors `throw_release` and its three
+  // siblings these lines come off. The same posture the 3D states take in
+  // render3d/src/states.js, and for the same reason — an approximation that
+  // says which way the body is going beats a default that says nothing.
+  throw_fwd: "strike_push",     // both arms driving out from the centre
+  throw_back: "strike_sweep",   // both arms travelling across the body
+  throw_up: "strike_up",        // vertical drive, trunk extending
+  throw_down: "strike_down",    // trunk folded over a loaded front leg
+  attack_diag_up: "strike_up",  // the rising strike, aimed 45° rather than overhead
+  // `attack_air_diag_down` needs no entry: `attack_air` already answers for it
+  // through the longest-prefix search below, and `air_strike` is right.
+  //
+  // The domain seal is deliberately NOT a strike. It is a still, composed,
+  // two-handed sign held at the chest while the fighter declares — which is
+  // `poise`: the stance, weight settled, hands opened.
+  domain_expansion: "poise",
 };
 
 /**

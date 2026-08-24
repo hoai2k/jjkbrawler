@@ -141,12 +141,14 @@ workbench pass on the whole set if it is ever redrawn.
 
 ## 4. The pose lines
 
-40 poses, the same semantic set every fighter has (`SEMANTIC_ANIMS`,
-`src/characters.js`). Combine each with the fighter's character block. Four
-further keys are registered and NOT drawn — `throw_fwd`, `throw_back`,
-`throw_up`, `throw_down` each play the heavy attack swung that way, which reads
-correctly because a throw is a heave in that direction. Deliver one under those
-names and it is picked up with no code change; nobody is owed one.
+47 poses, the same semantic set every fighter has (`SEMANTIC_ANIMS`,
+`src/characters.js`). Combine each with the fighter's character block.
+
+Seven of them are round 24 and 25's, and their lines below are **rewritten from
+what the round taught**, not from what was asked for: the four throws, the two
+aimed strikes, and the domain seal. See §6 — the first delivery of each came
+back wrong in the same way on fighter after fighter, and the fix was always the
+same shape. Do not use the short version of these lines.
 
 ### Stance
 
@@ -207,6 +209,8 @@ distance, same figure scale, only the body moves.
 | `attack_heavy_b` | that blow landing at full extension, hips driven through it, the whole body behind the strike and past its own centre of balance |
 | `attack_air_a` | **wind-up, airborne.** Body coiled mid-jump, striking limb cocked, legs gathered |
 | `attack_air_b` | **strike, airborne.** Fully extended through the aerial arc, legs trailing, committed |
+| `attack_diag_up_b` | the STRIKE of a light attack thrown up-and-forward at about 45°: the same limb, weapon and hand as this fighter's own `attack_light_b`, aimed forty-five degrees higher. Arm extended along that diagonal at full reach, shoulder turned into it, hips and back leg driving up through the line, chin following the fist. Plays after `attack_light_a`, so it must finish that wind-up |
+| `attack_air_diag_down_b` | the STRIKE of an aerial thrown down-and-forward at about 45°. **Resolve the branch before writing the prompt** — see §6 — a long-weapon fighter drives the weapon down the diagonal and an unarmed one KICKS. Never offer fist, leg and weapon as alternatives in one request. Visibly airborne: no planted foot, no ground contact |
 | `attack_up` | striking upward overhead, body extended and rising with it |
 | `attack_down` | striking downward at the ground in front, weight dropping onto it — a committed smash, not a drop |
 | `crouch_a` | crouched down low, hips dropped to heel height, thighs closer to horizontal than vertical, back angled forward over the knees, head lowered to about chest height of their standing pose, guard up close to the body |
@@ -259,6 +263,19 @@ before the round is delivered.
 **Do not draw the opponent.** Both grab poses are one figure: the game supplies
 the other body. A `grab_hold` drawn with somebody in the fist ships two victims.
 
+**The four throws are the same mechanic's, and they are the follow-THROUGH.**
+The victim is released the instant the throw begins (`executeThrow` in
+`src/grab.js`) and launched by the hit in the same frame, so every one of these
+is one figure with empty hands, having just let go. Not the moment of holding —
+that is `grab_hold`, which already exists — and never with an opponent drawn.
+
+| Pose | Pose line |
+|---|---|
+| `throw_fwd` | just released a heave straight ahead: both arms extended together in front at chest height, hands open, palms facing forward and down, fingers naturally spread, torso rotated through, weight fully over the front foot, head following where they went |
+| `throw_back` | just released a heave over the shoulder. Still mostly side-on and facing screen-right, torso and head twisting screen-LEFT to follow. **BOTH arms sweep across the FRONT of the body** — chest, abdomen, near hip — and finish toward screen-left, both hands visible in front of the torso, both palms DOWN, fingers gently spread. See §6: "behind" is where the opponent goes, never where the hands go |
+| `throw_up` | just launched somebody straight up: both arms driven overhead together, knees snapping out of a loaded dip, chest open, chin and eyes tracking the rise. Open release hands, fingers spread. The dip and the tracking gaze are what keep it from reading as celebration, surrender or prayer |
+| `throw_down` | the ACTIVE impact of a slam into the floor down-and-forward. Knees bent and loaded, weight over the lead leg, rear heel lifted, torso hinged forward on a braced back with ENGAGED shoulders, **both arms extended rigidly together down-and-forward past the knees** to one shared impact point ahead. Palms down toward it, fingers spread, head and eyes on the impact. See §6: this is the fault that made half a roster look exhausted |
+
 **The dash attack is drawn at the heavy's weight.** One drawing serves both the
 running light and the running shoulder-charge, so a pose that reads as a light
 poke looks weak on half of what it plays. When in doubt, draw the heavy — and
@@ -277,6 +294,7 @@ The fighter's own kit decides what these look like — the technique names are i
 | `special_down` | their **down special**, weight low, technique breaking out of the ground or the body |
 | `ult_a` | the wind-up of their **ultimate**: gathering, energy at maximum, before release |
 | `ult_b` | the release of that ultimate, arms and body fully committed |
+| `domain_expansion` | the hand seal a Domain Expansion is opened with, held while the fighter declares it. **The one pose in the game drawn square to the camera**, and the one with a per-character answer — see §6. Nine fighters only: the ones with a `domains` entry in `src/characters.js`. No cursed energy, no barrier, no domain behind them |
 
 **Do not draw the technique.** The projectile, the beam, the summoned creature
 and the domain are separate effect sprites the engine composites — this pose is
@@ -338,6 +356,11 @@ often.
 | **A design element is silently dropped** | Mahoraga's karma wheel | 13 |
 | **A whole cycle arrives as one contact-sheet plate** | `run_*`, `dizzy` | 15A, 22J |
 | **Scenery drawn into the pose** — a ledge, a floor, a wall | `ledge_hang` | 15A, 15A(K), 17A |
+| **A direction word lands on the body** — "thrown behind" putting the hands behind the back, "arms down" producing loose vertical arms. The whole roster at once, because it is the request that is ambiguous and not the drawing (§6) | `throw_back`, `throw_down` | 25 |
+| **The pose has a branch and the prompt offers it as a choice** — fist, leg or weapon in one sentence, and the easiest reading wins on nearly every fighter (§6) | `attack_air_diag_down_b` | 25 |
+| **A generic description where the character has a canon** — a plausible mudra that is not that sorcerer's seal (§6) | `domain_expansion` | 25 |
+| **Canonical anatomy treated as a removable prop** — an arm gained, a fused weapon lost, a design element miscounted. Reference images alone do not hold it; a positive invariant block does (§6) | any pose on an unusual design | 13, 25 |
+| **A replacement imitates the wrong drawing it is replacing** — the pose key was pointing at another pose's art, and "like this but correct" reproduces the wrong pose under a new name (§6) | any substituted pose | 25 |
 | **A minimal costume gets covered up when the figure lies down** | `prone` | 13 |
 | **An ambiguous costume sentence gets drawn the covered way** | any | 13, 18D |
 | **Rewording an ambiguous costume line does not fix it** | Uro's cloud wrap | 18D |
@@ -396,7 +419,152 @@ image is not a substitute for the block; it is what the block is checked against
 
 ---
 
-## 6. Adding to this file
+## 6. Writing the prompt: geometry, not the pose name
+
+Round 25 was the first delivery where the *request* was the fault rather than
+the drawing. 250 files came back, and the families that failed failed on every
+fighter at once — which is the signature of a request that can be read two ways,
+not of an artist having a bad day. The corrections below are what turned each
+one around, and they generalise.
+
+**The central lesson: a move name is not an instruction.** `throw_back` is a
+label for the request system. What reaches the image is the body geometry, and
+if the geometry is not written down, something plausible and wrong is drawn
+instead. For every pose, state:
+
+1. **which moment** of the move is shown;
+2. **where every important limb is** in the visible silhouette;
+3. **which way** the palms, weapon, head and torso face;
+4. **what must be the furthest point** along the attack direction; and
+5. **what makes the result invalid** — an explicit rejection list.
+
+Assemble in this order, so the identity is fixed before the pose and the
+rejections come last:
+
+```text
+[CHARACTER IDENTITY AND CANONICAL DESIGN]
+[EXACT MOMENT IN THE ANIMATION]
+[POSE-SPECIFIC BODY GEOMETRY]
+[CHARACTER/WEAPON BRANCH]
+[CAMERA, FACING, AND SILHOUETTE]
+[ANATOMY AND PROP INVARIANTS]
+[NEGATIVE / REJECTION CONDITIONS]
+[SHARED SPRITE STYLE AND DELIVERY SPEC]
+```
+
+### Never let a direction word land on the body
+
+`throw_back` asked for arms "swept toward the rear" and a person thrown
+"behind". *Behind* was read as an anatomical instruction and hands went behind
+the fighter's back — or palms turned up, or the arms crossed, or one went high
+and one low. The silhouette read as an awkward stretch.
+
+**Encode the opponent's travel separately from the thrower's limbs.** Where the
+victim goes is one sentence; where the hands are is another, and it is always in
+front of the torso. The same rule catches `throw_up`, where "arms overhead" with
+no mechanical cause reads as celebration or surrender.
+
+### Reject with geometry, not with adjectives
+
+`throw_down` asked for "bent sharply at the waist, arms down" and got a limp
+figure with loose vertical arms — bowing, or exhausted, or unconscious. Adding
+"not tired" to the prompt does nothing, because *tired* is not a shape.
+
+**Braced shoulders, rigid down-and-forward arms past the knees, loaded knees, a
+lifted rear heel.** Those four are shapes, and they are what the corrected
+prompt asked for. A back-carried weapon makes the wrong reading stronger, so
+armed fighters need the geometry more, not less.
+
+### Resolve a branch before writing, never inside the prompt
+
+`attack_air_diag_down_b` offered "the arm (or leg, if that is how this fighter's
+aerial lands)". Almost every fighter came back with a downward punch, including
+the ones carrying a polearm.
+
+```text
+if character.has_long_melee_weapon:  use LONG_WEAPON_AERIAL
+else:                                use KICK_AERIAL
+```
+
+Offer fist, leg and weapon in one request and the easiest interpretation wins
+every time. Pick the pose first, then write one prompt for it, and name the
+extremum: the attacking foot for an unarmed fighter, the blade or spear tip for
+an armed one, furthest along the diagonal and clear of the body.
+
+### A known canon beats a generic description
+
+`domain_expansion` was written as an interlaced-finger mudra. That is right for
+a fighter whose seal nobody has drawn and wrong for Gojo, whose Unlimited Void
+sign is one-handed: index up, middle hooked around it, ring and little folded
+under the thumb. A generic prompt produced a plausible, incorrect sign.
+
+**Look the seal up before generating; fall back to the generic mudra only when
+there is nothing to look up.** And set the camera explicitly — this is the one
+pose that is *not* drawn facing right, and saying so is what stops the roster
+rule from overriding it.
+
+### Anatomy is not a prop
+
+"Empty hands" removed limbs. Mahoraga gained an arm, lost his fused forearm
+sword, and had the wrong number of spokes on his karma wheel — and reference
+images alone did not hold any of it.
+
+**Append a positive invariant block to every request, and repeat it in the
+rejections.** For Mahoraga: exactly two arms; one canonical fused right-forearm
+bone sword; one brass head wheel with exactly eight spokes; a visible axle to
+the head. "Empty hands" means no held opponent and no new prop — it does not
+touch canonical anatomy.
+
+### A replacement describes the pose from scratch
+
+Several of this round's replacements existed because one pose key was pointing
+at another pose's drawing. The wrong sprite is **evidence of the problem, not a
+reference to imitate** — a request that says "like the current one but correct"
+reproduces the wrong semantic pose under a new filename, which is exactly what
+happened. Write the pose out as if nothing existed.
+
+### What can be checked without an eye
+
+Most of §3's tests, plus these, all of which are readable off the alpha mask or
+by a vision pass and all of which caught something this round:
+
+- both `throw_back` hands in front of the torso mask, not past its rear edge;
+- `throw_down` hands beyond the knees along the down-forward direction;
+- palms down for `throw_back` and `throw_down`;
+- no ground contact in any aerial pose;
+- the expected extremum — foot for an unarmed diagonal aerial, weapon tip for an
+  armed one;
+- exactly one subject, and the character's arm count and invariants intact.
+
+### What is written here, and what is not yet built
+
+Everything above is the layer that costs nothing: prose in the cumulative brief,
+which every future request inherits by being read. The other layer is
+`tools/build_image_requests.mjs`, and it is **not** done — a request builder
+that knew each fighter's structured traits could emit one resolved action rather
+than a branch, the exact anatomy invariants rather than a reminder to include
+them, and a rejection block per pose. The fields it would need are small:
+
+```json
+{ "has_long_melee_weapon": true, "weapon_description": "canonical polearm",
+  "permanent_body_weapon": false, "arm_count": 2,
+  "anatomy_invariants": [], "domain_seal": null }
+```
+
+The rule that matters most if it is ever built: **fail closed**. Refuse to
+render `attack_air_diag_down_b` until it is known whether the fighter has a long
+melee weapon, and refuse a domain seal until a character-specific description is
+present — because the failure mode of guessing is a plausible drawing of the
+wrong thing, which is what this whole section is about.
+
+And what still needs the contact sheet: whether the silhouette says which
+direction the move goes without its filename, whether `throw_down` reads as
+impact rather than exhaustion, whether the aerial matches this fighter's combat
+language, and whether a seal is *that character's* seal rather than merely a
+mudra. **Review these families as whole-roster sheets** — every one of the
+faults above was obvious across 35 drawings and arguable on any one of them.
+
+## 7. Adding to this file
 
 The workbench is where faults are found, and the flags carry the reason: a
 `needsReplacement` note is one sentence about what is wrong with a drawing. When
@@ -408,6 +576,12 @@ better than the last one, and it takes about five minutes at the end of a round.
 Round intake already ends with "update the request docs"
 ([assets/intake/README.md](../../assets/intake/README.md), step 9). Updating this
 file is part of that step.
+
+**When the whole roster fails the same way, fix the request, not the drawings.**
+That is the round-25 lesson and it has its own section (§6): a fault that shows
+up on one fighter is a drawing, and a fault that shows up on thirty is a
+sentence in the request that can be read two ways. The corrected pose lines in
+§4 are what those sentences became.
 
 **Look at the review boards before importing, not after.** `tools/intake_sheets.py`
 renders every delivered plate beside what it replaces, and it is the only step

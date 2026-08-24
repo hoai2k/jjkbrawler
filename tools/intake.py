@@ -316,6 +316,32 @@ FACING_OVERRIDE = {
     # it: hat point sweeping image-left, buckle on the left, bristles at the
     # bottom left. The delivery matches it and the mirror contradicted it.
     "momo/throw_up": "right",
+    # Round 25E — NINE in one delivery, and every one of them the same way
+    # round. Three families, each defeating the detector for its own reason:
+    #
+    #   a diagonal up-swing puts the weapon overhead and the body under it, so
+    #   what hangs DOWN is the strongest asymmetry left and it points the other
+    #   way — Maki's naginata, Kurourushi's scythe, Mahoraga's fused bone sword,
+    #   and Yuta's aerial, whose blade drives down-right past a body angled up
+    #   and back;
+    #
+    #   a `throw_up` is a figure square to the camera with both arms overhead,
+    #   which is very nearly symmetrical about its own centre line — Gojo,
+    #   Hanami and Yuji. Their own idles settle all three: Hanami's shoulder
+    #   wrap sits on the image-left arm and stayed there, and Gojo's and Yuji's
+    #   heads turn the way their idles turn;
+    #
+    #   and Jogo's `throw_fwd`, both arms out to screen-right, plus Mahoraga's
+    #   `teeter`, which leans the way he faces.
+    "maki/attack_diag_up_b": "right",
+    "kurourushi/attack_diag_up_b": "right",
+    "mahoraga/attack_diag_up_b": "right",
+    "mahoraga/teeter": "right",
+    "yuta/attack_air_diag_down_b": "right",
+    "gojo/throw_up": "right",
+    "hanami/throw_up": "right",
+    "yuji/throw_up": "right",
+    "jogo/throw_fwd": "right",
 }
 
 
