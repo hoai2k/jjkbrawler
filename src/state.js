@@ -67,6 +67,9 @@ export const state = {
   // ground stays low while play stays high.
   camera: { x: 640, y: 360, zoom: 1, shake: 0, kick: 0, aimX: null, aimY: null, aimZoom: null, highT: 0, atTop: false },
   slowMo: 0,
+  // Seconds the whole sim stands still (advanceWorld). Real-time, like slowMo.
+  // Armed by triggerScreenShatter for the crack beat of Uro's sky-shatter.
+  simHold: 0,
   screenFlash: null, // {color, life, maxLife}
   vignette: null,    // {color, alpha, life, maxLife} — Black Flash's dark beat
   domainOverlay: null, // {color, life, maxLife, ownerId, label}

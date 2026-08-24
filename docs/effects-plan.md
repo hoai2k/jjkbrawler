@@ -179,12 +179,16 @@ neither uses an effect sprite:
   composited FRAME is captured (both canvases, read at the end of the same
   rendered frame — the only moment a WebGL canvas can be read back) and a LOCAL
   pane of it — a disc around the victim, about a third of the screen — is cut
-  along a fracture web into shards. The pane freezes with hairline cracks (a
-  dark hair under a light hair, the way a broken mirror reads — no glow, no
-  blaze), splits apart, and the pieces drop away like glass past a dark
-  not-sky hole that then heals over as the sky regenerates. The ultimate's
-  slam triggers it at full scale inside its own slow-motion beat; the neutral
-  special at about half.
+  along a fracture web into shards. It then plays as SIX BEATS, each with its
+  own moment so the whole reads as a sequence rather than one flinch: the
+  WORLD FREEZES (`state.simHold` — the sim step is zero while the cracks run
+  on real time) as hairline cracks race across the held pane (a dark hair
+  under a light hair, the way a broken mirror reads — no glow, no blaze); the
+  finished web holds, trembling; the pane gives — the pieces part, the world
+  resumes, darkness rising in the gaps; the shards drop away like glass; the
+  dark not-sky stands alone a beat; and the sky fades back in over the blank.
+  The ultimate runs the full tempo; the neutral special the same sequence at
+  0.7, smaller.
 
 `tools/smoke_sky_shatter.mjs` plays a match, casts, and asserts the shatter's
 lifecycle AND its pixels on the framebuffer — effects get framebuffer

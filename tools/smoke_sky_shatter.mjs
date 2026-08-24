@@ -102,7 +102,7 @@ const calm = await page.evaluate(overlayWhite());
 // Cast up to three times: the CPU is a live opponent, and a hit landing
 // during the windup cancels the special — a real match fact, not a bug, and
 // not what this smoke exists to measure.
-let run = { sawShatter: false, peak: 0 };
+let run = { sawShatter: false, sawHold: false, heldStill: false, peak: 0 };
 for (let attempt = 0; attempt < 3 && !run.sawShatter; attempt++) {
   await page.keyboard.press("KeyL");
   run = await watch(page);
@@ -116,6 +116,9 @@ async function watch(page2) {
   const sample = () => eval(expr);
   return await new Promise((resolve) => {
     let sawShatter = false;
+    let sawHold = false;
+    let heldStill = false;
+    let holdSample = null;
     let peak = 0;
     let frames = 0;
     const tick = () => {
@@ -124,9 +127,23 @@ async function watch(page2) {
       if (live) {
         sawShatter = true;
         peak = Math.max(peak, sample());
+        // The crack beat freezes the WORLD: while simHold drains, no fighter
+        // moves and no animation clock advances. Sample one fighter twice a
+        // few frames apart inside the hold and require identity — the pixels
+        // above prove the cracks animate, this proves the world does not.
+        if (mod.state.simHold > 0) {
+          sawHold = true;
+          const f = mod.state.fighters[1] || mod.state.fighters[0];
+          const now = f ? [f.x, f.y, f.animTime] : null;
+          if (holdSample && now) {
+            heldStill = heldStill ||
+              (now[0] === holdSample[0] && now[1] === holdSample[1] && now[2] === holdSample[2]);
+          }
+          holdSample = now;
+        }
       }
       if ((sawShatter && !live) || frames > 600 || (!sawShatter && frames > 120)) {
-        resolve({ sawShatter, peak, ended: !live });
+        resolve({ sawShatter, sawHold, heldStill, peak, ended: !live });
         return;
       }
       requestAnimationFrame(tick);
@@ -135,15 +152,21 @@ async function watch(page2) {
   });
   }, overlayWhite());
 }
-const { sawShatter, peak } = watchResult;
+const { sawShatter, sawHold, heldStill, peak } = watchResult;
 if (SHOTS) await page.screenshot({ path: path.join(SHOTS, "after.png") });
 
 const cleared = await page.evaluate(async () => !(await import("/src/state.js")).state.skyShatter);
 
 check(sawShatter, "the impact raises a screen shatter");
+check(sawHold, "the crack beat arms the world hold (state.simHold)");
+check(heldStill, "the world actually stands still while the cracks spread");
 check(cleared, "the shatter cleans itself up");
-check(peak > Math.max(600, calm * 2),
-      "the crack web blazes on the framebuffer",
+// 1.6x, not the old 2x: the web is deliberate mirror-HAIRLINES now, and the
+// world it draws over is FROZEN for the crack beat — stilled particles mean
+// the calm frame's own white barely rises. The multiple is over calm play,
+// so a web that stopped reaching the pixels still fails by a wide margin.
+check(peak > Math.max(500, calm * 1.6),
+      "the crack web reaches the framebuffer",
       `calm ${calm} bright px, peak ${peak}`);
 
 await browser.close();

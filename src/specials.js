@@ -779,7 +779,7 @@ const HANDLERS = {
         // whole frame breaks with it (src/screen_shatter.js).
         if (p.crack) {
           const at = simToScreenFrac(tx, ty - 40);
-          triggerScreenShatter({ cx: at.x, cy: at.y, color: p.color, scale: 0.55, owner: f });
+          triggerScreenShatter({ cx: at.x, cy: at.y, color: p.color, scale: 0.55, tempo: 0.7, owner: f });
         }
         debugShape({ x: tx, y: ty, r: p.r || 95 });
         for (const t of state.fighters) {
