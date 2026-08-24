@@ -57,7 +57,9 @@ const CHROME = process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium-1194/chro
 // time that default moves. A WebGL canvas cannot be read with getImageData, so
 // each canvas is screenshotted and counted through the page's own decoder.
 
-async function measure(page, { enable }) {
+const LABEL = { off: "Off", hem: "Hem", alpha: "Alpha" };
+
+async function measure(page, { mode }) {
   // Leave the title screen. It takes a keypress and the phase is the only
   // honest signal that it landed.
   for (let i = 0; i < 20; i++) {
@@ -67,14 +69,20 @@ async function measure(page, { enable }) {
     await page.waitForTimeout(700);
   }
 
-  if (enable) {
+  // Cycle the setting to the mode under test. The cycle is Off -> Hem ->
+  // Alpha -> Off, and the labels are checked on the way round: a mode that
+  // cannot be reached from the button is a mode no player has.
+  if (mode !== "off") {
     await page.click("#settingsButton");
     await page.waitForSelector("#settingsClothingButton", { state: "visible" });
-    const before = await page.textContent("#settingsClothingButton");
-    check(before === "Clothing FX: Off", "settings: the default is Off", `got ${JSON.stringify(before)}`);
-    await page.click("#settingsClothingButton");
-    const after = await page.textContent("#settingsClothingButton");
-    check(after === "Clothing FX: On", "settings: clicking it turns it On", `got ${JSON.stringify(after)}`);
+    const seen = [await page.textContent("#settingsClothingButton")];
+    for (let i = 0; i < 3 && !seen[seen.length - 1].endsWith(LABEL[mode]); i++) {
+      await page.click("#settingsClothingButton");
+      seen.push(await page.textContent("#settingsClothingButton"));
+    }
+    check(seen[0] === "Clothing FX: Off", "settings: the default is Off", `got ${JSON.stringify(seen[0])}`);
+    check(seen[seen.length - 1] === `Clothing FX: ${LABEL[mode]}`,
+          `settings: the cycle reaches ${LABEL[mode]}`, `saw ${JSON.stringify(seen)}`);
     await page.click("#settingsBackButton");
   }
 
@@ -100,7 +108,7 @@ async function measure(page, { enable }) {
     const st = (await import("/src/state.js")).state;
     const fx = await import("/src/clothing_fx.js");
     const rb = await import("/src/render_backend.js");
-    return { phase: st.phase, p1: st.fighters[0]?.charKey, enabled: fx.clothingFx.enabled, backend: rb.renderBackendLabel?.() };
+    return { phase: st.phase, p1: st.fighters[0]?.charKey, mode: fx.clothingFx.mode, backend: rb.renderBackendLabel?.() };
   });
 
   // Which canvas is she on? Her hair is the marker: light violet, nothing else
@@ -172,7 +180,7 @@ async function measure(page, { enable }) {
   return { ...state, ...best };
 }
 
-async function run(enable) {
+async function run(mode) {
   const browser = await chromium.launch({ executablePath: CHROME });
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 2 });
   page.on("pageerror", (e) => {
@@ -181,11 +189,11 @@ async function run(enable) {
   });
   await page.goto(`${BASE}/`, { waitUntil: "load" });
   await page.waitForSelector("#settingsButton", { state: "visible", timeout: 30000 });
-  const out = await measure(page, { enable });
+  const out = await measure(page, { mode });
   if (SHOTS) {
     const box = await out.el.boundingBox();
     await page.screenshot({
-      path: path.join(SHOTS, `match_${enable ? "on" : "off"}.png`),
+      path: path.join(SHOTS, `match_${mode}.png`),
       clip: { x: box.x + box.width * 0.18, y: box.y + box.height * 0.20, width: box.width * 0.20, height: box.height * 0.42 },
     });
   }
@@ -195,22 +203,28 @@ async function run(enable) {
 
 if (SHOTS) await mkdir(SHOTS, { recursive: true });
 
-const off = await run(false);
-const on = await run(true);
+const off = await run("off");
+const hem = await run("hem");
+const alpha = await run("alpha");
 
 console.log(`\n     backend ${off.backend} · fighters drawn on #${off.id}`);
-console.log(`     garment pixels: off ${off.cloth}, on ${on.cloth}\n`);
+console.log(`     garment pixels: off ${off.cloth}, hem ${hem.cloth}, alpha ${alpha.cloth}\n`);
 
-check(off.phase === "playing" && on.phase === "playing", "a real match starts both times");
-check(off.p1 === "uro" && on.p1 === "uro", "Uro is player 1 both times");
-check(on.enabled === true && off.enabled === false, "the setting is on for one run and off for the other");
-check(off.hair > 200 && on.hair > 200, "Uro is on screen in both runs",
-      `hair px off ${off.hair}, on ${on.hair}`);
-check(off.cloth > 400, "with the effect OFF her garment is drawn solid",
-      `${off.cloth} garment px`);
-// The heart of it: the cloth has to actually go away on the framebuffer.
-check(on.cloth < off.cloth * 0.35, "with the effect ON the garment is keyed out of the picture",
-      `${on.cloth} garment px vs ${off.cloth} — the effect is not reaching the renderer`);
+for (const [name, run_] of [["off", off], ["hem", hem], ["alpha", alpha]]) {
+  check(run_.phase === "playing" && run_.p1 === "uro", `${name}: a real match starts with Uro`);
+  check(run_.mode === name, `${name}: the mode the game is in is the one asked for`, `got ${run_.mode}`);
+  check(run_.hair > 200, `${name}: Uro is on screen`, `hair px ${run_.hair}`);
+}
+check(off.cloth > 400, "off: her garment is drawn solid", `${off.cloth} garment px`);
+// The heart of it: BOTH keying modes have to actually remove the cloth from
+// the framebuffer. Hem leaves the garment's own outline standing and alpha
+// leaves a frame on the body edge, so neither reaches zero — but both take the
+// mass of it, and a mode that stopped reaching the renderer would sit up near
+// `off` where these thresholds catch it.
+check(hem.cloth < off.cloth * 0.35, "hem: the garment is keyed out of the picture",
+      `${hem.cloth} vs ${off.cloth} — the effect is not reaching the renderer`);
+check(alpha.cloth < off.cloth * 0.35, "alpha: the garment is keyed out of the picture",
+      `${alpha.cloth} vs ${off.cloth} — the effect is not reaching the renderer`);
 
-console.log(failures ? `\n${failures} failure(s)` : "\nclothing fx reaches the screen");
+console.log(failures ? `\n${failures} failure(s)` : "\nclothing fx reaches the screen in every mode");
 process.exit(failures ? 1 : 0);

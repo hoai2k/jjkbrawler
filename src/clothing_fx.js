@@ -12,11 +12,12 @@
 //
 // WHY IT IS A KEY AND NOT A MASK. The sprites are flat drawings — there is no
 // body layer under the garment — so this cannot make cloth *translucent*, only
-// absent. On Uro that reads (her outfit is cloud, and cloud thinning into sky
-// is the character), and `hem` keeps her drawn outline so the edge is a hem
-// rather than a tear. On a fighter in a jacket it would read as a hole, which
-// is why GARMENTS is an opt-in table of one rather than something every
-// character gets. Sheet: docs/experiments/uro-seethrough/.
+// absent. On Uro that reads: her outfit is cloud, and cloud thinning into sky
+// is the character. What stops it reading as damage is the EDGE, which is what
+// the two modes disagree about — see CLOTHING_MODES below. On a fighter in a
+// jacket it would read as a hole either way, which is why GARMENTS is an opt-in
+// table of one rather than something every character gets.
+// Sheets: docs/experiments/uro-seethrough/.
 //
 // IT KEYS SPRITE ART, WHEREVER SPRITE ART IS DRAWN — and there are TWO places,
 // which is the bug this feature shipped with and the reason for this notice.
@@ -46,16 +47,44 @@
 // imports this same file into a browser page to render its comparison sheets,
 // so what the tool measures is what the game draws.
 
-/** The toggle behind Settings → "Clothing FX". Owned here rather than in
- *  `state` because the cache below is owned here too, the way audio.js owns
- *  `audioSettings`. `setClothingFx` is the only writer. */
-export const clothingFx = { enabled: false };
+/** THE THREE SETTINGS, in the order Settings → "Clothing FX" cycles them.
+ *
+ *  They are two different pictures, not two strengths of one:
+ *
+ *    off     the drawings as they are.
+ *    hem     the cloth is gone and its OWN DRAWN OUTLINE is left standing, so
+ *            the opening is a scalloped cloud shape — the garment's silhouette
+ *            survives as a line even though the garment does not.
+ *    alpha   the cloth is gone outline and all, and the hole is framed only
+ *            where it meets HER — a clean edge around the missing region
+ *            instead of a cloud contour, open to the sky where the cloth met
+ *            open air.
+ */
+export const CLOTHING_MODES = ["off", "hem", "alpha"];
 
-/** Turn the effect on or off. Returns the resulting state. The frame cache
- *  survives, so toggling back on is instant. */
-export function setClothingFx(on) {
-  clothingFx.enabled = !!on;
-  return clothingFx.enabled;
+/** The setting. Owned here rather than in `state` because the frame caches are
+ *  owned here too, the way audio.js owns `audioSettings`. `setClothingFx` and
+ *  `cycleClothingFx` are the only writers. */
+export const clothingFx = { mode: "off" };
+
+/** True when anything is being keyed at all. */
+export function clothingFxOn() {
+  return clothingFx.mode !== "off";
+}
+
+/** Set the mode. An unknown name falls back to "off" rather than throwing:
+ *  this is reachable from a URL and from saved settings that predate a mode.
+ *  Returns the mode in force. */
+export function setClothingFx(mode) {
+  clothingFx.mode = CLOTHING_MODES.includes(mode) ? mode : "off";
+  return clothingFx.mode;
+}
+
+/** Advance to the next mode. Returns the one now in force. The caches survive,
+ *  so cycling back to a mode already drawn once is instant. */
+export function cycleClothingFx() {
+  const i = CLOTHING_MODES.indexOf(clothingFx.mode);
+  return setClothingFx(CLOTHING_MODES[(i + 1) % CLOTHING_MODES.length]);
 }
 
 // --------------------------------------------------------------- profiles
@@ -93,8 +122,13 @@ export const GARMENTS = {
     // further is a real trade — the edge starts to stair-step in the workbench,
     // which draws the art far larger than a match does.
     sample: 2,
-    // What is left of the cloth inside the hem. 0 is the anime look.
+    // What is left of the cloth inside the opening. 0 is the anime look.
     alpha: 0,
+    // "alpha" mode only: how thick the frame around the hole is, in SOURCE
+    // pixels. It is drawn on the boundary the cloth shared with her BODY and
+    // nowhere else, so it reads as an edge to the missing region rather than
+    // as the cloud's own outline, which is what "hem" leaves.
+    frame: 3,
     // POSES THE EFFECT IS WRONG ON, and why there is a list at all: her set is
     // not drawn in one outfit. Most poses are the two cloud bands; a few
     // (crouch_b, grab_hold) are a one-piece, which keys to a bigger opening and
@@ -118,7 +152,9 @@ export function hasClothingFx(charKey) {
 // is reloaded, previewed or swapped for an alternate gets its own entry and no
 // stale drawing can survive a change to the art. Weak, so those entries go
 // when the image does.
-let live = new WeakMap();
+// One per MODE: the same drawing keys to two different pictures, and a single
+// cache would hand whichever was computed first to both.
+const live = { hem: new WeakMap(), alpha: new WeakMap() };
 
 // Frames whose pass threw — a tainted canvas, most likely, which happens when
 // the game is opened over file:// instead of through server.mjs. Recorded so
@@ -128,7 +164,7 @@ let failed = new WeakSet();
 
 /** Drop every cached frame. For the workbench, which repaints art in place. */
 export function clearClothingFx() {
-  live = new WeakMap();
+  for (const mode of Object.keys(live)) live[mode] = new WeakMap();
   failed = new WeakSet();
 }
 
@@ -316,9 +352,15 @@ export function garmentMask(imageData, profile) {
   return full;
 }
 
-/** Run the pass over one loaded image and return a canvas of the result.
- *  Null when the pixels cannot be read (a tainted canvas under file://). */
-function keyFrame(img, profile) {
+/** Run the pass over one loaded image in one mode, and return a canvas of the
+ *  result. Null when the pixels cannot be read (a tainted canvas under
+ *  file://).
+ *
+ *  Exported for tools/uro_seethrough_test.mjs, which renders the review sheets
+ *  from it. Those sheets decide what the profile says and which poses are
+ *  skipped, so they have to be the picture the game draws and not a second
+ *  implementation of it — the whole subject of src/char_frame.js. */
+export function keyedFrame(img, profile, mode) {
   const W = img.naturalWidth || img.width;
   const H = img.naturalHeight || img.height;
   if (!W || !H) return null;
@@ -333,14 +375,82 @@ function keyFrame(img, profile) {
   } catch {
     return null;    // cross-origin / file:// — the drawing is unreadable
   }
-  const mask = garmentMask(frame, profile);
+
+  // "hem" erodes the mask so the cloth's own outline is left behind. "alpha"
+  // takes the cloth whole and draws its own edge in step 2, so it starts from
+  // an un-eroded mask.
+  const mask = garmentMask(frame, mode === "alpha" ? { ...profile, hem: 0 } : profile);
   const d = frame.data;
   const alpha = profile.alpha || 0;
+
+  // --- 1. the opening ---------------------------------------------------
+  // In "alpha" mode the frame is painted from the ORIGINAL pixels, so the ring
+  // is worked out and stashed before anything is cleared.
+  let ring = null;
+  if (mode === "alpha" && (profile.frame || 0) > 0) {
+    ring = bodyEdge(mask, d, W, H, profile.frame);
+  }
   for (let p = 0; p < mask.length; p++) {
     if (mask[p]) d[p * 4 + 3] = Math.round(d[p * 4 + 3] * alpha);
   }
+
+  // --- 2. the frame, on the body boundary only --------------------------
+  // Restored at full alpha in the cloth's own colour. Where the cloth met open
+  // air there is nothing to frame and nothing is drawn, which is the whole
+  // difference from "hem": the opening is edged against her, not outlined as a
+  // cloud.
+  if (ring) {
+    const src = cx.getImageData(0, 0, W, H).data;   // untouched copy
+    for (let p = 0; p < ring.length; p++) {
+      if (!ring[p]) continue;
+      const i = p * 4;
+      d[i] = src[i];
+      d[i + 1] = src[i + 1];
+      d[i + 2] = src[i + 2];
+      d[i + 3] = src[i + 3];
+    }
+  }
+
   cx.putImageData(frame, 0, 0);
   return c;
+}
+
+/** The masked pixels that touch her BODY — opaque pixels the mask did not take
+ *  — grown `width` deep into the opening. Not the mask's whole boundary: the
+ *  part of it that meets transparent background is where the cloth met open
+ *  air, and framing that would draw a line in the sky.
+ *
+ *  `data` is the SOURCE pixels, read before anything is cleared. */
+function bodyEdge(mask, data, W, H, width) {
+  const ring = new Uint8Array(W * H);
+  // Seed: masked pixels with an orthogonal neighbour that is body.
+  for (let p = 0; p < mask.length; p++) {
+    if (!mask[p]) continue;
+    const x = p % W;
+    const y = (p - x) / W;
+    const touchesBody =
+      (x > 0 && !mask[p - 1] && data[(p - 1) * 4 + 3] > 200) ||
+      (x < W - 1 && !mask[p + 1] && data[(p + 1) * 4 + 3] > 200) ||
+      (y > 0 && !mask[p - W] && data[(p - W) * 4 + 3] > 200) ||
+      (y < H - 1 && !mask[p + W] && data[(p + W) * 4 + 3] > 200);
+    if (touchesBody) ring[p] = 1;
+  }
+  // Thicken inward, so the frame reads at the size a fighter is drawn on
+  // screen rather than as a hairline that antialiasing swallows.
+  for (let pass = 1; pass < width; pass++) {
+    const next = new Uint8Array(ring);
+    for (let p = 0; p < ring.length; p++) {
+      if (!ring[p]) continue;
+      const x = p % W;
+      const y = (p - x) / W;
+      if (x > 0 && mask[p - 1]) next[p - 1] = 1;
+      if (x < W - 1 && mask[p + 1]) next[p + 1] = 1;
+      if (y > 0 && mask[p - W]) next[p - W] = 1;
+      if (y < H - 1 && mask[p + W]) next[p + W] = 1;
+    }
+    ring.set(next);
+  }
+  return ring;
 }
 
 /** THE DRAW HOOK. Given the frame and the image it would be drawn from, return either
@@ -351,15 +461,16 @@ function keyFrame(img, profile) {
  *  and a WeakMap hit once the frame is warm, and returns `img` unchanged for
  *  everyone without a profile or when the setting is off. */
 export function clothingFrame(charKey, frameKey, img) {
-  if (!clothingFx.enabled || !img) return img;
+  const mode = clothingFx.mode;
+  if (mode === "off" || !img) return img;
   const profile = GARMENTS[charKey];
   if (!profile) return img;
   if (profile.skip?.includes(frameKey)) return img;
-  const map = live;
+  const map = live[mode];
   const hit = map.get(img);
   if (hit) return hit;
   if (failed.has(img)) return img;
-  const keyed = keyFrame(img, profile);
+  const keyed = keyedFrame(img, profile, mode);
   if (!keyed) {
     failed.add(img);
     return img;
@@ -375,11 +486,12 @@ export function clothingFrame(charKey, frameKey, img) {
  *  it lands on the frame she first throws a palm on. main.js calls this behind
  *  the VS splash, where a few hundred milliseconds are already being spent. */
 export function warmClothingFx(charKey, frames) {
-  if (!clothingFx.enabled || !GARMENTS[charKey]) return 0;
+  if (!clothingFxOn() || !GARMENTS[charKey]) return 0;
+  const map = live[clothingFx.mode];
   let n = 0;
   for (const [frameKey, img] of frames) {
     if (!img) continue;
-    if (!live.get(img)) n++;
+    if (!map.get(img)) n++;
     clothingFrame(charKey, frameKey, img);
   }
   return n;

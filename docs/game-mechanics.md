@@ -704,30 +704,40 @@ the board you are editing.
 
 ### Clothing FX
 
-**Settings → Clothing FX** (default OFF, and cosmetic only). On, a fighter's
-garments are keyed out of their own drawing so the stage shows through them —
-Uro's cloud outfit, the way the anime sometimes draws her. She is the only one
-it does anything to; `src/clothing_fx.js` carries the table, and adding to it is
-a question about how a character is drawn rather than a setting.
+**Settings → Clothing FX** (default Off, cosmetic only). It cycles **Off → Hem →
+Alpha → Off**, and keys a character's garments out of their own drawing so the
+stage shows through them — Uro's cloud outfit, the way the anime sometimes draws
+her. She is the only one it does anything to; `src/clothing_fx.js` carries the
+table, and adding to it is a question about how a character is drawn rather than
+a setting.
+
+The two keying modes are two pictures, not two strengths:
+
+| Mode | What is left |
+| --- | --- |
+| **Hem** | The cloth is gone and its own drawn outline stays, so the opening keeps the garment's scalloped cloud silhouette as a line. |
+| **Alpha** | The cloth is gone outline and all. The hole is edged only where it met her BODY — a clean frame around the missing region, open to the sky where the cloth met open air. |
 
 Because the sprites are flat art with no body layer underneath, the cloth is not
-made translucent so much as absent: where her outfit was, the stage is, framed
-by the garment's own drawn outline. That is the effect, and on some poses it
-leaves most of her torso open. One pose (`prone`, drawn in a full-length gown
-rather than the two cloud bands) is skipped, because keying it leaves nothing of
-her on screen.
+made translucent so much as absent: where her outfit was, the stage is. On some
+poses that leaves most of her torso open. One pose (`prone`, drawn in a
+full-length gown rather than the two cloud bands) is skipped in both modes,
+because keying it leaves nothing of her on screen.
 
-It applies to the match already running, like Strike Arcs and Render above it:
-it changes how a fighter is DRAWN and nothing about where they reach, so there
-is nothing to be unfair about mid-fight. Turning it on keys whoever is fighting
-right then, which takes about a second for a whole character
+It applies to the match already running, like Strike Arcs above it: it changes
+how a fighter is DRAWN and nothing about where they reach, so there is nothing
+to be unfair about mid-fight. Landing on a keying mode re-does whoever is
+fighting right then, about a second for a whole character
 (`tools/bench_clothing_fx.mjs`); in a normal match that work happens behind the
-VS splash. Notes and sheets: `docs/experiments/uro-seethrough/`.
+VS splash, and each mode keeps its own cache so cycling back is free.
 
 It keys the DRAWINGS, so it applies wherever sprite art is on screen — both the
-flat 2D blit and the 2.5D camera's sprite card. Under **Render: Billboards** or
-**3D** a fighter who has a rig is a rendered model with real materials and has
-nothing to key; one who falls through to their sprite is keyed like any other.
+flat 2D blit and the 2.5D camera's sprite card, which is the point of
+`src/char_frame.js`. Under `?render=3d` or `?render=billboard` a fighter who has
+a rig is a rendered model with real materials and has nothing to key; one who
+falls through to their sprite is keyed like any other.
+
+Notes and sheets: `docs/experiments/uro-seethrough/`.
 
 ### The clock, and sudden death
 

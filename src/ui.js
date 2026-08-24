@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacterKey } from "./characters.js";
 import { STAGES, getStage, backgroundFile, thumbFile } from "./stages.js";
-import { clothingFx, setClothingFx } from "./clothing_fx.js";
+import { clothingFx, cycleClothingFx, clothingFxOn } from "./clothing_fx.js";
 import { audioSettings, audioUnlocked, cycleMusicMode, MUSIC_MODES, musicPlaying, setTitleLive, syncMusic, playSfx, toggleMute } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
 import { METER_MAX, TIME_OPTIONS, WORLD } from "./constants.js";
@@ -1125,14 +1125,15 @@ function bindMenuButtons() {
     state.arcDetail = state.arcDetail === "simple" ? "full" : "simple";
     updateMenuButtons();
   });
-  // Also live mid-match, and for the same reason as the arcs above it. Turning
-  // it ON re-keys whoever is fighting right now rather than leaving the pass to
-  // land on individual frames as they first come up: done here it is one wait
-  // on a settings screen, done lazily it is a 20ms stutter the first time each
-  // pose is drawn (tools/bench_clothing_fx.mjs).
+  // Also live mid-match, and for the same reason as the arcs above it. Landing
+  // on a mode that keys re-does whoever is fighting right now rather than
+  // leaving the pass to fall on individual frames as they first come up: done
+  // here it is one wait on a settings screen, done lazily it is a 20ms stutter
+  // the first time each pose is drawn (tools/bench_clothing_fx.mjs). Each mode
+  // has its own cache, so cycling back to one already seen costs nothing.
   els.settingsClothingButton.addEventListener("click", () => {
-    setClothingFx(!clothingFx.enabled);
-    if (clothingFx.enabled) warmMatchClothingFx(state.fighters.map((f) => f.charKey));
+    cycleClothingFx();
+    if (clothingFxOn()) warmMatchClothingFx(state.fighters.map((f) => f.charKey));
     updateMenuButtons();
   });
   const musicClick = () => {
@@ -1260,7 +1261,7 @@ export function updateMenuButtons() {
   els.settingsBoardsButton.textContent = TEXT.settings.activeBoards(state.activeBoards);
   els.settingsArcsButton.textContent = TEXT.settings.arcs(state.arcDetail);
   els.settingsSfxButton.textContent = TEXT.settings.sfxEnabled(state.sfxEnabled);
-  els.settingsClothingButton.textContent = TEXT.settings.clothingFx(clothingFx.enabled);
+  els.settingsClothingButton.textContent = TEXT.settings.clothingFx(clothingFx.mode);
 }
 
 // Stat bars for the hero cards, normalized against the full roster so a bar
