@@ -1,4 +1,5 @@
 import { state } from "./state.js";
+import { spawnSkyCrack } from "./sky_crack.js";
 import { groundY as stageGroundY } from "./stages.js";
 import { clamp, sign, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, sparkLine, ring, popup, banner } from "./particles.js";
@@ -1455,6 +1456,13 @@ export function triggerCounter(target, attacker) {
   const c = target.counter;
   target.counter = null;
   target.invuln = Math.max(target.invuln, 0.5);
+  // Sky Fold (and any counter that says so): the parry cracks the sky where
+  // the blow was folded away — grows fast, no shatter (src/sky_crack.js).
+  if (c.skyCrack) {
+    spawnSkyCrack(target.x + (attacker.x > target.x ? 70 : -70), target.y - 110, {
+      r: 80, crackTime: 0.12, shatter: false, color: target.char.theme, owner: target,
+    });
+  }
   popup(target.x, target.y - 168 * ART_SCALE, c.name || "COUNTER!", target.char.theme, 26);
   ring(target.x, target.y - 90 * ART_SCALE, target.char.theme, 130);
   playSfx("parry", 1);

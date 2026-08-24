@@ -163,3 +163,26 @@ Nanami's glass-crack seam).
   until it lands.
 - Distortion/refraction shaders (canon Infinity, Uro) are out of scope for a
   2D canvas renderer at 60 fps; approximations use shimmer rings and particles.
+
+
+## The screen as a surface: Uro's glass
+
+Uro's kit breaks the fourth wall's pane on purpose, in two registers, and
+neither uses an effect sprite:
+
+- **`src/sky_crack.js`** — a fracture web growing in the world, behind the
+  fighters (drawn through the entity layer, so it works identically in flat and
+  2.5D). Sky Warp Palm grows one over the target for exactly its windup, so the
+  crack completing and the blow landing are the same moment; Sky Fold pops a
+  small one where a blow was folded away.
+- **`src/screen_shatter.js`** — Thin Ice Breaker proper. On the impact beat the
+  composited FRAME is captured (both canvases, read at the end of the same
+  rendered frame — the only moment a WebGL canvas can be read back), cut along
+  a fracture web into shards, and the shards — real pieces of the picture that
+  was on screen — freeze, split along glowing seams, and burst away while the
+  live game continues underneath. The ultimate's slam triggers it at full
+  scale inside its own slow-motion beat; the neutral special at about half.
+
+`tools/smoke_sky_shatter.mjs` plays a match, casts, and asserts the shatter's
+lifecycle AND its pixels on the framebuffer — effects get framebuffer
+assertions in this repo, because the one that didn't ship broken.

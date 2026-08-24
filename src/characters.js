@@ -1288,7 +1288,7 @@ export const CHARACTERS = {
       neutral: {
         name: "Sky Warp Palm", type: "warpStrike", cooldown: 1.5,
         desc: "She strikes the sky where she stands — and the blow arrives out of the air on top of the target.",
-        p: { delay: 0.32, r: 95, dmg: 12, base: 420, growth: 7.0, angle: 0.5, color: "#8fd7e8", label: "Sky Palm", sprite: "effect:sky_ripple", spriteH: 150 },
+        p: { delay: 0.32, r: 95, dmg: 12, base: 420, growth: 7.0, angle: 0.5, color: "#8fd7e8", label: "Sky Palm", crack: true },
       },
       side: {
         name: "Surface Dive", type: "dashStrike", cooldown: 1.25,
@@ -1298,13 +1298,13 @@ export const CHARACTERS = {
       down: {
         name: "Sky Fold", type: "reflectCounter", cooldown: 2.8,
         desc: "Curves the sky into a lens: melee is answered in kind, and projectiles are bent straight back at their owner.",
-        p: { window: 0.55, dmg: 13, base: 440, growth: 7.2, angle: 0.5, color: "#bfeaf5", label: "Sky Fold" },
+        p: { window: 0.55, dmg: 13, base: 440, growth: 7.2, angle: 0.5, color: "#bfeaf5", label: "Sky Fold", crack: true },
       },
     },
     ultimate: {
       name: "Inverted Sky", type: "skyInvert",
       desc: "The whole sky becomes her weapon — it folds shut, swallows the enemy, and slams them back into the earth.",
-      p: { range: 900, dmg: 30, base: 880, growth: 10.5, liftTime: 0.9, color: "#8fd7e8", label: "INVERTED SKY", sprite: "effect:sky_shard", spriteH: 260 },
+      p: { range: 900, dmg: 30, base: 880, growth: 10.5, liftTime: 0.9, color: "#8fd7e8", label: "INVERTED SKY", crack: true },
     },
     passive: { id: "openSky", name: "Mistress of the Air", desc: "The sky is her territory: a third jump, and 12% less damage and knockback while airborne." },
     ai: { style: "balanced", range: 280 },

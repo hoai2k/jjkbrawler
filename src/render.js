@@ -4,6 +4,7 @@ import { sharedAdjust, sharedFadeIn, paintedHeight, AURA_H, AURA_PULSE, AURA_FOO
 import { getStage } from "./stages.js";
 import { stagePalette } from "./stage_palette.js";
 import { drawCharFrame, currentFrame, anchorOffset } from "./render_backend.js";
+import { drawScreenShatter } from "./screen_shatter.js";
 import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
 import { bodyMetrics } from "./silhouette.js";
@@ -92,6 +93,9 @@ export function draw(ctx) {
   drawBannersScreen(ctx);
   drawVignette(ctx);
   drawScreenFlash(ctx);
+  // Last, over the whole composite: the frame itself breaking (Uro's Thin Ice
+  // Breaker, src/screen_shatter.js) — flat has one canvas to capture.
+  drawScreenShatter(ctx, [ctx.canvas]);
 }
 
 // The 2.5D frame (docs/2.5d-camera-plan.md §6). The WebGL canvas underneath
@@ -133,6 +137,11 @@ function draw3d(ctx) {
   drawBannersScreen(ctx);
   drawVignette(ctx);
   drawScreenFlash(ctx);
+  // Last, over the whole composite: the frame itself breaking (Uro's Thin Ice
+  // Breaker, src/screen_shatter.js). It must run here and not in an entity
+  // because it captures BOTH canvases, and the GL one can only be read back in
+  // the task that rendered it.
+  drawScreenShatter(ctx, [document.getElementById("glCanvas"), ctx.canvas]);
 }
 
 /** How far past each world edge the shot currently reaches. Zero at zoom 1 and
