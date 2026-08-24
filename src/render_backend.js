@@ -15,10 +15,25 @@
 // DIFFERENT ANSWER behind — posed 3D models rendered to a texture and blitted
 // into the same 2D world, say — without the rest of the game knowing.
 //
-// This module is that waist, made explicit. There are three backends today —
-// the sprite sheets, the 2.5D cards and the live-3D path — and each of them is
-// a new entry in BACKENDS rather than a fork of render.js, which is the whole
-// point of naming the seam.
+// This module is that waist, made explicit. There are three backends today and
+// each is an entry in BACKENDS rather than a fork of render.js, which is the
+// whole point of naming the seam. THEY ARE NOT PEERS:
+//
+//   sprite      THE GAME. The drawings are the art, the shipped renderer, and
+//               the only one a player gets without typing a URL. Changes here
+//               are changes to the product.
+//
+//   billboard   EXPERIMENTAL — 2.5D cards wearing a posed-model texture.
+//   3d          EXPERIMENTAL — rigged models rendered in an anime style.
+//
+// The two model backends are reachable by `?render=` and by nothing else. They
+// are kept because they work and the work in them is real, not because anything
+// depends on them: `npm run check` does not gate on them, their intake checks
+// live in `npm run check:experimental`, and a breakage in one is a bug to fix
+// when somebody is working on it rather than a broken build for everyone. Treat
+// them as a branch that happens to live on main.
+//
+// The sprite backend has no such licence. It is what ships.
 //
 // ---------------------------------------------------------------------------
 // WHAT A BACKEND OWES THE GAME
@@ -179,44 +194,19 @@ export function selectRenderBackend(name) {
   return activeName;
 }
 
-// What the Settings screen offers, in the order it cycles through them. The
-// registry keys above are what `?render=` takes; these short names are what a
-// player reads, and the order puts the default first so one press off it and
-// one press back is the round trip.
+// NOT A SETTING. The renderer used to cycle from the Settings screen, and it
+// no longer does: the sprite backend is the game, and the two model backends
+// are EXPERIMENTS (see the header) that a player has no reason to be offered
+// and every reason to be confused by — switching them re-measures the roster
+// off different bodies and changes what attacks reach. They stay reachable by
+// URL, which is who they are for:
 //
-// Deliberately a separate list rather than `Object.keys(BACKENDS)`: a backend
-// can exist and be reachable by URL without being something to offer in a menu,
-// and the labels here are menu-length rather than descriptive.
-export const RENDER_OPTIONS = [
-  { name: "sprite", label: "Sprites" },
-  { name: "3d", label: "3D" },
-  { name: "billboard", label: "Billboards" },
-];
-
-/** The menu name of the backend in force — "Sprites" unless someone changed it. */
-export function renderBackendMenuLabel() {
-  return RENDER_OPTIONS.find((o) => o.name === activeName)?.label || activeName;
-}
-
-/** Advance to the next backend and switch to it, returning its menu label.
- *
- *  Takes effect immediately, mid-match and all. Any loading the new backend
- *  needs starts here and the characters whose rigs have not arrived keep
- *  drawing as sprites meanwhile, which is the per-character fallthrough working
- *  rather than a stall.
- *
- *  It is no longer purely cosmetic, and that is deliberate. A fighter's reach
- *  is measured off the art on screen (`bodySource`), so switching renderer
- *  mid-match re-measures the roster off the other set of bodies and a few
- *  attacks change length. The alternative was the sprite game inheriting
- *  ranges from rigs most players never see, which is the thing this exists to
- *  stop; a toggle in Settings that says "3D" changing what 3D reaches with is
- *  the honest version. */
-export function cycleRenderBackend() {
-  const i = RENDER_OPTIONS.findIndex((o) => o.name === activeName);
-  selectRenderBackend(RENDER_OPTIONS[(i + 1) % RENDER_OPTIONS.length].name);
-  return renderBackendMenuLabel();
-}
+//     ?render=3d          the live-3D path        (also: model, models, anime)
+//     ?render=billboard   the 2.5D card path      (also: billboards, 2.5d)
+//     ?render=sprite      the shipped renderer    (also: sprites, 2d)
+//
+// `?camera=flat` is a separate axis and a separate question — it turns the 2.5D
+// CAMERA off, not the sprite backend; see src/camera_mode.js.
 
 /** Which backend is drawing, for the boot log and debug overlays. */
 export function renderBackendName() {

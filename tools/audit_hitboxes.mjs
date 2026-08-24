@@ -369,7 +369,17 @@ try {
   execFileSync(process.execPath, [toolPath, "--check"], { stdio: "pipe" });
   console.log("  config_model_reach.js is current with the rigs and pose libraries");
 } catch (err) {
-  fail(`model reach config is stale or missing — `
+  // REPORTS, does not fail. MODEL_REACH is read only while a MODEL backend is
+  // drawing (`bodySource`, src/silhouette.js), and those backends are
+  // experimental and reachable by `?render=` alone — so a stale config cannot
+  // move a single number in the game that ships, and failing here stops
+  // everyone's build over a measurement only a URL can reach. Round 25 left it
+  // stale and red on main for exactly that reason.
+  //
+  // It is still worth saying loudly, because the fix is one command and the
+  // person who redrew the art is the one who knows whether the new numbers are
+  // right: node server.mjs & node tools/derive_attack_envelopes.mjs
+  console.log(`  STALE (experimental backends only) — `
     + `${(err.stderr || err.stdout || "").toString().trim() || err.message}`);
 }
 

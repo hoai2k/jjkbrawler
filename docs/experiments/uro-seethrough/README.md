@@ -2,16 +2,19 @@
 
 The idea, from the anime: Uro's cloud garments are sometimes drawn keyed out, so
 you see the background through them. This started as a spike asking whether that
-could be a render mode. It shipped as one — Settings → **Clothing FX**, off by
-default — and this is the record of what was tried and what it looks like.
+could be a render mode. It shipped as one — Settings → **Clothing FX**, cycling
+**Off → Hem → Alpha** — and this is the record of what was tried and what it
+looks like.
 
     node tools/uro_seethrough_test.mjs --poses idle_a          # one pose, before and after
+    node tools/uro_seethrough_test.mjs --mode alpha --contact  # every pose, in either mode
     node tools/uro_seethrough_test.mjs --contact               # every pose, keyed, over a stage
     node tools/bench_clothing_fx.mjs                           # what the pass costs
     node tools/check_clothing_fx.mjs                           # the drift guard (in `npm run check`)
 
-Everything here renders through `src/clothing_fx.js`, the module the game draws
-with, so no sheet in this directory can drift from what a player sees.
+Every sheet here is rendered by `keyedFrame` — the same function `clothingFrame`
+calls to draw a fighter — so nothing in this directory can show a picture a
+player would not get.
 
 ## How the key works
 
@@ -25,8 +28,13 @@ body uses (skin ~20-40°, hair ~270-300°, choker and bracelets brown). So:
    cloth, so connected regions are kept only when they sit at torso height and
    straddle the body's centre line. Without this the key eats her forearm on
    every palm-strike pose.
-4. **Erode 3px**, so the garment's own dark outline survives at full alpha and
-   the edge reads as a hem rather than a tear.
+4. **Edge it**, and this is where the two modes part:
+   - **Hem** erodes the mask 3px, so the garment's own dark outline survives at
+     full alpha. The opening keeps the cloud's scalloped silhouette as a line.
+   - **Alpha** takes the cloth whole, outline included, then paints a 3px frame
+     back on — but only on the boundary the cloth shared with her BODY. Where it
+     met open air nothing is drawn, so the result frames the missing region
+     instead of tracing the cloud.
 
 The mask is worked out at half resolution. Her frames are drawn ~1400px tall and
 reach the screen about 210px tall, so the art carries around 7× the detail the

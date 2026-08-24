@@ -7,7 +7,8 @@
 // inside a group whose transform is the sim→world mapping. Whatever the flat
 // renderer draws at (x, y), the billboard shows at the same point of z = 0.
 //
-// Reads the same data the flat path reads: frameMeta/frameImage placement,
+// Reads the same data the flat path reads: frameMeta placement, frameArt for
+// the drawing itself,
 // the sprite pose resolver, fighterTransform for lean/squash/tumble. Glow
 // halos (canvas shadowBlur) have no cheap GL equivalent and are skipped; the
 // overlay still draws every particle and arc on top.
@@ -25,19 +26,19 @@ import {
   makeQuadPool, imageTexture, rectMatrix, ORDER,
   matIdentity, matTranslate, matScale, matRotate,
 } from "./quads.js";
-import { frameMeta, frameImage, getImage } from "../assets.js";
-import { clothingFrame } from "../clothing_fx.js";
+import { frameMeta, getImage } from "../assets.js";
+import { frameArt } from "../char_frame.js";
 import { paintProceduralAura, AURA_ELLIPSE } from "../render.js";
 import { paintedHeight, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "../shared_sprites.js";
 import { sharedPlacement } from "../shared_paint.js";
 import { makeEffectLayer } from "./effects.js";
 // The SPRITE pose resolver, deliberately not the render-backend dispatcher.
 //
-// The sprite CARD path below has to come out of frameImage(), which
+// The sprite CARD path below has to come out of frameArt(), which
 // understands sprite frame keys and nothing else, while the model backends
 // hand out opaque tokens (`r3d:idle@0.5`, `bb:idle@0.5`) only their own
 // drawCharFrame can interpret. Asking the dispatcher for a pose here once
-// returned a token frameImage could not resolve, so every fighter drew as
+// returned a token frameArt could not resolve, so every fighter drew as
 // NOTHING under `?render=3d&camera=3d` — two features each correct alone,
 // silently empty together. This resolver is the sprite fallback, and it is
 // reached only when a fighter has no model to show.
@@ -228,15 +229,13 @@ export function makeBillboards() {
   /** One character frame as a billboard. Returns false when the art is
    *  missing, so the caller can fall back like the flat renderer does. */
   function drawChar(charKey, frameKey, x, y, opts, z, order) {
-    // Clothing FX, the same swap sprites.js drawCharFrame makes (Settings, off
-    // by default). It has to be repeated HERE rather than inherited, because
-    // this path deliberately does not call drawCharFrame — it replays the
-    // transform chain and blits the image itself, which is exactly the kind of
-    // second copy that goes stale. The keyed canvas is the same size as the
-    // source, so `charFrameMatrix` below is unaffected; `imageTexture` caches
-    // one texture per distinct image object, so a keyed frame gets its own and
-    // the count stays bounded by the character's frame count.
-    const img = clothingFrame(charKey, frameKey, frameImage(charKey, frameKey));
+    // The same answer the flat blitter draws, from the same module — this path
+    // replays drawCharFrame's transform chain rather than calling it, so the
+    // ARTWORK is the one thing it must not resolve for itself
+    // (src/char_frame.js). `imageTexture` caches one texture per distinct
+    // image object, so a frame an effect has repainted gets its own and the
+    // count stays bounded by the character's frame count.
+    const img = frameArt(charKey, frameKey);
     const m = charFrameMatrix(charKey, frameKey, x, y, opts);
     if (!img || !m) return false;
     pool.draw(imageTexture(img), m, { z, order, alpha: opts.alpha ?? 1 });

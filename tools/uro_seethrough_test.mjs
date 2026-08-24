@@ -1,7 +1,8 @@
 // Uro's cloud garments keyed out, composited over a stage background.
 //
 //   node tools/uro_seethrough_test.mjs [--out DIR] [--bg NAME] [--poses a,b,c]
-//                                      [--alpha 0] [--hem 3] [--format jpeg]
+//                                      [--mode hem|alpha] [--format jpeg]
+//                                      [--alpha 0] [--hem 3] [--frame 3]
 //   node tools/uro_seethrough_test.mjs --contact [--cols 8] [--page 12]
 //
 // `--contact` draws every pose keyed, in a grid over the stage, split across
@@ -34,6 +35,8 @@ const BG = arg("bg", "mist_pier");
 const FORMAT = arg("format", "png");
 const POSES = arg("poses", "idle_a,victory,attack_heavy_a,dodge_roll").split(",");
 const ALPHA = arg("alpha", null);
+const MODE = arg("mode", "hem");
+const FRAME = arg("frame", null);
 const CONTACT = process.argv.includes("--contact");
 const COLS = Number(arg("cols", 8));
 const PAGE = Number(arg("page", 16));
@@ -54,11 +57,13 @@ async function moduleUrl(rel) {
 // ---------------------------------------------------------------- page work
 
 // Runs inside the browser. Returns a data URL of the comparison sheet.
-async function composeInPage({ spriteUrl, bgUrl, modUrl, label, alpha, hem, format }) {
-  const { GARMENTS, garmentMask } = await import(modUrl);
+async function composeInPage({ spriteUrl, bgUrl, modUrl, label, alpha, hem, frame, mode, format }) {
+  const mod = await import(modUrl);
+  const { GARMENTS, garmentMask } = mod;
   const profile = { ...GARMENTS.uro };
   if (alpha !== null) profile.alpha = Number(alpha);
   if (hem !== null) profile.hem = Number(hem);
+  if (frame !== null) profile.frame = Number(frame);
 
   const load = (src) =>
     new Promise((res) => {
@@ -68,30 +73,28 @@ async function composeInPage({ spriteUrl, bgUrl, modUrl, label, alpha, hem, form
     });
   const [sprite, bg] = await Promise.all([load(spriteUrl), load(bgUrl)]);
 
-  const W = sprite.width;
-  const H = sprite.height;
-  const sc = document.createElement("canvas");
-  sc.width = W;
-  sc.height = H;
-  const sx = sc.getContext("2d");
-  sx.drawImage(sprite, 0, 0);
-  const img = sx.getImageData(0, 0, W, H);
-
+  // The game's own pass, not a second copy of it. `keyedFrame` is what
+  // clothingFrame calls, so this sheet cannot show a picture a player would
+  // not get (src/char_frame.js has the story of what happens when it can).
   const t0 = performance.now();
-  const mask = garmentMask(img, profile);
+  const kc = mod.keyedFrame(sprite, profile, mode);
   const ms = performance.now() - t0;
 
-  const d = img.data;
+  const W = sprite.width;
+  const H = sprite.height;
+  // How much of the drawing the mode took, measured off the two canvases.
+  const readAlpha = (src) => {
+    const c = document.createElement("canvas");
+    c.width = W;
+    c.height = H;
+    const g = c.getContext("2d");
+    g.drawImage(src, 0, 0);
+    return g.getImageData(0, 0, W, H).data;
+  };
+  const before = readAlpha(sprite);
+  const after = readAlpha(kc);
   let cut = 0;
-  for (let p = 0; p < mask.length; p++) {
-    if (!mask[p]) continue;
-    cut++;
-    d[p * 4 + 3] = Math.round(d[p * 4 + 3] * profile.alpha);
-  }
-  const kc = document.createElement("canvas");
-  kc.width = W;
-  kc.height = H;
-  kc.getContext("2d").putImageData(img, 0, 0);
+  for (let i = 3; i < before.length; i += 4) if (before[i] > 8 && after[i] === 0) cut++;
 
   // Comparison sheet: as drawn | keyed, both over the stage.
   const PANEL_H = 900;
@@ -122,7 +125,7 @@ async function composeInPage({ spriteUrl, bgUrl, modUrl, label, alpha, hem, form
   };
 
   drawPanel(0, sprite, `${label} — as drawn`);
-  drawPanel(panelW, kc, `${label} — Clothing FX (alpha ${profile.alpha}, hem ${profile.hem})`);
+  drawPanel(panelW, kc, `${label} — Clothing FX: ${mode}`);
   cx.strokeStyle = "#0b0d12";
   cx.lineWidth = 4;
   cx.beginPath();
@@ -135,11 +138,12 @@ async function composeInPage({ spriteUrl, bgUrl, modUrl, label, alpha, hem, form
 }
 
 // Runs inside the browser: one page of the contact sheet.
-async function contactInPage({ sprites, bgUrl, modUrl, alpha, hem, cols, title, format }) {
-  const { GARMENTS, garmentMask } = await import(modUrl);
-  const profile = { ...GARMENTS.uro };
+async function contactInPage({ sprites, bgUrl, modUrl, alpha, hem, frame, mode, cols, title, format }) {
+  const mod = await import(modUrl);
+  const profile = { ...mod.GARMENTS.uro };
   if (alpha !== null) profile.alpha = Number(alpha);
   if (hem !== null) profile.hem = Number(hem);
+  if (frame !== null) profile.frame = Number(frame);
 
   const load = (src) =>
     new Promise((res) => {
@@ -169,23 +173,8 @@ async function contactInPage({ sprites, bgUrl, modUrl, alpha, hem, cols, title, 
     const im = await load(url);
     const W = im.width;
     const H = im.height;
-    const c = document.createElement("canvas");
-    c.width = W;
-    c.height = H;
-    const ic = c.getContext("2d");
-    ic.drawImage(im, 0, 0);
-    // Honour the profile's skip list, so the sheet shows what SHIPS rather
-    // than what the key would do if it were let loose on every pose.
     const skipped = profile.skip?.includes(pose);
-    if (!skipped) {
-      const frame = ic.getImageData(0, 0, W, H);
-      const mask = garmentMask(frame, profile);
-      const d = frame.data;
-      for (let p = 0; p < mask.length; p++) {
-        if (mask[p]) d[p * 4 + 3] = Math.round(d[p * 4 + 3] * profile.alpha);
-      }
-      ic.putImageData(frame, 0, 0);
-    }
+    const c = skipped ? im : mod.keyedFrame(im, profile, mode);
 
     const col = i % cols;
     const row = (i / cols) | 0;
@@ -240,8 +229,9 @@ if (CONTACT) {
       sprites.push({ pose, url: await dataUrl(`sprites/assets/${meta.file}`, "image/png") });
     }
     const url = await page_.evaluate(contactInPage, {
-      sprites, bgUrl, modUrl, alpha: ALPHA, hem: HEM, cols: COLS, format: FORMAT,
-      title: `Uro / Clothing FX / ${BG} — ${page * PAGE + 1}-${page * PAGE + slice.length} of ${all.length}`,
+      sprites, bgUrl, modUrl, alpha: ALPHA, hem: HEM, frame: FRAME, mode: MODE,
+      cols: COLS, format: FORMAT,
+      title: `Uro / ${MODE} / ${BG} — ${page * PAGE + 1}-${page * PAGE + slice.length} of ${all.length}`,
     });
     const file = path.join(OUT, `contact_${page + 1}.${ext}`);
     await writeFile(file, Buffer.from(url.split(",")[1], "base64"));
@@ -254,7 +244,8 @@ if (CONTACT) {
 for (const pose of POSES) {
   const spriteUrl = await dataUrl(`sprites/assets/uro/${pose}.png`, "image/png");
   const res = await page.evaluate(composeInPage, {
-    spriteUrl, bgUrl, modUrl, alpha: ALPHA, hem: HEM, format: FORMAT,
+    spriteUrl, bgUrl, modUrl, alpha: ALPHA, hem: HEM, frame: FRAME, mode: MODE,
+    format: FORMAT,
     label: `Uro / ${pose} / ${BG}`,
   });
   const ext = FORMAT === "jpeg" ? "jpg" : "png";

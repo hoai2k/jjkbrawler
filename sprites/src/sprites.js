@@ -1,11 +1,11 @@
-import { frameMeta, frameImage, spriteManifest } from "../../src/assets.js";
+import { frameMeta, spriteManifest } from "../../src/assets.js";
 import { animFor, getActor, DEFAULT_ANIMS } from "../../src/characters.js";
 import { CELL_W, CELL_H, CELL_FOOT_Y } from "../../src/constants.js";
 import { LEDGE_GRIP_Y_FRAC } from "../../src/config_tuning.js";
 import { comFrac } from "../../src/body_points.js";
 import { clamp } from "../../src/utils.js";
 import { STRIDE_SMOOTH } from "../../src/flags.js";
-import { clothingFrame } from "../../src/clothing_fx.js";
+import { frameArt } from "../../src/char_frame.js";
 
 const DEG = Math.PI / 180;
 
@@ -692,11 +692,11 @@ export function drawCharFrame(ctx, charKey, frameKey, x, y, opts = {}) {
   // selected — the workbench uses it to stand two alternates side by side.
   // Nothing in the game passes it.
   const meta = opts.as?.meta || frameMeta(charKey, frameKey, view);
-  // Clothing FX (Settings, off by default) swaps the drawing for a keyed copy
-  // of the same size — placement, anchors and every measurement are untouched,
-  // and for a character with no garment profile this is a table lookup that
-  // hands the image straight back. src/clothing_fx.js.
-  const img = clothingFrame(charKey, frameKey, opts.as?.img || frameImage(charKey, frameKey, view));
+  // WHICH PIXELS THIS POSE IS, effects included, from the one module that
+  // decides that for the whole game — never `frameImage` directly. The 2.5D
+  // camera blits the same answer through a different transform, and the two
+  // agreeing is not optional (src/char_frame.js).
+  const img = frameArt(charKey, frameKey, { view, img: opts.as?.img });
   // Nothing to draw. Say so rather than returning quietly: a fighter whose art
   // fails to load is otherwise INVISIBLE — no error, no gap, just a character
   // who is not there — which is how a stale manifest full of renamed paths went

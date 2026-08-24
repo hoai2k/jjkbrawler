@@ -392,9 +392,8 @@ export const TEXT = {
     // it does anything to today, which is why the label names the effect and
     // not her: a setting that reads "Uro's garments" would have to be renamed
     // the moment a second character earns one.
-    clothingFx: (on) => `Clothing FX: ${on ? "On" : "Off"}`,
+    clothingFx: (mode) => `Clothing FX: ${{ off: "Off", hem: "Hem", alpha: "Alpha" }[mode] || "Off"}`,
     sfxEnabled: (on) => `Sound Effects: ${on ? "On" : "Off"}`,
-    render: (mode) => `Render: ${mode}`,
     back: "Back",
   },
 
