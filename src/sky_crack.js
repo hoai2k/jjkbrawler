@@ -22,9 +22,11 @@ import { playSfx } from "./audio.js";
 const CRACK = {
   rays: 10,           // fracture lines out of the impact
   ringFracs: [0.45, 0.8],   // where the cross-links sit along them
-  jitter: 0.8,        // 0 = clean starburst, 1 = shattered windscreen
-  coreWidth: 2.5,     // the white centre of a crack line
-  glowWidth: 7,       // the coloured halo under it
+  jitter: 0.8,        // 0 = clean starburst, 1 = dropped mirror
+  // A broken mirror is HAIRLINES: a dark hair under a light hair — the shadow
+  // and shine of a real glass edge — and nothing thicker. No glow, no blaze.
+  shadowWidth: 2.6,
+  hairWidth: 1.1,
 };
 
 /** A crack growing in the sky at a sim-space point.
@@ -33,7 +35,8 @@ const CRACK = {
  *  `opts.crackTime` seconds it takes to grow — Sky Warp Palm passes its own
  *                   windup, so the telegraph and the timing are one number.
  *  `opts.holdTime`  fully-cracked linger before the fade (default 0.15).
- *  `opts.color`     glow colour (default Uro's cyan).
+ *  `opts.color`     reserved — the mirror hairlines are uncoloured; kept so a
+ *                   technique could tint a fracture without a signature change.
  *  `opts.flash`     brighten hard at the end of the growth — the moment the
  *                   sky gives — before fading (default true).
  */
@@ -41,24 +44,37 @@ export function spawnSkyCrack(x, y, opts = {}) {
   const r = opts.r ?? 130;
   const crackTime = Math.max(0.05, opts.crackTime ?? 0.3);
   const holdTime = opts.holdTime ?? 0.15;
-  const color = opts.color || "#8fd7e8";
   const flash = opts.flash !== false;
   const fadeTime = 0.22;
   const total = crackTime + holdTime + fadeTime;
 
-  // The web, built once: rays with jittered headings and kinked segments.
+  // The web, built once: rays with jittered headings, kinked segments and
+  // UNEQUAL lengths — a mirror's cracks run different distances, and equal
+  // ones are what makes a web read as a drawn asterisk. Some rays also throw
+  // a short branch partway along, the way a real fracture forks.
   const rays = [];
+  const branches = [];
   const n = CRACK.rays;
   for (let i = 0; i < n; i++) {
     const heading = (i / n) * Math.PI * 2 + (Math.random() - 0.5) * (CRACK.jitter / n) * Math.PI * 2;
+    const len = r * (0.55 + Math.random() * 0.5);
     const pts = [{ x, y }];
     const segs = 3;
     for (let s = 1; s <= segs; s++) {
-      const dist = (s / segs) * r * (1 + (Math.random() - 0.5) * 0.14 * CRACK.jitter);
+      const dist = (s / segs) * len * (1 + (Math.random() - 0.5) * 0.14 * CRACK.jitter);
       const bend = heading + (Math.random() - 0.5) * 0.5 * CRACK.jitter;
       pts.push({ x: x + Math.cos(bend) * dist, y: y + Math.sin(bend) * dist });
     }
     rays.push(pts);
+    if (Math.random() < 0.6) {
+      const from = pts[1 + (Math.random() < 0.5 ? 0 : 1)];
+      const side = heading + (Math.random() < 0.5 ? 1 : -1) * (0.5 + Math.random() * 0.5);
+      const blen = len * (0.2 + Math.random() * 0.25);
+      branches.push([from, {
+        x: from.x + Math.cos(side) * blen,
+        y: from.y + Math.sin(side) * blen,
+      }]);
+    }
   }
   const along = (pts, frac) => {
     const t = frac * (pts.length - 1);
@@ -82,16 +98,15 @@ export function spawnSkyCrack(x, y, opts = {}) {
       const grow = Math.min(1, t / crackTime);
       const fade = Math.max(0, Math.min(1, 1 - (t - crackTime - holdTime) / fadeTime));
       if (fade <= 0) return;
-      const blaze = flash && t > crackTime - 0.06 && t < crackTime + 0.08 ? 1.6 : 1;
       ctx.save();
       ctx.lineJoin = "round";
       for (const pass of [
-        { width: CRACK.glowWidth, style: color, alpha: 0.45 },
-        { width: CRACK.coreWidth, style: "#f2fbff", alpha: 0.95 },
+        { width: CRACK.shadowWidth, style: "rgba(12, 20, 38, 0.5)", alpha: 0.8 },
+        { width: CRACK.hairWidth, style: "rgba(240, 249, 255, 0.9)", alpha: 0.95 },
       ]) {
-        ctx.globalAlpha = pass.alpha * fade * Math.min(1, blaze);
+        ctx.globalAlpha = pass.alpha * fade;
         ctx.strokeStyle = pass.style;
-        ctx.lineWidth = pass.width * blaze;
+        ctx.lineWidth = pass.width;
         for (const pts of rays) {
           const tip = grow * (pts.length - 1);
           ctx.beginPath();
@@ -104,6 +119,15 @@ export function spawnSkyCrack(x, y, opts = {}) {
             ctx.lineTo(p0.x + (p1.x - p0.x) * k, p0.y + (p1.y - p0.y) * k);
           }
           ctx.stroke();
+        }
+        // The branch forks, once the growth reaches their trunk.
+        if (grow > 0.4) {
+          for (const [a, b] of branches) {
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
         }
         // Cross-links appear once the growth passes them — as broken chords,
         // not a closed loop: real fractures link some neighbours and skip

@@ -5,7 +5,7 @@
 // sprites at runtime: no second art layer, no re-export, just a per-frame pass
 // over the pixels the first time a frame is drawn with the setting on.
 //
-// It is OFF by default and it is a look, not a mechanic. Nothing here can move
+// It is a look, not a mechanic. Nothing here can move
 // a hitbox, a measurement or a placement: the pass returns a canvas the same
 // size as the source image with some pixels' alpha lowered, and every number
 // the game reads about a body still comes off `meta` and the manifest.
@@ -62,10 +62,11 @@
  */
 export const CLOTHING_MODES = ["off", "hem", "alpha"];
 
-/** The setting. Owned here rather than in `state` because the frame caches are
- *  owned here too, the way audio.js owns `audioSettings`. `setClothingFx` and
- *  `cycleClothingFx` are the only writers. */
-export const clothingFx = { mode: "off" };
+/** The setting — ALPHA by default: the keyed look is the shipped look, and
+ *  Off is the opt-out. Owned here rather than in `state` because the frame
+ *  caches are owned here too, the way audio.js owns `audioSettings`.
+ *  `setClothingFx` and `cycleClothingFx` are the only writers. */
+export const clothingFx = { mode: "alpha" };
 
 /** True when anything is being keyed at all. */
 export function clothingFxOn() {

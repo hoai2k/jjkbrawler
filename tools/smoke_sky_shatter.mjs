@@ -97,9 +97,21 @@ const calm = await page.evaluate(overlayWhite());
 
 // Cast, then let an in-page frame loop watch the whole lifetime: it samples
 // the overlay every animation frame while state.skyShatter lives, so the
-// quarter-second blaze cannot fall between out-of-process polls.
-await page.keyboard.press("KeyL");
-const run = await page.evaluate(async (expr) => {
+// quarter-second of visible cracks cannot fall between out-of-process polls.
+//
+// Cast up to three times: the CPU is a live opponent, and a hit landing
+// during the windup cancels the special — a real match fact, not a bug, and
+// not what this smoke exists to measure.
+let run = { sawShatter: false, peak: 0 };
+for (let attempt = 0; attempt < 3 && !run.sawShatter; attempt++) {
+  await page.keyboard.press("KeyL");
+  run = await watch(page);
+  if (!run.sawShatter) await page.waitForTimeout(600);
+}
+const watchResult = run;
+
+async function watch(page2) {
+  return await page2.evaluate(async (expr) => {
   const mod = await import("/src/state.js");
   const sample = () => eval(expr);
   return await new Promise((resolve) => {
@@ -113,7 +125,7 @@ const run = await page.evaluate(async (expr) => {
         sawShatter = true;
         peak = Math.max(peak, sample());
       }
-      if ((sawShatter && !live) || frames > 600) {
+      if ((sawShatter && !live) || frames > 600 || (!sawShatter && frames > 120)) {
         resolve({ sawShatter, peak, ended: !live });
         return;
       }
@@ -121,8 +133,9 @@ const run = await page.evaluate(async (expr) => {
     };
     requestAnimationFrame(tick);
   });
-}, overlayWhite());
-const { sawShatter, peak } = run;
+  }, overlayWhite());
+}
+const { sawShatter, peak } = watchResult;
 if (SHOTS) await page.screenshot({ path: path.join(SHOTS, "after.png") });
 
 const cleared = await page.evaluate(async () => !(await import("/src/state.js")).state.skyShatter);

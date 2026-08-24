@@ -32,6 +32,7 @@ import {
   ALTERNATE_KIND,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../../src/render.js";
+import { clothingFx, setClothingFx } from "../../src/clothing_fx.js";
 import { lightMove, heavyMove, visibleArtReach, strikeArcs } from "../../src/moves.js";
 import { bodyMetrics, refreshSilhouettes } from "../../src/silhouette.js";
 import { HURTBOX, GRAB, LEDGE_HANG_X, LEDGE_HANG_Y } from "../../src/constants.js";
@@ -3886,6 +3887,14 @@ async function boot() {
   };
   ["selfIdleMode", "showGuides", "showBox", "showHurtbox", "showAnchors"]
     .forEach((id) => ($(id).onchange = () => { refreshSelfIdleOptions(); render(); }));
+  // Clothing FX, viewed as the game would draw it. The bench renders through
+  // the game's own drawCharFrame, so setting the mode is the whole wiring —
+  // per-mode caches in clothing_fx.js make flipping back and forth free.
+  const fxSel = $("clothingFxSel");
+  if (fxSel) {
+    fxSel.value = clothingFx.mode;
+    fxSel.onchange = () => { setClothingFx(fxSel.value); render(); };
+  }
 
   // Which of this pose's other drawings the comparison stands beside. The
   // picker is the one already used for choosing art — same tiles, and here

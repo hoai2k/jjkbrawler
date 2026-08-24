@@ -177,11 +177,14 @@ neither uses an effect sprite:
   small one where a blow was folded away.
 - **`src/screen_shatter.js`** — Thin Ice Breaker proper. On the impact beat the
   composited FRAME is captured (both canvases, read at the end of the same
-  rendered frame — the only moment a WebGL canvas can be read back), cut along
-  a fracture web into shards, and the shards — real pieces of the picture that
-  was on screen — freeze, split along glowing seams, and burst away while the
-  live game continues underneath. The ultimate's slam triggers it at full
-  scale inside its own slow-motion beat; the neutral special at about half.
+  rendered frame — the only moment a WebGL canvas can be read back) and a LOCAL
+  pane of it — a disc around the victim, about a third of the screen — is cut
+  along a fracture web into shards. The pane freezes with hairline cracks (a
+  dark hair under a light hair, the way a broken mirror reads — no glow, no
+  blaze), splits apart, and the pieces drop away like glass past a dark
+  not-sky hole that then heals over as the sky regenerates. The ultimate's
+  slam triggers it at full scale inside its own slow-motion beat; the neutral
+  special at about half.
 
 `tools/smoke_sky_shatter.mjs` plays a match, casts, and asserts the shatter's
 lifecycle AND its pixels on the framebuffer — effects get framebuffer
