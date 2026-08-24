@@ -82,6 +82,22 @@ export const HEIGHT_MAX_RATIO = 1.14;
  * (camera.js). What deliberately does NOT follow it is anything belonging to
  * the BOARD: platform lengths and heights, blast zones, spawn spacing. That gap
  * opening up is the entire point.
+ *
+ * CHANGING THIS NUMBER AGAIN: two things carry body lengths, and both now say
+ * so out loud rather than relying on whoever edits this to remember them.
+ *
+ *   in CODE   a height on a body goes through `bodyY` (src/body_points.js),
+ *             which applies this. tools/check_body_scale.mjs fails on a bare
+ *             `f.y - 90`, because the first sweep of these missed six files
+ *             and every offset in them spent three months a third of a body
+ *             too high.
+ *   in DATA   a hand-placed point is stored as a FRACTION of drawn height
+ *             (config_body_points.js), not as pixels, which is what stops it
+ *             meaning something different the day this number moves. The one
+ *             column that held pixels put Gojo's Blue above his own head.
+ *             Anything measured in px instead — the model reach bake — hashes
+ *             this number into its staleness fingerprint
+ *             (tools/derive_attack_envelopes.mjs).
  */
 export const ART_SCALE = 0.7;
 

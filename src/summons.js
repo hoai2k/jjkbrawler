@@ -48,6 +48,7 @@ import { groundY as stageGroundY } from "./stages.js";
 import { clamp, sign, rand, rectsOverlap } from "./utils.js";
 import { applyHit, hurtbox, spawnProjectile, ownerStick } from "./combat.js";
 import { isFoe } from "./teams.js";
+import { bodyY } from "./body_points.js";
 import { burst, dust, ring, popup, emit } from "./particles.js";
 import { playSfx } from "./audio.js";
 import { getImage } from "./assets.js";
@@ -1010,7 +1011,7 @@ export function spawnSummon(owner, cfg) {
         label: cfg.label,
       });
       // aim at the target rather than firing flat
-      const dy = (target.y - 80) - this.y;
+      const dy = bodyY(target, 80) - this.y;
       proj.vy = clamp(dy * 1.6, -260, 300);
       burst(this.x + this.dir * 20, this.y, cfg.color, 6, 0.5);
       playSfx("projectileFire", 0.7);

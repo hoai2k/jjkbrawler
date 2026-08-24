@@ -8,7 +8,7 @@ import { drawScreenShatter } from "./screen_shatter.js";
 import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
 import { bodyMetrics } from "./silhouette.js";
-import { comFrac } from "./body_points.js";
+import { comFrac, bodyY } from "./body_points.js";
 import {
   TRAIL_ALPHA, MACH, STRIKE_ARC, COM_HOLD_MAX_FRAC, XFADE_COM_MAX_FRAC, MOTION, ART_SCALE,
 } from "./config_tuning.js";
@@ -742,7 +742,7 @@ function drawFighters(ctx, { bodies = true } = {}) {
       // nominal height is the renderer's rather than the kit's; the size, the
       // nudge and the tilt are the drawing's own.
       paintShared(ctx, f.installs.sprite, transformed,
-        { x: f.x + shakeX, y: f.y + 10 }, paintedHeight(f.installs.sprite, 210), {
+        { x: f.x + shakeX, y: bodyY(f, -10) }, paintedHeight(f.installs.sprite, 210), {
           anchor: "feet", mirrored: f.facing > 0,
           alpha: flicker ? 0.6 : 1,
           shadow: { color: f.installs.color || f.char.shadow, blur: 24 },
@@ -1169,7 +1169,8 @@ function drawShadow(ctx, f) {
 function groundBelow(f) {
   let best = 700;
   for (const p of state.platforms) {
-    if (f.x >= p.x - 20 && f.x <= p.x + p.w + 20 && p.y >= f.y - 4 && p.y < best) best = p.y;
+    // 4px of slack on a PLATFORM, which is board geometry: not a body length.
+    if (f.x >= p.x - 20 && f.x <= p.x + p.w + 20 && p.y >= f.y - 4 && p.y < best) best = p.y;   // board length
   }
   return best;
 }

@@ -17,6 +17,7 @@ import { state } from "./state.js";
 import { ART_SCALE } from "./config_tuning.js";
 import { getStage, mainPlatform, groundSpan } from "./stages.js";
 import { getImage } from "./assets.js";
+import { bodyY } from "./body_points.js";
 import { paintedHeight } from "./shared_sprites.js";
 import { paintShared } from "./shared_paint.js";
 import { playSfx } from "./audio.js";
@@ -936,11 +937,14 @@ const STAGE_FX = {
         ctx.globalCompositeOperation = "lighter";
         for (const f of fighters()) {
           ctx.globalAlpha = a * 0.3;
-          const grad = ctx.createRadialGradient(f.x, f.y - 70, 4, f.x, f.y - 70, 60);
+          // Centred on the chest — a body height — at a size of its own,
+          // and the rect is derived from both so it always covers the glow.
+          const gy = bodyY(f, 70);
+          const grad = ctx.createRadialGradient(f.x, gy, 4, f.x, gy, 60);
           grad.addColorStop(0, f.char.theme);
           grad.addColorStop(1, "rgba(0,0,0,0)");
           ctx.fillStyle = grad;
-          ctx.fillRect(f.x - 60, f.y - 130, 120, 120);
+          ctx.fillRect(f.x - 60, gy - 60, 120, 120);
         }
         ctx.restore();
       },

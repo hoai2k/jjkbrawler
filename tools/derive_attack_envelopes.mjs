@@ -71,10 +71,20 @@ function currentInputs() {
     if (entry?.model) models[key] = fileSha(join("render3d/assets", entry.model));
     dials[key] = MEASURED_FIELDS.map((f) => JSON.stringify(entry?.[f] ?? null)).join("|");
   }
+  // THE SIZE THE ROSTER IS DRAWN AT is an input too, and was the one input
+  // nobody had written down. `sx`/`sy` here are game pixels on a drawn body —
+  // src/muzzle.js reads them as the hand a shot leaves from — so the day
+  // ART_SCALE took every body to 70% these became a measurement of a body that
+  // no longer exists, exactly the way a re-crop does, and the fingerprint said
+  // nothing because it only watched the rigs. Two numbers, hashed with the
+  // rest: change either and this config is stale and says so.
+  const scale = readFileSync(join(ROOT, "src/config_tuning.js"), "utf8");
+  const dial = (name) => (new RegExp(`export const ${name} = ([^;]+);`).exec(scale) || [])[1]?.trim();
   return {
     manifest: sha(JSON.stringify(dials)),
     sprites: fileSha("sprites/assets/manifest.json"),
     poses: sha(POSE_SOURCES.map(fileSha).join("|")),
+    bodyScale: sha(`${dial("ART_SCALE")}|${dial("HEIGHT_BASE_PX")}`),
     models,
   };
 }
@@ -97,6 +107,7 @@ if (CHECK) {
   if (stored.manifest !== now.manifest) diffs.push("render3d manifest");
   if (stored.sprites !== now.sprites) diffs.push("sprite manifest (head heights)");
   if (stored.poses !== now.poses) diffs.push("pose libraries");
+  if (stored.bodyScale !== now.bodyScale) diffs.push("body scale (ART_SCALE / HEIGHT_BASE_PX)");
   for (const k of new Set([...Object.keys(stored.models || {}), ...Object.keys(now.models)])) {
     if ((stored.models || {})[k] !== now.models[k]) diffs.push(`model: ${k}`);
   }

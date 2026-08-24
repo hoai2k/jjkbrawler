@@ -175,8 +175,10 @@ function makePlan(f, opp, lvl) {
     }
   }
 
-  // chase to platforms above
-  if (opp.y < f.y - 60 && f.grounded && chance(0.4)) {
+  // chase to platforms above. A BOARD length, deliberately not a body one:
+  // this asks whether the opponent is standing on a tier overhead, and the
+  // tiers did not shrink when the roster did (config_tuning.js ART_SCALE).
+  if (opp.y < f.y - 60 && f.grounded && chance(0.4)) {   // board length
     input.jumpP = true;
     input.jumpHeld = true;
   }
@@ -203,7 +205,7 @@ function makePlan(f, opp, lvl) {
     } else {
       input.lightP = true;
     }
-    if (opp.y < f.y - 50) input.up = true;
+    if (opp.y < f.y - 50) input.up = true;   // board length, as above
   } else if (chance(lvl.special)) {
     if (profile.style === "zoner" && mid) {
       input.specialP = true; // neutral projectile

@@ -19,6 +19,11 @@
 //      gone that far, per character otherwise: an overhead throw and a hip-level
 //      one leave from different places on the same body, and the per-character
 //      entry is the answer for every pose nobody has separated out.
+//
+//      HELD AS FRACTIONS of that fighter's drawn height, and put onto the body
+//      here. A point on a body outlives the size the body happened to be drawn
+//      at the day somebody placed it — which is the one thing this column got
+//      wrong, once, expensively (config_body_points.js has the story).
 //   2. the MODEL measurement (src/config_model_reach.js), baked from the rig
 //      posed at the move's own beat — the hand that throws, or the weapon's far
 //      end when one leads. This is the "more model-specific location": a
@@ -90,15 +95,23 @@ export function muzzleVerified(charKey, state = null) {
 
 function solve(charKey, state) {
   const held = BODY_POINTS[charKey]?.muzzle;
+  // A HELD POINT IS A FRACTION OF THIS FIGHTER'S DRAWN HEIGHT, not a length —
+  // `com` next to it always was, and this column was not, which is precisely
+  // how it rotted: the roster went to 70% (ART_SCALE) and every hand-placed
+  // hand stayed the length it had been on a 149px body, which on a 104px one
+  // is 1.43x too far out and up — Gojo's above his own head. Multiplying by
+  // the measured height here is the whole of the fix, and
+  // it also means a fighter re-drawn at a new size takes their hand with them.
+  const height = () => bodyMetrics(charKey).height;
   // A per-pose entry outranks the character's own: it is the more specific
   // thing the same person said. `{ x, y }` is the character-wide shape and
   // `{ states: { specialSide: { x, y } } }` the per-pose one; both may be
   // present, and a character with only the second still answers for any pose.
   if (state && MUZZLE_STATES.has(state)) {
     const perPose = held?.states?.[state];
-    if (finite(perPose)) return { x: perPose.x, y: perPose.y, source: "human" };
+    if (finite(perPose)) return onBody(perPose, height());
   }
-  if (finite(held)) return { x: held.x, y: held.y, source: "human" };
+  if (finite(held)) return onBody(held, height());
 
   // The rig, posed at this move's own beat. Baked `sy` is metres-up turned to
   // px-up; canvas y grows downward, so it flips — same convention as
@@ -119,6 +132,11 @@ function solve(charKey, state) {
 }
 
 const finite = (p) => !!p && Number.isFinite(p.x) && Number.isFinite(p.y);
+
+/** A stored fraction-of-height pair, put onto a body of `height` px. */
+const onBody = (p, height) => ({
+  x: Math.round(p.x * height), y: Math.round(p.y * height), source: "human",
+});
 
 /**
  * The point a move actually spawns from: the fighter's hand, displaced by

@@ -44,17 +44,19 @@
 //              camera3d/models.js prefers it, falling back to this for a
 //              character with no rig. The value here is still the right one
 //              for the drawing, which is what everything else above asks it.
-//   muzzle     { x, y } in game px from the fighter's centre line and foot
-//              line (up is negative) — where a projectile leaves them. This is
-//              the fighter's ANSWER FOR EVERY POSE, and the one other render
-//              modes inherit.
+//   muzzle     { x, y } as FRACTIONS OF DRAWN HEIGHT, from the fighter's
+//              centre line and foot line (up is negative) — where a projectile
+//              leaves them. This is the fighter's ANSWER FOR EVERY POSE, and
+//              the one other render modes inherit. Gojo's 0.3643, -0.767 is
+//              "a bit over a third of a body height in front of him, and just
+//              over three quarters of the way up".
 //
 //              A pose that throws from somewhere else can say so under
 //              `states`, keyed by the animation the move plays —
 //              specialNeutral, specialSide, specialDown, ult:
 //
-//                "gojo": { muzzle: { x: 62, y: -104,
-//                                    states: { specialDown: { x: 40, y: -58 } } } }
+//                "gojo": { muzzle: { x: 0.36, y: -0.77,
+//                                    states: { specialDown: { x: 0.3, y: -0.5 } } } }
 //
 //              Resolution order is in src/muzzle.js: the per-pose entry, then
 //              this one, then the rig's measured hand for that pose
@@ -63,24 +65,22 @@
 //              absent means "the next answer down", so an empty file is
 //              exactly the behaviour the game had before anybody checked.
 //
-//              THE PIXELS ARE THE DRAWN BODY'S PIXELS, which is the one thing
-//              about this column that is not self-evident and the one thing
-//              that broke it. `com` is a fraction, so it survived the roster
-//              going to 70% (ART_SCALE, config_tuning.js) without an edit;
-//              these are lengths, and they did not. Every point here was
-//              placed on 149px bodies the day before that landed, and the
-//              game went on reading them raw against 104px ones: Gojo's Blue
-//              left from 115px up a 104px fighter — above his own head, and
-//              55px in front of him — in every match since. They are rescaled
-//              onto the drawn body once, here, and tools/audit_hitboxes.mjs
-//              checks that each one still lands ON the fighter, so the next
-//              change to how big bodies are drawn fails a check instead of
-//              quietly moving every shot in the game.
+//              FRACTIONS BECAUSE PIXELS ROTTED. This column held game px until
+//              the roster went to 70% (ART_SCALE, config_tuning.js) and took
+//              every drawn body from 149px to 104px with it. `com` is a
+//              fraction and did not notice; these were lengths, placed at the
+//              bench on the old bodies the day before, and src/muzzle.js went
+//              on reading them raw — so Gojo's Blue left from 115px up a 104px
+//              fighter, above his own head and 55px in front of him, in every
+//              match for three days. A fraction cannot rot that way: it is a
+//              point on a body, said in units of that body, and it means the
+//              same thing at any size the roster is ever drawn.
 //
-//              A point the bench writes today is already in these units: it is
-//              dragged onto the drawing the game draws (`toGame` in
-//              workbench/verify_common.js), so pasting an export block in and
-//              committing it is still the whole procedure.
+//              The bench still DRAGS in px, on the drawing the game draws, and
+//              tools/apply_verification.mjs divides by that fighter's measured
+//              height on the way in — the same conversion `com` has always
+//              had. tools/audit_hitboxes.mjs checks each point still lands on
+//              the body, which is now a check on the stored number itself.
 //
 // There is deliberately no ledge-grip key. Where the hand meets the lip is a
 // per-frame `ledge` anchor in the sprite manifest, baked on every hang frame
@@ -88,41 +88,41 @@
 // duplicate that drifts.
 
 export const BODY_POINTS = {
-  "choso": { com: 0.585, muzzle: { x: 37, y: -79 } },
-  "dagon": { com: 0.605, muzzle: { x: 10, y: 0 } },
-  "gakuganji": { com: 0.597, muzzle: { x: 1, y: -52 } },
-  "geto": { com: 0.569, muzzle: { x: 24, y: -93 } },
-  "gojo": { com: 0.577, muzzle: { x: 38, y: -80 } },
-  "hakari": { com: 0.641, muzzle: { x: 40, y: -78 } },
-  "hanami": { com: 0.595, muzzle: { x: 48, y: -93 } },
-  "inumaki": { com: 0.583, muzzle: { x: 27, y: -75 } },
-  "jogo": { com: 0.553, muzzle: { x: 38, y: -68 } },
-  "kurourushi": { com: 0.55, muzzle: { x: 34, y: -73 } },
+  "choso": { com: 0.585, muzzle: { x: 0.3724, y: -0.7951 } },
+  "dagon": { com: 0.605, muzzle: { x: 0.0847, y: 0 } },
+  "gakuganji": { com: 0.597, muzzle: { x: 0.0108, y: -0.5638 } },
+  "geto": { com: 0.569, muzzle: { x: 0.2295, y: -0.8893 } },
+  "gojo": { com: 0.577, muzzle: { x: 0.3643, y: -0.767 } },
+  "hakari": { com: 0.641, muzzle: { x: 0.3939, y: -0.7681 } },
+  "hanami": { com: 0.595, muzzle: { x: 0.4037, y: -0.7822 } },
+  "inumaki": { com: 0.583, muzzle: { x: 0.2999, y: -0.8331 } },
+  "jogo": { com: 0.553, muzzle: { x: 0.3846, y: -0.6882 } },
+  "kurourushi": { com: 0.55, muzzle: { x: 0.326, y: -0.6999 } },
   "mahito": { com: 0.591 },
-  "maki": { com: 0.6, muzzle: { x: 51, y: -90 } },
-  "mechamaru": { com: 0.591, muzzle: { x: 31, y: -92 } },
-  "megumi": { com: 0.598, muzzle: { x: 29, y: -73 } },
-  "meimei": { com: 0.638, muzzle: { x: 46, y: -105 } },
-  "momo": { com: 0.623, muzzle: { x: 46, y: -45 } },
-  "nanami": { com: 0.596, muzzle: { x: 29, y: -68 } },
-  "nobara": { com: 0.614, muzzle: { x: 34, y: -59 } },
+  "maki": { com: 0.6, muzzle: { x: 0.5465, y: -0.9644 } },
+  "mechamaru": { com: 0.591, muzzle: { x: 0.2755, y: -0.8175 } },
+  "megumi": { com: 0.598, muzzle: { x: 0.3019, y: -0.7599 } },
+  "meimei": { com: 0.638, muzzle: { x: 0.4929, y: -1.1251 } },
+  "momo": { com: 0.623, muzzle: { x: 0.525, y: -0.5136 } },
+  "nanami": { com: 0.596, muzzle: { x: 0.2871, y: -0.6732 } },
+  "nobara": { com: 0.614, muzzle: { x: 0.3871, y: -0.6717 } },
   "panda": { com: 0.497 },
-  "reggie": { com: 0.564, muzzle: { x: 25, y: -80 } },
-  "sukuna": { com: 0.591, muzzle: { x: 38, y: -74 } },
+  "reggie": { com: 0.564, muzzle: { x: 0.2397, y: -0.767 } },
+  "sukuna": { com: 0.591, muzzle: { x: 0.4008, y: -0.7806 } },
   "todo": { com: 0.591 },
-  "toji": { com: 0.614, muzzle: { x: 37, y: -81 } },
+  "toji": { com: 0.614, muzzle: { x: 0.3604, y: -0.7891 } },
   "uro": { com: 0.577 },
   "yuji": { com: 0.582 },
   "yuki": { com: 0.623 },
-  "yuta": { com: 0.618, muzzle: { x: 34, y: -57 } },
+  "yuta": { com: 0.618, muzzle: { x: 0.3533, y: -0.5923 } },
   // Round 23's and 24's staged fighters, verified as their art landed. Their
   // `com` closed the last gap in this column: seven fighters were still on the
   // roster default, which the per-FRAME queue was then judging their drawings
   // against and reporting as "off their fighter's verified value" — a value
   // nobody had placed. Every fighter now carries their own.
   "haruta": { com: 0.6 },
-  "kashimo": { com: 0.593, muzzle: { x: 55, y: -76 } },
-  "kirara": { com: 0.608, muzzle: { x: 25, y: -74 } },
+  "kashimo": { com: 0.593, muzzle: { x: 0.5416, y: -0.7484 } },
+  "kirara": { com: 0.608, muzzle: { x: 0.2648, y: -0.7837 } },
   "miwa": { com: 0.598 },
   "naoya": { com: 0.592 },
   "tengen": { com: 0.576 },

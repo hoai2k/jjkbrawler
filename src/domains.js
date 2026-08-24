@@ -21,6 +21,7 @@ import { state } from "./state.js";
 import { groundY as stageGroundY } from "./stages.js";
 import { ART_SCALE } from "./config_tuning.js";
 import { foesOf } from "./teams.js";
+import { bodyY } from "./body_points.js";
 import { clamp, sign, rand, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import { playSfx, playGrunt, spokenLead, startDomainLoop, stopDomainLoop } from "./audio.js";
@@ -373,7 +374,7 @@ const HANDLERS = {
         const a = (i / Math.max(1, dom.s.orbs)) * Math.PI * 2 + dom.t * 1.6;
         const r = 92 + Math.sin(dom.t * 2 + i) * 10;
         const x = f.x + Math.cos(a) * r;
-        const y = f.y - 100 + Math.sin(a) * r * 0.45;
+        const y = bodyY(f, 100) + Math.sin(a) * r * 0.45;
         const g = ctx.createRadialGradient(x, y, 1, x, y, 15);
         g.addColorStop(0, "#ffffff");
         g.addColorStop(1, dom.color);
@@ -468,7 +469,7 @@ const HANDLERS = {
       if (dom.s.held) {
         // the taken blade rides above Sukuna until it is thrown
         ctx.save();
-        ctx.translate(f.x, f.y - 210 + Math.sin(dom.t * 7) * 6);
+        ctx.translate(f.x, bodyY(f, 210) + Math.sin(dom.t * 7) * 6);
         ctx.globalAlpha = 0.95;
         ctx.fillStyle = "#fff";
         ctx.shadowColor = dom.color;
@@ -756,7 +757,7 @@ const HANDLERS = {
         for (let i = 0; i < 5; i++) {
           const a = (i / 5) * Math.PI * 2 + dom.t * 2.1;
           const x = t.x + Math.cos(a) * 120;
-          const y = t.y - 90 + Math.sin(a) * 60;
+          const y = bodyY(t, 90) + Math.sin(a) * 60;
           ctx.save();
           ctx.translate(x, y);
           ctx.rotate(a + Math.PI / 2);
@@ -802,7 +803,7 @@ const HANDLERS = {
         const h = 330;
         const w = img.width * h / img.height;
         ctx.save();
-        ctx.translate(f.x - f.facing * 70, f.y + 20);
+        ctx.translate(f.x - f.facing * 70, bodyY(f, -20));
         ctx.scale(f.facing > 0 ? -1 : 1, 1);
         ctx.globalAlpha = 0.5 + 0.12 * Math.sin(dom.t * 3);
         ctx.shadowColor = dom.color;

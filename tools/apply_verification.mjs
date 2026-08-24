@@ -87,8 +87,11 @@ const day = (d) => (d.at || "").slice(0, 10);
 
 // ------------------------------------------------------- per-character keys
 //
-// `com` is a fraction of drawn height and `muzzle` is a point in game px, both
-// per fighter, both living in BODY_POINTS beside each other.
+// Both are FRACTIONS OF DRAWN HEIGHT, per fighter, living in BODY_POINTS
+// beside each other — `com` always was, and `muzzle` is since the roster went
+// to 70% and every muzzle placed in pixels stayed where the old bodies had put
+// it. The bench drags in game px either way; the division is here, once, so a
+// decision is stored in units of the body it was made about.
 
 async function bodyPoints() {
   const com = sets["center-of-mass"]?.decisions?.filter(live) || [];
@@ -108,8 +111,9 @@ async function bodyPoints() {
     applied.push(`  com      ${d.char.padEnd(12)} ${was ?? "—"} -> ${now}`);
   }
   for (const d of muzzle) {
+    const h = bodyMetrics(d.char).height;
     const was = points[d.char]?.muzzle;
-    const now = { x: Math.round(d.value.x), y: Math.round(d.value.y) };
+    const now = { x: +(d.value.x / h).toFixed(4), y: +(d.value.y / h).toFixed(4) };
     (points[d.char] ??= {}).muzzle = now;
     ((meta[d.char] ??= {})).muzzle = { at: day(d), ...(d.note ? { note: d.note } : {}) };
     applied.push(`  muzzle   ${d.char.padEnd(12)} ${was ? `${was.x},${was.y}` : "—"} -> ${now.x},${now.y}`);

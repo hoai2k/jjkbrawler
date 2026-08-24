@@ -35,6 +35,7 @@ import { getImage } from "./assets.js";
 import { meteorAt, paintedHeight } from "./shared_sprites.js";
 import { paintShared } from "./shared_paint.js";
 import { isFoe } from "./teams.js";
+import { bodyY } from "./body_points.js";
 
 // The two halves of an ultimate's opening. They fire on the same frame for the
 // 26 fighters with nothing to say, and a spoken line pushes them apart: the
@@ -149,7 +150,7 @@ const DIRECTORS = {
           ctx.globalCompositeOperation = "lighter";
           ctx.globalAlpha = 0.75;
           const cx = f.x + f.facing * 90;
-          const cy = f.y - 96;
+          const cy = bodyY(f, 96);
           const grad = ctx.createRadialGradient(cx, cy, 4, cx, cy, 20 + g * 70);
           grad.addColorStop(0, "#ffffff");
           grad.addColorStop(0.5, p.color);
@@ -347,10 +348,10 @@ const DIRECTORS = {
         }
         for (const t of state.fighters) {
           if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.hitstun > 0.5) continue;
-          const d = Math.hypot(t.x - this.x, (t.y - 90) - this.y);
+          const d = Math.hypot(t.x - this.x, bodyY(t, 90) - this.y);
           if (d < p.pull) {
             t.vx += sign(this.x - t.x) * 780 * dt;
-            if (t.y - 90 > this.y) t.vy -= 620 * dt;
+            if (bodyY(t, 90) > this.y) t.vy -= 620 * dt;
           }
         }
         this.tick -= dt;
@@ -495,7 +496,7 @@ const DIRECTORS = {
         draw(ctx) {
           const img = getImage(p.sprite);
           if (!img) return;
-          paintShared(ctx, p.sprite, img, { x: f.x - f.facing * 58, y: f.y + 18 },
+          paintShared(ctx, p.sprite, img, { x: f.x - f.facing * 58, y: bodyY(f, -18) },
             paintedHeight(p.sprite, 238), {
               anchor: "feet", mirrored: f.facing > 0, alpha: 0.58,
               shadow: { color: p.color, blur: 20 },
@@ -541,7 +542,7 @@ const DIRECTORS = {
           burst(t.x, t.y - 90 * ART_SCALE, ult.p.color, 12, 1);
           // Sukuna's barrage: the world is CUT — thin white slash lines
           // flash across the target with every volley.
-          if (p.lattice) dismantleLatticeFx(t.x, t.y - 90, CHAR_FX.dismantleLines);
+          if (p.lattice) dismantleLatticeFx(t.x, bodyY(t, 90), CHAR_FX.dismantleLines);
           popup(t.x + rand(-30, 30), t.y - 120 * ART_SCALE - rand(0, 40), `${p.dmg}%`, "#ffffff", 16);
           playSfx(Math.random() < 0.5 ? "punch" : "slash", 0.85);
           state.camera.shake = Math.max(state.camera.shake, 5);
@@ -555,7 +556,7 @@ const DIRECTORS = {
         const t = opponentOf(self);
         if (!t || t.dead || t.respawnTimer > 0) return;
         // the full lattice appears as the finisher lands
-        if (p.lattice) dismantleLatticeFx(t.x, t.y - 90, CHAR_FX.dismantleFinisher);
+        if (p.lattice) dismantleLatticeFx(t.x, bodyY(t, 90), CHAR_FX.dismantleFinisher);
         applyHit(self, t, {
           dmg: p.finisherDmg, baseKb: p.finisherBase, growth: p.growth, angle: 0.55,
           label: ult.p.label, sfx: "blast", unblockable: true, heavy: true,
@@ -564,7 +565,7 @@ const DIRECTORS = {
         if (p.crit) {
           popup(t.x, t.y - 180 * ART_SCALE, p.critLabel ? p.critLabel + "!!" : "7:3!!", p.critColor || "#ffd35a", 30);
           // the Black Flash treatment at reduced strength, in the crit's colour
-          critFinisherFx(t.x, t.y - 96, p.critColor || "#ffd35a");
+          critFinisherFx(t.x, bodyY(t, 96), p.critColor || "#ffd35a");
         }
         state.slowMo = Math.max(state.slowMo, 0.3);
       },
@@ -654,7 +655,7 @@ const DIRECTORS = {
           if (opp && !opp.dead) {
             const fromAbove = this.volley % 2 === 0;
             spawnProjectile(f, {
-              x: opp.x + rand(-120, 120), y: fromAbove ? -30 : f.y - 90,
+              x: opp.x + rand(-120, 120), y: fromAbove ? -30 : bodyY(f, 90),
               dir: 1, speed: 0, vy: fromAbove ? 980 : 0,
               r: 16, dur: 1.1, dmg: p.dmg, base: p.base, growth: p.growth,
               angle: fromAbove ? 1.2 : 0.4, color: p.color, effect: "nailMark",
@@ -732,7 +733,7 @@ const DIRECTORS = {
           if (img) {
             const h = paintedHeight(p.sprite, p.spriteH || 330) * (0.65 + (this.t - 0.45) * 1.2);
             const w = img.width * h / img.height;
-            paintShared(ctx, p.sprite, img, { x: f.x + f.facing * w * 0.3, y: f.y - 105 }, h, {
+            paintShared(ctx, p.sprite, img, { x: f.x + f.facing * w * 0.3, y: bodyY(f, 105) }, h, {
               mirrored: f.facing > 0,
               alpha: Math.max(0, a) * 0.85,
               shadow: { color: p.color, blur: 24 },
@@ -745,7 +746,7 @@ const DIRECTORS = {
           ctx.lineWidth = 6;
           for (let i = 0; i < 3; i++) {
             ctx.beginPath();
-            ctx.arc(f.x, f.y - 100, 80 + i * 90 + (this.t - 0.45) * 700, -0.9, 0.9);
+            ctx.arc(f.x, bodyY(f, 100), 80 + i * 90 + (this.t - 0.45) * 700, -0.9, 0.9);
             ctx.stroke();
           }
           ctx.restore();
@@ -818,8 +819,8 @@ const DIRECTORS = {
         ctx.lineWidth = 4;
         for (let i = 1; i <= 3; i++) {
           ctx.beginPath();
-          ctx.moveTo(f.x - this.dir * (40 + i * 34), f.y - 30 - i * 8);
-          ctx.lineTo(f.x - this.dir * (90 + i * 34), f.y - 30 - i * 8);
+          ctx.moveTo(f.x - this.dir * (40 + i * 34), bodyY(f, 30 + i * 8));
+          ctx.lineTo(f.x - this.dir * (90 + i * 34), bodyY(f, 30 + i * 8));
           ctx.stroke();
         }
         ctx.restore();
@@ -832,7 +833,7 @@ const DIRECTORS = {
     beginUltAction(f, 1.0);
     const opp = opponentOf(f);
     const cx = clamp(opp && !opp.dead ? opp.x : f.x + f.facing * 300, 140, 1140);
-    const cy = opp && !opp.dead ? opp.y - 90 : f.y - 90;
+    const cy = opp && !opp.dead ? bodyY(opp, 90) : bodyY(f, 90);
     const orbGap = 0.12;
     state.entities.push({
       owner: f, t: 0, fired: 0, dead: false,
@@ -845,7 +846,7 @@ const DIRECTORS = {
           this.fired += 1;
           playSfx("blast", 0.45, 1.3);
           if (target && !target.dead && target.respawnTimer <= 0 && target.invuln <= 0 &&
-              Math.hypot(target.x - cx, (target.y - 90) - cy) < p.radius) {
+              Math.hypot(target.x - cx, bodyY(target, 90) - cy) < p.radius) {
             target.damage = Math.min(999, target.damage + p.dmgPerOrb);
             target.hitstun = Math.max(target.hitstun, 0.2);
             burst(target.x, target.y - 90 * ART_SCALE, p.color, 8, 0.8);
@@ -859,7 +860,7 @@ const DIRECTORS = {
           playSfx("blast", 1, 0.6);
           state.camera.shake = Math.max(state.camera.shake, 14);
           if (target && !target.dead && target.respawnTimer <= 0 &&
-              Math.hypot(target.x - cx, (target.y - 90) - cy) < p.radius * 1.1) {
+              Math.hypot(target.x - cx, bodyY(target, 90) - cy) < p.radius * 1.1) {
             applyHit(f, target, {
               dmg: p.finalDmg, baseKb: p.finalBase, growth: p.finalGrowth, angle: 0.6,
               label: "SUPERNOVA", sfx: "blast", unblockable: true, heavy: true,
@@ -940,7 +941,7 @@ const DIRECTORS = {
         ctx.lineWidth = 3;
         for (let i = 0; i < 5; i++) {
           const bx = f.x - f.facing * (60 + i * 26) + Math.sin(this.t * 9 + i) * 10;
-          const by = f.y - 130 - i * 22;
+          const by = bodyY(f, 130 + i * 22);
           ctx.beginPath();
           ctx.arc(bx, by, 10, Math.PI * 0.15, Math.PI * 0.85, true);
           ctx.stroke();
@@ -967,7 +968,7 @@ const DIRECTORS = {
     // the slam — the crack's growth is timed to the ult's own beats, so the
     // shatter and the blow are one moment (src/sky_crack.js).
     if (p.crack) {
-      spawnSkyCrack(opp.x, opp.y - 220, {
+      spawnSkyCrack(opp.x, bodyY(opp, 220), {
         r: 240, crackTime: 0.25 + p.liftTime, color: p.color, owner: f, flash: false,
       });
     }
@@ -1232,7 +1233,7 @@ const DIRECTORS = {
     // point the drawing is painted on rather than where the drawing's own
     // nudge puts the picture — a `dx`/`dy` in the workbench moves the art onto
     // its point and deliberately moves nothing that collides (shared_paint.js).
-    const waveY = () => f.y - 110;
+    const waveY = () => bodyY(f, 110);
     const hitRadius = (mul = 1) => {
       const img = p.sprite ? getImage(p.sprite) : null;
       // ART_SCALE because that is what sizes every shared drawing on its way to
@@ -1305,7 +1306,7 @@ const DIRECTORS = {
         const img = p.sprite ? getImage(p.sprite) : null;
         if (img) {
           const pulse = 0.8 + 0.25 * Math.sin(this.t * 9);
-          paintShared(ctx, p.sprite, img, { x: f.x, y: f.y - 110 },
+          paintShared(ctx, p.sprite, img, { x: f.x, y: bodyY(f, 110) },
             paintedHeight(p.sprite, p.spriteH || 300) * pulse, {
               alpha: 0.6, shadow: { color: p.color, blur: 24 },
             });
@@ -1318,10 +1319,10 @@ const DIRECTORS = {
         for (let i = 0; i < 4; i++) {
           const rr = ((this.t * 420 + i * 130) % p.radius);
           ctx.beginPath();
-          ctx.arc(f.x, f.y - 90, rr, -0.7, 0.7);
+          ctx.arc(f.x, bodyY(f, 90), rr, -0.7, 0.7);
           ctx.stroke();
           ctx.beginPath();
-          ctx.arc(f.x, f.y - 90, rr, Math.PI - 0.7, Math.PI + 0.7);
+          ctx.arc(f.x, bodyY(f, 90), rr, Math.PI - 0.7, Math.PI + 0.7);
           ctx.stroke();
         }
         ctx.restore();
@@ -1377,7 +1378,7 @@ const DIRECTORS = {
         // the barrels spooling up: three cores converging on the muzzle line
         const g = Math.min(1, this.t / (charge + 0.45));
         const cx = f.x + f.facing * 92;
-        const cy = f.y - 100;
+        const cy = bodyY(f, 100);
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
         for (let i = 0; i < 3; i++) {
@@ -1413,7 +1414,7 @@ const DIRECTORS = {
         if (this.t < charge) return;
         this.struck = true;
         const ix = f.x + f.facing * 150;
-        const iy = f.y - 100;
+        const iy = bodyY(f, 100);
         // Todo's Maximum Mass is a fist and keeps the blast, slowed to 0.5 for
         // weight. Miwa's Last Draw is a sword, and pitching a sword down half
         // an octave is how it stops sounding like one.
@@ -1424,11 +1425,11 @@ const DIRECTORS = {
         burst(ix, iy, p.color, 60, 2.2);
         ring(ix, iy, "#ffffff", p.radius);
         debugShape({ x: ix, y: iy, r: p.radius });
-        debugShape({ x: f.x, y: f.y - 90, r: p.shockwave });
+        debugShape({ x: f.x, y: bodyY(f, 90), r: p.shockwave });
         for (const t of state.fighters) {
           if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
           const inCore = circleRectOverlap(ix, iy, p.radius, hurtbox(t));
-          const inWave = circleRectOverlap(f.x, f.y - 90, p.shockwave, hurtbox(t));
+          const inWave = circleRectOverlap(f.x, bodyY(f, 90), p.shockwave, hurtbox(t));
           if (!inCore && !inWave) continue;
           // The core is the fist. The shockwave is the mass arriving after it,
           // and it is deliberately survivable — being near her is not the same
@@ -1447,7 +1448,7 @@ const DIRECTORS = {
         if (this.struck) {
           if (!img) return;
           const fade = Math.max(0, 1 - (this.t - charge) / 0.5);
-          paintShared(ctx, p.sprite, img, { x: f.x + f.facing * 150, y: f.y - 100 },
+          paintShared(ctx, p.sprite, img, { x: f.x + f.facing * 150, y: bodyY(f, 100) },
             paintedHeight(p.sprite, p.spriteH || 280) * (1 + (1 - fade) * 0.5),
             { mirrored: f.facing > 0, alpha: fade });
           return;
@@ -1455,7 +1456,7 @@ const DIRECTORS = {
         // mass gathering at the fist: a dense core that gets heavier, not bigger
         const g = this.t / charge;
         const cx = f.x + f.facing * 70;
-        const cy = f.y - 110;
+        const cy = bodyY(f, 110);
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
         const grad = ctx.createRadialGradient(cx, cy, 2, cx, cy, 30 + g * 26);

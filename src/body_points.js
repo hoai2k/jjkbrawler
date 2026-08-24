@@ -15,7 +15,29 @@
 
 import { BODY_POINTS, HURTBOX_FIT } from "./config_body_points.js";
 import { COM_BODY_FRAC } from "./config_tuning.js";
-import { HEIGHT_BASE_PX } from "./config_tuning.js";
+import { HEIGHT_BASE_PX, ART_SCALE } from "./config_tuning.js";
+
+// ---------------------------------------------------- heights on the body
+//
+// A LENGTH UP A FIGHTER, in world px. `bodyY(f, 90)` is the point 90px up the
+// REFERENCE body — chest height — placed on the roster as it is actually
+// drawn.
+//
+// It exists because the raw form was wrong in six files at once. Every "chest
+// height" and "over the head" in the game was written as `f.y - 90` against a
+// 149px reference body; ART_SCALE took the roster to 104px, four files were
+// swept to `f.y - 90 * ART_SCALE` and six were not, and every offset in those
+// six has been landing a third of a body too high ever since — particles above
+// heads, a homing shot aiming over its target, a hit test centred off the
+// chest. The multiplication is trivial. Knowing it is owed is not, which is
+// why it now has a name to be missing, and tools/check_body_scale.mjs fails on
+// a bare `f.y - 90` in game code.
+//
+// NOT for board lengths — a platform, a blast zone, a spawn spacing, a run
+// speed. Those deliberately did not follow the roster down (config_tuning.js
+// ART_SCALE), and the whole point of the roster shrinking was that the gap
+// between body-sized and board-sized opens up.
+export const bodyY = (f, up) => f.y - up * ART_SCALE;
 
 /** Centre of mass as a fraction of drawn height — the pivot a tumble turns
  *  about, the point the 3D rig rotates about in-scene, the chest line an aim
