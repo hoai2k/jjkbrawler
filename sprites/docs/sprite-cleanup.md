@@ -77,6 +77,25 @@ run the affected frames back through it.
 That mapping is `KIND_PLACEMENT` in `sprites/src/sprites.js` and it is not
 optional: applying the wrong one silently resizes or displaces the sprite.
 
+**The `alpha` fault that keeps coming back is the flood LEAKING IN, not a hard
+edge.** `intake.py` decides what is background by flooding inward from the
+canvas border through everything close to the key colour — and on a GREY screen
+"close to the key colour" also describes the shading on a white robe. Wherever a
+pale costume's shadow reaches the silhouette edge, the fill has a continuous
+path into the middle of the drawing and takes it, so the sprite ships with holes
+punched through the parts of it that were nearest the key.
+
+It is the hardest keying fault to see, for two reasons that reinforce each
+other: the holes are *inside* the figure rather than around it, so a silhouette
+still reads correctly; and the fighters it happens to are the pale ones, whose
+plates are keyed on grey precisely because they are pale. Hanami and Kashimo
+lost 17% and 8% of themselves and both look fine at thumbnail size.
+
+`FLOOD_NECK` in `tools/intake.py` is the guard — the fill runs on an eroded
+candidate mask so a two-pixel bridge cannot carry it, then dilates back. If a
+delivery predates that guard, re-key it through this step; the whole round-25
+delivery was re-scanned for it and 34 of 250 plates needed it.
+
 **Deliverable: a before/after contact sheet, plus a deep link per frame.** A
 pixel fix cannot be reported as "done" in prose — it has to be looked at. So the
 cleanup produces:
