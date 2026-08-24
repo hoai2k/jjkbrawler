@@ -310,6 +310,20 @@ function containY(c, half, band, lo, hi) {
   return contain(c + band / 2, half - band / 2, lo, hi) - band / 2;
 }
 
+// WHO THE SHOT STILL OWES A PLACE TO.
+//
+// Every alive body on the stage, minus the ones already past the gutter the
+// frame is allowed to reach into: a fighter that far out is in the blast zone
+// with a KO on the way, and the pass below has always given up on them rather
+// than chase a body into the unpainted void. Exported because the 2.5D rig
+// owes the same fighters the same place — its drama shots (an ult, a domain,
+// the final blow) frame ONE fighter, and without this they framed them alone.
+export function framedFighters(st = state) {
+  return st.fighters.filter((f) => !f.dead && f.respawnTimer <= 0
+    && f.x > -OVERSCAN_X && f.x < WORLD.w + OVERSCAN_X
+    && f.y > -OVERSCAN_Y && f.y < WORLD.h + OVERSCAN_Y);
+}
+
 export function updateCamera(dt) {
   const cam = state.camera;
   const alive = state.fighters.filter((f) => !f.dead && f.respawnTimer <= 0);

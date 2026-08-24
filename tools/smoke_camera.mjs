@@ -505,5 +505,49 @@ pass("deadzone kills the jiggle without deadening the shot");
   pass("the frame remembers the high ground");
 }
 
+// A DRAMA SHOT STILL SHOWS THE FIGHT.
+//
+// An ult cast, a domain and a final blow all frame one fighter and tighten on
+// them. The opponent the ultimate is aimed at is the thing the player holding
+// them most needs to see, and used to be able to sit off the side of the
+// screen for the whole cast.
+const onScreen = (f, label) => {
+  const s = worldToScreen(f.x, f.y);
+  check(s.x > 20 && s.x < WORLD.w - 20 && s.y > -20 && s.y < WORLD.h + 20,
+    label, `screen ${s.x.toFixed(0)},${s.y.toFixed(0)}`);
+};
+
+for (const [label, setup] of [
+  ["an ult cast", () => {
+    state.fighters[0].x = 300; state.fighters[1].x = 980;
+    state.fighters[0].action = { kind: "ult", t: 0, dur: 1.2 };
+  }],
+  ["a domain cast", () => {
+    state.fighters[0].x = 300; state.fighters[1].x = 980;
+    state.fighters[0].action = { kind: "ult", t: 0, dur: 1.2 };
+    state.domainOverlay = { life: 9, maxLife: 9 };
+  }],
+  ["an ult with the opponent airborne", () => {
+    state.fighters[0].x = 380; state.fighters[1].x = 900; state.fighters[1].y = 240;
+    state.fighters[0].action = { kind: "ult", t: 0, dur: 1.2 };
+  }],
+]) {
+  resetState();
+  setup();
+  run(1.2, () => { state.fighters[0].action.t += DT; });
+  for (const f of state.fighters) onScreen(f, `${label} keeps every fighter on screen`);
+}
+
+// ...and the pass gives up on exactly who the flat camera gives up on: a body
+// already in the blast zone does not drag the shot out to the void with it.
+resetState();
+state.fighters[0].x = 640;
+state.fighters[0].action = { kind: "ult", t: 0, dur: 1.2 };
+state.fighters[1].x = BLAST.right - 20;
+run(1.2, () => { state.fighters[0].action.t += DT; });
+check(updateRig(state, DT).dollyMul < 0.95,
+  "a fighter already in the blast zone does not widen the shot");
+pass("drama shots keep the whole fight on screen");
+
 console.log(failures ? `\n${failures} check(s) failed` : "\nall checks passed");
 process.exit(failures ? 1 : 0);
