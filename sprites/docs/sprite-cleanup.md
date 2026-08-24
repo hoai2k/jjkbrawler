@@ -96,6 +96,40 @@ candidate mask so a two-pixel bridge cannot carry it, then dilates back. If a
 delivery predates that guard, re-key it through this step; the whole round-25
 delivery was re-scanned for it and 34 of 250 plates needed it.
 
+**And there is a SECOND way in, which the flood guard does not close.** After
+the flood, `flat_key_mask` removes anything still sitting on the key colour and
+locally uniform, on the reasoning that background sealed inside a silhouette —
+the gap under a wing, between an arm and a hip — can never be reached by a fill
+that starts at the border. That reasoning is sound and the test earns its keep:
+it is what cuts Toji's 22,064px, Dagon's 20,990 and Mei Mei's 15,067.
+
+It is also how the key colour gets *drawn*. Round 25's screen is a neutral grey,
+and so is the shadow an artist lays on a white robe — not approximately, but
+128,128,128 exactly, flat, thousands of pixels wide. Nothing about the region
+says which it is. `flat_key_mask` cut 5.7% out of Kashimo, 6.7% out of Gakuganji
+and 10% out of Hanami this way, always in the middle of a pale costume, and
+every one of those poses came back from the workbench flagged for alpha.
+
+What separates them is the company the region keeps: sealed background is fenced
+by the drawing, never by the bright white of a garment it would be sitting in the
+middle of, while a shading stroke lies ON the thing it shades. `shading_on_pale`
+reads the ring of art 3 to 9 pixels out and declines the removal when a quarter
+of it is that white. Over the whole delivery it saves 250,901px across 35 plates
+and leaves every removal that was doing real work alone.
+
+**On a garment that is not pale, nothing measurable separates them** — the lit
+panel of Yuji's navy jacket and the body of Gakuganji's guitar are drawn in the
+screen grey too, and a flat dark field fenced by flat dark art is exactly what a
+real pocket looks like. Those are named in `KEY_IS_A_DRAWN_TONE` and the test is
+declined for the whole plate, the way `GREY_TINT_FIX` is named. A name goes in
+only after somebody has looked and confirmed the plate has no sealed pocket for
+the test to have been catching.
+
+**The fix at the source is the screen colour.** A magenta or green key cannot
+collide with a shadow, and `intake.py` already keys both. Every heuristic here
+exists because a neutral grey screen was used for art that is itself neutral
+grey; a delivery keyed on magenta needs none of it.
+
 **Deliverable: a before/after contact sheet, plus a deep link per frame.** A
 pixel fix cannot be reported as "done" in prose — it has to be looked at. So the
 cleanup produces:

@@ -105,7 +105,7 @@ def current_frames_for(anims, man, char, key):
 
 # ---------------------------------------------------------------- keying
 
-def key_and_trim(path):
+def key_and_trim(path, ref=None):
     """Key the delivered background out and trim to content.
 
     Reuses the round-5 routine's border sampling, then decontaminates the
@@ -151,7 +151,7 @@ def key_and_trim(path):
         clean[edge] = np.clip((rgb[edge] - (1.0 - a) * key) / a, 0, 255)
     alpha[alpha >= 48 / 255] = 1.0
 
-    if key is not None:
+    if key is not None and ref not in KEY_IS_A_DRAWN_TONE:
         alpha[flat_key_mask(clean, alpha, key)] = 0.0
 
     vis = alpha >= 8 / 255
@@ -213,7 +213,61 @@ def flat_key_mask(rgb, alpha, key, tol=14, max_var=9, min_px=250):
         return np.zeros(opaque.shape, bool)
     counts = np.bincount(lab.ravel())
     counts[0] = 0
-    return np.isin(lab, np.nonzero(counts >= min_px)[0])
+    keep = np.isin(lab, np.nonzero(counts >= min_px)[0])
+    return keep & ~shading_on_pale(keep, lab, luma, opaque)
+
+
+# How far out to look for the garment, and how much of it settles the question.
+#
+# THE KEY COLOUR IS ALSO A SHADING TONE. Round 25's screen is a neutral grey,
+# and so is the shadow an artist lays on a WHITE robe — near enough that the
+# test above cannot tell them apart by colour, because there is nothing to tell:
+# the pixels are 128,128,128 either way, flat, and hundreds wide. It cut 5.7% out
+# of Kashimo, 10% out of Hanami and 6.7% out of Gakuganji, always in the middle
+# of a pale costume, and every one of those poses came back flagged for alpha.
+#
+# What separates them is not the region, it is the company it keeps. Sealed
+# background is fenced by the drawing — an arm, a wing, a fold of cloth — and
+# never by the bright white of the garment it would be sitting in the middle of.
+# A shading stroke, by definition, lies ON the thing it shades. So look at the
+# ring of art from 3 to 9 pixels out: if a quarter of it is the white of a pale
+# costume, the region is a shadow on that costume and stays.
+#
+# Measured over the whole 250-plate delivery: it declines 250,901px across 35
+# plates, led by exactly the poses the workbench sent back, and leaves the
+# removals that were doing real work untouched — Toji's 22,064px, Dagon's
+# 20,990 and Mei Mei's 15,067 are all still cut, because the art around those
+# pockets is skin, wing and hair rather than white cloth.
+SHADE_NEAR, SHADE_FAR, SHADE_WHITE, SHADE_SHARE = 3, 9, 195, 0.25
+
+# WHERE THE KEY COLOUR IS A DRAWN TONE ON SOMETHING THAT IS NOT PALE.
+#
+# The rule above reads the company a region keeps, and the company it reads is
+# the white of a pale costume — which is where this collision happens on almost
+# every plate. It cannot help on a dark garment: the lit panel down the front of
+# Yuji's navy jacket and the body of Gakuganji's guitar are drawn in the screen
+# grey too, and the art around them is navy and lacquer rather than white.
+#
+# Nothing measurable separates those from a real sealed pocket — a pocket under
+# Dagon's wing is also a flat field fenced by flat art — so they are named, the
+# way GREY_TINT_FIX below is named, and the test is declined for the whole
+# plate. A human looked at these two and saw a jacket and a guitar.
+#
+# Declining costs nothing on either: neither plate has a sealed pocket for the
+# test to have been catching, which is checked by eye before a name goes in.
+KEY_IS_A_DRAWN_TONE = {"gakuganji/throw_up", "yuji/throw_back"}
+
+
+def shading_on_pale(mask, lab, luma, opaque):
+    """Of the regions in `mask`, the ones sitting inside a pale garment."""
+    out = np.zeros(mask.shape, bool)
+    for region in np.unique(lab[mask]):
+        m = lab == region
+        far = (ndimage.binary_dilation(m, iterations=SHADE_FAR)
+               & ~ndimage.binary_dilation(m, iterations=SHADE_NEAR) & opaque)
+        if far.any() and (luma[far] > SHADE_WHITE).mean() >= SHADE_SHARE:
+            out |= m
+    return out
 
 
 # Where a translucent motion trail was drawn OVER a magenta key, the composite
@@ -483,7 +537,7 @@ def main():
             key_name = name[:-4]
             src = os.path.join(d, name)
             raw = np.asarray(Image.open(src).convert("RGBA"))
-            frame, box, key = key_and_trim(src)
+            frame, box, key = key_and_trim(src, f"{char}/{key_name}")
             if frame is None:
                 flagged.append(f"{char}/{key_name}: EMPTY after keying")
                 continue
