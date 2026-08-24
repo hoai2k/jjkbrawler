@@ -92978,8 +92978,8 @@
     "dx": null,
     "dy": null
    },
-   "dx": -2.8,
-   "dy": 9.9,
+   "dx": 0.6,
+   "dy": 60.9,
    "src": {
     "file": "assets/sprites/effects/concert_wave.png",
     "sha": "684987b95d32"
@@ -93019,8 +93019,8 @@
     "dy": null
    },
    "faceLeft": false,
-   "dx": 0,
-   "dy": 0.6,
+   "dx": 0.6,
+   "dy": -2.3,
    "src": {
     "file": "assets/sprites/effects/purple.png",
     "sha": "294c7d3a0d90"
@@ -93037,8 +93037,8 @@
     "dx": null,
     "dy": null
    },
-   "dx": 7.6,
-   "dy": 0.5,
+   "dx": -0.8,
+   "dy": -0.1,
    "hit": {
     "dx": -1.9,
     "dy": 3.4,
@@ -93070,8 +93070,8 @@
     "dy": null,
     "faceLeft": null
    },
-   "dx": -95.3,
-   "dy": -37,
+   "dx": -24.7,
+   "dy": 27.4,
    "faceLeft": true,
    "src": {
     "file": "assets/sprites/effects/sound_wave.png",
@@ -93486,13 +93486,18 @@
     "dx": null,
     "dy": null
    },
-   "dx": -0.4,
-   "dy": 0.5,
+   "dx": -1.5,
+   "dy": -0.5,
    "src": {
     "file": "assets/sprites/effects/blue.png",
     "sha": "2e506a2c9e8f"
    },
-   "fadeIn": 0.14
+   "fadeIn": 0.14,
+   "hit": {
+    "dx": 0,
+    "dy": -1.5,
+    "scale": 1
+   }
   },
   "summon:cockroach_swarm": {
    "edited": {

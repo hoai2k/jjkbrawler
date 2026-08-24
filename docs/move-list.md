@@ -252,7 +252,7 @@ are free and run on individual cooldowns instead.
 - Neutral special *(1.1s cooldown)* — **Power Chord** — One downstroke — cursed energy rides the riff out as a crushing wall of sound.
 - Side special *(1.9s cooldown)* — **Feedback Wall** — Plants a standing wave of shrieking feedback that erupts when crossed.
 - Down special *(6s cooldown)* — **Distortion Solo** — Steps on the pedal. While the solo rings, every Power Chord comes out doubled.
-- Ultimate — **Deadly Melody: Encore** — The full performance. Waves of amplified cursed sound roll off the stage until the closing chord throws the crowd.
+- Ultimate — **Deadly Melody: Encore** — The full performance. The opening chord stuns the whole room; the waves after it only reach as far as they are drawn, until the closing chord throws whoever stayed at the front.
 - Passive — **Unshakeable Tradition** — Decades on every kind of stage: takes 25% less hitstun — the old man barely flinches.
 
 <a id="yaga"></a>

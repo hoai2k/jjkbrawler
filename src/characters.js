@@ -1429,8 +1429,13 @@ export const CHARACTERS = {
     },
     ultimate: {
       name: "Deadly Melody: Encore", type: "concert",
-      desc: "The full performance. Waves of amplified cursed sound roll off the stage until the closing chord throws the crowd.",
-      p: { duration: 3.0, tickRate: 0.45, dmgTick: 4, finalDmg: 16, finalBase: 800, finalGrowth: 9, radius: 520, color: "#d89b3f", label: "ENCORE", sprite: "effect:concert_wave", spriteH: 300 },
+      desc: "The full performance. The opening chord stuns the whole room; the waves after it only reach as far as they are drawn, until the closing chord throws whoever stayed at the front.",
+      // `freeze` is the opening chord, and the only part of this that reaches
+      // the whole stage. The damage radii are multipliers on the PAINTED wave
+      // (src/ultimates.js concert), not lengths — `radius` is now only the
+      // fallback for a match whose art never loaded and which is drawing
+      // expanding rings instead.
+      p: { duration: 3.0, tickRate: 0.45, dmgTick: 4, finalDmg: 16, finalBase: 800, finalGrowth: 9, freeze: 0.9, hitRadiusMul: 1.4, finalRadiusMul: 1.2, radius: 110, color: "#d89b3f", label: "ENCORE", sprite: "effect:concert_wave", spriteH: 300 },
     },
     passive: { id: "oldGuard", name: "Unshakeable Tradition", desc: "Decades on every kind of stage: takes 25% less hitstun — the old man barely flinches." },
     ai: { style: "zoner", range: 380 },

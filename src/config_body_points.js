@@ -63,47 +63,66 @@
 //              absent means "the next answer down", so an empty file is
 //              exactly the behaviour the game had before anybody checked.
 //
+//              THE PIXELS ARE THE DRAWN BODY'S PIXELS, which is the one thing
+//              about this column that is not self-evident and the one thing
+//              that broke it. `com` is a fraction, so it survived the roster
+//              going to 70% (ART_SCALE, config_tuning.js) without an edit;
+//              these are lengths, and they did not. Every point here was
+//              placed on 149px bodies the day before that landed, and the
+//              game went on reading them raw against 104px ones: Gojo's Blue
+//              left from 115px up a 104px fighter — above his own head, and
+//              55px in front of him — in every match since. They are rescaled
+//              onto the drawn body once, here, and tools/audit_hitboxes.mjs
+//              checks that each one still lands ON the fighter, so the next
+//              change to how big bodies are drawn fails a check instead of
+//              quietly moving every shot in the game.
+//
+//              A point the bench writes today is already in these units: it is
+//              dragged onto the drawing the game draws (`toGame` in
+//              workbench/verify_common.js), so pasting an export block in and
+//              committing it is still the whole procedure.
+//
 // There is deliberately no ledge-grip key. Where the hand meets the lip is a
 // per-frame `ledge` anchor in the sprite manifest, baked on every hang frame
 // and draggable in the sprite workbench — a second copy here would be a
 // duplicate that drifts.
 
 export const BODY_POINTS = {
-  "choso": { com: 0.585, muzzle: { x: 53, y: -113 } },
-  "dagon": { com: 0.605, muzzle: { x: 14, y: 0 } },
-  "gakuganji": { com: 0.597, muzzle: { x: 1, y: -74 } },
-  "geto": { com: 0.569, muzzle: { x: 35, y: -133 } },
-  "gojo": { com: 0.577, muzzle: { x: 55, y: -115 } },
-  "hakari": { com: 0.641, muzzle: { x: 57, y: -111 } },
-  "hanami": { com: 0.595, muzzle: { x: 69, y: -133 } },
-  "inumaki": { com: 0.583, muzzle: { x: 39, y: -107 } },
-  "jogo": { com: 0.553, muzzle: { x: 54, y: -97 } },
-  "kurourushi": { com: 0.55, muzzle: { x: 49, y: -104 } },
+  "choso": { com: 0.585, muzzle: { x: 37, y: -79 } },
+  "dagon": { com: 0.605, muzzle: { x: 10, y: 0 } },
+  "gakuganji": { com: 0.597, muzzle: { x: 1, y: -52 } },
+  "geto": { com: 0.569, muzzle: { x: 24, y: -93 } },
+  "gojo": { com: 0.577, muzzle: { x: 38, y: -80 } },
+  "hakari": { com: 0.641, muzzle: { x: 40, y: -78 } },
+  "hanami": { com: 0.595, muzzle: { x: 48, y: -93 } },
+  "inumaki": { com: 0.583, muzzle: { x: 27, y: -75 } },
+  "jogo": { com: 0.553, muzzle: { x: 38, y: -68 } },
+  "kurourushi": { com: 0.55, muzzle: { x: 34, y: -73 } },
   "mahito": { com: 0.591 },
-  "maki": { com: 0.6, muzzle: { x: 73, y: -128 } },
-  "mechamaru": { com: 0.591, muzzle: { x: 45, y: -131 } },
-  "megumi": { com: 0.598, muzzle: { x: 42, y: -104 } },
-  "meimei": { com: 0.638, muzzle: { x: 66, y: -150 } },
-  "momo": { com: 0.623, muzzle: { x: 65, y: -64 } },
-  "nanami": { com: 0.596, muzzle: { x: 41, y: -97 } },
-  "nobara": { com: 0.614, muzzle: { x: 48, y: -84 } },
+  "maki": { com: 0.6, muzzle: { x: 51, y: -90 } },
+  "mechamaru": { com: 0.591, muzzle: { x: 31, y: -92 } },
+  "megumi": { com: 0.598, muzzle: { x: 29, y: -73 } },
+  "meimei": { com: 0.638, muzzle: { x: 46, y: -105 } },
+  "momo": { com: 0.623, muzzle: { x: 46, y: -45 } },
+  "nanami": { com: 0.596, muzzle: { x: 29, y: -68 } },
+  "nobara": { com: 0.614, muzzle: { x: 34, y: -59 } },
   "panda": { com: 0.497 },
-  "reggie": { com: 0.564, muzzle: { x: 36, y: -115 } },
-  "sukuna": { com: 0.591, muzzle: { x: 54, y: -105 } },
+  "reggie": { com: 0.564, muzzle: { x: 25, y: -80 } },
+  "sukuna": { com: 0.591, muzzle: { x: 38, y: -74 } },
   "todo": { com: 0.591 },
-  "toji": { com: 0.614, muzzle: { x: 53, y: -116 } },
+  "toji": { com: 0.614, muzzle: { x: 37, y: -81 } },
   "uro": { com: 0.577 },
   "yuji": { com: 0.582 },
   "yuki": { com: 0.623 },
-  "yuta": { com: 0.618, muzzle: { x: 49, y: -81 } },
+  "yuta": { com: 0.618, muzzle: { x: 34, y: -57 } },
   // Round 23's and 24's staged fighters, verified as their art landed. Their
   // `com` closed the last gap in this column: seven fighters were still on the
   // roster default, which the per-FRAME queue was then judging their drawings
   // against and reporting as "off their fighter's verified value" — a value
   // nobody had placed. Every fighter now carries their own.
   "haruta": { com: 0.6 },
-  "kashimo": { com: 0.593, muzzle: { x: 78, y: -109 } },
-  "kirara": { com: 0.608, muzzle: { x: 36, y: -105 } },
+  "kashimo": { com: 0.593, muzzle: { x: 55, y: -76 } },
+  "kirara": { com: 0.608, muzzle: { x: 25, y: -74 } },
   "miwa": { com: 0.598 },
   "naoya": { com: 0.592 },
   "tengen": { com: 0.576 },
