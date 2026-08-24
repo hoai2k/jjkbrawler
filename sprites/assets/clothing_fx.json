@@ -9,11 +9,11 @@
       "hem": 998
     },
     "uro/attack_air_a": {
-      "art": "410d3dc8ef86",
-      "share": 0.0419,
-      "top": 0.324,
-      "bottom": 0.651,
-      "hem": 998
+      "art": "8a987879d5db",
+      "share": 0.0343,
+      "top": 0.36,
+      "bottom": 0.662,
+      "hem": 756
     },
     "uro/attack_air_b": {
       "art": "66abe05bfe0f",
@@ -22,12 +22,26 @@
       "bottom": 0.695,
       "hem": 1820
     },
+    "uro/attack_air_diag_down_b": {
+      "art": "66cfcc00ffcc",
+      "share": 0.0389,
+      "top": 0.348,
+      "bottom": 0.681,
+      "hem": 980
+    },
     "uro/attack_dash": {
       "art": "13477c58bc9a",
       "share": 0.0238,
       "top": 0.331,
       "bottom": 0.657,
       "hem": 656
+    },
+    "uro/attack_diag_up_b": {
+      "art": "20a1a5419595",
+      "share": 0.0424,
+      "top": 0.281,
+      "bottom": 0.621,
+      "hem": 960
     },
     "uro/attack_down": {
       "art": "9dd9a3bfcbfa",
@@ -51,11 +65,11 @@
       "hem": 1082
     },
     "uro/attack_heavy_b": {
-      "art": "fb702840a297",
-      "share": 0.0618,
-      "top": 0.157,
-      "bottom": 0.626,
-      "hem": 1100
+      "art": "274db2e8d09f",
+      "share": 0.0291,
+      "top": 0.326,
+      "bottom": 0.655,
+      "hem": 612
     },
     "uro/attack_light_a": {
       "art": "4ad7f30bcc48",
@@ -100,11 +114,11 @@
       "hem": 866
     },
     "uro/crouch_attack_b": {
-      "art": "13477c58bc9a",
-      "share": 0.0238,
-      "top": 0.331,
-      "bottom": 0.657,
-      "hem": 656
+      "art": "392cca2a35ea",
+      "share": 0.0382,
+      "top": 0.468,
+      "bottom": 0.917,
+      "hem": 848
     },
     "uro/crouch_b": {
       "art": "ed4bccc5f76c",
@@ -291,6 +305,34 @@
       "top": 0.263,
       "bottom": 0.582,
       "hem": 806
+    },
+    "uro/throw_back": {
+      "art": "57c3d98f31a1",
+      "share": 0.0295,
+      "top": 0.289,
+      "bottom": 0.581,
+      "hem": 864
+    },
+    "uro/throw_down": {
+      "art": "067e69b768b5",
+      "share": 0.0293,
+      "top": 0.408,
+      "bottom": 0.703,
+      "hem": 984
+    },
+    "uro/throw_fwd": {
+      "art": "8b7438179d81",
+      "share": 0.0358,
+      "top": 0.327,
+      "bottom": 0.636,
+      "hem": 858
+    },
+    "uro/throw_up": {
+      "art": "90c88e68b9ee",
+      "share": 0.044,
+      "top": 0.3,
+      "bottom": 0.589,
+      "hem": 862
     },
     "uro/ult_a": {
       "art": "82ee83e222d6",

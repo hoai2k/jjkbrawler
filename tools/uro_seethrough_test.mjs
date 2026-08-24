@@ -226,7 +226,12 @@ const modUrl = await moduleUrl("src/clothing_fx.js");
 if (CONTACT) {
   const { readFile: rf } = await import("node:fs/promises");
   const manifest = JSON.parse(await rf(path.join(ROOT, "sprites/assets/manifest.json"), "utf8"));
-  const all = Object.entries(manifest.characters.uro);
+  // `--poses` narrows the sheet, which is what a review after an intake wants:
+  // the drift guard names the frames that changed, and those are the ones to
+  // look at rather than all 47 again.
+  const named = process.argv.includes("--poses") ? new Set(POSES) : null;
+  const all = Object.entries(manifest.characters.uro)
+    .filter(([pose]) => !named || named.has(pose));
   const ext = FORMAT === "jpeg" ? "jpg" : "png";
   for (let page = 0; page * PAGE < all.length; page++) {
     const slice = all.slice(page * PAGE, (page + 1) * PAGE);
