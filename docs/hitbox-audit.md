@@ -783,6 +783,35 @@ forward tip lands at 115.7 px — almost exactly halfway between the measured-on
 99.4 and the rig-derived 132.3 the change replaced. The config comment carries
 the whole sweep so the setting can be moved knowingly.
 
+### The near edge, which is the same argument at the other end of the box
+
+Both floors above are about where an attack *ends*. Where it **starts** was one
+number for everybody: `MELEE_GRACE.near = 0.5`, half a body width in front of
+the centre — the front edge of the body. A standing hurtbox is `x ± width/2`,
+so two fighters stood on the same spot had a hitbox whose near edge landed
+exactly on the opponent's front edge, and nothing overlapped. Neither could hit
+the other, and anyone who crossed up even slightly was behind the whole box.
+
+For a long-armed fighter that hole is correct — it is the price of reach, and
+stepping inside a spear is how you beat a spear. For a short-armed one it took
+away the only range they have. So the near edge is now interpolated by shipped
+reach (`nearOf`, moves.js), between:
+
+* **`near` (0.5)** — the median fighter and everybody above them, unchanged.
+* **`nearShort` (-0.3)** — the shortest arms on the roster, whose forward boxes
+  start *behind* their own centre and come out across their own body.
+* **`nearBack` (0.5)** — the cap, once the per-move multipliers (`MELEE_SPAN`
+  NEAR, which is now subtracted rather than multiplied so it keeps its meaning
+  on a negative edge) have stacked on top.
+
+At shipping values Nobara and Mahito start their forward boxes 8-10 px behind
+their own centres and connect on somebody stood up to ~22 px past them; the
+the seventeen fighters at or above the median do not move a pixel. A forward
+box carries `forward: true` from here on, because its own geometry no longer
+says what kind of box it is: a negative `ox` used to mean "straddles the body",
+and both the travelling far edge (`hitboxRect`) and the rear crescent
+(`strikeArcs`) read it that way.
+
 `tools/audit_hitboxes.mjs` checks both floors on every forward attack and fails
 on either. It replaces the old "grace margin is identical for everyone" check,
 which stopped being the right question once the margin became two floors and a

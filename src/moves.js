@@ -52,7 +52,7 @@ import {
 import { SAKURAI, SMASH_TILT_ANGLE, DASH_LUNGE_DRAG } from "./constants.js";
 import {
   artReach, bodyWidth, bodyMetrics, moveHeight, moveReach, paintedReach,
-  rosterReach, rosterReachSpan,
+  rosterReach, rosterReachSpan, rosterShippedSpan,
 } from "./silhouette.js";
 import { strikePoint } from "./strike_points.js";
 import { hurtboxFit } from "./body_points.js";
@@ -159,13 +159,53 @@ function priceOf(g) {
   return 1 + over * REACH_PRICE.amount;
 }
 
-/** A box in front of the fighter: near edge just clear of the body, far edge
- *  at the move's tip. */
+/**
+ * WHERE A FORWARD BOX STARTS, in fractions of the fighter's own body width.
+ *
+ * A long-armed fighter keeps the near edge on the front of their body, which
+ * is where every forward box has always started, and keeps the hole that comes
+ * with it: at zero separation their box's near edge sits exactly on the
+ * opponent's front edge and nothing overlaps. Stepping inside a spear is how
+ * you beat a spear.
+ *
+ * A short-armed one gets the near edge pulled back THROUGH their own centre,
+ * so their attacks cover the body they are thrown from. Scaled by shipped
+ * reach against the roster: the shortest arms in the game get `nearShort` in
+ * full, the median gets today's `near`, and everybody above the median is
+ * untouched — this can only ever help the fighters it was written for, and can
+ * never hand extra range to the ones it was not.
+ *
+ * Measured against SHIPPED reach (`rosterShippedSpan`) rather than the raw
+ * measurements `addedFor` uses, because this is a statement about the matchup
+ * as played and tempering moves both ends of the roster inward.
+ *
+ * `nearMul` — a low poke and an aerial start closer in than a standing swing —
+ * comes off SUBTRACTIVELY rather than as a multiplier. On a positive near edge
+ * the two are identical (`0.5 - 0.3*0.5` is `0.5*0.7`), so no existing box
+ * moves; on a negative one a multiplier would pull the edge back toward the
+ * body and invert the whole point of the knob. `nearBack` is the floor.
+ */
+function nearOf(g, nearMul = 1) {
+  const { min, mid } = rosterShippedSpan();
+  const t = mid > min ? clamp((g.reach - min) / (mid - min), 0, 1) : 1;
+  const base = MELEE_GRACE.nearShort + (MELEE_GRACE.near - MELEE_GRACE.nearShort) * t;
+  const inward = (1 - nearMul) * MELEE_GRACE.near;
+  return Math.max(-MELEE_GRACE.nearBack, base - inward);
+}
+
+/** A box in front of the fighter: near edge just clear of the body — or through
+ *  it, on the short end of the roster (`nearOf`) — far edge at the move's tip.
+ *
+ *  `forward: true` is the box SAYING which kind it is, because with a near edge
+ *  that can sit behind the fighter its own geometry no longer tells you: a
+ *  negative `ox` used to mean "straddles the body", and both the travelling far
+ *  edge (combat.js hitboxRect) and the rear crescent (strikeArcs) read it that
+ *  way. */
 function forward(g, tip, oy, h, nearMul = 1) {
-  const ox = g.width * MELEE_GRACE.near * nearMul;
+  const ox = g.width * nearOf(g, nearMul);
   return {
     ox, w: Math.max(g.width * MELEE_SPAN.minWidth, tip - ox),
-    oy: g.vy(oy), h: g.vy(h),
+    oy: g.vy(oy), h: g.vy(h), forward: true,
   };
 }
 
@@ -588,7 +628,12 @@ export function strikeArcs(m, bodyH) {
   const box = { x0: m.ox, x1: m.ox + m.w, y0: m.oy, y1: m.oy + m.h };
   const armY = -STRIKE_ARC.armHeight * bodyH;
   const hipY = -STRIKE_ARC.hipHeight * bodyH;
-  const straddles = box.x0 < 0;
+  // A forward box may now start behind the fighter's centre on the short end of
+  // the roster (`nearOf`), and that is not the same thing as a quake coming out
+  // both sides: it says so itself rather than being read off the sign of `ox`,
+  // which would have hung a second crescent off the back of every short
+  // fighter's jab.
+  const straddles = !m.forward && box.x0 < 0;
 
   // WHICH WAY THE SWING COMES OUT, and the move is asked before the box is.
   //

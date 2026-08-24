@@ -201,6 +201,11 @@ export function spawnMelee(owner, cfg) {
     age: -(cfg.delay || 0),
     dur: cfg.dur || 0.12,
     ox: cfg.ox ?? 40, oy: cfg.oy ?? -96,
+    // A box built by moves.forward(), which is the only thing entitled to a
+    // near edge behind the fighter's own centre. Read by hitboxRect below and
+    // by the crescent (strikeArcs, moves.js); both used to infer it from the
+    // sign of `ox` and can no longer.
+    forward: !!cfg.forward,
     w: cfg.w ?? 160, h: cfg.h ?? 100,
     dmg: cfg.dmg ?? 8,
     baseKb: cfg.baseKb ?? cfg.base ?? 300,
@@ -332,7 +337,7 @@ function enemySummons(attacker) {
 export function hitboxRect(hb) {
   const o = hb.owner;
   const facing = hb.facing ?? o.facing;
-  const w = hb.ox >= 0
+  const w = hb.forward || hb.ox >= 0
     ? hb.w * swingExtent(hb.age / Math.max(hb.dur, 0.001))
     : hb.w;
   const x = facing === 1 ? o.x + hb.ox : o.x - hb.ox - w;

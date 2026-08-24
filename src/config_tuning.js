@@ -612,7 +612,35 @@ export const STRIKE_ARC = {
 
 export const MELEE_GRACE = {
   scale: 1,
+
+  // WHERE A FORWARD BOX STARTS, as a fraction of the fighter's own body width,
+  // measured from their centre.
+  //
+  // `near` is the long-armed answer and the one that has always shipped: half a
+  // body width in front of the centre, which is the front edge of the body. It
+  // is why two fighters standing on the same spot cannot hit each other — a
+  // standing hurtbox is `x ± width/2`, so the box's near edge lands exactly on
+  // the opponent's front edge and the overlap is zero. A reaching fighter
+  // SHOULD have that hole: it is the price of long arms, and stepping inside
+  // them is how you beat one.
+  //
+  // `nearShort` is the answer for the shortest arms on the roster, and it is
+  // negative: the box starts BEHIND their centre, so their attacks come out
+  // across their own body and land on somebody stood on top of them or half a
+  // step past. A fighter whose whole game is being close has to be able to
+  // hit at the range they fight at.
+  //
+  // Blended between the two by shipped reach (moves.js `nearOf`): the roster
+  // minimum gets `nearShort` in full, the MEDIAN and everybody above it gets
+  // `near` unchanged, and the fighters in between slide across. Nobody at or
+  // above the middle of the roster moves a pixel from what they have now.
+  //
+  // `nearBack` caps how far behind the centre any box may start, however the
+  // per-move multipliers stack on top — half a body width, so an attack can
+  // cover the body it is thrown from and no more than that.
   near: 0.5,
+  nearShort: -0.3,
+  nearBack: 0.5,
 
   jabEarly: 12,     // the opening jabs of a chain: no reward for mashing
   jab: 18,          // the finisher
@@ -689,10 +717,13 @@ export const ADDED_RANGE = {
 // is why up and down are under 1 while the quake, which is a shockwave leaving
 // both sides along the floor, is nearly double.
 //
-// NEAR multiplies MELEE_GRACE.near, which is where a forward box starts as a
-// fraction of the fighter's own body width. A low poke and an aerial start
-// closer in than a standing swing does, because the body is not in the way of
-// either in the same way.
+// NEAR pulls the near edge of a forward box in — `MELEE_GRACE.near` is where
+// one starts, as a fraction of the fighter's own body width. A low poke and an
+// aerial start closer in than a standing swing does, because the body is not in
+// the way of either in the same way. Applied subtractively (moves.js `nearOf`):
+// on a positive near edge that is identical to the multiplication these numbers
+// were authored as, and on a negative one it keeps moving the edge the way the
+// knob means rather than back toward the body.
 export const MELEE_SPAN = {
   up: 0.9,            // up tilt and up air
   upHeavy: 1.0,       // the up smash, which spans its whole reach

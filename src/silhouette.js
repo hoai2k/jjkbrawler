@@ -61,6 +61,7 @@
 // PNG.
 
 import { spriteManifest, frameMeta } from "./assets.js";
+import { CHARACTER_KEYS } from "./characters.js";
 import { MODEL_REACH } from "./config_model_reach.js";
 import {
   spriteReach, verifiedReach, verifiedHeight, reachGuard, heightGuard,
@@ -106,6 +107,7 @@ const heightCache = new Map();
 const paintedCache = new Map();
 let rosterCache = null;
 let rosterSpanCache = null;
+let rosterShippedCache = null;
 
 // ---------------------------------------------------------------- source
 //
@@ -157,6 +159,7 @@ export function refreshSilhouettes(charKey = null) {
   paintedCache.clear();
   rosterCache = null;
   rosterSpanCache = null;
+  rosterShippedCache = null;
 }
 
 /**
@@ -232,6 +235,53 @@ export function rosterReachSpan() {
     ? { min: Math.min(...found), max: Math.max(...found) }
     : { min: BODY.fallbackReach, max: BODY.fallbackReach };
   return rosterSpanCache;
+}
+
+/**
+ * The roster's reaches AS SHIPPED — tempered — with the median alongside the
+ * two ends.
+ *
+ * `rosterReachSpan` above is the RAW span, which is the right yardstick for
+ * ADDED_RANGE: that knob is compensating for what the measurement did to
+ * people, so it wants the measurement. Anything asking "how does this fighter
+ * compare to the roster they are actually fighting" wants this one instead —
+ * tempering pulls both ends a fifth of the way toward the middle, so a fighter
+ * sitting at the raw minimum does NOT sit at the shipped minimum, and a rule
+ * written to bite hardest on the shortest arms in the game would have missed
+ * them by a third of its own range.
+ *
+ * Same evidence and the same cache lifetime as the other two, so all three
+ * move together when the backend or the art does.
+ *
+ * Over the PLAYABLE ROSTER, and that is the other difference. The manifest
+ * carries art that nobody fights as — Mahoraga's sheet reaches 160 px, three
+ * quarters again as far as the longest weapon in the game — and the other two
+ * measure across all of it. Harmless where a span is only interpolating a few
+ * px of grace; not harmless here, where the short end of the scale is the whole
+ * point and a non-fighter sitting below the shortest fighter would quietly
+ * spend a chunk of the range on nobody.
+ */
+export function rosterShippedSpan() {
+  if (rosterShippedCache) return rosterShippedCache;
+  const found = [];
+  for (const key of CHARACTER_KEYS) {
+    const { raw, from } = reachOf(key);
+    if (raw == null) continue;
+    // The same two steps measure() finishes a reach with — temper, then band —
+    // so these numbers ARE the `reach` a fighter carries and a caller can
+    // compare one against this span without the rounding putting the shortest
+    // fighter in the game a little way up their own scale. Neither step touches
+    // the art, so this stays a cheap pass over the roster rather than a
+    // measurement of all of it.
+    const height = headHeightTarget(key) || BODY.fallbackHeight;
+    const [lo, hi] = reachBounds(key, from, height);
+    const value = band(temper(key, raw).value, BODY.reachBand, lo, hi);
+    if (value != null && value > 0) found.push(value);
+  }
+  rosterShippedCache = found.length
+    ? { min: Math.min(...found), mid: median(found), max: Math.max(...found) }
+    : { min: BODY.fallbackReach, mid: BODY.fallbackReach, max: BODY.fallbackReach };
+  return rosterShippedCache;
 }
 
 /**
