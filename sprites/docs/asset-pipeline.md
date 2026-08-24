@@ -1008,6 +1008,61 @@ reviewer, never swept.
 two thirds of round 6. Only confident calls are acted on; the rest are marked on
 the board and corrected via `FACING_OVERRIDE`.
 
+## Clothing FX reads a character's art by colour, so intake must re-verify it
+
+Settings -> **Clothing FX** (off by default) keys a character's garments out of
+their own drawing at runtime, so the stage shows through them — Uro's cloud
+outfit, the way the anime sometimes draws her. There is no second sprite set and
+no bake: `src/clothing_fx.js` runs a pass over each frame's pixels the first time
+it is drawn with the setting on, and hands the renderer a canvas of the same
+size. The manifest, the anchors, the silhouette measurements and every hitbox
+are untouched — the effect cannot move a body, only make part of it absent.
+
+**Which makes her art load-bearing for something the art pipeline does not know
+about.** The key finds the cloth by hue: a saturated cyan band that nothing else
+on her — orange skin, violet hair, brown leather — occupies. Re-export her with
+a slightly bluer cloud, redraw a pose in a different outfit, hand her a cyan
+accessory, and the key takes something else. It took her forearm off at the
+wrist during the build, because her cursed-energy palm FX is drawn in the same
+cyan as her clothes.
+
+So **a delivery that touches Uro is not landed until the key has been looked at
+again.** Two things make that a step rather than a hope:
+
+1. `sprites/assets/clothing_fx.json` records, per frame, the hash of the drawing
+   and what the key took out of it — share of the body box, how far down the
+   body the opening reaches, how much of the cloth's own outline survives.
+2. `tools/check_clothing_fx.mjs` runs the real key over the shipped art and
+   compares. It is in `npm run check`, needs neither browser nor server, and
+   distinguishes the two failures that look identical from outside:
+
+   - **THE ART MOVED** — the drawing's hash changed. The key may be fine or may
+     now be eating an arm; nobody can tell without looking.
+   - **THE KEY MOVED** — same drawing, different result, so somebody edited the
+     profile in `clothing_fx.js`.
+
+The fix for either is the same and it is not editing the numbers:
+
+    node tools/uro_seethrough_test.mjs --contact    # every pose, keyed, over a stage
+    node tools/check_clothing_fx.mjs --bless        # once it looks right
+
+Blessing rewrites `clothing_fx.json`, which lands in the commit as a diff — the
+numbers in the repo are the numbers a person looked at.
+
+**Not every pose can be keyed, and that is a judgement about the drawing.** Her
+set is not drawn in one outfit: most poses are the two cloud bands, a few
+(`crouch_b`, `grab_hold`) are a one-piece that keys to a bigger opening and still
+reads as her, and `prone` is a full-length gown — keying that leaves a head, one
+arm and a wisp of hem. `prone` is therefore in the profile's `skip` list. The
+check hashes skipped frames too, so a redraw of one comes back for review rather
+than staying skipped forever on the strength of a drawing that no longer exists.
+
+**Adding a second character is a colour question first.** A profile is only
+sound when the garment occupies a hue band nothing else on that character's body
+uses. On a fighter in a jacket, over art with no body drawn underneath, the same
+pass makes a hole rather than a window. Check that before copying Uro's numbers,
+and look at the contact sheet before blessing anything.
+
 ## Alternate sprite sets *(removed)*
 
 `manifest.alternates.<char>.<frame>` used to hold a whole second art set for a

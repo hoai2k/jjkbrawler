@@ -1,6 +1,7 @@
 import { state } from "./state.js";
 import { CHARACTER_KEYS, CHARACTERS, RANDOM_KEY, RESOLVED_GROUPS, randomCharacterKey } from "./characters.js";
 import { STAGES, getStage, backgroundFile, thumbFile } from "./stages.js";
+import { clothingFx, setClothingFx } from "./clothing_fx.js";
 import { audioSettings, audioUnlocked, cycleMusicMode, MUSIC_MODES, musicPlaying, setTitleLive, syncMusic, playSfx, toggleMute } from "./audio.js";
 import { cpuLevelName } from "./ai.js";
 import { METER_MAX, TIME_OPTIONS, WORLD } from "./constants.js";
@@ -9,7 +10,7 @@ import { padsMenuState, padsMenuStates, MAX_SEATS } from "./input.js";
 import { cameraMode, camera3d } from "./camera_mode.js";
 import { bodyMetrics } from "./silhouette.js";
 import { cycleRenderBackend, renderBackendMenuLabel, preloadChar } from "./render_backend.js";
-import { previewCharacter, claimCharacter, previewStage, loadProgress, onLoadProgress } from "./assets.js";
+import { previewCharacter, claimCharacter, previewStage, loadProgress, onLoadProgress, warmMatchClothingFx } from "./assets.js";
 import { warmMenuArt } from "./menu_art.js";
 import { CHARACTER_QUOTES, RANDOM_GROUP, ROSTER_ASPECTS, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
 import { cardFocus, isDefaultFocus } from "./config_cards.js";
@@ -95,7 +96,7 @@ export function initUi(cb) {
     "movesModeButton",
     "randomStageButton", "stageBackButton", "roundKicker", "winnerText", "rematchButton", "menuButton",
     "resumeButton", "pauseResetButton", "pauseMenuButton",
-    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsTimeButton", "settingsBoardsButton", "settingsArcsButton", "settingsRenderButton", "musicVolumeRange", "musicVolumeLabel",
+    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsTimeButton", "settingsBoardsButton", "settingsArcsButton", "settingsClothingButton", "settingsRenderButton", "musicVolumeRange", "musicVolumeLabel",
     "sfxVolumeRange", "sfxVolumeLabel", "settingsBackButton",
   ]) {
     els[id] = $(id);
@@ -1124,6 +1125,16 @@ function bindMenuButtons() {
     state.arcDetail = state.arcDetail === "simple" ? "full" : "simple";
     updateMenuButtons();
   });
+  // Also live mid-match, and for the same reason as the arcs above it. Turning
+  // it ON re-keys whoever is fighting right now rather than leaving the pass to
+  // land on individual frames as they first come up: done here it is one wait
+  // on a settings screen, done lazily it is a 20ms stutter the first time each
+  // pose is drawn (tools/bench_clothing_fx.mjs).
+  els.settingsClothingButton.addEventListener("click", () => {
+    setClothingFx(!clothingFx.enabled);
+    if (clothingFx.enabled) warmMatchClothingFx(state.fighters.map((f) => f.charKey));
+    updateMenuButtons();
+  });
   // The one setting here that applies to the match already running: it changes
   // how fighters are DRAWN, not any rule they are playing by, so there is
   // nothing to be unfair about mid-fight and waiting for the next match would
@@ -1257,6 +1268,7 @@ export function updateMenuButtons() {
   els.settingsBoardsButton.textContent = TEXT.settings.activeBoards(state.activeBoards);
   els.settingsArcsButton.textContent = TEXT.settings.arcs(state.arcDetail);
   els.settingsSfxButton.textContent = TEXT.settings.sfxEnabled(state.sfxEnabled);
+  els.settingsClothingButton.textContent = TEXT.settings.clothingFx(clothingFx.enabled);
   els.settingsRenderButton.textContent = TEXT.settings.render(renderBackendMenuLabel());
 }
 

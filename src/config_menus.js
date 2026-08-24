@@ -387,6 +387,12 @@ export const TEXT = {
     timeOff: "None",
     activeBoards: (on) => `Active Boards: ${on ? "On" : "Off"}`,
     arcs: (mode) => `Strike Arcs: ${mode === "simple" ? "Simple" : "Full"}`,
+    // "Clothing FX" — a fighter's garments keyed out of their own drawing so
+    // the stage shows through them (src/clothing_fx.js). Uro is the only one
+    // it does anything to today, which is why the label names the effect and
+    // not her: a setting that reads "Uro's garments" would have to be renamed
+    // the moment a second character earns one.
+    clothingFx: (on) => `Clothing FX: ${on ? "On" : "Off"}`,
     sfxEnabled: (on) => `Sound Effects: ${on ? "On" : "Off"}`,
     render: (mode) => `Render: ${mode}`,
     back: "Back",

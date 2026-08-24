@@ -702,6 +702,32 @@ the board you are editing.
   next pad to arrive takes seat 2 back. A seat nobody is in fights as a CPU.
 - Pause (Start), Move List in the pause menu, hitbox debug on `` ` ``.
 
+### Clothing FX
+
+**Settings → Clothing FX** (default OFF, and cosmetic only). On, a fighter's
+garments are keyed out of their own drawing so the stage shows through them —
+Uro's cloud outfit, the way the anime sometimes draws her. She is the only one
+it does anything to; `src/clothing_fx.js` carries the table, and adding to it is
+a question about how a character is drawn rather than a setting.
+
+Because the sprites are flat art with no body layer underneath, the cloth is not
+made translucent so much as absent: where her outfit was, the stage is, framed
+by the garment's own drawn outline. That is the effect, and on some poses it
+leaves most of her torso open. One pose (`prone`, drawn in a full-length gown
+rather than the two cloud bands) is skipped, because keying it leaves nothing of
+her on screen.
+
+It applies to the match already running, like Strike Arcs and Render above it:
+it changes how a fighter is DRAWN and nothing about where they reach, so there
+is nothing to be unfair about mid-fight. Turning it on keys whoever is fighting
+right then, which takes about a second for a whole character
+(`tools/bench_clothing_fx.mjs`); in a normal match that work happens behind the
+VS splash. Notes and sheets: `docs/experiments/uro-seethrough/`.
+
+Sprite backend only. Under **Render: Billboards** or **3D** there is no drawing
+to key — a card is a rendered rig, a model has real materials — so the setting
+does nothing there.
+
 ### The clock, and sudden death
 
 A stock match with no clock cannot be made to end: two players who refuse to
