@@ -362,37 +362,31 @@ console.log(`  ${specialsChecked} authored blocks checked against the reference 
 
 // A VERIFIED MUZZLE MUST LAND ON THE FIGHTER IT BELONGS TO.
 //
-// `com` in config_body_points.js is a fraction of drawn height and rides any
-// change to how big bodies are drawn; a muzzle is a LENGTH in game px, and
-// does not. That difference cost the game every projectile's spawn point for
-// three days: the points were placed on 149px bodies, ART_SCALE took the
-// roster to 104px, and nothing checked — Gojo's Blue left from 14px above his
-// own head, and half the roster's shots left from over their shoulder.
-//
-// So the invariant is the one a person would state looking at the drawing: the
-// hand a shot leaves from is somewhere ON the body, not above it and not out
-// in front of it. The band is deliberately generous — Meimei throws from a
-// scythe held overhead and Dagon's water leaves at the foot line — and still
-// catches a whole-roster rescale, which moves every point by 1.43x at once.
+// The column is fractions of drawn height now (config_body_points.js), which
+// is what stops the units rotting under it a second time — but a fraction can
+// still be a typo, and the point of this check is the shape of the answer
+// rather than its units: the hand a shot leaves from is somewhere ON the body,
+// not above it and not out in front of it. The band is deliberately generous —
+// Meimei throws from a scythe held overhead, Dagon's water leaves at the foot
+// line — and would still have caught the whole-roster rescale that produced
+// it, which moved every point by 1.43x at once.
 console.log("\n=== verified muzzle points (config_body_points.js) ===");
 const MUZZLE_BAND = { up: [-0.05, 1.25], fwd: [-0.4, 1.0] };
 let muzzlesChecked = 0;
 for (const key of CHARACTER_KEYS) {
   const held = BODY_POINTS[key]?.muzzle;
   if (!held) continue;
-  const height = bodyMetrics(key).height;
   // The per-pose entries are the same kind of number, judged the same way.
   const points = [["", held], ...Object.entries(held.states || {})
     .map(([state, p]) => [` (${state})`, p])];
   for (const [where, p] of points) {
     if (!Number.isFinite(p?.x) || !Number.isFinite(p?.y)) continue;
     muzzlesChecked++;
-    const up = -p.y / height;
-    const fwd = p.x / height;
+    const up = -p.y, fwd = p.x;
     if (up < MUZZLE_BAND.up[0] || up > MUZZLE_BAND.up[1]) {
-      fail(`${key}${where}: the muzzle sits ${n2(up)} of the way up a ${n0(height)}px `
-        + `body (band ${MUZZLE_BAND.up.join("..")}) — these points are in the DRAWN `
-        + `body's pixels, so a change to how big bodies are drawn re-places them`);
+      fail(`${key}${where}: the muzzle sits ${n2(up)} of the way up the body `
+        + `(band ${MUZZLE_BAND.up.join("..")}) — this column is fractions of drawn `
+        + `height, not pixels`);
     }
     if (fwd < MUZZLE_BAND.fwd[0] || fwd > MUZZLE_BAND.fwd[1]) {
       fail(`${key}${where}: the muzzle sits ${n2(fwd)} of a body height in front of `
@@ -400,26 +394,24 @@ for (const key of CHARACTER_KEYS) {
     }
   }
 }
-// The per-fighter band above is generous enough that a rescale could slip
-// most of the roster past it — 1.43x puts the median at 1.10, and only the
-// three highest hands trip a 1.25 ceiling. So the ROSTER is checked too: these
-// are hands, and a column of hands has a median around the reference body's
-// own (REFERENCE_MUZZLE, 86 of 104px = 0.82). One fighter throwing from over
-// their head is a drawing; twenty-three of them is a units mistake.
-const ups = [];
-for (const key of CHARACTER_KEYS) {
-  const held = BODY_POINTS[key]?.muzzle;
-  if (Number.isFinite(held?.y)) ups.push(-held.y / bodyMetrics(key).height);
-}
-ups.sort((a, b) => a - b);
+// The per-fighter band above is generous enough that a bad conversion could
+// slip most of the roster past it. So the ROSTER is checked too: these are
+// hands, and a column of hands has a median around the reference body's own
+// (REFERENCE_MUZZLE, 86 of 104px = 0.82). One fighter throwing from over their
+// head is a drawing; twenty-three of them is a units mistake.
+const ups = CHARACTER_KEYS
+  .map((key) => BODY_POINTS[key]?.muzzle?.y)
+  .filter(Number.isFinite)
+  .map((y) => -y)
+  .sort((a, b) => a - b);
 const medianUp = ups[Math.floor(ups.length / 2)] ?? 0;
 if (medianUp < 0.5 || medianUp > 0.95) {
   fail(`the roster's verified muzzles sit a median ${n2(medianUp)} of the way up their `
     + `bodies (band 0.50..0.95, reference hand 0.82) — a whole column out of band is a `
-    + `rescale, not a set of decisions`);
+    + `units mistake, not a set of decisions`);
 }
-console.log(`  ${muzzlesChecked} verified points checked against the drawn body; `
-  + `median ${n2(medianUp)} of body height up`);
+console.log(`  ${muzzlesChecked} verified points checked; median ${n2(medianUp)} of body `
+  + `height up, and every one of them lands on the fighter`);
 
 // Model-derived reach must not go stale: the rigs and pose libraries are in
 // flux, and a reach measured from a body that no longer exists is exactly the

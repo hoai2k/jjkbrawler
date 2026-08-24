@@ -19,7 +19,7 @@ import {
   COMBO_GRACE,
 } from "./constants.js";
 import { bodyMetrics } from "./silhouette.js";
-import { comFrac, hurtboxFit } from "./body_points.js";
+import { comFrac, hurtboxFit, bodyY } from "./body_points.js";
 import { contactOf, contactBand, stunScale, fxScale } from "./contact.js";
 import { CONTACT, ART_SCALE } from "./config_tuning.js";
 import { ledgeBox } from "./hurtbox_art.js";
@@ -534,7 +534,7 @@ export function updateProjectiles(dt) {
     // and the discharge still cannot miss a body he has already marked.
     if (p.seekStatus && target && !steering && (target.statuses?.[p.seekStatus] || 0) > 0) {
       const speed = Math.hypot(p.vx, p.vy) || 1;
-      const dx = target.x - p.x, dy = (target.y - 80) - p.y;
+      const dx = target.x - p.x, dy = bodyY(target, 80) - p.y;
       const len = Math.hypot(dx, dy) || 1;
       const k = Math.min(1, (p.seekRate ?? 10) * dt);
       p.vx += ((dx / len) * speed - p.vx) * k;
@@ -545,7 +545,7 @@ export function updateProjectiles(dt) {
     if (p.homing && target && !steering) {
       const desired = sign(target.x - p.x);
       p.vx += desired * p.homing * dt * 8;
-      const dy = (target.y - 60) - p.y;
+      const dy = bodyY(target, 60) - p.y;
       p.vy += clamp(dy, -220, 220) * dt * 3;
     }
     if (!steering) p.vy += p.gravity * dt;
@@ -961,7 +961,7 @@ function contactPoint(owner, target, hit, source, dir) {
       return { x: (x0 + x1) / 2, y: clamp(armY, y0, y1) };
     }
   }
-  return { x: target.x + dir * -14, y: target.y - 96 };
+  return { x: target.x + dir * -14, y: bodyY(target, 96) };
 }
 
 export function applyHit(owner, target, hit, source) {
@@ -1459,7 +1459,7 @@ export function triggerCounter(target, attacker) {
   // Sky Fold (and any counter that says so): the parry cracks the sky where
   // the blow was folded away — grows fast, no shatter (src/sky_crack.js).
   if (c.skyCrack) {
-    spawnSkyCrack(target.x + (attacker.x > target.x ? 70 : -70), target.y - 110, {
+    spawnSkyCrack(target.x + (attacker.x > target.x ? 70 : -70), bodyY(target, 110), {
       r: 80, crackTime: 0.12, shatter: false, color: target.char.theme, owner: target,
     });
   }

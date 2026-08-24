@@ -11,6 +11,7 @@ import { emit, burst, dust, sparkLine, ring } from "./particles.js";
 import { ART_SCALE } from "./config_tuning.js";
 import { FX_DENSITY, HIT_RECIPES, ELEMENT_PALETTES, DASH_FX, PROJ_EMIT, BLACK_FLASH, CHAR_FX } from "./config_fx.js";
 import { rand, pick } from "./utils.js";
+import { bodyY } from "./body_points.js";
 import { state } from "./state.js";
 
 export function elementOf(hit, owner) {
@@ -315,7 +316,7 @@ export function dashLaunchFx(f, color, element = f.char.fxElement) {
     flutter(f.x - f.facing * 20, f.y - 90 * ART_SCALE, "#15161c", n(5, 1));
   }
   glints(
-    f.x - f.facing * 26, f.y - 80, -f.facing,
+    f.x - f.facing * 26, bodyY(f, 80), -f.facing,
     n(DASH_FX.streaks, 1), 1,
     element === "steel" ? ELEMENT_PALETTES.steel : [color, "#ffffff"],
   );
@@ -361,7 +362,7 @@ export function counterShimmerFx(f, color, dt) {
   const a = rand(0, Math.PI * 2);
   const r = rand(62, 92);
   emit({
-    x: f.x + Math.cos(a) * r, y: f.y - 90 + Math.sin(a) * r * 0.8,
+    x: f.x + Math.cos(a) * r, y: bodyY(f, 90) + Math.sin(a) * r * 0.8,
     vx: -Math.sin(a) * 130, vy: Math.cos(a) * 100,
     size: 3 + rand(0, 3), shape: "streak", streakLen: 0.06,
     life: 0.18 + rand(0, 0.16), maxLife: 0.34,

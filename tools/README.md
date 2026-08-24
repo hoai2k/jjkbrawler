@@ -25,7 +25,8 @@ rather than failing on it for the same reason.
 
 ## The gate: `npm run check`
 
-One command, and it is what CI runs. In order, it checks imports resolve, voice
+One command, and it is what CI runs. In order, it checks imports resolve, every
+height on a body is measured in bodies (`check_body_scale.mjs`), voice
 lines match their files, the audio mix is within range, SFX are normalised, pose
 reads and battle poses parse, the controls tables in `README.md` and
 `docs/game-mechanics.md` match `src/config_controls.js`, every kit resolves,

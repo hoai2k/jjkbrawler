@@ -197,8 +197,14 @@ export async function muzzleProvider() {
     },
     ensureReady: ensureTaskArt,
     committed: committedFor("muzzle"),
-    exportBlock: (decisions) => blockFor(decisions, "muzzle",
-      (d) => `{ x: ${d.value.x}, y: ${d.value.y} }`),
+    // Stored as fractions of drawn height, the way `com` beside it is — the
+    // drag is in px on the drawing, and the division happens here and in
+    // tools/apply_verification.mjs so the config never holds a length that a
+    // change to how big bodies are drawn can invalidate.
+    exportBlock: (decisions) => blockFor(decisions, "muzzle", (d) => {
+      const h = bodyMetrics(d.char).height;
+      return `{ x: ${(d.value.x / h).toFixed(4)}, y: ${(d.value.y / h).toFixed(4)} }`;
+    }),
   };
 }
 

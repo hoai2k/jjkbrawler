@@ -16,6 +16,7 @@ import { ART_SCALE } from "./config_tuning.js";
 import { paintedHeight } from "./shared_sprites.js";
 import { paintShared } from "./shared_paint.js";
 import { spawnOffset } from "./muzzle.js";
+import { bodyY } from "./body_points.js";
 import { clamp, sign } from "./utils.js";
 // The scaled spawns: kit blocks author oy/h for the reference body, and these
 // wrappers size them to the caster (combat.js spawnMeleeScaled) — the same
@@ -269,8 +270,13 @@ const HANDLERS = {
         const speed = p.speed ?? 500;
         spawnProjectile(f, {
           ...p, sprite,
+          // KIT SPACE, not body space: `ox` and the -86 are the reference
+          // body's own numbers, which scale by the caster's height at spawn
+          // rather than by ART_SCALE (combat.js spawnProjectileScaled). An
+          // aimed shot hand-rolls them because it spawns around a circle
+          // rather than at the hand — see the note in src/muzzle.js.
           x: f.x + aim.x * (p.ox ?? 70),
-          y: f.y - 86 + aim.y * (p.ox ?? 70),
+          y: f.y - 86 + aim.y * (p.ox ?? 70),   // kit space
           vx: aim.x * speed - aim.y * spreadVy,
           vy: aim.y * speed + aim.x * spreadVy,
         });
@@ -750,7 +756,7 @@ const HANDLERS = {
     effortSound(f, cfg);
     const opp = opponentOf(f);
     const tx = opp && !opp.dead ? opp.x : f.x + f.facing * 240;
-    const ty = opp && !opp.dead ? opp.y - 70 : f.y - 70;
+    const ty = opp && !opp.dead ? bodyY(opp, 70) : bodyY(f, 70);
     const delay = p.delay || 0.32;
     // `crack: true` swaps the telegraph sprite for the sky itself breaking:
     // the fracture grows for exactly the windup and shatters on the impact
@@ -948,7 +954,7 @@ const HANDLERS = {
         spawnProjectile(self, {
           ...p, pierce: true,
           dmg: p.returnDmg ?? p.dmg, base: p.returnBase ?? p.base,
-          x: far, y: self.y - 86,
+          x: far, y: self.y - 86,   // kit space: the reference body's own -86
           vx: back * (p.speed ?? 680), vy: 0,
           label: "Nyoi Recall",
         });
@@ -1111,7 +1117,7 @@ function spawnSummonFlash(owner, spriteKey, duration, height, forward) {
       // Standing on the ground at the fighter's feet and mirrored with them,
       // fading in and out over its own life.
       paintShared(ctx, spriteKey, img,
-        { x: owner.x + owner.facing * forward, y: owner.y + 12 }, painted, {
+        { x: owner.x + owner.facing * forward, y: bodyY(owner, -12) }, painted, {
           anchor: "feet", mirrored: owner.facing > 0,
           alpha: Math.sin(Math.min(1, this.t / duration) * Math.PI) * 0.9,
           shadow: { color: "#dfe8ff", blur: 18 },
