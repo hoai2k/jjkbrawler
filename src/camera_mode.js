@@ -1,12 +1,27 @@
 // The seam between the flat renderer and the 2.5D camera (docs/2.5d-camera-plan.md).
 //
-// The 2.5D camera is what the game SHIPS with (main.js loads it unless
-// `?camera=flat` says otherwise): it puts the scene — backdrop, platforms,
-// fighters, projectiles — on a WebGL canvas under the game canvas, with a
-// perspective camera doing the framing. Everything else about the game is
-// untouched: the simulation, the blast zones, `updateCamera()` and the flat
-// renderer all keep running exactly as they do today, and flat mode never
-// loads a byte of the 3D module.
+// THE 2.5D CAMERA IS THE GAME. main.js loads it unless `?camera=flat` says
+// otherwise: it puts the scene — backdrop, platforms, fighters, projectiles —
+// on a WebGL canvas under the game canvas, with a perspective camera doing the
+// framing. Everything else is untouched: the simulation, the blast zones and
+// `updateCamera()` all run exactly as they do flat, and flat mode never loads a
+// byte of the 3D module.
+//
+// THE FLAT RENDERER IS NOT THE OLD DEFAULT, and reading it as one is how a
+// feature ships invisible. It survives for two jobs and neither is "what a
+// player sees":
+//
+//   THE WORKBENCHES. The arena and character benches want a still, honest,
+//   readable frame with no perspective in it — you cannot drag a platform onto
+//   a mark that moves. They draw flat on purpose.
+//
+//   THE FALLBACK. No WebGL, or a failed import, lands here with a console note
+//   rather than on a black screen.
+//
+// So a change to how the game LOOKS has to be made in, or at least verified
+// through, the 2.5D path. Clothing FX was written and tested entirely against
+// the flat one — every check passed, the arena bench showed it working, and no
+// player ever saw it (src/char_frame.js has the full story).
 //
 // This file is the only thing both sides import. It is deliberately tiny and
 // three.js-free: render.js asks it which mode is on and which module to hand

@@ -9,7 +9,7 @@ import { clamp } from "./utils.js";
 import { padsMenuState, padsMenuStates, MAX_SEATS } from "./input.js";
 import { cameraMode, camera3d } from "./camera_mode.js";
 import { bodyMetrics } from "./silhouette.js";
-import { cycleRenderBackend, renderBackendMenuLabel, preloadChar } from "./render_backend.js";
+import { preloadChar } from "./render_backend.js";
 import { previewCharacter, claimCharacter, previewStage, loadProgress, onLoadProgress, warmMatchClothingFx } from "./assets.js";
 import { warmMenuArt } from "./menu_art.js";
 import { CHARACTER_QUOTES, RANDOM_GROUP, ROSTER_ASPECTS, TEXT, USE_SIMPLE_CARDS } from "./config_menus.js";
@@ -96,7 +96,7 @@ export function initUi(cb) {
     "movesModeButton",
     "randomStageButton", "stageBackButton", "roundKicker", "winnerText", "rematchButton", "menuButton",
     "resumeButton", "pauseResetButton", "pauseMenuButton",
-    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsTimeButton", "settingsBoardsButton", "settingsArcsButton", "settingsClothingButton", "settingsRenderButton", "musicVolumeRange", "musicVolumeLabel",
+    "settingsSfxButton", "settingsMusicButton", "settingsCpuButton", "settingsStocksButton", "settingsTimeButton", "settingsBoardsButton", "settingsArcsButton", "settingsClothingButton", "musicVolumeRange", "musicVolumeLabel",
     "sfxVolumeRange", "sfxVolumeLabel", "settingsBackButton",
   ]) {
     els[id] = $(id);
@@ -1118,9 +1118,9 @@ function bindMenuButtons() {
     state.activeBoards = !state.activeBoards;
     updateMenuButtons();
   });
-  // Applies to the match already running, like Render below it: it changes how
-  // a swing is DRAWN and not one thing about where it reaches, so there is
-  // nothing to be unfair about mid-fight.
+  // Applies to the match already running: it changes how a swing is DRAWN and
+  // not one thing about where it reaches, so there is nothing to be unfair
+  // about mid-fight.
   els.settingsArcsButton.addEventListener("click", () => {
     state.arcDetail = state.arcDetail === "simple" ? "full" : "simple";
     updateMenuButtons();
@@ -1133,14 +1133,6 @@ function bindMenuButtons() {
   els.settingsClothingButton.addEventListener("click", () => {
     setClothingFx(!clothingFx.enabled);
     if (clothingFx.enabled) warmMatchClothingFx(state.fighters.map((f) => f.charKey));
-    updateMenuButtons();
-  });
-  // The one setting here that applies to the match already running: it changes
-  // how fighters are DRAWN, not any rule they are playing by, so there is
-  // nothing to be unfair about mid-fight and waiting for the next match would
-  // only make it harder to compare the two.
-  els.settingsRenderButton.addEventListener("click", () => {
-    cycleRenderBackend();
     updateMenuButtons();
   });
   const musicClick = () => {
@@ -1269,7 +1261,6 @@ export function updateMenuButtons() {
   els.settingsArcsButton.textContent = TEXT.settings.arcs(state.arcDetail);
   els.settingsSfxButton.textContent = TEXT.settings.sfxEnabled(state.sfxEnabled);
   els.settingsClothingButton.textContent = TEXT.settings.clothingFx(clothingFx.enabled);
-  els.settingsRenderButton.textContent = TEXT.settings.render(renderBackendMenuLabel());
 }
 
 // Stat bars for the hero cards, normalized against the full roster so a bar

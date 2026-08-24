@@ -394,7 +394,6 @@ export const TEXT = {
     // the moment a second character earns one.
     clothingFx: (on) => `Clothing FX: ${on ? "On" : "Off"}`,
     sfxEnabled: (on) => `Sound Effects: ${on ? "On" : "Off"}`,
-    render: (mode) => `Render: ${mode}`,
     back: "Back",
   },
 

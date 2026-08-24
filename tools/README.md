@@ -10,6 +10,19 @@ a match runs. Python scripts (`.py`) do the image and model work. Nothing has a
 build step; `npm install` (Playwright) is the only dependency, and only the
 browser-driven scripts need it.
 
+## Two gates, and the line between them
+
+**`npm run check`** is the one that must pass: it covers the game that ships —
+the sprite renderer, the 2.5D camera, the simulation, the art pipeline and the
+docs generated from them.
+
+**`npm run check:experimental`** covers the two model backends (`?render=3d`,
+`?render=billboard`). They are experiments reachable by URL and by nothing else
+(`src/render_backend.js` says why), so a breakage in one is work for whoever is
+working on them, not a broken build for everybody. Nothing in the main gate
+depends on them, and `audit_hitboxes.mjs` reports a stale model-reach config
+rather than failing on it for the same reason.
+
 ## The gate: `npm run check`
 
 One command, and it is what CI runs. In order, it checks imports resolve, voice
@@ -18,7 +31,8 @@ reads and battle poses parse, the controls tables in `README.md` and
 `docs/game-mechanics.md` match `src/config_controls.js`, every kit resolves,
 shared art is in sync, `docs/move-list.md` is regenerated from the kits, moves
 point where they say they do, every stage is reachable by jump, hitboxes hold
-their invariants, both model backends' intakes validate, and the camera boots.
+their invariants, a character's artwork is resolved in exactly one place
+(`check_char_art.mjs`), and the camera boots.
 
 Several of those are **generators run in `--check` mode** — they will rewrite
 the file for you rather than only complaining:
@@ -46,7 +60,7 @@ check that needs to look at actual pixels does not need a browser to do it.
 
 | Prefix | What it is | Count |
 |---|---|---|
-| `check_*` | invariants — a non-zero exit means something drifted | 23 |
+| `check_*` | invariants — a non-zero exit means something drifted | 24 |
 | `smoke_*` | play the real game (mostly headless via Playwright) and measure the result | 52 |
 | `audit_*` | report on the data rather than pass/fail it — reach, hitboxes, frame sizes, model health | 18 |
 | `build_*` | generate a checked-in file from the source of truth | 6 |
