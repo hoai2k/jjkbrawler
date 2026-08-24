@@ -672,27 +672,35 @@ export const CHARACTERS = {
     heavy: { dmg: 14.5, speed: 1.0, angle: 0.46, effect: null, label: "Bonito Break", sfx: "punch", shieldMul: 1.5 },
     specials: {
       neutral: {
-        name: "“Blast Away”", type: "shout", cooldown: 1.1, strain: 1,
+        name: "“Blast Away”", type: "shout", cooldown: 1.1,
         desc: "A cursed command that hurls the listener backward like a cannonball.",
         p: { ox: 40, oy: -120, w: 300, h: 170, dmg: 10, base: 520, growth: 8.0, angle: 0.42, color: "#d7d9e7", label: "BLAST AWAY" },
       },
       side: {
-        name: "“Don't Move”", type: "projectile", cooldown: 1.5, strain: 1,
+        name: "“Don't Move”", type: "projectile", cooldown: 1.5,
         desc: "The word lands and the body obeys — the target locks in place.",
         p: { speed: 560, vy: -4, r: 36, dur: 0.85, dmg: 6, base: 120, growth: 2.0, angle: 0.3, color: "#b8bdf0", effect: "cursedSpeech", stunBonus: 0.9, fxElement: "sound", label: "DON'T MOVE", sprite: "effect:speech_word", spriteH: 92 },
       },
       down: {
-        name: "“Get Crushed”", type: "crush", cooldown: 2.2, strain: 2,
+        name: "“Get Crushed”", type: "crush", cooldown: 2.2,
         desc: "Gravity itself obeys the command — the enemy is slammed into the earth.",
         p: { range: 420, dmg: 12, base: 300, growth: 5.4, color: "#8f95c9", label: "GET CRUSHED" },
       },
     },
     ultimate: {
       name: "“GET TWISTED AND BLAST AWAY”", type: "shout",
-      desc: "A full-throated scream of layered commands that buckles the whole arena. His throat pays for it after.",
+      desc: "A full-throated scream of layered commands that buckles the whole arena.",
       p: { ox: -320, oy: -220, w: 940, h: 320, dmg: 30, base: 980, growth: 10, angle: 0.5, color: "#d7d9e7", ultShout: true, label: "COUGH DROP", sprite: "effect:scream_wave", spriteH: 330 },
     },
-    passive: { id: "throatStrain", name: "Throat Strain", desc: "Commands strain his throat. Too many too fast and he coughs blood — specials sealed for a moment." },
+    // Throat Strain is gone. It was the roster's only passive that was purely
+    // a tax — three specials in quick succession sealed all three for 2.5 s,
+    // on a fighter whose specials ARE his kit — and it was doing the work of a
+    // drawback on someone who had no compensating upside to pay for it. What
+    // is left is what his moves already say in data: the commands land as
+    // status and displacement rather than as damage (`cursedSpeech` and
+    // `stunBonus` on Don't Move, the 520 base on Blast Away against its 10
+    // damage). A DATA passive, listed as one in tools/check_kits.mjs.
+    passive: { id: "cursedSpeech", name: "Cursed Speech", desc: "Every word is an order a body cannot refuse. His commands are barely damage at all — they land as stun and as distance, and the fight is decided by where they put you." },
     ai: { style: "zoner", range: 380 },
   },
 
@@ -1905,16 +1913,30 @@ export const CHARACTERS = {
       },
       down: {
         name: "Grovel", type: "playDead", cooldown: 6,
-        desc: "Flat on the ground, hands over his head, entirely sincere. Cosmically, disgustingly, it works: the moment passes him by and another small miracle goes in the bank.",
+        desc: "Flat on the ground, hands over his head, entirely sincere. Cosmically, disgustingly, it works: the moment passes him by and a SECOND miracle goes in the bank beside the one he already had.",
         p: { iframes: 0.7, heal: 3, color: "#c8a8e0" },
       },
     },
     ultimate: {
       name: "11:11 — Every Miracle at Once", type: "install",
-      desc: "Every clock he ever glanced at, spent in one go: for a few seconds his luck is a solid object. Nothing lands on him, and everything that tries gets cut on the way past.",
-      p: { duration: 7, speedMul: 1.2, miracleSurge: true, color: "#c8a8e0", label: "11:11", aura: "effect:aura_lilac" },
+      desc: "Every clock he ever glanced at, spent in one go: for a few seconds the bank never runs dry. He is not armoured — he is yanked out of the way of every single blow, one flinch per swing, and everything that misses gets cut on the way past.",
+      // `miracleSurge` does NOT make him invulnerable: it makes the stock
+      // infinite, so every incoming hit spends a miracle he never runs out of
+      // and every one of them is a visible dodge. `surgeIframes` is the short
+      // cover after each — deliberately under a fifth of the banked miracle's
+      // 0.5 s, so a multi-hit string is dodged hit by hit rather than swallowed
+      // whole by one flinch. That difference is the whole point of the ult
+      // reading as luck rather than as armour.
+      p: { duration: 7, speedMul: 1.2, miracleSurge: true, surgeIframes: 0.12, color: "#c8a8e0", label: "11:11", aura: "effect:aura_lilac" },
     },
-    passive: { id: "miracles", name: "Miracles", desc: "Small miracles bank themselves under his eyes — one every nine seconds, three at most — and a blow that should land instead spends one: his body is yanked out of the way without him ever knowing." },
+    // `stock` is what the passive alone will hold, `banked` the ceiling Grovel
+    // can push him to, `refill` the seconds one takes to come back. Read by
+    // fighter.js (the refill), specials.js (the bank) and combat.js (the
+    // spend) rather than repeated as literals in three files.
+    passive: {
+      id: "miracles", name: "Miracles", stock: 1, banked: 2, refill: 9,
+      desc: "One small miracle sits under his eyes at a time, back nine seconds after it is spent — and a blow that should land instead spends it: his body is yanked out of the way without him ever knowing. Grovel banks a second beside it.",
+    },
     ai: { style: "balanced", range: 260 },
   },
 
@@ -1937,7 +1959,11 @@ export const CHARACTERS = {
       neutral: {
         name: "Barrier Pulse", type: "shout", cooldown: 1.3,
         desc: "A wall of pure barrier shoved outward in one beat. Little of it is damage; most of it is the word NO.",
-        p: { ox: 30, oy: -120, w: 280, h: 180, dmg: 7, base: 560, growth: 7.6, angle: 0.5, color: "#d6cfae", castSfx: "barrierPulse" },
+        // 7 was the lowest special damage on the roster and it made his only
+        // neutral-range answer a shove with nothing behind it — he could hold
+        // space and never threaten it. 10 keeps the move a wall (the knockback
+        // is still where its value is) while giving the wall teeth.
+        p: { ox: 30, oy: -120, w: 280, h: 180, dmg: 10, base: 560, growth: 7.6, angle: 0.5, color: "#d6cfae", castSfx: "barrierPulse" },
       },
       side: {
         name: "Pure Barrier", type: "summon", cooldown: 5.5,
@@ -1958,7 +1984,12 @@ export const CHARACTERS = {
     ultimate: {
       name: "Tomb of the Star Corridor", type: "concert",
       desc: "The sanctuary raised around the fight: a shifting barrier hall that grinds everything caught inside it, and closes with the whole structure clapping shut.",
-      p: { duration: 5.5, tickRate: 0.5, dmgTick: 3, finalDmg: 16, finalBase: 720, finalGrowth: 9, radius: 260, color: "#d6cfae", label: "TOMB OF THE STAR", sprite: "effect:star_tomb", spriteH: 300 },
+      // Every ultimate costs the same 100 meter, and at dmgTick 3 this one paid
+      // 33 over 5.5 s plus a 16 finisher — half what Gojo's Purple or Jogo's
+      // Meteor deliver for the identical price, and the least total output on
+      // the roster. 5 a tick puts the grind at 55 + 16, which is a real
+      // finisher for a fighter whose whole kit is the wait.
+      p: { duration: 5.5, tickRate: 0.5, dmgTick: 5, finalDmg: 16, finalBase: 720, finalGrowth: 9, radius: 260, color: "#d6cfae", label: "TOMB OF THE STAR", sprite: "effect:star_tomb", spriteH: 300 },
     },
     passive: { id: "immortality", name: "Immortality", desc: "Not eternal youth — the body simply refuses to die: wounds knit constantly, without channelling, whether or not anyone lets them." },
     ai: { style: "zoner", range: 380 },

@@ -206,8 +206,13 @@ safe. Personality: kind, laconic, quietly heroic.
 - **Ultimate — "GET TWISTED AND BLAST AWAY":** a stage-buckling scream —
   colossal knockback across most of the arena, followed by an involuntary
   coughing fit (specials sealed 4 s). Power at a price, exactly in character.
-- *Passive — Throat Strain:* commands stack strain; three quick casts trigger
-  a coughing lockout. Pace your words.
+- *Passive — Cursed Speech:* every word is an order a body cannot refuse. His
+  commands are barely damage at all — they land as stun and as distance, and
+  the fight is decided by where they put you. (Throat Strain, the old strain
+  stack that sealed his specials for using them, is gone: it was the roster's
+  only passive that was purely a tax, on the one fighter whose specials ARE
+  his kit. The ultimate's coughing fit is unchanged — that price was designed
+  into the ult, not levied on playing the character.)
 
 ## Panda — "Not Just Any Panda"
 **Canon:** An Abrupt Mutated Cursed Corpse built by Principal Yaga with three
@@ -844,7 +849,7 @@ roster has:
 | New thing | Owner | What it does |
 |---|---|---|
 | **starMark** | Kirara | A Southern Cross star set by touch, up to the full five. No damage of its own: while any star is held, the marked body **cannot approach Kirara** — closing the distance is answered with repulsion — their Same Star debris homes on it, and Southern Cross cashes the whole chart in. |
-| **Miracles** | Haruta | A stock of banked miracles (one every nine seconds, three at most, the count under his eyes). A blow that should land **spends one instead**: his body is yanked clear with iframes, without him ever knowing. Finite ammo, exactly as canon — run him dry and he is just a coward with a sword. |
+| **Miracles** | Haruta | **One** banked miracle under his eyes, back nine seconds after it is spent — plus a second Grovel can bank beside it. A blow that should land **spends one instead**: his body is yanked clear with iframes, without him ever knowing. Every arrival and every bank announces itself (`+1 MIRACLE`), so both players know whether the dodge is loaded. Finite ammo, exactly as canon — run him dry and he is just a coward with a sword. |
 | **Iai** | Miwa | A strike begun from stillness — half a second without moving her feet — lands 20% harder. The first cut is the whole art. |
 
 ## Kirara Hoshi — "The Gatekeeper"
@@ -902,12 +907,17 @@ genuinely obnoxious defensive economy.
 - **Sneak Attack** (side): the retreat IS the setup — a flinch away with
   iframes, then the lunge out of it. The one honest thing about him.
 - **Grovel** (down): flat on the floor, hands over his head, briefly
-  untouchable — and it banks another miracle. Disgusting. Effective.
-- **Ultimate — 11:11 — Every Miracle at Once:** seven seconds where every
-  dodge is free and everything that swings at him gets cut on the way past.
-  His luck, briefly, is a solid object.
-- *Passive — Miracles:* the auto-dodge stock. One banked every nine seconds,
-  three at most, each one eating a hit that had already landed.
+  untouchable — and it banks a SECOND miracle beside the one the passive
+  keeps. Disgusting. Effective. His only route to two at once.
+- **Ultimate — 11:11 — Every Miracle at Once:** seven seconds where the bank
+  never runs dry. He is not armoured for it — every incoming swing still
+  spends a miracle and still flinches him bodily out of the way, one dodge per
+  hit at a much shorter cover than a banked one, so a flurry reads as him
+  being yanked aside six times rather than standing in it taking nothing.
+  Everything that misses gets cut on the way past.
+- *Passive — Miracles:* the auto-dodge stock, and it is **one**. Back nine
+  seconds after it is spent, announced when it lands, each one eating a hit
+  that had already connected. Two only ever means he grovelled for it.
 
 ## Master Tengen — "The Immortal"
 **Canon:** The thousand-year foundation of the jujutsu world: the greatest
@@ -926,8 +936,10 @@ corridor, and a body that will not die.
 **Design mapping:** The fortress. Slowest fighter in the game, weak hands,
 absolute space — Tengen wins by making the stage smaller than your patience.
 - *Stats:* 336 / 1.2 — slowest on the roster, hard to launch, regenerating.
-- **Barrier Pulse** (neutral): a wall of force shoved outward — little
-  damage, enormous shove. The word NO as a hitbox.
+- **Barrier Pulse** (neutral): a wall of force shoved outward — modest
+  damage, enormous shove. The word NO as a hitbox. (Was 7 damage, the lowest
+  special on the roster, which left him holding space he could never threaten;
+  10 keeps the shove as the point and gives the wall teeth.)
 - **Pure Barrier** (side): a standing pane of barrier with no interior
   conditions — a stationary, unshovable summon that soaks hits and blocks
   projectiles, two at a time. The wall game.
@@ -935,7 +947,10 @@ absolute space — Tengen wins by making the stage smaller than your patience.
   with generous iframes. The corridor moves so it can never be found.
 - **Ultimate — Tomb of the Star Corridor:** the sanctuary raised around the
   fight — a grinding barrier hall (the same director as Gakuganji's Encore)
-  that closes with the whole structure clapping shut.
+  that closes with the whole structure clapping shut. (The grind was 3 a tick,
+  33 over its 5.5 s — the least total output of any ultimate on a roster where
+  every ultimate costs the same 100 meter, and about half what Purple or
+  Meteor deliver. 5 a tick puts it at 55 plus the 16 finisher.)
 - *Passive — Immortality:* constant regeneration, no channel, no cap — a
   third of a healing install's rate, running forever. Attrition does not work
   on the immortal; you have to launch them.

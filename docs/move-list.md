@@ -130,8 +130,8 @@ are free and run on individual cooldowns instead.
 - Neutral special *(1.1s cooldown)* — **“Blast Away”** — A cursed command that hurls the listener backward like a cannonball.
 - Side special *(1.5s cooldown)* — **“Don't Move”** — The word lands and the body obeys — the target locks in place.
 - Down special *(2.2s cooldown)* — **“Get Crushed”** — Gravity itself obeys the command — the enemy is slammed into the earth.
-- Ultimate — **“GET TWISTED AND BLAST AWAY”** — A full-throated scream of layered commands that buckles the whole arena. His throat pays for it after.
-- Passive — **Throat Strain** — Commands strain his throat. Too many too fast and he coughs blood — specials sealed for a moment.
+- Ultimate — **“GET TWISTED AND BLAST AWAY”** — A full-throated scream of layered commands that buckles the whole arena.
+- Passive — **Cursed Speech** — Every word is an order a body cannot refuse. His commands are barely damage at all — they land as stun and as distance, and the fight is decided by where they put you.
 
 <a id="panda"></a>
 
@@ -443,9 +443,9 @@ are free and run on individual cooldowns instead.
 
 - Neutral special *(1.3s cooldown)* — **Hand Sword: Fist Launch** — The sword's hilt is a sculpted hand, and it is half alive: launched crawling down the lane, then it drags itself back to him through everything on the way.
 - Side special *(1.4s cooldown)* — **Sneak Attack** — He flinches away — and the flinch was the setup. The lunge comes from the retreat, which is the only direction he has ever been honest about.
-- Down special *(6s cooldown)* — **Grovel** — Flat on the ground, hands over his head, entirely sincere. Cosmically, disgustingly, it works: the moment passes him by and another small miracle goes in the bank.
-- Ultimate — **11:11 — Every Miracle at Once** — Every clock he ever glanced at, spent in one go: for a few seconds his luck is a solid object. Nothing lands on him, and everything that tries gets cut on the way past.
-- Passive — **Miracles** — Small miracles bank themselves under his eyes — one every nine seconds, three at most — and a blow that should land instead spends one: his body is yanked out of the way without him ever knowing.
+- Down special *(6s cooldown)* — **Grovel** — Flat on the ground, hands over his head, entirely sincere. Cosmically, disgustingly, it works: the moment passes him by and a SECOND miracle goes in the bank beside the one he already had.
+- Ultimate — **11:11 — Every Miracle at Once** — Every clock he ever glanced at, spent in one go: for a few seconds the bank never runs dry. He is not armoured — he is yanked out of the way of every single blow, one flinch per swing, and everything that misses gets cut on the way past.
+- Passive — **Miracles** — One small miracle sits under his eyes at a time, back nine seconds after it is spent — and a blow that should land instead spends it: his body is yanked out of the way without him ever knowing. Grovel banks a second beside it.
 
 <a id="geto"></a>
 

@@ -481,8 +481,11 @@ const DIRECTORS = {
       // sword — his body shocks whoever touches it, and burns while he wears it.
       contactShock: p.contactShock, selfDrainPerSec: p.selfDrainPerSec,
       // Complete Southern Cross (Kirara): every hit sets a star, and the
-      // approach-repulsion radius widens. 11:11 (Haruta): every dodge is free.
-      markOnHit: p.markOnHit, starField: p.starField, miracleSurge: p.miracleSurge,
+      // approach-repulsion radius widens. 11:11 (Haruta): the miracle stock is
+      // bottomless — not armour, so `surgeIframes` rides along to say how
+      // briefly each individual dodge covers him (combat.js applyHit).
+      markOnHit: p.markOnHit, starField: p.starField,
+      miracleSurge: p.miracleSurge, surgeIframes: p.surgeIframes,
     }, 2);
     // Maki's Awakening: power as the absence of glow — speed-lines and dust.
     if (f.char.fxElement === "steel") steelInstallFx(f);

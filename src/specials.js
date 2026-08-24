@@ -131,13 +131,15 @@ export function performSpecial(f, slot) {
     popup(f.x, f.y - 160 * ART_SCALE, "TECHNIQUE SEALED", "#a8aeb8", 16);
     return;
   }
-  if (f.char.passive.id === "throatStrain") {
-    if (f.throatLock > 0) {
-      popup(f.x, f.y - 160 * ART_SCALE, "*cough*", "#d7d9e7", 16);
-      return;
-    }
+  // A self-inflicted seal, and now only ever set by one move: the aftermath of
+  // Inumaki's ultimate (ultimates.js). The passive that used to feed it —
+  // Throat Strain, which taxed him for the ordinary use of his own kit — is
+  // gone; what it cost him for SCREAMING is not, because that one is a price
+  // the ult was designed around rather than a tax on playing the character.
+  if (f.throatLock > 0) {
+    popup(f.x, f.y - 160 * ART_SCALE, "*cough*", "#d7d9e7", 16);
+    return;
   }
-
   const handler = HANDLERS[cfg.type];
   if (!handler) return;
 
@@ -146,14 +148,6 @@ export function performSpecial(f, slot) {
   // so a command that gets cut off costs nothing and can be tried again.
   const spend = () => {
     f.cooldowns[slot] = cfg.cooldown || 1.2;
-    if (f.char.passive.id === "throatStrain" && cfg.strain) {
-      f.throatStrain += cfg.strain;
-      if (f.throatStrain >= 3) {
-        f.throatStrain = 0;
-        f.throatLock = 2.5;
-        popup(f.x, f.y - 176 * ART_SCALE, "THROAT STRAIN!", "#ff8a8a", 18);
-      }
-    }
   };
 
   // A move with a spoken line is introduced by it: the command comes first, the
@@ -216,6 +210,25 @@ function rollSummon(f, cfg, p) {
   seen[cfg.name] = choice;
   lastRoll.set(f, seen);
   return choice;
+}
+
+/**
+ * ONE MIRACLE, IN THE BANK — and the note that says so.
+ *
+ * Shared by the two things that can put one there: the passive's own refill
+ * (fighter.js) and Grovel (playDead, below). Shared on purpose — the whole
+ * value of the note is that a player learns one caption and then always knows
+ * whether the dodge is available, so the refill and the bank must not say it
+ * two different ways.
+ *
+ * The count is in the caption because his ceiling moves: one is what the
+ * passive holds, two is what Grovel buys him, and "+1 MIRACLE (2)" is the only
+ * thing on screen that distinguishes them.
+ */
+export function bankedMiracle(f) {
+  popup(f.x, f.y - 160 * ART_SCALE, `+1 MIRACLE (${f.miracleStock})`, f.char.theme, 17);
+  ring(f.x, f.y - 96 * ART_SCALE, f.char.theme, 54);
+  playSfx("healChime", 0.5, 1.5);
 }
 
 const HANDLERS = {
@@ -1052,18 +1065,19 @@ const HANDLERS = {
   },
 
   // Haruta — Grovel. Flat on the ground, hands over his head, entirely
-  // sincere — and cosmically it works: the moment passes him by and another
-  // small miracle goes in the bank.
+  // sincere — and cosmically it works: the moment passes him by and a second
+  // small miracle goes in the bank beside the one the passive keeps.
   playDead(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), (p.iframes || 0.7) + 0.2, { lockMovement: true });
     f.animKey = "prone";
     f.action.anim = "prone";
     f.invuln = Math.max(f.invuln, p.iframes || 0.7);
     f.vx = 0;
-    if (f.miracleStock === undefined) f.miracleStock = 2;
-    if (f.miracleStock < 3) {
+    const rule = f.char.passive;
+    if (f.miracleStock === undefined) f.miracleStock = rule.stock ?? 1;
+    if (f.miracleStock < (rule.banked ?? 2)) {
       f.miracleStock += 1;
-      popup(f.x, f.y - 150 * ART_SCALE, `a miracle banked (${f.miracleStock})`, p.color || f.char.theme, 15);
+      bankedMiracle(f);
     } else {
       popup(f.x, f.y - 150 * ART_SCALE, "please don't", p.color || f.char.theme, 15);
     }

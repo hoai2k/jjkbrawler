@@ -5,7 +5,7 @@ import { lightMove, heavyMove, swingMove, crouchPivot } from "./moves.js";
 import { bodyMetrics } from "./silhouette.js";
 import { comFrac } from "./body_points.js";
 import { spawnMelee, opponentOf, updateStatuses } from "./combat.js";
-import { performSpecial, updateSpecialState } from "./specials.js";
+import { performSpecial, updateSpecialState, bankedMiracle } from "./specials.js";
 import { performUltimate } from "./ultimates.js";
 import { performDomain, domainInput, canOpenDomain, activeDomain, domainSlotFor, domainSpecialSlot } from "./domains.js";
 import { burst, dust, skidDust, popup, banner, ring } from "./particles.js";
@@ -89,7 +89,9 @@ export function makeFighter(id, charKey, x, facing) {
     // (config_transform.js); null means "draw my own body".
     spriteChar: null,
     cooldowns: { neutral: 0, side: 0, down: 0 },
-    throatStrain: 0, throatLock: 0,
+    // Specials sealed by the fighter's own doing rather than by an opponent's
+    // silence. Only Inumaki's ultimate sets it (ultimates.js).
+    throatLock: 0,
     statuses: freshStatuses(),
     ledge: null, ledgeCooldown: 0, ledgeTimer: 0, ledgeMove: null, ledgeGrabs: 0,
     // The platform corner the hang drawing is hung from, and how much of
@@ -1389,7 +1391,6 @@ export function updateFighter(f, dt, input) {
   f.ledgeCooldown = Math.max(0, f.ledgeCooldown - dt);
   f.jabResetT = Math.max(0, f.jabResetT - dt);
   f.throatLock = Math.max(0, f.throatLock - dt);
-  f.throatStrain = Math.max(0, f.throatStrain - dt * 0.5);
   f.armorT = Math.max(0, f.armorT - dt);
   f.grabImmune = Math.max(0, f.grabImmune - dt);
   f.airT = f.grounded ? 0 : f.airT + dt;
@@ -1413,17 +1414,31 @@ export function updateFighter(f, dt, input) {
       !f.ledge && !f.ledgeMove && !!input.specialHeld;
   }
 
-  // Miracles (Haruta): the bank refills itself — one small miracle every nine
-  // seconds, three at most. Spending them is combat.js's job (applyHit).
+  // Miracles (Haruta): the bank refills itself — ONE miracle, back `refill`
+  // seconds after it is spent. Spending them is combat.js's job (applyHit),
+  // and Grovel's extra one is specials.js's (playDead).
+  //
+  // The clock only runs while he is SHORT. It used to run always and drop its
+  // tick on the floor whenever he was full, which meant a miracle spent just
+  // after a wasted tick came back in nine seconds and one spent just before it
+  // came back instantly — the same passive paying out anywhere from 0 to 9
+  // seconds with nothing on screen to explain the difference. Gating the clock
+  // on the shortfall is what makes "nine seconds" a promise rather than an
+  // average, and it is also what keeps Grovel's banked second miracle from
+  // regenerating for free: the refill tops him up to `stock`, never past it.
   if (f.char.passive.id === "miracles") {
-    if (f.miracleStock === undefined) f.miracleStock = 2;
-    f.miracleT = (f.miracleT || 0) + dt;
-    if (f.miracleT >= 9) {
-      f.miracleT = 0;
-      if (f.miracleStock < 3) {
+    const rule = f.char.passive;
+    const base = rule.stock ?? 1;
+    if (f.miracleStock === undefined) f.miracleStock = base;
+    if (f.miracleStock < base) {
+      f.miracleT = (f.miracleT || 0) + dt;
+      if (f.miracleT >= (rule.refill ?? 9)) {
+        f.miracleT = 0;
         f.miracleStock += 1;
-        popup(f.x, f.y - 160 * ART_SCALE, `a miracle banked (${f.miracleStock})`, "#c8a8e0", 13);
+        bankedMiracle(f);
       }
+    } else {
+      f.miracleT = 0;
     }
   }
 

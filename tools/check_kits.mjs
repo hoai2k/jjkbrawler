@@ -47,10 +47,13 @@ const passiveSources = ["src/combat.js", "src/fighter.js", "src/specials.js", "s
 
 // …except the passives that are implemented as DATA rather than as a branch:
 // Momo's third jump is `airJumps: 2` on her stats, Nanami's 7:3 is the
-// `critBand` on his light and heavy, and Mahito's soul marks are the `effect`
-// his moves already carry. Their ids are correctly read by nothing, so they are
-// named here rather than reported every run.
-const DATA_PASSIVES = new Set(["broomFlight", "sevenThree", "soulShaper"]);
+// `critBand` on his light and heavy, Mahito's soul marks are the `effect` his
+// moves already carry, and Inumaki's Cursed Speech is the shape of his three
+// specials — the `cursedSpeech` effect and `stunBonus` on Don't Move, and the
+// 520 base knockback Blast Away carries against its 10 damage. Their ids are
+// correctly read by nothing, so they are named here rather than reported every
+// run.
+const DATA_PASSIVES = new Set(["broomFlight", "sevenThree", "soulShaper", "cursedSpeech"]);
 
 const { CHARACTERS, STAGED_CHARACTER_KEYS } = await import("../src/characters.js");
 

@@ -979,24 +979,33 @@ export function applyHit(owner, target, hit, source) {
     return "countered";
   }
 
-  // Miracles (Haruta): a blow that should land instead spends a banked
-  // miracle — his body is yanked clear without him ever knowing, iframes
-  // covering the follow-through so a multi-hit move costs one miracle, not
-  // three. His 11:11 ultimate makes the dodges free and adds a spiteful cut on
-  // the way past. Nothing here answers a scripted sure-hit's caller checks —
-  // those test invuln themselves — so the stock is only ever spent on hits
-  // that were really arriving.
+  // Miracles (Haruta): a blow that should land instead spends his one banked
+  // miracle — his body is yanked clear without him ever knowing, and a short
+  // window of iframes covers the follow-through so a multi-hit move costs one
+  // miracle rather than the whole bank. Nothing here answers a scripted
+  // sure-hit's caller checks — those test invuln themselves — so the stock is
+  // only ever spent on hits that were really arriving.
+  //
+  // 11:11 does NOT make him invulnerable, and the difference is the point.
+  // Under the surge the stock is bottomless but every hit still goes through
+  // this branch: each swing is answered by its own visible flinch, at
+  // `surgeIframes` rather than the banked miracle's full window, so a flurry
+  // reads as him being yanked aside six times instead of standing in it taking
+  // nothing. He is still a body that can be hit — luck keeps arriving, that is
+  // all — which is also why the ult ends and the passive's single stock is
+  // what he goes back to.
   if (target.char.passive.id === "miracles" && target.invuln <= 0 && target.hitPause <= 0) {
-    const surge = !!(target.installs && target.installs.miracleSurge);
-    if (target.miracleStock === undefined) target.miracleStock = 2;
+    const surge = target.installs && target.installs.miracleSurge;
+    if (target.miracleStock === undefined) target.miracleStock = target.char.passive.stock ?? 1;
     if (surge || target.miracleStock > 0) {
       if (!surge) target.miracleStock -= 1;
       const away = -dir;
       target.x = clamp(target.x + away * 130, 70, 1210);
-      target.invuln = Math.max(target.invuln, 0.5);
+      target.invuln = Math.max(target.invuln, surge ? (target.installs.surgeIframes || 0.12) : 0.5);
       dust(target.x, target.y, 8);
       burst(target.x, target.y - 90 * ART_SCALE, "#c8a8e0", 10, 0.7);
-      popup(target.x, target.y - 160 * ART_SCALE, surge ? "11:11" : `MIRACLE (${target.miracleStock} left)`, "#c8a8e0", 18);
+      popup(target.x, target.y - 160 * ART_SCALE,
+            surge ? "11:11 — MIRACLE" : `MIRACLE (${target.miracleStock} left)`, "#c8a8e0", 18);
       playSfx("whoosh", 0.8, 1.3);
       if (surge && Math.abs(owner.x - target.x) < 200 && owner.invuln <= 0) {
         owner.damage = Math.min(999, owner.damage + 6);
