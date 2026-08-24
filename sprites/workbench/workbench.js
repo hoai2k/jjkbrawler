@@ -41,6 +41,11 @@ import {
   boxesFor, casesForFrame, committedFit, fitEdited, fitEditCount, fitExportDoc,
   fitFromEdges, fitOf, markFitsExported, resetFit, setFit, unexportedFits,
 } from "./bench_hurtbox_fit.js";
+import {
+  canvasToPoint, markPointsExported, pointEdited, pointEditCount,
+  pointInGame, pointOf, pointSource, pointStale, pointToCanvas, resetPoint,
+  setPoint, strikeExportDoc, strikeStatesForFrame, unexportedPoints,
+} from "./bench_strike_point.js";
 import { grabReachOf, holdGapOf } from "../../src/grab.js";
 import { CHARACTERS } from "../../src/characters.js";
 import {
@@ -725,14 +730,71 @@ function render() {
   const rangeDrewIt = !isOther(state.char) && drawRangeTargets(cx);
   if ($("showHurtbox").checked && !rangeDrewIt) drawHurtbox(cx);
 
-  // Every anchor the frame carries that has not been switched off. Drawn last
-  // so handles are never buried under the art.
+  // Every anchor the frame carries that has not been switched off, and — on a
+  // strike drawing — where the blow lands. Drawn last so handles are never
+  // buried under the art.
   if (!isOther(state.char) && !isPending(state.char, state.frame)) {
     for (const name of anchorNames(state.char, state.frame)) {
       if (isAnchorShown(name)) drawAnchorHandle(name, name === state.anchor);
     }
+    drawStrikeHandle();
   }
 }
+
+/** The strike point's own handle: where this attack's blow lands on this
+ *  drawing. Drawn in the strike arc's red rather than an anchor's amber,
+ *  because it is not an anchor — it does not move the picture, it tells the
+ *  game where the picture HITS — and hollow while it is only a guess, so a
+ *  point nobody has placed cannot be mistaken for one somebody has. */
+function drawStrikeHandle() {
+  if (!strikePointShown()) return;
+  const point = pointOf(state.char, state.frame);
+  const p = point && strikeOnCanvas(point);
+  if (!p) return;
+  const src = pointSource(state.char, state.frame);
+  const placed = src === "edited" || src === "committed";
+  const bad = (() => { const g = pointInGame(state.char, state.frame, point);
+                       return g && g.forward && !g.inBand; })();
+  const colour = bad ? "rgba(255, 108, 108, 1)" : "rgba(255, 92, 120, 1)";
+  ctx.save();
+  ctx.strokeStyle = colour;
+  ctx.lineWidth = 2;
+  if (!placed) ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(p.x - HANDLE_R * 2, p.y); ctx.lineTo(p.x - 3, p.y);
+  ctx.moveTo(p.x + 3, p.y); ctx.lineTo(p.x + HANDLE_R * 2, p.y);
+  ctx.moveTo(p.x, p.y - HANDLE_R * 2); ctx.lineTo(p.x, p.y - 3);
+  ctx.moveTo(p.x, p.y + 3); ctx.lineTo(p.x, p.y + HANDLE_R * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, HANDLE_R, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  if (placed) { ctx.fillStyle = colour; ctx.globalAlpha = 0.28; ctx.fill(); ctx.globalAlpha = 1; }
+  ctx.fillStyle = colour;
+  ctx.font = "600 11px Inter, sans-serif";
+  ctx.fillText(placed ? "Strike point" : "Strike point (guess)",
+               p.x + HANDLE_R * 2 + 4, p.y + 14);
+  ctx.restore();
+}
+
+/** Shown on a drawing that is some attack's contact beat, and only there. The
+ *  anchor toggle governs it too — it is a handle, and "hide the handles" has to
+ *  mean all of them or the button lies. */
+function strikePointShown() {
+  return $("showAnchors")?.checked !== false
+    && !isOther(state.char)
+    && !isPending(state.char, state.frame)
+    && strikeStatesForFrame(state.char, state.frame).length > 0;
+}
+
+const strikeOnCanvas = (point) => pointToCanvas(
+  state.char, state.frame, point, canvas.width / 2, GROUND_Y,
+  actorOf(state.char).scale * state.zoom);
+
+const strikeFromCanvas = (px, py) => canvasToPoint(
+  state.char, state.frame, px, py, canvas.width / 2, GROUND_Y,
+  actorOf(state.char).scale * state.zoom);
 
 // ------------------------------------------------------- attack range targets
 //
@@ -1924,6 +1986,7 @@ function refreshControls() {
 
   refreshAnchorControls();
   refreshFitControls();
+  refreshStrikeControls();
 
   // counted across every character touched this session, since that is what
   // Export now emits
@@ -2091,6 +2154,69 @@ function refreshFitControls() {
   $("exportFitBtn").textContent = n
     ? `Export ${n} hurtbox fit${n === 1 ? "" : "s"} (downloads a file)`
     : "Export hurtbox fits (downloads a file)";
+}
+
+/**
+ * The strike point panel: what the handle is claiming, where it came from, and
+ * whether the game can actually read it.
+ *
+ * The band check is the reason this is worth a panel rather than just a handle.
+ * A point outside it is not clamped into range — `verifiedReach` refuses it and
+ * the move falls back to the fighter's scalar reach — so a jab can be silently
+ * running on a number that has nothing to do with its drawing, which is exactly
+ * what Hakari's did. That fact used to surface only in `audit_hitboxes.mjs`.
+ * Here it is under the pointer, on the picture, while somebody can fix it.
+ */
+function refreshStrikeControls() {
+  const group = $("strikeGroup");
+  if (!group) return;
+  const states = isOther(state.char) ? [] : strikeStatesForFrame(state.char, state.frame);
+  group.hidden = !states.length || isPending(state.char, state.frame);
+  if (group.hidden) return;
+
+  const point = pointOf(state.char, state.frame);
+  const game = pointInGame(state.char, state.frame, point);
+  const src = pointSource(state.char, state.frame);
+  const edited = pointEdited(state.char, state.frame);
+
+  $("strikeNote").textContent = states.map(stateLabel).join(" · ");
+  const rows = $("strikeRows");
+  rows.innerHTML = "";
+  const line = (text, cls) => {
+    const el = document.createElement("div");
+    el.className = cls || "note";
+    el.innerHTML = text;
+    rows.appendChild(el);
+  };
+
+  if (!game) { line("This drawing has no measurements yet — nothing to place a point against."); return; }
+  line(`<b>${game.x}px forward, ${Math.abs(game.y)}px up</b> from the fighter's `
+    + "centre line and foot line · "
+    + (edited ? "<b>edited here</b>"
+      : src === "committed" ? "committed"
+      : src === "model" ? "the rig's baked contact, not yet checked"
+      : "derived — nobody has placed this one"));
+  if (states.length > 1) {
+    line(`One point, ${states.length} attacks: this drawing is the contact beat for `
+      + `${states.map(stateLabel).join(", ")}, and they all read it.`);
+  }
+  if (game.forward && !game.inBand) {
+    line(`<b>Outside the usable band (${game.lo}–${game.hi}px).</b> The game will refuse `
+      + "this as a reach and fall back to the fighter's scalar, so the move's range "
+      + "stops describing its drawing. Drag it onto the part of the body that lands "
+      + "the blow.", "note warn");
+  }
+  if (pointStale(state.char, state.frame) && !edited) {
+    line("The drawing has changed since this point was placed. It still applies; "
+      + "check it is still on the fist.", "note warn");
+  }
+
+  $("resetStrike").disabled = !edited;
+  const n = pointEditCount();
+  $("exportStrikeBtn").disabled = !n;
+  $("exportStrikeBtn").textContent = n
+    ? `Export ${n} strike point${n === 1 ? "" : "s"} (downloads a file)`
+    : "Export strike points (downloads a file)";
 }
 
 /** The intake marker on the selected pose, and the way off the list for a pose
@@ -3570,6 +3696,23 @@ async function boot() {
       const d = Math.hypot(h.x - p.x, h.y - p.y);
       if (d < bestD) { bestD = d; name = n; }
     }
+    // The strike point joins the same contest rather than getting a pass of its
+    // own: it is a marker like the anchors are, it can legitimately sit on top
+    // of one (a jab's contact and a grabbing hand are the same fist), and the
+    // rule the shared-art branch above spells out — among markers the nearest
+    // wins — is the only thing that has ever kept overlapping handles honest.
+    if (strikePointShown()) {
+      const sp = strikeOnCanvas(pointOf(state.char, state.frame));
+      const d = sp ? Math.hypot(sp.x - p.x, sp.y - p.y) : Infinity;
+      if (d <= HANDLE_R * 2.6 && d < bestD) {
+        state.dragStrike = true;
+        canvas.setPointerCapture(e.pointerId);
+        const at = strikeFromCanvas(p.x, p.y);
+        if (at) { setPoint(state.char, state.frame, at.x, at.y); refreshStrikeControls(); render(); }
+        e.preventDefault();
+        return;
+      }
+    }
     // a click that is not on a handle is just a click — nothing moves
     if (!name || bestD > HANDLE_R * 2.6) return;
     if (state.anchor !== name) { state.anchor = name; refreshAnchorControls(); }
@@ -3580,6 +3723,13 @@ async function boot() {
     e.preventDefault();
   });
   canvas.addEventListener("pointermove", (e) => {
+    if (state.dragStrike) {
+      const p = eventToCanvas(e);
+      const at = strikeFromCanvas(p.x, p.y);
+      if (at) { setPoint(state.char, state.frame, at.x, at.y); refreshStrikeControls(); render(); }
+      e.preventDefault();
+      return;
+    }
     if (state.dragFit) {
       const p = eventToCanvas(e);
       const d = state.dragFit;
@@ -3683,6 +3833,13 @@ async function boot() {
     applyAnchor(state.anchor, lx, ly, false);
   });
   const endDrag = (e) => {
+    if (state.dragStrike) {
+      state.dragStrike = false;
+      try { canvas.releasePointerCapture(e.pointerId); } catch { /* already gone */ }
+      refreshStrikeControls();
+      render();
+      return;
+    }
     if (state.dragFit) {
       state.dragFit = null;
       try { canvas.releasePointerCapture(e.pointerId); } catch { /* already gone */ }
@@ -3866,6 +4023,21 @@ async function boot() {
     markFitsExported();
     refreshFitControls();
   };
+  $("resetStrike").onclick = () => {
+    resetPoint(state.char, state.frame);
+    refreshStrikeControls();
+    render();
+  };
+  // Same bargain as the fit above, and the same apply step: a strike point is
+  // not sprite data — it is keyed by drawing but lives in a game config the
+  // manifest knows nothing about.
+  $("exportStrikeBtn").onclick = () => {
+    const doc = strikeExportDoc();
+    if (!doc) return;
+    downloadJson(JSON.stringify(doc, null, 2), "strike-points.json");
+    markPointsExported();
+    refreshStrikeControls();
+  };
   // NOTHING ON THIS PAGE IS SAVED, and a reload takes the session with it. That
   // is the design --- the manifest belongs to the repository and an export is
   // how an edit reaches it --- but it made losing work silent, and a REVIEW TICK
@@ -3878,7 +4050,7 @@ async function boot() {
   // the record rather than the user; what matters is that the dialog appears at
   // all, and only when there is something to lose.
   window.addEventListener("beforeunload", (e) => {
-    if (!unexportedWork() && !unexportedFits()) return;
+    if (!unexportedWork() && !unexportedFits() && !unexportedPoints()) return;
     e.preventDefault();
     e.returnValue = "";
   });

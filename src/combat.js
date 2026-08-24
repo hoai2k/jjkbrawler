@@ -1117,7 +1117,14 @@ export function applyHit(owner, target, hit, source) {
     const center = band.ring != null
       ? band.ring + bodyMetrics(target.spriteChar || target.charKey).width / 2
       : band.center;
-    zone = Math.abs(dx - center) <= band.tolerance ? "sweet"
+    // Overtime (Nanami): the install widens the band rather than simply adding
+    // damage on top of it. His technique is finding the point, so the vow that
+    // raises his output has to make the point easier to find — otherwise the
+    // install and the passive are two unrelated buffs on one fighter. Applied
+    // to the TOLERANCE and not the centre, so the spacing he has learned still
+    // works and the margin around it grows.
+    const tol = band.tolerance * (owner.installs?.ratioTolerance || 1);
+    zone = Math.abs(dx - center) <= tol ? "sweet"
       : band.sourDmg || band.sourKb ? "sour" : null;
   }
   if (hit.critChance && Math.random() < hit.critChance) zone = "sweet";

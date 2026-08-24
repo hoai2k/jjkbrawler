@@ -39,6 +39,11 @@ const LAYERS = [
   // Reads the game's own hurtbox configuration and nothing of the bench's, so
   // it sits near the bottom: everything above may use it, it uses none of them.
   "bench_hurtbox_fit.js",
+  // The same shape and the same rung, for the same reason: it reads the game's
+  // strike-point config and the sprite placement maths, and nothing of the
+  // bench's own. Both of these are game questions that happen to be answered
+  // here, which is what keeps them at the bottom of the ladder.
+  "bench_strike_point.js",
   "bench_model.js",
   "bench_picker.js",
   "bench_shared_art.js",

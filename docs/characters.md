@@ -281,16 +281,47 @@ reliability.
 
 **Design mapping:** The precision midweight. His whole kit rewards exact
 spacing — hit at the 7:3 distance and everything crits.
-- *Stats:* 388 / 1.14 — deliberate, sturdy.
+- *Stats:* 388 / 1.14 — deliberate, sturdy. Deliberate is not the same as slow,
+  which the attack speeds now say: his light and heavy were the second-slowest
+  pair on the roster for a character whose entire personality is doing the job
+  efficiently and leaving at six.
 - *Signature mechanic:* his lights and heavies have a **crit band** — struck
   from the sweet-spot range they automatically deal 7:3 criticals (+36%
-  damage, more launch).
-- **Ratio Wave** (neutral): blade wave with a 30% crit chance.
-- **Collapse** (side): the stairwell-dropping overhead — 2.4× shield damage.
-- **Overtime** (down): the tie comes off: +20% speed and damage for 5 s.
+  damage, more launch). **The bands were unreachable and are now placed on the
+  art.** Authored at 132 and 160 px centre-to-centre when reach was a per-move
+  literal, they survived the move to measured range — where his hitboxes end at
+  53 and 58 px from his own centre, so the furthest he could connect was about
+  71 and 76. His light band started 61 px past anything he could touch. The
+  roster's signature passive fired on its owner's normals **never**; the only
+  7:3 in the kit was the neutral special's dice roll and the ultimate. They sit
+  at the outer half of each move's real range now, so the ratio is still
+  something a player spaces for — walk into him and you lose it — and reachable
+  against the narrowest body on the roster as well as the widest.
+- **Ratio Wave** (neutral): blade wave with a 30% crit chance, on a shorter
+  cooldown.
+- **Collapse** (side): **the environment strike, as the manga uses it.** The
+  extension of the Ratio Technique finds the 7:3 point of a *structure* — he
+  punched the wall of an underground passage and brought it down on Mahito — so
+  this is no longer a lunge with a big shield multiplier. A fault opens under
+  the opponent and the debris arrives a beat later (the same director as Jogo's
+  Geyser and Hanami's Roots). It is also the one move in his kit that does not
+  care how long his arms are, which was the hole in the rest of it.
+- **Overtime** (down): the tie comes off: +20% speed and damage for 5 s — **and
+  the 7:3 band widens by 1.8×**. The vow is "past my contracted hours my output
+  rises", and for him output *is* finding the point, so the install makes him
+  better at the thing he is rather than simply hitting harder. A panic button
+  becomes the engine, and the cooldown came down to match.
 - **Ultimate — Ratio: Certain Kill:** a methodical rush of strikes, every one
-  at 7:3, ending in a critical that ends the workday.
+  at 7:3, ending in a critical that ends the workday. Six hits, not five — the
+  shortest flurry on the roster belonged to the fighter whose whole character is
+  doing the job properly.
 - *Passive — Ratio Technique:* the crit bands themselves.
+
+*Still outstanding:* his measured reach is the shortest on the roster (42 px)
+for a man carrying a sword, which is a question about his four forward strike
+points rather than about his kit. `REACH_NUDGE` cannot answer it — the audit
+fails any nudge that reorders the roster — so it wants a pass in the bench, on
+the drawings.
 
 ## Toji Fushiguro — "The Sorcerer Killer"
 **Canon:** Born Zen'in with a Heavenly Restriction: zero cursed energy,

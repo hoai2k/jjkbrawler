@@ -75,7 +75,7 @@ export const STRIKE_POINTS = {
     attack_air_b: { x: 895, y: 309.9, file: "hakari/attack_air_b.png" },
     attack_down: { x: 577.8, y: 945, file: "hakari/attack_down.png" },
     attack_heavy_b: { x: 944.3, y: 200.4, file: "hakari/attack_heavy_b.png" },
-    attack_light_b: { x: 889.9, y: 230.7, file: "hakari/attack_light_b.png" },
+    attack_light_b: { x: 42.6, y: 221.8, file: "hakari/attack_light_b.png" },
     attack_up: { x: 341.8, y: 46.2, file: "hakari/attack_up.png" },
     crouch_attack_b: { x: 899.6, y: 376.6, file: "hakari/crouch_attack_b.png" },
   },

@@ -225,9 +225,9 @@ are free and run on individual cooldowns instead.
 
 *Faculty · `nanami` · theme `#ffd35a`*
 
-- Neutral special *(1.1s cooldown)* — **Ratio Technique Wave** — A compressed blade wave. Finds the 7:3 point of whatever it touches.
-- Side special *(1.35s cooldown)* — **Collapse** — The overhead strike that dropped a whole stairwell — murder on shields.
-- Down special *(7s cooldown)* — **Overtime** — “From here on, I'm working overtime.” The tie comes off and everything gets faster.
+- Neutral special *(0.95s cooldown)* — **Ratio Technique Wave** — A compressed blade wave. Finds the 7:3 point of whatever it touches.
+- Side special *(1.2s cooldown)* — **Collapse** — He does not strike them. He strikes the floor, at the point where the floor is weakest, and lets the building do the rest.
+- Down special *(5.5s cooldown)* — **Overtime** — “From here on, I'm working overtime.” The tie comes off, the output goes up — and the 7:3 point stops being a needle to thread.
 - Ultimate — **Ratio: Certain Kill** — A methodical rush of blunt-blade strikes, every one at 7:3 — finished with a critical that ends the workday.
 - Passive — **Ratio Technique** — Strikes at the 7:3 sweet-spot distance are automatic criticals — space your pokes.
 

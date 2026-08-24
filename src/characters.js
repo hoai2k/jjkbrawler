@@ -854,29 +854,74 @@ export const CHARACTERS = {
       sideHeavy: { ...SEMANTIC_ANIMS.sideHeavy, fps: 8 },
       specialDown: { frames: ["special_down"], fps: 3, loop: true },
     },
-    light: { dmg: 9, speed: 0.95, angle: 0.29, effect: null, label: "Ratio Strike", sfx: "slash", critBand: { center: 132, tolerance: 30 } },
-    heavy: { dmg: 16.5, speed: 0.92, angle: 0.42, effect: null, label: "Ratio Cleave", sfx: "slashHeavy", shieldMul: 1.7, critBand: { center: 160, tolerance: 36 } },
+    // THE 7:3 BANDS, AND WHY THEY MOVED.
+    //
+    // `critBand` is matched against the distance between the two fighters'
+    // CENTRES (combat.js), and these were authored at 132 and 160 — numbers
+    // from the era when reach was a per-move literal. Once range came off the
+    // drawings his hitboxes ended at 53 px (light) and 58 px (heavy) from his
+    // own centre, so against an ordinary body the furthest he could connect was
+    // about 71 and 76 centre-to-centre. His light band began 61 px past
+    // anything the move could reach and his heavy band cleared it by 44. The
+    // roster's signature passive fired on its owner's normals NEVER; the only
+    // 7:3 left in the kit was the neutral special's 30% dice roll and the ult.
+    //
+    // Placed at the outer half of what each move can actually touch, so the
+    // ratio is still something a player spaces for — walk into him and you lose
+    // it, which is the whole read on the technique — and reachable against the
+    // narrowest body on the roster as well as the widest. Tolerances are
+    // proportionally tighter than SWEETSPOT's 26, because these are distances
+    // a third the size of the ones that number was chosen for.
+    //
+    // Authored rather than derived because his is not a tipper: 7:3 is a
+    // specific point at a specific spacing, it has no sourspot — outside the
+    // band is an ordinary hit, not a punished one — and it must not switch
+    // itself off if his measured reach wanders below `SWEETSPOT.minReachRatio`.
+    light: { dmg: 9, speed: 1.02, angle: 0.29, effect: null, label: "Ratio Strike", sfx: "slash", critBand: { center: 64, tolerance: 10 } },
+    heavy: { dmg: 16.5, speed: 0.96, angle: 0.42, effect: null, label: "Ratio Cleave", sfx: "slashHeavy", shieldMul: 1.7, critBand: { center: 70, tolerance: 12 } },
     specials: {
       neutral: {
-        name: "Ratio Technique Wave", type: "projectile", cooldown: 1.1,
+        name: "Ratio Technique Wave", type: "projectile", cooldown: 0.95,
         desc: "A compressed blade wave. Finds the 7:3 point of whatever it touches.",
         p: { speed: 540, vy: -4, r: 32, dur: 0.85, dmg: 11, base: 360, growth: 7.0, angle: 0.32, color: "#ffd35a", critChance: 0.3, label: "Ratio Wave", sprite: "effect:ratio_wave", spriteH: 74 },
       },
       side: {
-        name: "Collapse", type: "dashStrike", cooldown: 1.35,
-        desc: "The overhead strike that dropped a whole stairwell — murder on shields.",
-        p: { vel: 480, delay: 0.1, dur: 0.22, ox: 70, oy: -100, w: 208, h: 116, dmg: 15, base: 450, growth: 7.4, angle: 0.4, shieldMul: 2.4, label: "Collapse", sfx: "slashHeavy" },
+        // COLLAPSE IS NOT A LUNGE. The extension strikes the ENVIRONMENT at its
+        // 7:3 point — he punched the wall of an underground passage and brought
+        // the structure down on Mahito — so the move that carries its name
+        // should hit the ground and let the ground answer, not dash forward and
+        // swing. It was a `dashStrike` with a big `shieldMul`, which is a
+        // perfectly good move and somebody else's: the roster already fields
+        // nine of them.
+        //
+        // The same `trap` handler Jogo's Geyser and Hanami's Roots use, aimed
+        // at the opponent rather than at a fixed distance — a fault opens under
+        // them and the debris arrives a beat later. It is also the one move in
+        // his kit that does not care how long his arms are, which is exactly
+        // the hole the rest of the kit has.
+        name: "Collapse", type: "trap", cooldown: 1.2,
+        desc: "He does not strike them. He strikes the floor, at the point where the floor is weakest, and lets the building do the rest.",
+        p: { atOpponent: true, armTime: 0.5, lifetime: 0.7, w: 140, h: 230, dmg: 15, base: 460, growth: 7.4, angle: 0.9, shieldMul: 2.4, color: "#ffd35a", label: "Collapse", sprite: "effect:ratio_wave", spriteH: 240, sfx: "slashHeavy" },
       },
       down: {
-        name: "Overtime", type: "install", cooldown: 7,
-        desc: "“From here on, I'm working overtime.” The tie comes off and everything gets faster.",
-        p: { duration: 5, speedMul: 1.2, dmgMul: 1.2, color: "#ffd35a", label: "OVERTIME", aura: "effect:aura_gold" },
+        // OVERTIME AND THE RATIO ARE THE SAME SENTENCE. The binding vow is
+        // "past my contracted hours my output rises" — so the install should
+        // make him better at the thing he is, not simply hit harder for five
+        // seconds. `ratioTolerance` widens the 7:3 band (combat.js): the longer
+        // he is working, the easier the point is to find. A panic button
+        // becomes the engine, and the cooldown comes down to match.
+        name: "Overtime", type: "install", cooldown: 5.5,
+        desc: "“From here on, I'm working overtime.” The tie comes off, the output goes up — and the 7:3 point stops being a needle to thread.",
+        p: { duration: 5, speedMul: 1.2, dmgMul: 1.2, ratioTolerance: 1.8, color: "#ffd35a", label: "OVERTIME", aura: "effect:aura_gold" },
       },
     },
     ultimate: {
       name: "Ratio: Certain Kill", type: "flurry",
       desc: "A methodical rush of blunt-blade strikes, every one at 7:3 — finished with a critical that ends the workday.",
-      p: { hits: 5, dmg: 6, base: 200, finisherDmg: 22, finisherBase: 880, growth: 9.4, crit: true, color: "#ffd35a", label: "7:3 CRITICAL" },
+      // Six, not five: Toji's is seven, Sukuna's and Todo's are six, and the
+      // shortest flurry on the roster belonged to the fighter whose whole
+      // character is doing the job properly.
+      p: { hits: 6, dmg: 6, base: 200, finisherDmg: 22, finisherBase: 880, growth: 9.4, crit: true, color: "#ffd35a", label: "7:3 CRITICAL" },
     },
     passive: { id: "sevenThree", name: "Ratio Technique", desc: "Strikes at the 7:3 sweet-spot distance are automatic criticals — space your pokes." },
     ai: { style: "balanced", range: 260 },

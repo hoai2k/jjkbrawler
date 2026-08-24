@@ -199,6 +199,9 @@ export const state = {
   dragFit: null,
   // Dragging the hit circle: "move" on its centre, "size" on its rim.
   dragHit: null,
+  // Dragging the strike point — where this attack's blow lands on this drawing.
+  // A bare flag rather than a mode: there is one handle and one thing it does.
+  dragStrike: false,
   // RECENT_KEY while the cross-character updated list is open. `char` stays a
   // real character throughout — every control below edits the pose that is
   // selected, and which list it was picked from changes nothing about that.

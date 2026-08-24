@@ -37,8 +37,31 @@ own measured body.
 fighter swings, colour-coded by source: cyan verified, amber measured, faint
 derived.
 
-**Reviewable.** `/workbench/?edit=verification`, task set `strike-points`,
-walks the roster move by move over the real sprite and exports decisions.
+**Reviewable, in two places.** `/workbench/?edit=verification`, task set
+`strike-points`, walks the roster move by move over the real sprite and exports
+decisions — that is the queue, and it is how a roster-wide sweep gets finished.
+The **sprite workbench** carries the same handle on the pose you already have on
+screen: select any drawing that is some attack's contact beat and a red
+crosshair appears on it, dashed while the point is only a guess and filled once
+somebody has placed one, with the *Strike point* panel naming the states that
+read it and warning when the point falls outside the usable band. Same reasoning
+as the hurtbox fit, which lives in both benches for the same reason: the
+judgement is about a picture, and the bench with the picture in it wins.
+
+Both export the same document shape and both are merged by
+`node tools/apply_verification.mjs <file>`, key by key, so a sitting in one
+cannot revert a sitting in the other.
+
+**A stale export is refused, not applied.** A decision is recorded in game px
+and converted back through the frame's own metadata at apply time, so it is only
+as good as the assumption that the pose still draws from the same file. A bench
+left open across a delivery breaks that assumption silently — the arithmetic
+succeeds and hands back a number that means nothing. The apply tool now checks
+that the converted point lands on the drawing and skips it if it does not,
+naming the file and its size, and reports when an export's fingerprint predates
+the tree. Export 25 carried `jogo/upHeavy` placed on `jogo/ledge_hang.png`, the
+fallback that pose used before its own art landed; it converted to y = -370 on a
+1423 px drawing.
 
 **Spent.** Follow-up A below is built (`src/contact.js`): the impact FX, the
 element sound, the shake, the rumble, the Black Flash roll and the hitstun all

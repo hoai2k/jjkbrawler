@@ -397,6 +397,10 @@ const HANDLERS = {
       unblockable: p.unblockable, healPerSec: p.healPerSec,
       contactBurn: p.contactBurn, dmgTakenMul: p.dmgTakenMul, aura: p.aura,
       ampUp: p.ampUp, selfDrainPerSec: p.selfDrainPerSec,
+      // Overtime (Nanami): the 7:3 band widens while he is working past his
+      // hours — the vow raises his output, and for him output IS finding the
+      // point. Read by combat.js where the band is measured.
+      ratioTolerance: p.ratioTolerance,
     });
     if (!ok) return;
     banner(p.label || cfg.name, p.color || f.char.theme, { y: 240, size: 38, life: 1.0 });

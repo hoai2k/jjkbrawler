@@ -51,6 +51,7 @@ const { loadCoreAssets, frameMeta } = await import("../src/assets.js");
 await loadCoreAssets();
 const { gameToImage } = await import("../src/strike_points.js");
 const { bodyMetrics } = await import("../src/silhouette.js");
+const { ENVELOPE_INPUTS } = await import("../src/config_model_reach.js");
 
 const doc = JSON.parse(await readFile(path, "utf8"));
 const sets = doc?.sets || {};
@@ -166,6 +167,36 @@ async function strikePoints() {
     if (!d.frame) { notes.push(`  ! ${d.id}: no frame recorded, skipped`); continue; }
     const img = gameToImage(d.char, d.frame, d.value.x, d.value.y);
     if (!img) { notes.push(`  ! ${d.id}: frame does not resolve, skipped`); continue; }
+    // A POINT OFF ITS OWN DRAWING IS NOT A POINT.
+    //
+    // A decision is recorded in GAME space and converted here through the
+    // frame's own metadata, so the conversion is only as good as the assumption
+    // that the pose still draws from the same file. It does not always: a bench
+    // left open across a delivery — or an export taken before a `git pull` —
+    // was placed on the drawing the pose used THEN, and this converts it
+    // against the one it uses NOW. The arithmetic succeeds either way and hands
+    // back a number that means nothing.
+    //
+    // It is loud rather than silent, and it is a SKIP rather than a clamp, for
+    // the reason `verifiedReach` gives for the same choice (src/strike_reach.js):
+    // a point nobody can place on the picture is a question to ask again, not a
+    // value to bake at whatever the edge happened to be. The item simply stays
+    // in the queue.
+    //
+    // This is not hypothetical. Export 25 carried `jogo/upHeavy` placed on
+    // `jogo/ledge_hang.png` — the fallback that pose used before its own art
+    // landed — and converted to y = -370 on a 1423 px drawing.
+    const meta = frameMeta(d.char, d.frame);
+    const pad = 0.02;
+    const offX = img.x < -pad * meta.w || img.x > meta.w * (1 + pad);
+    const offY = img.y < -pad * meta.h || img.y > meta.h * (1 + pad);
+    if (offX || offY) {
+      notes.push(`  ! ${d.id}: lands at ${img.x.toFixed(0)},${img.y.toFixed(0)} — off`
+        + ` ${meta.file} (${meta.w}x${meta.h}). Either the export predates a delivery and`
+        + ` was placed on the drawing this pose used THEN, or the drag ran past the art.`
+        + ` Skipped; the item stays in the queue.`);
+      continue;
+    }
     const was = points[d.char]?.[d.frame];
     const now = {
       x: Math.round(img.x * 10) / 10, y: Math.round(img.y * 10) / 10,
@@ -231,6 +262,24 @@ async function hurtboxFit() {
       + render(art, (v) => JSON.stringify(v))
       + `\n};`],
   ]);
+}
+
+// WHAT THE BENCH WAS LOOKING AT WHEN THESE ANSWERS WERE GIVEN.
+//
+// Every set stamps its export with the fingerprint of the inputs the queue was
+// built from (verification.js reconcileFingerprint). A mismatch does not
+// invalidate the sitting — most answers are about a drawing that did not move,
+// and the per-decision guards below reject the ones that did — but it is worth
+// saying out loud, because it is the difference between "one item was skipped"
+// and "this export predates a delivery, expect more of them".
+{
+  const live = `${ENVELOPE_INPUTS.manifest}-${ENVELOPE_INPUTS.poses}-${ENVELOPE_INPUTS.sprites}`;
+  for (const [id, set] of Object.entries(sets)) {
+    if (set.fingerprint && set.fingerprint !== live) {
+      notes.push(`  ~ "${id}" was exported against ${set.fingerprint}, the tree is at ${live}`);
+      notes.push("    — art has landed since this bench was opened; reload it before the next sitting.");
+    }
+  }
 }
 
 await bodyPoints();
