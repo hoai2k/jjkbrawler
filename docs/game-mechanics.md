@@ -724,9 +724,10 @@ right then, which takes about a second for a whole character
 (`tools/bench_clothing_fx.mjs`); in a normal match that work happens behind the
 VS splash. Notes and sheets: `docs/experiments/uro-seethrough/`.
 
-Sprite backend only. Under **Render: Billboards** or **3D** there is no drawing
-to key — a card is a rendered rig, a model has real materials — so the setting
-does nothing there.
+It keys the DRAWINGS, so it applies wherever sprite art is on screen — both the
+flat 2D blit and the 2.5D camera's sprite card. Under **Render: Billboards** or
+**3D** a fighter who has a rig is a rendered model with real materials and has
+nothing to key; one who falls through to their sprite is keyed like any other.
 
 ### The clock, and sudden death
 

@@ -1,27 +1,35 @@
-// Clothing FX, end to end in a browser (src/clothing_fx.js). Needs a server,
-// so it is not part of `npm run check`; the drift guard that IS part of it is
-// tools/check_clothing_fx.mjs, which needs neither browser nor server.
+// Clothing FX end to end, THROUGH THE MENU AND INTO A REAL MATCH.
 //
 //     node server.mjs &
 //     node tools/smoke_clothing_fx.mjs [--shots DIR]
 //
-// Four things, because each one has failed differently during the build:
+// It plays the game the way a player does: leave the title, open Settings,
+// click "Clothing FX", pick Uro, pick a stage, wait out the VS splash, and
+// then look at the pixels on screen.
 //
-//   1. The setting exists on the settings screen and toggles its own label.
-//   2. The pass keys a real Uro frame — and keys NOTHING on a fighter with no
-//      garment profile, which is the property that keeps this a table of one
-//      rather than something the whole roster silently gets.
-//   3. The keyed canvas is the same size as the source image. Everything the
-//      game knows about where a body is comes off the manifest, so a pass that
-//      returned a differently sized drawing would move a fighter without
-//      moving one number anybody could check.
-//   4. Uro renders through the game's own draw path with the effect on, in the
-//      arena bench — which is the game, not a preview.
+// WHY IT IS WRITTEN THIS WAY, and it is the whole lesson of this feature.
+// The first version of this smoke asserted three things that were all true
+// while the effect was invisible in the game:
 //
-// Exits non-zero on the first failed assertion. `--shots` writes what it drew.
+//   * the settings button toggles its own label       — true, and irrelevant
+//   * clothingFrame() returns a keyed canvas          — true, and irrelevant
+//   * the arena bench renders with it on              — true, and MISLEADING
+//
+// The arena bench draws through the flat 2D path. The GAME does not: the 2.5D
+// camera is on by default, and it replays drawCharFrame's transform chain in
+// src/camera3d/billboards.js and blits the image itself, so the hook in
+// sprites.js never ran for a single fighter anybody could see. Every unit-ish
+// assertion passed and the feature did nothing.
+//
+// So this asserts on the FRAMEBUFFER, on the canvas the fighters are actually
+// drawn to, in a real match — and it finds that canvas by looking for her hair
+// rather than assuming which one it is, because assuming was the bug.
+//
+// The pure-node drift guard (the key still takes the same thing out of the
+// same art) is tools/check_clothing_fx.mjs, and that one is in `npm run check`.
 
 import { chromium } from "playwright";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir } from "node:fs/promises";
 import path from "node:path";
 
 const argv = process.argv.slice(2);
@@ -42,108 +50,167 @@ const check = (ok, label, detail = "") => {
 };
 
 const CHROME = process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome";
-const browser = await chromium.launch({ executablePath: CHROME });
-const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
-page.on("pageerror", (e) => {
-  failures++;
-  console.log(`FAIL page error   ${e.message}`);
-});
-if (SHOTS) await mkdir(SHOTS, { recursive: true });
 
-// --- 1. the setting ---------------------------------------------------------
-await page.goto(`${BASE}/`, { waitUntil: "load" });
-await page.waitForSelector("#settingsButton", { state: "visible", timeout: 30000 });
-await page.click("#settingsButton");
-await page.waitForSelector("#settingsClothingButton", { state: "visible" });
-const off = await page.textContent("#settingsClothingButton");
-check(off === "Clothing FX: Off", "settings: default label is Off", `got ${JSON.stringify(off)}`);
-await page.click("#settingsClothingButton");
-const on = await page.textContent("#settingsClothingButton");
-check(on === "Clothing FX: On", "settings: click turns it On", `got ${JSON.stringify(on)}`);
-await page.click("#settingsClothingButton");
-check(await page.textContent("#settingsClothingButton") === "Clothing FX: Off",
-      "settings: click turns it back Off");
-if (SHOTS) await page.screenshot({ path: path.join(SHOTS, "settings.png") });
+// Both counts come off the SAME canvas, chosen by which one her hair is on —
+// the flat path draws to the 2D canvas, the 2.5D camera to the WebGL one, and
+// a smoke that hard-codes either stops testing the shipped renderer the next
+// time that default moves. A WebGL canvas cannot be read with getImageData, so
+// each canvas is screenshotted and counted through the page's own decoder.
 
-// --- 2 & 3. the pass, on a character with a profile and one without ---------
-const pass = await page.evaluate(async () => {
-  const fx = await import("/src/clothing_fx.js");
-  const assets = await import("/src/assets.js");
-  await assets.loadCoreAssets();
-  fx.setClothingFx(true);
-
-  const load = (charKey, frameKey) =>
-    assets.loadFrame(charKey, frameKey).then(() => assets.frameImage(charKey, frameKey));
-
-  const out = {};
-  for (const [charKey, frameKey] of [["uro", "idle_a"], ["gojo", "idle_a"]]) {
-    const img = await load(charKey, frameKey);
-    if (!img) { out[charKey] = { error: "no image" }; continue; }
-    const keyed = fx.clothingFrame(charKey, frameKey, img);
-    // How many pixels actually lost their alpha, measured off the two drawings
-    // rather than trusted from the mask.
-    const read = (src) => {
-      const c = document.createElement("canvas");
-      c.width = src.width || src.naturalWidth;
-      c.height = src.height || src.naturalHeight;
-      c.getContext("2d").drawImage(src, 0, 0);
-      return c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
-    };
-    const before = read(img);
-    const after = read(keyed);
-    let cleared = 0;
-    for (let i = 3; i < before.length; i += 4) {
-      if (before[i] > 8 && after[i] === 0) cleared++;
-    }
-    out[charKey] = {
-      same: keyed === img,
-      w: keyed.width || keyed.naturalWidth,
-      h: keyed.height || keyed.naturalHeight,
-      srcW: img.naturalWidth,
-      srcH: img.naturalHeight,
-      cleared,
-      total: (img.naturalWidth * img.naturalHeight),
-    };
+async function measure(page, { enable }) {
+  // Leave the title screen. It takes a keypress and the phase is the only
+  // honest signal that it landed.
+  for (let i = 0; i < 20; i++) {
+    const phase = await page.evaluate(async () => (await import("/src/state.js")).state.phase);
+    if (phase === "menu") break;
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(700);
   }
-  return out;
-});
 
-const uro = pass.uro;
-const gojo = pass.gojo;
-check(!uro.error && !uro.same, "uro: the pass returns a keyed copy, not the source");
-check(uro.w === uro.srcW && uro.h === uro.srcH,
-      "uro: the keyed drawing is the same size as the source",
-      `${uro.w}x${uro.h} vs ${uro.srcW}x${uro.srcH}`);
-const pct = (uro.cleared / uro.total) * 100;
-check(pct > 3 && pct < 15, "uro: a plausible share of the frame is keyed",
-      `${pct.toFixed(1)}% cleared`);
-check(gojo.same === true, "gojo: a fighter with no garment profile is untouched");
+  if (enable) {
+    await page.click("#settingsButton");
+    await page.waitForSelector("#settingsClothingButton", { state: "visible" });
+    const before = await page.textContent("#settingsClothingButton");
+    check(before === "Clothing FX: Off", "settings: the default is Off", `got ${JSON.stringify(before)}`);
+    await page.click("#settingsClothingButton");
+    const after = await page.textContent("#settingsClothingButton");
+    check(after === "Clothing FX: On", "settings: clicking it turns it On", `got ${JSON.stringify(after)}`);
+    await page.click("#settingsBackButton");
+  }
 
-// --- 4. the game's own draw path -------------------------------------------
-// The arena bench runs render.js against real state, so this is the picture a
-// match draws. Two shots: effect off, then on, so a regression that keys
-// nothing is as visible as one that keys everything.
-for (const enabled of [false, true]) {
-  await page.goto(`${BASE}/workbench/?edit=arena&char=uro`, { waitUntil: "load" });
-  await page.waitForFunction(() => document.querySelector("canvas") !== null, { timeout: 30000 });
-  await page.evaluate(async (on) => {
+  await page.waitForSelector('#characterGrid [data-character="uro"]', { state: "visible", timeout: 30000 });
+  await page.click('#characterGrid [data-character="uro"]');
+  await page.waitForTimeout(400);
+  const picked = await page.evaluate(async () => (await import("/src/state.js")).state.selection[1]);
+  check(picked === "uro", "the fighter grid takes the pick", `selection ${JSON.stringify(picked)}`);
+  await page.click("#startButton");
+  await page.waitForSelector("#stageGrid [data-stage]", { timeout: 30000 });
+  await page.click("#stageGrid [data-stage]");
+
+  // The VS splash is painted card art, not sprites — the effect never touches
+  // it, and a screenshot taken while it is up measures nothing.
+  await page.waitForFunction(
+    () => (window.__st ??= null) || document.getElementById("introOverlay")?.classList.contains("hidden"),
+    null,
+    { timeout: 90000, polling: 500 },
+  );
+  await page.waitForTimeout(3500);
+
+  const state = await page.evaluate(async () => {
+    const st = (await import("/src/state.js")).state;
     const fx = await import("/src/clothing_fx.js");
-    fx.setClothingFx(on);
-  }, enabled);
-  // Let the bench finish streaming the fighter's art and draw a few frames
-  // with the setting in its final position.
-  await page.waitForTimeout(4000);
-  const drew = await page.evaluate(() => {
-    const c = document.querySelector("canvas");
-    return !!c && c.width > 0 && c.height > 0;
+    const rb = await import("/src/render_backend.js");
+    return { phase: st.phase, p1: st.fighters[0]?.charKey, enabled: fx.clothingFx.enabled, backend: rb.renderBackendLabel?.() };
   });
-  check(drew, `arena bench draws with Clothing FX ${enabled ? "on" : "off"}`);
-  if (SHOTS) {
-    await page.locator("canvas").first()
-      .screenshot({ path: path.join(SHOTS, `arena_${enabled ? "on" : "off"}.png`) });
+
+  // Which canvas is she on? Her hair is the marker: light violet, nothing else
+  // on this stage comes near it.
+  const canvases = await page.$$("canvas");
+  let best = null;
+  for (const el of canvases) {
+    const id = await el.evaluate((n) => n.id);
+    const shot = await el.screenshot();
+    const counts = await page.evaluate(async (b64) => {
+      const img = await new Promise((res) => {
+        const i = new Image();
+        i.onload = () => res(i);
+        i.src = "data:image/png;base64," + b64;
+      });
+      const c = document.createElement("canvas");
+      c.width = img.width;
+      c.height = img.height;
+      const cx = c.getContext("2d");
+      cx.drawImage(img, 0, 0);
+      const W = c.width, H = c.height;
+      const d = cx.getImageData(0, 0, W, H).data;
+      // Find her by her hair — light violet, and nothing else on any stage
+      // comes near it. Then count the garment ONLY in the body beneath that
+      // hair. Counting the whole frame measures the stage: Training Bridge's
+      // water and foliage put ~12k cyan pixels on screen, which buries a
+      // garment of one or two thousand and reads as "no change".
+      let hair = 0, hx0 = W, hx1 = 0, hy0 = H, hy1 = 0;
+      for (let p = 0, i = 0; p < W * H; p++, i += 4) {
+        const r = d[i], g = d[i + 1], bl = d[i + 2];
+        if (!(r > 195 && bl > 205 && g < r - 25 && g < bl - 25)) continue;
+        hair++;
+        const x = p % W, y = (p - x) / W;
+        if (x < hx0) hx0 = x;
+        if (x > hx1) hx1 = x;
+        if (y < hy0) hy0 = y;
+        if (y > hy1) hy1 = y;
+      }
+      let cloth = 0;
+      let box = null;
+      if (hair > 200) {
+        const hw = hx1 - hx0 + 1, hh = hy1 - hy0 + 1;
+        const cxh = (hx0 + hx1) / 2;
+        // Her TORSO, not a generous body box: the bands sit directly under
+        // the head, and every pixel of margin is stage showing through. Her
+        // hair is drawn much wider than she is, so the box is a fraction of
+        // it, and it starts at the hair's bottom rather than its top.
+        const bx0 = Math.max(0, Math.round(cxh - hw * 0.45));
+        const bx1 = Math.min(W - 1, Math.round(cxh + hw * 0.45));
+        const by0 = Math.max(0, Math.round(hy1 - hh * 0.1));
+        const by1 = Math.min(H - 1, Math.round(hy1 + hh * 1.6));
+        box = { bx0, bx1, by0, by1 };
+        for (let y = by0; y <= by1; y++) for (let x = bx0; x <= bx1; x++) {
+          const i = (y * W + x) * 4;
+          const r = d[i], g = d[i + 1], bl = d[i + 2];
+          const max = Math.max(r, g, bl), min = Math.min(r, g, bl);
+          // Her cloud is a LIGHT cyan — around (180, 225, 245). The tests are
+          // pitched above the stage behind her: wet stone is darker and
+          // greyer, foliage is green-dominant, water is deeper. Calibrated
+          // against the off/on pair on Training Bridge, which is the busiest
+          // backdrop the picker can hand us.
+          if (bl >= 215 && g >= 195 && bl > r + 45 && g > r + 20 && max - min >= 35) cloth++;
+        }
+      }
+      return { hair, cloth, box };
+    }, shot.toString("base64"));
+    if (!best || counts.hair > best.hair) best = { id, ...counts, el };
   }
+  return { ...state, ...best };
 }
 
-await browser.close();
-console.log(failures ? `\n${failures} failure(s)` : "\nclothing fx ok");
+async function run(enable) {
+  const browser = await chromium.launch({ executablePath: CHROME });
+  const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 2 });
+  page.on("pageerror", (e) => {
+    failures++;
+    console.log(`FAIL page error   ${e.message}`);
+  });
+  await page.goto(`${BASE}/`, { waitUntil: "load" });
+  await page.waitForSelector("#settingsButton", { state: "visible", timeout: 30000 });
+  const out = await measure(page, { enable });
+  if (SHOTS) {
+    const box = await out.el.boundingBox();
+    await page.screenshot({
+      path: path.join(SHOTS, `match_${enable ? "on" : "off"}.png`),
+      clip: { x: box.x + box.width * 0.18, y: box.y + box.height * 0.20, width: box.width * 0.20, height: box.height * 0.42 },
+    });
+  }
+  await browser.close();
+  return out;
+}
+
+if (SHOTS) await mkdir(SHOTS, { recursive: true });
+
+const off = await run(false);
+const on = await run(true);
+
+console.log(`\n     backend ${off.backend} · fighters drawn on #${off.id}`);
+console.log(`     garment pixels: off ${off.cloth}, on ${on.cloth}\n`);
+
+check(off.phase === "playing" && on.phase === "playing", "a real match starts both times");
+check(off.p1 === "uro" && on.p1 === "uro", "Uro is player 1 both times");
+check(on.enabled === true && off.enabled === false, "the setting is on for one run and off for the other");
+check(off.hair > 200 && on.hair > 200, "Uro is on screen in both runs",
+      `hair px off ${off.hair}, on ${on.hair}`);
+check(off.cloth > 400, "with the effect OFF her garment is drawn solid",
+      `${off.cloth} garment px`);
+// The heart of it: the cloth has to actually go away on the framebuffer.
+check(on.cloth < off.cloth * 0.35, "with the effect ON the garment is keyed out of the picture",
+      `${on.cloth} garment px vs ${off.cloth} — the effect is not reaching the renderer`);
+
+console.log(failures ? `\n${failures} failure(s)` : "\nclothing fx reaches the screen");
 process.exit(failures ? 1 : 0);

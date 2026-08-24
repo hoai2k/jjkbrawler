@@ -62,6 +62,21 @@ garment layer per pose, so the garment's alpha could move independently. That is
 a redraw of all 47 frames and a decision about what the body layer shows — an
 art question, not a code one.
 
+## Where the hook has to live
+
+The effect keys sprite art, and sprite art reaches the screen through **two**
+paths: `sprites/src/sprites.js drawCharFrame` (the flat blit) and
+`src/camera3d/billboards.js drawChar` (the 2.5D camera's sprite card, which
+replays the same transform chain as a matrix rather than calling
+drawCharFrame). The 2.5D camera is on by default, so the second is the one a
+player sees.
+
+This shipped hooked to the first one only. The settings toggle worked, the pass
+returned a keyed canvas, the arena bench rendered it correctly — and the effect
+was invisible in every real match, because the bench draws flat and the game
+does not. `tools/smoke_clothing_fx.mjs` now plays a real match and asserts on
+the framebuffer, which is the only check that could have caught it.
+
 ## Keeping the key and the art in step
 
 The key reads her art by colour, and nothing in the sprite pipeline knows that.
