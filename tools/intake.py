@@ -152,7 +152,7 @@ def key_and_trim(path, ref=None):
     alpha[alpha >= 48 / 255] = 1.0
 
     if key is not None and ref not in KEY_IS_A_DRAWN_TONE:
-        alpha[flat_key_mask(clean, alpha, key)] = 0.0
+        alpha[flat_key_mask(clean, alpha, key, ref=ref)] = 0.0
 
     vis = alpha >= 8 / 255
     ys, xs = np.nonzero(vis)
@@ -201,7 +201,7 @@ def flood_background(cand, seed):
 # sitting on exactly that colour and locally uniform is background the border
 # flood fill could not reach — sealed inside the silhouette. Art over the same
 # colour carries lineart, shading and texture, which the variance test sees.
-def flat_key_mask(rgb, alpha, key, tol=14, max_var=9, min_px=250):
+def flat_key_mask(rgb, alpha, key, tol=14, max_var=9, min_px=250, ref=None):
     opaque = alpha > 0.5
     dist = np.linalg.norm(rgb - key, axis=2)
     luma = rgb.mean(axis=2)
@@ -214,7 +214,8 @@ def flat_key_mask(rgb, alpha, key, tol=14, max_var=9, min_px=250):
     counts = np.bincount(lab.ravel())
     counts[0] = 0
     keep = np.isin(lab, np.nonzero(counts >= min_px)[0])
-    return keep & ~shading_on_pale(keep, lab, luma, opaque)
+    guessed = keep & ~shading_on_pale(keep, lab, luma, opaque)
+    return settled(guessed, keep, lab, ref)
 
 
 # How far out to look for the garment, and how much of it settles the question.
@@ -251,11 +252,55 @@ SHADE_NEAR, SHADE_FAR, SHADE_WHITE, SHADE_SHARE = 3, 9, 195, 0.25
 # Nothing measurable separates those from a real sealed pocket — a pocket under
 # Dagon's wing is also a flat field fenced by flat art — so they are named, the
 # way GREY_TINT_FIX below is named, and the test is declined for the whole
-# plate. A human looked at these two and saw a jacket and a guitar.
+# plate. Declining is only safe where the plate has no sealed pocket for the
+# test to have been catching, so a name goes in only after somebody has looked.
 #
-# Declining costs nothing on either: neither plate has a sealed pocket for the
-# test to have been catching, which is checked by eye before a name goes in.
-KEY_IS_A_DRAWN_TONE = {"gakuganji/throw_up", "yuji/throw_back"}
+# `yuji/throw_back` WAS ON THIS LIST AND SHOULD NOT HAVE BEEN. The region was
+# judged from a downscaled overlay and called the lit panel of his jacket; at
+# full size it is the gap between his arm and his body, and declining the test
+# filled it with screen grey. The workbench sent it straight back. Judge these
+# at full size, one region at a time — SEALED_VERDICTS below is the place for
+# an answer that only applies to part of a plate.
+KEY_IS_A_DRAWN_TONE = {"gakuganji/throw_up"}
+
+
+# WHERE A HUMAN HAS SETTLED IT, REGION BY REGION.
+#
+# The rules above are guesses, and on this delivery they have to be: the artist
+# shaded in the screen colour, so a shadow on a sleeve and the gap beside it are
+# the same pixels — 128,128,128, flat, fenced by the same white cloth. Colour,
+# variance, depth, the ink in the fence, elongation, whether an unguarded flood
+# would have reached it: none of them separates the two, because the difference
+# is not in the image. It is in knowing what a sleeve is.
+#
+# So a person answers for one region and the answer sticks. A verdict is a point
+# in the DELIVERED image's own pixels — stable across re-keys, because the
+# delivery is archived and never changes — and it wins over whatever the rules
+# would have said:
+#
+#   "background"  the stage should show through here; cut it
+#   "figure"      this is drawn on the fighter; keep it
+#
+# Anything not named still goes through the rules above.
+SEALED_VERDICTS = {}
+
+
+def settled(guessed, regions, lab, ref):
+    """`guessed`, overruled wherever a person has answered for a region."""
+    verdicts = SEALED_VERDICTS.get(ref or "")
+    if not verdicts:
+        return guessed
+    out = guessed.copy()
+    h, w = lab.shape
+    for what, points in verdicts.items():
+        for x, y in points:
+            if not (0 <= int(y) < h and 0 <= int(x) < w):
+                continue
+            region = lab[int(y), int(x)]
+            if not region or not regions[int(y), int(x)]:
+                continue
+            out[lab == region] = (what == "background")
+    return out
 
 
 def shading_on_pale(mask, lab, luma, opaque):

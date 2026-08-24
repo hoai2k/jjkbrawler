@@ -117,13 +117,31 @@ reads the ring of art 3 to 9 pixels out and declines the removal when a quarter
 of it is that white. Over the whole delivery it saves 250,901px across 35 plates
 and leaves every removal that was doing real work alone.
 
-**On a garment that is not pale, nothing measurable separates them** — the lit
-panel of Yuji's navy jacket and the body of Gakuganji's guitar are drawn in the
-screen grey too, and a flat dark field fenced by flat dark art is exactly what a
-real pocket looks like. Those are named in `KEY_IS_A_DRAWN_TONE` and the test is
-declined for the whole plate, the way `GREY_TINT_FIX` is named. A name goes in
-only after somebody has looked and confirmed the plate has no sealed pocket for
-the test to have been catching.
+**On a garment that is not pale, nothing measurable separates them** — the body
+of Gakuganji's guitar is drawn in the screen grey too, and a flat dark field
+fenced by flat dark art is exactly what a real pocket looks like. That plate is
+named in `KEY_IS_A_DRAWN_TONE` and the test is declined for the whole of it, the
+way `GREY_TINT_FIX` is named.
+
+**Judge those at full size, and only ever for one region.** `yuji/throw_back` was
+put on that list from a downscaled overlay, where the region read as the lit
+panel of his jacket; at full size it is the gap between his arm and his body, and
+declining the test filled it with screen grey. The workbench sent it back the same
+day. Naming a whole plate is the wrong shape of answer whenever the plate has
+both kinds on it, which most of them do.
+
+`SEALED_VERDICTS` is the right shape: a point in the DELIVERED image's own
+pixels, labelled `background` or `figure`, which overrides the rules for the one
+region containing it. The delivery is archived and never changes, so a verdict
+survives every re-key. Nothing else about the region is assumed — the answer is
+somebody's, not a measurement's.
+
+**Do not reach for a sixth heuristic before reading this list.** Colour, local
+variance, depth inside the silhouette, the ink in the fence, elongation, how much
+survives erosion, and whether an unguarded flood would have reached it have all
+been measured against regions labelled by eye on both sides. None of them
+separates a shadow from a gap on this delivery, because the difference is not in
+the image.
 
 **The fix at the source is the screen colour.** A magenta or green key cannot
 collide with a shadow, and `intake.py` already keys both. Every heuristic here
