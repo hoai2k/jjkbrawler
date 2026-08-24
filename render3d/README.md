@@ -7,9 +7,12 @@ delivery spec, same clip contract (`src/states.js` — 38 states over 27
 clips, the rest aliased), same per-character fallthrough to sprites. **Phase D0
 and the D1/D2 engine side are built**: live playback, the anime pass, foot IK,
 real turnarounds, aimed strikes, head look-at, hurt flinch, micro-parallax and
-stage-derived lighting all run today. **The roster is delivered too** — 27 rigs
-in `assets/`, 25 of them drawing in game (`inGame: false` holds Mei Mei and
-Kurourushi back pending rebuilds). Open work is in
+stage-derived lighting all run today. **The roster is delivered too** — 28 rigs
+in `assets/`, 26 of them drawing in game (`inGame: false` holds Mei Mei and
+Kurourushi back pending rebuilds). Five are Blender/Rigify builds rather than
+Tripo output (round D7: Yuji, Nobara, Mahito, Jogo, Naoya), and those arrive
+needing `tools/conform_delivery.mjs` before the intake will look at them —
+[intake/README.md](intake/README.md) says why. Open work is in
 [docs/asset-requests.md](docs/asset-requests.md).
 
     node server.mjs

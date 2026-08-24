@@ -16,8 +16,8 @@ and follows the same rules: everything here is **outstanding**, delivered
 rounds move to a history file when the first one lands, and round numbers
 (D1, D2…) are permanent so commits citing them keep resolving.
 
-**Current status: the roster is delivered** — 27 rigs are in
-`render3d/assets/` and 25 draw in game (`inGame: false` holds back Mei Mei
+**Current status: the roster is delivered** — 28 rigs are in
+`render3d/assets/` and 26 draw in game (`inGame: false` holds back Mei Mei
 and Kurourushi pending rebuilds; see the D6 round below). The pipeline
 (live playback, on-twos sampling, toon ramp, ink outlines, foot IK,
 turnaround, stage lighting, intake, workbench review and inheritance) runs
@@ -805,6 +805,105 @@ body skin.
   seed board can be bound properly at conform.
 
 **Deliverable: 5 rigs, regenerated from DI5 boards, same intake as D3.**
+
+### Round D7 — off the generator, onto a real rig *(delivered)*
+
+Five rigs, and the first ones on this roster that are not Tripo output:
+**Yuji, Nobara, Mahito and Jogo rebuilt** over their D1/D3 originals, and
+**Naoya**, who had no rig at all and drew sprites until now. They are
+Blender/Rigify exports — a proper deformation skeleton with twist segments,
+clean quad topology, painted weights — which is a step up in everything the
+model-health gate measures and a step sideways in everything the CONTAINER
+spec says.
+
+**What arrived was not a delivery, and the same four things were wrong on all
+five.** `gltfpack` on the way out left them meshopt-compressed (not core
+glTF — the game's loader would need a WASM decoder shipped to every player,
+and every tool here that reads a .glb by hand would see noise), named
+`DEF-upper_arm.L` where every layer in the engine addresses `LeftArm`,
+FLAT-skeletoned (gltfpack drops the joint hierarchy when a file carries no
+animations, because skinning only needs world matrices — so the arms came out
+as siblings of the spine and turning the chest would have left them behind),
+and normalised to a unit cube at 120k–300k triangles against a 30k budget and
+a spec that says metres with the origin on the floor.
+
+All four are arithmetic on the container rather than art, so
+`tools/conform_delivery.mjs` is the pass that fixes them — decode, rename,
+re-parent without moving a joint, scale to canon height, decimate — and the
+uploads are archived unmodified in `assets/reference/render3d-d7/`. Two skin
+passes ride along, and both are the same class of fault (a bind painted by
+proximity, which does not know what a garment or a weapon is):
+
+- `tools/rigidify_prop.mjs` — **Nobara's hammer was skin.** Weighted across
+  her hand, her forearm and the twist bone between them, so it bent through a
+  swing like a rubber mallet. It is now 490 vertices at weight 1.0 on
+  `Prop_Main` under `RightHand`: one bone, no blend, and the first weapon on
+  this roster that `applyCarry` and `fitPropShaft` can actually see (her old
+  rig's `Prop_Main` was an empty hook with nothing bound to it).
+- `tools/prune_hem_weights.mjs` — **her skirt was bound to her arms.** She
+  stands with her hands at her sides, so the bind gave the hem, and a wedge of
+  her hip, to her hands and forearms; raising the right arm tented a black
+  shard of skirt out of her hip. 2791 vertices below the shoulder line lost
+  their arm weight. Mahito (1877) and Naoya (467) had the same defect, Yuji
+  75, Jogo none.
+
+**What the round did NOT come with, and what was done about it.** No clips —
+which matters for exactly two states, because the engine builds the other 37
+out of each fighter's own sprite poses (`pose_clips.js`). `idle` and the
+`teeter` that aliases to it are deliberately not built, and a rig with no
+`idle` of its own falls through to the MANNEQUIN's, which writes an absolute
+hip height onto a bone whose bind is the floor: the first conformed Yuji stood
+0.94 m in the air with his head folded into his chest. The conform now writes
+one clip — the delivered bind pose, held — which is what "the delivery's own
+stand" means and what the idle layers (stance, arms, head carriage) expect to
+compose over.
+
+**Also not in the round:** the D-spec additions. No `COLOR_0` outline channel
+and no `extras.shadeBias`, so the outline runs at uniform width and the toon
+terminator unbiased on these five, exactly as on the rest of the roster.
+`shadeTint` for Naoya is measured from his DI3 sheet like everyone else's.
+
+**Still to review, by eye, in the workbench:** `renderScale` is the
+measurement (`Use measured`) rather than a judgement on all five, and Yuji's
+delivered bind is a fighting crouch — the idle layers rebuild his arms and
+legs but not his spine, so he stands hunched until somebody dials it. The
+facing came from `tools/solve_yaw.mjs` against each fighter's own idle sprite,
+which is a measurement and not an opinion, but the margins on Yuji (0.394
+against 0.392 at the next yaw) and Jogo (0.426 / 0.422) are thin enough to be
+worth a look.
+
+**One check is red, and it is worth reading before it is "fixed".**
+`tools/smoke_render3d.mjs` asks that a walk keep one foot down — measured as
+how far the lower ANKLE sits above its own floor across the cycle, capped at
+3% of stature. The four new rigs sit at 3.6–4.1% where the whole Tripo roster
+sits at 0.7–2.6%, and the split is exactly by rig family:
+
+| | ankle height, standing | worst planted-foot rise |
+|---|---|---|
+| Tripo roster (25) | 2.2–2.6% of stature | 0.7–2.6% |
+| D7 rigs (4 in game) | 4.5–10.2% | 3.6–4.1% |
+
+The ankle is the tell. A Tripo rig's `LeftFoot` sits at the shoe, a couple of
+centimetres off the floor, so its ankle barely moves when the foot rolls over
+its ball; these rigs have an anatomical ankle 8–18 cm up, and the same roll
+lifts it several times as far. Measured with the TOE included — the lower of
+each foot's ankle-rise and toe-rise, which is what "the foot left the floor"
+actually means — all four read 0–1.15%, against 0–1.15% for the roster: the
+feet stay planted and the ankles roll. So the proxy, not the cycle, is what
+these four fail, and re-cutting the metric is a decision about a shared check
+rather than something a delivery round should quietly change. **Left red and
+written down.**
+
+**Naoya is held back** (`inGame: false`, the same flag as Mei Mei and
+Kurourushi) for a failure that is NOT the family artifact above: his run
+supports 19% of its cycle against a 25% bar, where the other four sit at
+25–30%. Approved, imported and in the workbench; not in front of a player
+until his cycle or his proportions get a pass.
+
+**The old models are kept as `alt`** (`<char>_alt.glb`, `alt` block in the
+manifest, labelled "pre-D7 — the Tripo build") so the two generations can be
+judged side by side in the workbench rather than from memory — the same thing
+D6 did for its five.
 
 ---
 

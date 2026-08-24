@@ -12,14 +12,29 @@
           0.7742
         ]
       },
-      "renderScale": 1.03,
+      "renderScale": 0.935,
       "armDeg": 13.75,
-      "baked": true,
       "stanceDeg": 3.75,
-      "yawOffsetDeg": 10,
-      "facingCheckedAt": "2026-08-15",
+      "yawOffsetDeg": 320,
+      "facingCheckedAt": "2026-08-24",
       "guardOpenDeg": 12,
-      "guardCheckedAt": "2026-08-15"
+      "guardCheckedAt": "2026-08-15",
+      "alt": {
+        "model": "yuji/yuji_alt.glb",
+        "label": "pre-D7 — the Tripo build",
+        "heightM": 1.73,
+        "yawOffsetDeg": 10,
+        "renderScale": 1.03,
+        "stanceDeg": 3.75,
+        "armDeg": 13.75,
+        "toon": {
+          "shadeTint": [
+            0.7821,
+            0.7699,
+            0.7742
+          ]
+        }
+      }
     },
     "maki": {
       "model": "maki/maki.glb",
@@ -58,7 +73,6 @@
       "model": "jogo/jogo.glb",
       "heightM": 1.8,
       "approved": true,
-      "yawOffsetDeg": 45,
       "toon": {
         "shadeTint": [
           0.7271,
@@ -66,11 +80,26 @@
           0.6787
         ]
       },
-      "renderScale": 1.01,
+      "renderScale": 1.026,
       "stanceDeg": 22.25,
       "armDeg": 10,
-      "baked": true,
-      "facingCheckedAt": "2026-08-15"
+      "facingCheckedAt": "2026-08-24",
+      "alt": {
+        "model": "jogo/jogo_alt.glb",
+        "label": "pre-D7 — the Tripo build",
+        "heightM": 1.8,
+        "yawOffsetDeg": 45,
+        "renderScale": 1.01,
+        "stanceDeg": 22.25,
+        "armDeg": 10,
+        "toon": {
+          "shadeTint": [
+            0.7271,
+            0.71,
+            0.6787
+          ]
+        }
+      }
     },
     "megumi": {
       "model": "megumi/megumi.glb",
@@ -182,13 +211,27 @@
           0.7336
         ]
       },
-      "yawOffsetDeg": 340,
       "armDeg": 10.75,
-      "baked": true,
       "stanceDeg": 2.75,
-      "facingCheckedAt": "2026-08-15",
+      "facingCheckedAt": "2026-08-24",
       "guardOpenDeg": 8,
-      "guardCheckedAt": "2026-08-15"
+      "guardCheckedAt": "2026-08-15",
+      "alt": {
+        "model": "mahito/mahito_alt.glb",
+        "label": "pre-D7 — the Tripo build",
+        "heightM": 1.79,
+        "yawOffsetDeg": 340,
+        "stanceDeg": 2.75,
+        "armDeg": 10.75,
+        "toon": {
+          "shadeTint": [
+            0.6717,
+            0.6974,
+            0.7336
+          ]
+        }
+      },
+      "renderScale": 0.989
     },
     "gojo": {
       "model": "gojo/gojo.glb",
@@ -238,14 +281,29 @@
           0.6861
         ]
       },
-      "yawOffsetDeg": 65,
-      "renderScale": 1.03,
+      "yawOffsetDeg": 330,
+      "renderScale": 0.98,
       "stanceDeg": 5.5,
       "armDeg": 14.75,
-      "baked": true,
-      "facingCheckedAt": "2026-08-15",
+      "facingCheckedAt": "2026-08-24",
       "guardOpenDeg": 8,
-      "guardCheckedAt": "2026-08-15"
+      "guardCheckedAt": "2026-08-15",
+      "alt": {
+        "model": "nobara/nobara_alt.glb",
+        "label": "pre-D7 — the Tripo build",
+        "heightM": 1.6,
+        "yawOffsetDeg": 65,
+        "renderScale": 1.03,
+        "stanceDeg": 5.5,
+        "armDeg": 14.75,
+        "toon": {
+          "shadeTint": [
+            0.7118,
+            0.6886,
+            0.6861
+          ]
+        }
+      }
     },
     "choso": {
       "model": "choso/choso.glb",
@@ -585,6 +643,23 @@
       "armDeg": 13.25,
       "baked": true,
       "facingCheckedAt": "2026-08-15"
+    },
+    "naoya": {
+      "model": "naoya/naoya.glb",
+      "heightM": 1.81,
+      "approved": true,
+      "toon": {
+        "shadeTint": [
+          0.799,
+          0.78,
+          0.745
+        ]
+      },
+      "yawOffsetDeg": 330,
+      "renderScale": 0.986,
+      "facingCheckedAt": "2026-08-24",
+      "inGame": false,
+      "note": "held back by tools/smoke_render3d.mjs, not by intake: his engine-built walk lifts the planted ankle 4.2% of height against a 3% bar and his run supports only 19% of the cycle against 25%. Both are the shared authored cycle meeting this rig's proportions — his ankle sits at 7.0% of stature where the roster sits near 2.5% — so it is a review pass on the cycle or the rig, not a re-delivery. Approved and in the workbench until then."
     }
   }
 }
