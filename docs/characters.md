@@ -553,9 +553,13 @@ Weakest legs on the roster, but a stage that is always ringing.
   erupts when crossed — his zoning anchor.
 - **Distortion Solo** (down): steps on the pedal — while it rings, every
   Power Chord comes out doubled, plus a general damage lift.
-- **Ultimate — Deadly Melody: Encore:** the full performance: waves of sound
-  roll off him in both directions, shoving and grinding everyone in range,
-  until the closing chord throws the crowd.
+- **Ultimate — Deadly Melody: Encore:** the full performance. The opening
+  downstroke is heard by the whole stage and briefly stuns every opponent on
+  it, wherever they are standing; the waves after it shove and grind only what
+  is inside the drawn wave (40% past its painted edge), until the closing chord
+  throws whoever is still at the front. Being caught by it is a decision about
+  where you stand, which is what the 520px damage radius it used to carry —
+  wider than most stages — took away.
 - *Passive — Unshakeable Tradition:* takes 25% less hitstun. Decades on every
   kind of stage; the old man barely flinches, which makes comboing him a
   genuinely different problem.

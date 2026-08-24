@@ -1203,9 +1203,60 @@ const DIRECTORS = {
   },
 
   // Gakuganji — Encore: sound waves roll off him until the closing chord.
+  //
+  // WHAT THE ROOM HEARS AND WHAT THE AMP REACHES ARE DIFFERENT DISTANCES, and
+  // this used to make no distinction between them: every wave hit anything
+  // within `radius` of him, and `radius` was 520px — wider than the play area
+  // of most stages, so "sound waves roll off him" was in practice "everyone on
+  // the board takes it, wherever they stood". The drawing meanwhile is 210px
+  // across. Nothing about the picture told you the danger was five times it.
+  //
+  //   the opening chord   FREEZES every foe on the board wherever they are —
+  //                       `freeze` seconds of dizzy, stars and all. The whole
+  //                       stage still hears it; that is what it does to them.
+  //   every wave after    only damages what is inside the wave. The radius is
+  //                       taken FROM THE PAINTED DRAWING (`hitRadiusMul` past
+  //                       its edge), so re-sizing the art in the workbench
+  //                       re-sizes the danger and the two cannot drift apart.
+  //   the closing chord   the same circle, opened up by `finalRadiusMul`.
+  //
+  // AND IT SOUNDS LIKE A GUITAR. Every beat of it played `blast` — the generic
+  // explosion — under the one fighter on the roster who fights with an
+  // instrument, while `powerChord` (three licks, drawn one per play) sat in
+  // the registry being used by his neutral special alone.
   concert(f, p, ult) {
     beginUltAction(f, p.duration, { lockMovement: true });
     state.domainOverlay = { color: p.color, life: p.duration + 0.4, maxLife: p.duration + 0.4, label: "Deadly Melody", ownerId: f.id };
+
+    // Where the wave is centred, and how far it carries. The centre is the
+    // point the drawing is painted on rather than where the drawing's own
+    // nudge puts the picture — a `dx`/`dy` in the workbench moves the art onto
+    // its point and deliberately moves nothing that collides (shared_paint.js).
+    const waveY = () => f.y - 110;
+    const hitRadius = (mul = 1) => {
+      const img = p.sprite ? getImage(p.sprite) : null;
+      // ART_SCALE because that is what sizes every shared drawing on its way to
+      // the canvas (sharedPlacement), and half the WIDTH because the wave rolls
+      // outward. A match where the art never loaded draws expanding rings out
+      // to `radius` instead, so that is what it is measured against there.
+      const painted = paintedHeight(p.sprite, p.spriteH || 300) * ART_SCALE;
+      const visual = img?.height ? (painted * img.width / img.height) / 2 : (p.radius ?? 300);
+      return visual * (p.hitRadiusMul ?? 1.4) * mul;
+    };
+    /** Is any part of this fighter's body inside the wave? A circle against
+     *  the hurtbox, so a tall fighter at the edge is caught by their shoulder
+     *  the way the picture says they should be. */
+    const inWave = (t, r) => circleRectOverlap(f.x, waveY(), r, hurtbox(t));
+
+    // The downstroke that opens the set. Everyone hears this one.
+    playSfx("powerChord", 1, 0.82);
+    for (const t of state.fighters) {
+      if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
+      t.dizzy = Math.max(t.dizzy, p.freeze ?? 0.9);
+      t.charging = null;
+      popup(t.x, t.y - 140 * ART_SCALE, "STUNNED", p.color, 13);
+    }
+
     state.entities.push({
       owner: f, t: 0, tick: 0.35, dead: false,
       update(dt) {
@@ -1213,12 +1264,17 @@ const DIRECTORS = {
         if (f.dead || f.respawnTimer > 0) { this.dead = true; return; }
         if (this.t >= p.duration) {
           this.dead = true;
-          ring(f.x, f.y - 90 * ART_SCALE, p.color, 320);
-          playSfx("blast", 1, 0.6);
+          const r = hitRadius(p.finalRadiusMul ?? 1.2);
+          // ring() takes a REFERENCE-body length and scales it itself
+          // (particles.js), and `r` is already in world px — so it is divided
+          // back out, and the ring lands on the edge of what the chord hit.
+          ring(f.x, f.y - 90 * ART_SCALE, p.color, r / ART_SCALE);
+          playSfx("powerChord", 1, 0.7);
+          playSfx("blast", 0.7, 0.6);
           state.camera.shake = Math.max(state.camera.shake, 14);
           for (const t of state.fighters) {
             if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
-            if (Math.abs(t.x - f.x) < p.radius * 1.2) {
+            if (inWave(t, r)) {
               applyHit(f, t, {
                 dmg: p.finalDmg, baseKb: p.finalBase, growth: p.finalGrowth, angle: 0.55,
                 label: "ENCORE", sfx: "blast", unblockable: true, heavy: true,
@@ -1230,11 +1286,12 @@ const DIRECTORS = {
         this.tick -= dt;
         if (this.tick <= 0) {
           this.tick = p.tickRate;
-          playSfx("blast", 0.4, 1.4);
-          ring(f.x, f.y - 90 * ART_SCALE, p.color, 140 + rand(0, 80));
+          const r = hitRadius();
+          playSfx("powerChord", 0.55, 1.08);
+          ring(f.x, f.y - 90 * ART_SCALE, p.color, r * rand(0.7, 1.1) / ART_SCALE);
           for (const t of state.fighters) {
             if (!isFoe(f, t) || t.dead || t.respawnTimer > 0 || t.invuln > 0) continue;
-            if (Math.abs(t.x - f.x) < p.radius) {
+            if (inWave(t, r)) {
               t.damage = Math.min(999, t.damage + p.dmgTick);
               t.hitstun = Math.max(t.hitstun, 0.15);
               t.vx += sign(t.x - f.x) * 120; // waves push outward
