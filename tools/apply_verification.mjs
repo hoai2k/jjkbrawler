@@ -77,9 +77,23 @@ async function rewrite(file, blocks) {
  *  reflows the file buries three changed numbers in a four-hundred-line diff,
  *  and the point of merging rather than pasting was that a reviewer can see
  *  exactly what moved. */
+// KEY ORDER IS THE FILE'S, NOT THE ALPHABET'S.
+//
+// Every writer here rebuilds a whole block from a clone of the config, so what
+// it emits for the rows nobody touched has to be byte-identical to what was
+// there — otherwise a one-line decision arrives as a 34-line diff and the one
+// line that matters is invisible in it. Sorting the INNER keys did exactly
+// that to HURTBOX_FIT, whose cases are written in the order a body goes
+// through them (stand, crouch, air, hurt, prone, tumble, ledge) rather than in
+// the order of the alphabet. A clone preserves insertion order, so keeping it
+// preserves the file; a genuinely new key lands at the end, where it is easy
+// to see. Characters stay sorted — that IS the file's order for the outer
+// level, and a new fighter belongs in their alphabetical place.
+const keysOf = (o) => Object.keys(o);
+
 const nested = (obj, fmt) => Object.keys(obj).sort().map((c) =>
   `  ${JSON.stringify(c)}: {\n`
-  + Object.keys(obj[c]).sort().map((k) => `    ${k}: ${fmt(obj[c][k])},`).join("\n")
+  + keysOf(obj[c]).map((k) => `    ${k}: ${fmt(obj[c][k])},`).join("\n")
   + `\n  },`).join("\n");
 
 const live = (d) => d.status !== "skipped" && d.status !== "rejected";
@@ -120,7 +134,7 @@ async function bodyPoints() {
   }
 
   const render = (obj, fmt) => Object.keys(obj).sort().map((c) => {
-    const inner = Object.keys(obj[c]).sort().map((k) => `${k}: ${fmt(obj[c][k])}`).join(", ");
+    const inner = keysOf(obj[c]).map((k) => `${k}: ${fmt(obj[c][k])}`).join(", ");
     return `  ${JSON.stringify(c)}: { ${inner} },`;
   }).join("\n");
 
@@ -204,7 +218,7 @@ async function hurtboxFit() {
   }
 
   const render = (obj, fmt) => Object.keys(obj).sort().map((c) =>
-    `  ${JSON.stringify(c)}: { ` + Object.keys(obj[c]).sort()
+    `  ${JSON.stringify(c)}: { ` + keysOf(obj[c])
       .map((k) => `${k}: ${fmt(obj[c][k])}`).join(", ") + ` },`).join("\n");
   const num = (v) => (Math.round(v * 1000) / 1000);
 
