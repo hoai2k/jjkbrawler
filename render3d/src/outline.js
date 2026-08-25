@@ -166,6 +166,20 @@ export function setWorldWidth(root, worldPerPx) {
   });
 }
 
+/**
+ * Every ink shell under `root`, shown or hidden.
+ *
+ * The shells are separate meshes, so this is `visible` rather than a width of
+ * zero: a zero-width shell is still a draw call and still writes depth, and
+ * the point of turning the ink off is to see the model without it rather than
+ * to see it drawn thinner.
+ */
+export function setOutlinesVisible(root, on) {
+  root.traverse((o) => {
+    if (o.userData.isOutline) o.visible = on !== false;
+  });
+}
+
 /** The workbench's per-character line weight. `px` of null clears it. */
 export function setOutlineFor(root, px) {
   if (px === null || px === undefined) delete root.userData.outlinePx;

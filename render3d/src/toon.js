@@ -184,15 +184,47 @@ export function makeToonMaterial(THREE, src, overrides = {}) {
 
 /** Convert every material under `root` to the toon pass. Idempotent; shared
  *  source materials convert once and stay shared. Outline shells (added by
- *  outline.js, marked isOutline) are left alone. */
+ *  outline.js, marked isOutline) are left alone.
+ *
+ *  BOTH MATERIALS ARE KEPT ON THE MESH — the delivered one and the toon one
+ *  that replaced it — because the conversion is the answer to one question
+ *  ("what does a player see?") and the workbench asks the other one often
+ *  enough ("what did the modeller send?"). Throwing the source away made that
+ *  second question cost a page reload through a different bench. */
 export function applyToonMaterials(THREE, root, overrides = {}) {
   const converted = new Map();
   root.traverse((o) => {
     if (!o.isMesh || o.userData.isOutline) return;
     const src = o.material;
-    if (!src || src.userData?.toonified) return;
+    if (!src || src.userData?.toonified || o.userData.toonMaterial) return;
     if (!converted.has(src)) converted.set(src, makeToonMaterial(THREE, src, overrides));
+    o.userData.srcMaterial = src;
+    o.userData.toonMaterial = converted.get(src);
     o.material = converted.get(src);
+  });
+}
+
+/**
+ * The anime pass, on or off, on a rig that has already been through it.
+ *
+ * A VIEW SWITCH, NOT A SETTING. Nothing about the character changes — no dial
+ * moves, no manifest key is touched, and turning it back on restores the same
+ * material object with the same uniforms, so a look-dev session survives the
+ * detour. What it is for is the comparison the workbench could not make:
+ * a toon ramp is two flat tones and an ink line, which is the point in game
+ * and is also exactly what hides a mesh's own shading — so "is this model
+ * bad or is it the pass?" had no answer on the page where it gets asked.
+ *
+ * Off leaves the DELIVERED material lit by whatever lights the scene has,
+ * which for the flat blit is the stage rig; it is a different question from
+ * the model viewer's neutral dome (`?edit=3d`) and worth having in both
+ * places.
+ */
+export function setToonEnabled(root, on) {
+  root.traverse((o) => {
+    if (!o.isMesh || o.userData.isOutline) return;
+    const want = on ? o.userData.toonMaterial : o.userData.srcMaterial;
+    if (want) o.material = want;
   });
 }
 

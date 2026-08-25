@@ -34,7 +34,21 @@ import { LIGHT_RIG } from "./light_rig.js";
 import { setWorldWidth, OUTLINE } from "./outline.js";
 import { posedComM } from "./loader.js";
 
-export const TEX_SIZE = 384;
+/**
+ * The size of the cached render, in pixels.
+ *
+ * A GAME NUMBER with a workbench escape hatch. 384 is what a match pays for —
+ * a fighter is drawn about 157 px tall, so the texture is already generous —
+ * and the cache is sized against it (160 entries at 384² is ~94 MB of backing
+ * store). It is `let` rather than `const` because a bench looking closely at a
+ * model is asking a different question from a match: on a 78vh viewport at
+ * 1.8× zoom, a 384 px render is an upscaled thumbnail, and "this model looks
+ * bad" turned out to be four parts resolution to one part anything else.
+ * `setTextureSize` is how a bench asks for more; nothing in the game calls it,
+ * and ES module bindings are live, so blit.js and the workbench see the change
+ * without being told.
+ */
+export let TEX_SIZE = 384;
 export const SUPERSAMPLE = 2;
 /** Fraction of the frame height under the foot line (world y = 0). */
 export const FOOT_FRAC = 0.10;
@@ -432,6 +446,26 @@ export function poseToken(charKey, animKey, animTime, layers) {
 /** For the determinism smoke: drop every cached render. */
 export function clearCache() {
   dropCache();
+}
+
+/**
+ * Render at a different size — a bench's preview, never a match's.
+ *
+ * Everything sized against the old number goes: the cache (its canvases are
+ * the wrong size now), the POOL behind it (same reason, and a pooled canvas
+ * comes back without being resized), and the renderer's own drawing buffer.
+ * Returns what it settled on, which is clamped: below 128 nothing is legible
+ * and above 2048 a phone browser drops the context, which on this page reads
+ * as every fighter turning black.
+ */
+export function setTextureSize(px) {
+  const size = Math.max(128, Math.min(2048, Math.round(px) || TEX_SIZE));
+  if (size === TEX_SIZE) return TEX_SIZE;
+  TEX_SIZE = size;
+  dropCache();
+  canvasPool.length = 0;
+  if (renderer) renderer.setSize(TEX_SIZE * SUPERSAMPLE, TEX_SIZE * SUPERSAMPLE, false);
+  return TEX_SIZE;
 }
 
 /**

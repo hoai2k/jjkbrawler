@@ -103,14 +103,24 @@ Three things make it a bench rather than a bookmarked gltf viewer:
   kept the model they replaced as `<char>_alt.glb` — and the picker switches
   between them AT THE SAME CAMERA, which is the only way a difference of a few
   centimetres is visible at all.
-- **The correction layer, on or off.** Some of what the engine draws is not in
-  the file: a head tilted back, arm roots pushed out, a bandy shin straightened,
-  a lopsided skeleton mirrored, the rig turned to face +Z (`rig_fixes.js`, via
-  `pose.js`). The switch is the engine's own — `setModelFixesEnabled`, the one a
-  complete bake must make a no-op — so the difference between its two positions
-  IS the modelling work still owed, and the panel lists it by name.
-  `renderScale` is listed but not applied: it says how big a fighter is DRAWN,
-  and this viewer frames on the model's own height.
+- **The correction layer, on or off.** Some of the SHAPE the engine draws is not
+  in the file: a head tilted back, arm roots pushed out, a bandy shin
+  straightened, a lopsided skeleton mirrored (`rig_fixes.js`, via `pose.js`).
+  The switch is the engine's own — `setModelFixesEnabled`, the one a complete
+  bake must make a no-op — so the difference between its two positions IS the
+  modelling work still owed, and the panel lists it by name.
+- **The manifest yaw, on its own switch and off by default.** It looks like one
+  more correction and is not: `yawOffsetDeg` is SOLVED against the fighter's own
+  idle sprite through the game's flat camera (`tools/solve_yaw.mjs`), so it
+  carries that camera's framing as well as anything the model got wrong. Applied
+  as a correction it turned a rig that already faces the viewer away from them —
+  the conformed Nobara faces +Z exactly as the spec asks and her manifest says
+  330°. Kept as "how the game turns this body", it is what stands two
+  generations the same way up. `renderScale` is listed and never applied: it
+  says how big a fighter is DRAWN, and this viewer frames on the model.
+- **An ambient dial.** A dome and a flat term on one slider, for reading colour
+  off a dark costume. A dome alone lights the top of everything and leaves the
+  underside of a navy skirt black however far it is wound up.
 - **The facts, measured off the model** rather than read from the manifest —
   triangles against the budget, what it really measures against what the
   manifest claims, whether it stands on the floor, its bones, its prop bones,
@@ -121,6 +131,28 @@ Smoke: `node tools/smoke_model_view.mjs` — the file on screen is the file, a
 version switch loads the other body rather than relabelling this one, the
 correction switch moves the rig and puts it back, and drag/pan/zoom are three
 different gestures.
+
+## Why the pose bench looks worse than the viewer, and the two switches for it
+
+The same model in `?edit=3d` and in the pose bench are not the same picture,
+and three things separate them — in this order:
+
+1. **Resolution.** The pose bench draws what a MATCH draws: the fighter is
+   rendered into a 384 px texture (`scene.TEX_SIZE`, 2× supersampled) and
+   blitted at about 157 px tall. That is generous in a match and an upscaled
+   thumbnail on a 78vh viewport at 1.8× zoom. **Render detail** under Scene &
+   engine asks for 2× or 3× while you look; the default is and stays the game's
+   number, and `?detail=1152` survives a reload.
+2. **The anime pass.** A toon ramp is two flat tones and an ink line — the
+   point in game, and exactly what hides a mesh's own shading. **Anime pass**
+   in the look-dev panel turns it off: same lights, same camera, delivered
+   materials, which is the comparison that answers "is the model wrong, or is
+   this the pass over it?". `?anime=off` survives a reload. It is a view
+   switch, saved nowhere.
+3. **The lights.** The stage rig is art direction, dialled for the toon ramp;
+   the model viewer's dome is deliberately neutral. With the anime pass off the
+   pose bench shows delivered materials under stage light, which is a third
+   thing again and the honest one for "what would a player see".
 
 ## Posing by hand: the workbench pose editor
 

@@ -94,39 +94,65 @@ check(alt.generator !== current.generator && alt.clips.length > current.clips.le
 check(new URL(page.url()).searchParams.get("ver") === "alt",
   "...and the address carries the version, so the comparison is linkable");
 
+// -------------------------------------------------------------- the yaw switch
+//
+// The old Nobara carries a 65° yaw, and it is the game's FRAMING rather than a
+// fault in her file — solved against her idle sprite through a camera pinned
+// at −60°. So it is its own switch, and it must be its own switch: while it
+// rode the correction layer, ticking "corrections" swung the conformed Nobara
+// 30° off front when her file faces exactly where the spec asks.
+
+const bone = (name) => page.evaluate((n) => window.__modelView.bone(n), name);
+const tick = async (id, on) => {
+  await page.evaluate(({ id, on }) => {
+    const c = document.getElementById(id);
+    c.checked = on;
+    c.onchange({ target: c });
+  }, { id, on });
+  await page.waitForTimeout(400);
+};
+
+const facing = await bone("Hips");
+await tick("applyYaw", true);
+const yawed = await bone("Hips");
+check(facing && yawed && facing.quat.some((v, i) => Math.abs(v - yawed.quat[i]) > 0.01),
+  "the yaw switch turns the rig", `${JSON.stringify(facing?.quat)} -> ${JSON.stringify(yawed?.quat)}`);
+await tick("applyYaw", false);
+const unyawed = await bone("Hips");
+check(unyawed && facing.quat.every((v, i) => Math.abs(v - unyawed.quat[i]) < 1e-3),
+  "...and off leaves the body facing where it was delivered");
+
 // ------------------------------------------------- the correction layer bites
 //
-// The old Nobara carries a 65° yaw correction, which is the one fix on the
-// roster today that visibly moves a body: everything else was baked into the
-// files. With the switch off the rig faces where it was BUILT; with it on it
-// faces where the spec says.
+// Nothing on the roster carries a shape correction any more — they were all
+// baked into the files — so the switch is a no-op on every fighter today, and
+// a check that only watched a no-op would pass just as happily with the layer
+// unplugged. So one is put ON the live manifest entry, which is what every
+// other dial in this workbench does to it, and then measured: a head tilt
+// turns the head without moving its origin, which is exactly the kind of
+// change a coarser assertion would miss.
 
-const rootYaw = () => page.evaluate(() => {
-  const root = window.__modelView.bone("Hips");
-  return root ? root : null;
-});
-const before = await rootYaw();
+const headBefore = await bone("Head");
 await page.evaluate(() => {
-  const c = document.getElementById("showFixes");
-  c.checked = true;
-  c.onchange({ target: c });
+  window.__modelView.shown().entry.headTiltDeg = 18;
+  window.__modelView.refresh();
 });
-await page.waitForTimeout(500);
-const after = await rootYaw();
-const moved = before && after
-  && before.quat.some((v, i) => Math.abs(v - after.quat[i]) > 0.01);
-check(moved, "the correction layer turns the rig when it is on",
-  `${JSON.stringify(before?.quat)} -> ${JSON.stringify(after?.quat)}`);
-
-await page.evaluate(() => {
-  const c = document.getElementById("showFixes");
-  c.checked = false;
-  c.onchange({ target: c });
-});
-await page.waitForTimeout(500);
-const back = await rootYaw();
-check(back && before.quat.every((v, i) => Math.abs(v - back.quat[i]) < 1e-3),
+await tick("showFixes", true);
+const headTilted = await bone("Head");
+check(headTilted && headBefore
+  && headBefore.quat.some((v, i) => Math.abs(v - headTilted.quat[i]) > 0.05),
+  "the correction layer applies a head tilt when it is on",
+  `${JSON.stringify(headBefore?.quat)} -> ${JSON.stringify(headTilted?.quat)}`);
+check(headTilted && Math.abs(headTilted.pos[1] - headBefore.pos[1]) < 1e-3,
+  "...as a rotation, without moving the joint it turns about");
+await tick("showFixes", false);
+const headBack = await bone("Head");
+check(headBack && headBefore.quat.every((v, i) => Math.abs(v - headBack.quat[i]) < 1e-3),
   "...and off puts the file back exactly as delivered");
+await page.evaluate(() => {
+  delete window.__modelView.shown().entry.headTiltDeg;
+  window.__modelView.refresh();
+});
 
 // A fighter whose corrections are all baked must SAY so rather than showing an
 // empty box: "nothing outstanding" is the finished state, and a blank panel
@@ -175,6 +201,20 @@ await page.waitForTimeout(100);
 const zoomed = await camera();
 check(zoomed.dist < panned.dist, "the wheel zooms in",
   `${panned.dist.toFixed(2)} -> ${zoomed.dist.toFixed(2)}`);
+
+// The one dial that is only about looking: it must move the light and say so,
+// and it must not be mistaken for something the game does.
+const lightAt = () => page.evaluate(() => Number(document.getElementById("lightVal").textContent.replace("×", "")));
+const litBefore = await lightAt();
+await page.evaluate(() => {
+  const s = document.getElementById("light");
+  s.value = "5";
+  s.oninput({ target: s });
+});
+await page.waitForTimeout(200);
+const litAfter = await lightAt();
+check(litAfter > litBefore && new URL(page.url()).searchParams.get("light") === "5.00",
+  "the ambient dial moves and travels in the address", `${litBefore} -> ${litAfter}`);
 
 check(errors.length === 0, "no page errors", errors.slice(0, 2).join(" | "));
 
