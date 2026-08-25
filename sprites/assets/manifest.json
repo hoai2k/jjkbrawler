@@ -17498,30 +17498,70 @@
     "coreRight": 935.2
    },
    "special_side": {
-    "w": 949,
-    "h": 1047,
-    "ox": -317.8,
-    "oy": -736,
-    "bodyBottom": 207.9,
-    "bodyH": 336.7,
-    "centroidX": 139,
-    "renderScale": 0.3011,
-    "file": "hakari/special_side.png",
-    "bodyTop": 0,
-    "anchors": {
-     "com": [
-      457.2,
-      393.7
+    "w": 884,
+    "h": 1042,
+    "ox": -328.6,
+    "oy": -731,
+    "bodyBottom": 240.4,
+    "bodyH": 305.2,
+    "centroidX": 200.1,
+    "renderScale": 0.2929,
+    "file": "hakari/incoming/special_side.png",
+    "replaced": {
+     "at": "2026-08-25T14:14:52+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": [
+      "bodyBottom",
+      "renderScale",
+      "anchors"
      ]
     },
-    "edited": {
-     "renderScale": 0.322,
-     "bodyBottom": 310.4
+    "awaitingApproval": {
+     "at": "2026-08-25T14:14:52+00:00",
+     "live": {
+      "w": 949,
+      "h": 1047,
+      "ox": -317.8,
+      "oy": -736,
+      "bodyBottom": 207.9,
+      "bodyH": 336.7,
+      "bodyTop": 0,
+      "centroidX": 139,
+      "renderScale": 0.3011,
+      "anchors": {
+       "com": [
+        457.2,
+        393.7
+       ]
+      },
+      "edited": {
+       "renderScale": 0.322,
+       "bodyBottom": 310.4
+      },
+      "file": "hakari/special_side.png"
+     }
     },
+    "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 949,
-    "coreLeft": 104.7,
-    "coreRight": 804.9
+    "bodyRight": 884,
+    "coreLeft": 58.6,
+    "coreRight": 781.5,
+    "anchors": {
+     "com": [
+      486.6,
+      431.4
+     ]
+    },
+    "autoTuned": {
+     "at": "2026-08-25T14:17:54+00:00",
+     "fields": {
+      "bodyBottom": "foot=0.932 (character)",
+      "bodyH": "area x 1.070 (specialSide)",
+      "renderScale": "area x 1.070 (specialSide)",
+      "ox": "centre of mass, not of the box"
+     }
+    }
    },
    "ult_a": {
     "w": 983,

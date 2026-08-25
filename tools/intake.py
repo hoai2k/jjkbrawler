@@ -421,6 +421,57 @@ GREY_TINT_FIX = {"momo/dodge_air", "momo/dodge_roll",
                  "hakari/dodge_air", "toji/dodge_air"}
 
 
+# A DRAWING WITH ITS OWN AFTERIMAGES IN IT.
+#
+# Hakari's special_side is one lunge drawn three times: the real fighter, and
+# two translucent copies of him trailing behind, composited onto the screen by
+# the generator. Nothing about that is a keying fault — the ghosts are on the
+# plate — so no amount of work on the key would ever have removed them, and four
+# rounds of shadow-or-gap could only mark them. They belong to the same family as
+# a motion trail, and they are named for the same reason: "a pale copy of the
+# fighter" also describes a lot of legitimate art.
+#
+# WHAT SEPARATES THEM IS INK. A ghost is the drawing seen THROUGH the screen, so
+# every line in it is a wash — mid-grey at best. The fighter is the drawing
+# itself, and this art style outlines everything in near-black. So the figure is
+# whatever hangs together around true ink, and the ghosts, having none, fall off
+# it. Two passes, because the first one drags a fringe of the nearest ghost in
+# with the halo it grows: the wash left inside is then taken out by the same
+# neutral-tone test the trail fixes use.
+#
+# It removes 43% of the delivered plate and leaves the fighter whole — hair,
+# face, belt, boots. Checked by eye, which is the only way to check it.
+GHOSTED = {"hakari/special_side"}
+
+INK_AT, INK_REACH = 45, 18
+
+
+def solid_figure_mask(rgb, key, alpha):
+    """The one figure that is really there, out of a plate that draws it thrice."""
+    opaque = alpha > 0.5
+    luma = rgb.mean(axis=2)
+    ink = opaque & (luma < INK_AT)
+    if not ink.any():
+        return opaque
+    near = ndimage.binary_closing(opaque & ndimage.binary_dilation(ink, iterations=INK_REACH),
+                                  np.ones((5, 5), bool))
+    lab, n = ndimage.label(near, structure=np.ones((3, 3), np.int8))
+    if not n:
+        return opaque
+    counts = np.bincount(lab.ravel())
+    counts[0] = 0
+    keep = ndimage.binary_fill_holes(lab == int(np.argmax(counts))) & opaque
+    # the fringe the halo dragged in with it: neutral, mid-toned, and not ink
+    mx, mn = rgb.max(axis=2), rgb.min(axis=2)
+    washed = keep & ((mx - mn) < 40) & (luma > 80) & (luma < 210)
+    washed &= ~ndimage.binary_dilation(ink, iterations=3)
+    lab2, _ = ndimage.label(washed, structure=np.ones((3, 3), np.int8))
+    c2 = np.bincount(lab2.ravel())
+    c2[0] = 0
+    keep &= ~np.isin(lab2, np.nonzero(c2 >= 150)[0])
+    return ndimage.binary_fill_holes(keep)
+
+
 def grey_tint_mask(rgb, key, alpha, min_px=400):
     opaque = alpha > 0.5
     mx, mn = rgb.max(axis=2), rgb.min(axis=2)
@@ -664,6 +715,11 @@ def main():
             # confident calls are acted on; everything else ships as delivered
             # and is marked on the board for a human to rule on.
             ref = f"{char}/{key_name}"
+            if ref in GHOSTED and key is not None:
+                a = frame[:, :, 3] / 255.0
+                frame[~solid_figure_mask(frame[:, :, :3].astype(float), key, a)] = 0
+                ys2, xs2 = np.nonzero(frame[:, :, 3] >= 20)
+                frame = frame[ys2.min():ys2.max() + 1, xs2.min():xs2.max() + 1]
             if ref in GREY_TINT_FIX and key is not None:
                 a = frame[:, :, 3] / 255.0
                 frame[grey_tint_mask(frame[:, :, :3].astype(float), key, a)] = 0
