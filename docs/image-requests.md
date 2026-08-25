@@ -12,11 +12,12 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**12 images outstanding.** Every one of them is listed below, with a full URL for anything you need to look at.
+**3 images outstanding.** Every one of them is listed below, with a full URL for anything you need to look at.
 
-- **The sprite game** — 12 images: [12 flagged in the workbench](#outstanding-by-manifest-not-by-request) as art that exists and is wrong
+- **The sprite game** — 3 images: [3 flagged in the workbench](#outstanding-by-manifest-not-by-request) as art that exists and is wrong
 - **The live-3D anime path** — 0 images
 - Separately, 9 poses are drawing another pose's file. Not counted above: those are substitutions somebody chose, not images anybody is owed.
+- Separately, 56 variant drawings are tagged for [deletion](#outstanding-by-manifest-not-by-request). Not counted above: that is a cleanup in the repository, not an image anybody is owed.
 
 ## Rules that hold everywhere here
 
@@ -55,7 +56,7 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**No open round** in [asset-requests.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests.md). 12 images are still outstanding for this mode — they are flagged in the workbench rather than asked for by a round, and they are in [Outstanding by manifest, not by request](#outstanding-by-manifest-not-by-request).
+**No open round** in [asset-requests.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests.md). 3 images are still outstanding for this mode — they are flagged in the workbench rather than asked for by a round, and they are in [Outstanding by manifest, not by request](#outstanding-by-manifest-not-by-request).
 
 ---
 
@@ -288,22 +289,13 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**12 flagged, 9 drawing somebody else's art**.
+**3 flagged, 9 drawing somebody else's art**.
 
 | Fighter | Pose | Why | What is wrong | The drawing now | Canon reference |
 |---|---|---|---|---|---|
 | Satoru Gojo | `attack_diag_up_b` | quality | Fist should not be behind body | [attack_diag_up_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gojo/attack_diag_up_b.png) | [gojo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/gojo_idle.png) |
 | Mei Mei | `attack_air_diag_down_b` | quality | She doesn't have 3 braids, only 2 | [attack_air_diag_down_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/meimei/attack_air_diag_down_b.png) | [meimei_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/meimei_idle.png) |
 | Momo Nishimiya | `throw_fwd` | quality | broken broom | [throw_fwd.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/momo/throw_fwd.png) | [momo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/momo_idle.png) |
-| Jogo | `attack_down` | delete | — | [r2c2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/r2c2.png) | [jogo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/jogo_idle.png) |
-| Jogo | `attack_light_a` | delete | — | [r2c0.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/r2c0.png) | [jogo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/jogo_idle.png) |
-| Jogo | `attack_light_a` | delete | — | [r0c3.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/r0c3.png) | [jogo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/jogo_idle.png) |
-| Jogo | `crouch_a` | delete | — | [r4c0.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/r4c0.png) | [jogo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/jogo_idle.png) |
-| Jogo | `crouch_a` | delete | — | [r4c1.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/r4c1.png) | [jogo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/jogo_idle.png) |
-| Jogo | `crouch_attack_a` | delete | — | [r4c2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/r4c2.png) | [jogo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/jogo_idle.png) |
-| Jogo | `crouch_attack_a` | delete | — | [r4c3.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/r4c3.png) | [jogo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/jogo_idle.png) |
-| Jogo | `dash` | delete | — | [r1c2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/r1c2.png) | [jogo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/jogo_idle.png) |
-| Jogo | `ult_a` | delete | — | [r3c2.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/jogo/r3c2.png) | [jogo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/jogo_idle.png) |
 | Hanami | `attack_light_b` | drawing another pose's file | it is `special_neutral`, not `attack_light_b` | [special_neutral.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hanami/special_neutral.png) | [hanami_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/hanami_idle.png) |
 | Yuta Okkotsu | `attack_light_a` | drawing another pose's file | it is `attack_air_a`, not `attack_light_a` | [attack_air_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuta/attack_air_a.png) | [yuta_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yuta_idle.png) |
 | Yuta Okkotsu | `attack_light_b` | drawing another pose's file | it is `attack_air_b`, not `attack_light_b` | [attack_air_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/yuta/attack_air_b.png) | [yuta_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/yuta_idle.png) |
@@ -314,7 +306,19 @@ the rounds above are for.
 | Yoshinobu Gakuganji | `crouch_attack_b` | drawing another pose's file | it is `attack_dash`, not `crouch_attack_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gakuganji/attack_dash.png) | [gakuganji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/gakuganji_idle.png) |
 | Naoya Zen'in | `attack_heavy_a` | drawing another pose's file | it is `run_pass_a`, not `attack_heavy_a` | [run_pass_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/run_pass_a.png) | [naoya_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_idle.png) |
 
-Separately, **12 improvement requests** — the art works and is just
+Separately, **56 variant drawings are tagged for deletion** —
+discarded at the next cleanup. **Not an image request and not counted above**:
+the ask is to throw a drawing away, not to draw one, and the pose keeps
+whichever drawing is selected.
+
+By fighter: Nobara Kugisaki 20, Satoru Gojo 14, Hanami 13, Jogo 9.
+
+`node tools/apply_deletions.mjs` carries them out — it deletes each drawing
+and every reference to it, and holds anything the game is still drawing.
+`python3 tools/list_replacements.py` prints them file by file, and the sprite
+workbench is where the tags are set and cleared.
+
+Separately, **1 improvement request** — the art works and is just
 not as good as it should be. Nothing is blocked by one, and the standing
 ones are alpha fixes to delivered files, which is repo work rather than a
 request.

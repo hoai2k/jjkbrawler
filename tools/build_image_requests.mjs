@@ -465,7 +465,14 @@ function manifestSection(work) {
       "section is worth nothing unless it actually read the manifest.", "");
     return out.join("\n");
   }
-  const flagged = [...work.replacements, ...work.deletions];
+  // A DELETE IS NOT A REQUEST. Every other flag in here is somebody asking for
+  // a drawing; `delete` is the one kind that asks for the opposite — "we have
+  // something better, throw this one away" (REPLACEMENT_KINDS in
+  // sprites/src/sprites.js). Counted with the rest it made this document ask
+  // for twelve images when three were owed, and a generator handed the file
+  // rightly refused to draw the other nine. They keep their own table below,
+  // where the ask is legible as the cleanup it is.
+  const flagged = work.replacements;
   if (!flagged.length && !work.standIns.length) {
     out.push("**Nothing outstanding.** No pose carries a replacement flag, and no pose is",
       "drawing a file that is not its own.");
@@ -514,6 +521,37 @@ function manifestSection(work) {
     }
   }
   out.push("");
+  if (work.deletions.length) {
+    // COUNTED, ATTRIBUTED, AND NOT SPELLED OUT. There are dozens of these and
+    // they are all the same instruction — a fifty-row table of files to throw
+    // away, in a document about files to draw, buries the three drawings
+    // somebody is actually owed. The per-fighter tally says whether the
+    // cleanup is one fighter's mess or the roster's, and the tool that owns
+    // the list prints it in full.
+    const byChar = new Map();
+    for (const r of work.deletions) {
+      const name = r.name || nameOf(r.character);
+      byChar.set(name, (byChar.get(name) || 0) + 1);
+    }
+    const tally = [...byChar.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([name, n]) => `${name} ${n}`).join(", ");
+    // Deliberately NOT reporting how many are the "selected" drawing of their
+    // pose. It sounds like the safety question and is not it: a pose entry can
+    // name a file that no state plays, and 47 of the first 56 were exactly
+    // that — dead sheet cells. The question that matters is whether the GAME
+    // draws it, which apply_deletions.mjs asks of resolvedAnim per character
+    // and answers in its plan. A second, wronger answer here would just get
+    // believed.
+    out.push(`Separately, **${work.deletions.length} variant drawing${work.deletions.length === 1 ? " is" : "s are"} tagged for deletion** —`,
+      "discarded at the next cleanup. **Not an image request and not counted above**:",
+      "the ask is to throw a drawing away, not to draw one, and the pose keeps",
+      "whichever drawing is selected.", "",
+      `By fighter: ${tally}.`, "",
+      "`node tools/apply_deletions.mjs` carries them out — it deletes each drawing",
+      "and every reference to it, and holds anything the game is still drawing.",
+      "`python3 tools/list_replacements.py` prints them file by file, and the sprite",
+      "workbench is where the tags are set and cleared.", "");
+  }
   if (work.improvements.length) {
     out.push(`Separately, **${work.improvements.length} improvement request${work.improvements.length === 1 ? "" : "s"}** — the art works and is just`,
       "not as good as it should be. Nothing is blocked by one, and the standing",
@@ -552,7 +590,11 @@ const total = sources.reduce((n, s) => n + totalOf(s), 0);
 // A zero here has to mean nothing is outstanding, and nothing else, or the line
 // cannot be trusted the one time it says so.
 const work = spriteWork();
-const flaggedN = work ? work.replacements.length + work.deletions.length : null;
+// Replacements ONLY. A `delete` tag is the one flag that is not an ask to draw
+// — see the note in manifestSection — and it spent its time in this number
+// making the headline promise nine images that nobody wanted drawn.
+const flaggedN = work ? work.replacements.length : null;
+const deleteN = work ? work.deletions.length : null;
 const standInN = work ? work.standIns.length : null;
 // Stand-ins are NOT counted as outstanding. A pose drawing another pose's file
 // is usually a deliberate substitution somebody picked in the workbench --- the
@@ -584,8 +626,12 @@ const doc = [
     : flaggedN === null
       ? "**Nothing outstanding in the rounds** — and the manifest was not checked,"
         + " so this is not a clean sheet, only half an answer."
-      : "**Nothing outstanding.** No open round asks for an image, and no pose"
-        + " carries a replacement flag.",
+      : "**Nothing to draw.** No open round asks for an image, and no pose"
+        + " carries a replacement flag."
+        + (deleteN
+            ? ` ${deleteN} variant drawing${deleteN === 1 ? " is" : "s are"} tagged for deletion,`
+              + " which is a cleanup rather than a request."
+            : ""),
   "",
   ...(outstanding
     ? [
@@ -607,6 +653,11 @@ const doc = [
       ...(standInN
         ? [`- Separately, ${standInN} pose${standInN === 1 ? " is" : "s are"} drawing another pose's`
            + " file. Not counted above: those are substitutions somebody chose, not images anybody is owed."]
+        : []),
+      ...(deleteN
+        ? [`- Separately, ${deleteN} variant drawing${deleteN === 1 ? " is" : "s are"} tagged for`
+           + " [deletion](#outstanding-by-manifest-not-by-request). Not counted above: that is a"
+           + " cleanup in the repository, not an image anybody is owed."]
         : []),
     ]
     : []),

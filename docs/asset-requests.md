@@ -36,10 +36,15 @@ every pose the game names is drawn by the fighter who plays it.
 
 **What is outstanding is the approval queue, not a request.** 140 of the 250
 are held in the sprite workbench waiting for somebody to stand each one beside
-what it replaces (or beside the fallback it is taking over from), and eleven
+what it replaces (or beside the fallback it is taking over from), and three
 poses carry a workbench flag — art that exists and is wrong, listed under
 [Outstanding by manifest, not by request](image-requests.md#outstanding-by-manifest-not-by-request).
 Neither is art anybody is owed.
+
+A further 56 variant drawings are tagged for DELETION, which is the opposite of
+a request: the ask is to throw a drawing away, not to draw one. They are
+counted separately for exactly that reason — folded in with the flags, they had
+this repo asking a generator for twelve images when three were owed.
 
 **Round 25 rewrote the request docs as well as the roster.** Three families came
 back wrong on fighter after fighter, which is the signature of a request that
