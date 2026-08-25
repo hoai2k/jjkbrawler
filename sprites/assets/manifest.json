@@ -18599,46 +18599,11 @@
     "h": 1042,
     "ox": -328.6,
     "oy": -731,
-    "bodyBottom": 240.4,
+    "bodyBottom": 212.9,
     "bodyH": 305.2,
     "centroidX": 200.1,
     "renderScale": 0.2929,
     "file": "hakari/incoming/special_side.png",
-    "replaced": {
-     "at": "2026-08-25T14:14:52+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-25T14:14:52+00:00",
-     "live": {
-      "w": 949,
-      "h": 1047,
-      "ox": -317.8,
-      "oy": -736,
-      "bodyBottom": 207.9,
-      "bodyH": 336.7,
-      "bodyTop": 0,
-      "centroidX": 139,
-      "renderScale": 0.3011,
-      "anchors": {
-       "com": [
-        457.2,
-        393.7
-       ]
-      },
-      "edited": {
-       "renderScale": 0.322,
-       "bodyBottom": 310.4
-      },
-      "file": "hakari/special_side.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 884,
@@ -18658,6 +18623,9 @@
       "renderScale": "area x 1.070 (specialSide)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "bodyBottom": 240.4
     }
    },
    "ult_a": {
@@ -19406,7 +19374,8 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "wantsImprovement": "alpha"
    },
    "throw_fwd": {
     "w": 970,
@@ -44890,7 +44859,8 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "wantsImprovement": "alpha"
    },
    "attack_diag_up_b": {
     "w": 1055,
@@ -53738,12 +53708,7 @@
       471.1
      ]
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    }
+    "surfacedReviewed": true
    },
    "ult_b": {
     "w": 941,
@@ -54136,12 +54101,7 @@
       323.8
      ]
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    }
+    "surfacedReviewed": true
    },
    "attack_diag_up_b": {
     "w": 1281,
@@ -59461,12 +59421,7 @@
       448.9
      ]
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    }
+    "surfacedReviewed": true
    },
    "attack_diag_up_b": {
     "w": 769,
@@ -59982,9 +59937,9 @@
     "ox": -165.3,
     "oy": -1120,
     "bodyBottom": 234.7,
-    "bodyH": 357.8,
+    "bodyH": 382.8,
     "centroidX": 157.2,
-    "renderScale": 0.25,
+    "renderScale": 0.2675,
     "file": "haruta/charge.png",
     "srcBox": [
      139,
@@ -59999,11 +59954,8 @@
       577.9
      ]
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "crouch_a": {
@@ -60045,9 +59997,9 @@
     "ox": -660.7,
     "oy": -368,
     "bodyBottom": 274.8,
-    "bodyH": 169.8,
+    "bodyH": 192.8,
     "centroidX": 156.6,
-    "renderScale": 0.25,
+    "renderScale": 0.2838,
     "file": "haruta/crouch_attack_a.png",
     "srcBox": [
      23,
@@ -60062,11 +60014,8 @@
       357
      ]
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "crouch_attack_b": {
@@ -60410,9 +60359,9 @@
     "ox": -128.3,
     "oy": -1120,
     "bodyBottom": 234.7,
-    "bodyH": 357.8,
+    "bodyH": 382.8,
     "centroidX": 156.8,
-    "renderScale": 0.25,
+    "renderScale": 0.2675,
     "file": "haruta/idle_a.png",
     "srcBox": [
      183,
@@ -60427,11 +60376,8 @@
       638.7
      ]
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "idle_b": {
@@ -60440,9 +60386,9 @@
     "ox": -127.5,
     "oy": -1120,
     "bodyBottom": 234.7,
-    "bodyH": 357.8,
+    "bodyH": 382.8,
     "centroidX": 156.7,
-    "renderScale": 0.25,
+    "renderScale": 0.2675,
     "file": "haruta/idle_b.png",
     "srcBox": [
      183,
@@ -60457,11 +60403,8 @@
       638
      ]
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
+    "edited": {
+     "renderScale": 0.25
     }
    },
    "jump_rise": {
@@ -71272,31 +71215,23 @@
    "special_side": {
     "options": [
      {
-      "file": "hakari/special_side.png",
-      "label": "Delivered",
-      "w": 949,
-      "h": 1047,
-      "ox": -317.8,
-      "oy": -736,
-      "bodyBottom": 207.9,
-      "bodyH": 336.7,
+      "w": 884,
+      "h": 1042,
+      "ox": -328.6,
+      "oy": -731,
+      "bodyBottom": 240.4,
+      "bodyH": 305.2,
       "bodyTop": 0,
-      "centroidX": 139,
-      "renderScale": 0.3011,
+      "centroidX": 200.1,
+      "renderScale": 0.2929,
       "anchors": {
        "com": [
-        457.2,
-        393.7
+        486.6,
+        431.4
        ]
       },
-      "edited": {
-       "renderScale": 0.322,
-       "bodyBottom": 310.4
-      },
-      "bodyLeft": 0,
-      "bodyRight": 949,
-      "coreLeft": 104.7,
-      "coreRight": 804.9
+      "file": "hakari/incoming/special_side.png",
+      "label": "In game"
      },
      {
       "file": "hakari/r1c3.png",
@@ -71333,6 +71268,30 @@
         97.5
        ]
       }
+     },
+     {
+      "w": 949,
+      "h": 1047,
+      "ox": -317.8,
+      "oy": -736,
+      "bodyBottom": 207.9,
+      "bodyH": 336.7,
+      "bodyTop": 0,
+      "centroidX": 139,
+      "renderScale": 0.3011,
+      "anchors": {
+       "com": [
+        457.2,
+        393.7
+       ]
+      },
+      "edited": {
+       "renderScale": 0.322,
+       "bodyBottom": 310.4
+      },
+      "file": "hakari/special_side.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-25T14:14:52+00:00"
      }
     ]
    },
@@ -95311,7 +95270,8 @@
   "miwa": 398.3,
   "tengen": 347.65,
   "naoya": 280.35,
-  "yaga": 280.1
+  "yaga": 280.1,
+  "haruta": 362.81
  },
  "otherSprites": {
   "effect:aura_chitin": {
@@ -96475,9 +96435,11 @@
   },
   "summon:toad": {
    "edited": {
-    "faceLeft": null
+    "faceLeft": null,
+    "renderScale": null
    },
-   "faceLeft": false
+   "faceLeft": false,
+   "renderScale": 0.69
   },
   "summon:rabbitEscape": {
    "edited": {

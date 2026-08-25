@@ -304,7 +304,7 @@ the rounds above are for.
 | Yoshinobu Gakuganji | `crouch_attack_b` | drawing another pose's file | it is `attack_dash`, not `crouch_attack_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gakuganji/attack_dash.png) | [gakuganji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/gakuganji_idle.png) |
 | Naoya Zen'in | `attack_heavy_a` | drawing another pose's file | it is `run_pass_a`, not `attack_heavy_a` | [run_pass_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/run_pass_a.png) | [naoya_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_idle.png) |
 
-Separately, **6 improvement requests** — the art works and is just
+Separately, **5 improvement requests** — the art works and is just
 not as good as it should be. Nothing is blocked by one, and the standing
 ones are alpha fixes to delivered files, which is repo work rather than a
 request.
