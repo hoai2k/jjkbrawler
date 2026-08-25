@@ -204,12 +204,12 @@ distance, same figure scale, only the body moves.
 | Pose | Pose line |
 |---|---|
 | `attack_light_a` | winding up a fast strike, striking hand or weapon drawn back beside the body, shoulders coiled away from the target, weight on the back foot, lead arm up as a guard |
-| `attack_light_b` | the strike fully extended and travelling forward — arm or weapon at full reach out in front of the body, shoulders rotated through, weight transferred onto the front foot, the drawn-back hand recovered to the chest. **Thrown with the NEAR arm** — the one on the camera side — so the blow is drawn over the body and not behind it |
+| `attack_light_b` | the strike fully extended and travelling forward — arm or weapon at full reach out in front of the body, shoulders rotated through, weight transferred onto the front foot. **Thrown with the NEAR arm** — the one on the camera side — so the blow is drawn over the body and not behind it. The OFF hand recovers to the chest **on the far side of the torso, where the body hides it**: side-on, at most its elbow clears the silhouette. Exactly one hand is visible (§6) |
 | `attack_heavy_a` | the wind-up of one committed heavy blow: weapon or fist drawn as far back as the body allows, hips loaded, front foot light |
 | `attack_heavy_b` | that blow landing at full extension, hips driven through it, the whole body behind the strike and past its own centre of balance |
 | `attack_air_a` | **wind-up, airborne.** Body coiled mid-jump, striking limb cocked, legs gathered |
 | `attack_air_b` | **strike, airborne.** Fully extended through the aerial arc, legs trailing, committed |
-| `attack_diag_up_b` | the STRIKE of a light attack thrown up-and-forward at about 45°: the same limb, weapon and hand as this fighter's own `attack_light_b`, aimed forty-five degrees higher. Arm extended along that diagonal at full reach, shoulder turned into it, hips and back leg driving up through the line, chin following the fist. Plays after `attack_light_a`, so it must finish that wind-up |
+| `attack_diag_up_b` | the STRIKE of a light attack thrown up-and-forward at about 45°: the same limb, weapon and hand as this fighter's own `attack_light_b`, aimed forty-five degrees higher. Arm extended along that diagonal at full reach, shoulder turned into it, hips and back leg driving up through the line, chin following the striking hand. The OFF hand is on the far side of the torso and the body hides it — exactly one hand is visible (§6). Plays after `attack_light_a`, so it must finish that wind-up |
 | `attack_air_diag_down_b` | the STRIKE of an aerial thrown down-and-forward at about 45°. **Resolve the branch before writing the prompt** — see §6 — a long-weapon fighter drives the weapon down the diagonal and an unarmed one KICKS. Never offer fist, leg and weapon as alternatives in one request. Visibly airborne: no planted foot, no ground contact |
 | `attack_up` | striking upward overhead, body extended and rising with it |
 | `attack_down` | striking downward at the ground in front, weight dropping onto it — a committed smash, not a drop |
@@ -348,6 +348,7 @@ often.
 | **The crouch is a standing fighting stance** | `crouch_a`, `crouch_b`, both `crouch_attack` frames | 12A, 13A, 13B, 22C, 22L |
 | **The costume is a different reading of the character** | any pose, usually a whole sub-batch drawn in one sitting | 10, 12A, 13, 22B |
 | **The strike is thrown with the FAR arm** — the limb on the away side, drawn passing behind the collar, so the blow reads as a lean rather than a punch. The near arm is the one the camera is on | `attack_light_b`, `crouch_attack_b` | 22L |
+| **The OFF hand is drawn anyway** — the far fist relocated onto the near face of the chest, where the far arm cannot reach, so the figure reads as having a spare fist or a broken arm. Twice on one pose, because the request named where the hand recovers TO and never said the body is in the way (§6) | `attack_diag_up_b`, any side-on one-armed strike | 25C, 25D |
 | **Hands do not close on the weapon** | `attack_*`, `run_*` | 12A |
 | **`_b` does not finish `_a`** | every pair | 12A, 13B |
 | **The reach falls off the canvas** | `crouch_attack_b`, `attack_heavy_b`, `attack_light_b`, `special_neutral`, `teeter` | 13, 22I, 22J |
@@ -464,6 +465,43 @@ victim goes is one sentence; where the hands are is another, and it is always in
 front of the torso. The same rule catches `throw_up`, where "arms overhead" with
 no mechanical cause reads as celebration or surrender.
 
+### Occlusion is not omission — say what the body hides
+
+Gojo's `attack_diag_up_b` came back the same way twice. The near arm goes up the
+diagonal correctly; the OFF hand is then drawn as a second fist on the near face
+of the chest, with its sleeve running to the far shoulder. The far arm cannot be
+there — it is on the other side of a body drawn side-on — so the figure reads as
+having a spare fist, or one arm coming out of its own back. The first flag
+called it "weird arm behind back"; the redraw moved the fist and kept the fault.
+
+**A request that says where a hand GOES will get that hand drawn, visible,
+wherever it has to be put.** "The drawn-back hand recovered to the chest" is a
+true sentence about the body and a false one about the picture: side-on, that
+chest is the far side of the torso and the hand is behind it. Nothing in the
+prompt said the body was in the way, and *hidden* is never the easy reading —
+a generator asked for a hand produces a hand.
+
+So say the occlusion out loud, as a fact about the drawing rather than about the
+anatomy:
+
+- **Name the camera side.** Which limb is near and which is far, in every pose
+  thrown with one arm.
+- **State what is hidden.** "The off hand is on the far side of the torso and the
+  body hides it." Not "the off hand is at the chest".
+- **Give the count.** "Exactly one hand is visible in this drawing." A number is
+  checkable by a vision pass and an adjective is not (see *Reject with geometry*).
+- **Say what may legitimately show.** At most the far elbow or shoulder clearing
+  the silhouette, so the rule does not get read as "delete the arm" — which is
+  the failure in the opposite direction, and §*Anatomy is not a prop* is what it
+  costs.
+
+This generalises past hands. Any part the torso, a raised knee or a carried
+weapon covers is **drawn covered** — the request names it as hidden rather than
+leaving the generator to find somewhere visible to put it. Poses that genuinely
+show both hands say so themselves and are unaffected: the throws all read "both
+hands visible in front of the torso", which is the same rule stated the other
+way round.
+
 ### Reject with geometry, not with adjectives
 
 `throw_down` asked for "bent sharply at the waist, arms down" and got a limp
@@ -547,7 +585,10 @@ by a vision pass and all of which caught something this round:
 - no ground contact in any aerial pose;
 - the expected extremum — foot for an unarmed diagonal aerial, weapon tip for an
   armed one;
-- exactly one subject, and the character's arm count and invariants intact.
+- exactly one subject, and the character's arm count and invariants intact;
+- **the count of visible hands** — one for a side-on strike thrown with one
+  arm, two for the throws. A second fist on the near face of the chest is the
+  far arm drawn where it cannot be.
 
 ### What is written here, and what is not yet built
 

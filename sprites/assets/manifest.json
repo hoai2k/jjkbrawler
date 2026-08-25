@@ -1584,48 +1584,11 @@
     "h": 1668,
     "ox": -247.6,
     "oy": -1437,
-    "bodyBottom": 151.1,
-    "bodyH": 476.9,
+    "bodyBottom": 103.6,
+    "bodyH": 302.8,
     "centroidX": 154.1,
-    "renderScale": 0.286,
+    "renderScale": 0.1816,
     "file": "gojo/incoming/attack_diag_up_b.png",
-    "replaced": {
-     "at": "2026-08-25T02:13:05+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-25T02:13:05+00:00",
-     "live": {
-      "w": 849,
-      "h": 1697,
-      "ox": -241.7,
-      "oy": -1386,
-      "bodyBottom": 196.4,
-      "bodyH": 295.6,
-      "bodyTop": 0,
-      "centroidX": 130.7,
-      "renderScale": 0.1742,
-      "anchors": {
-       "com": [
-        398.7,
-        673.6
-       ]
-      },
-      "needsReplacement": "quality",
-      "replacementNote": "weird arm behind back pose",
-      "edited": {
-       "renderScale": 0.281,
-       "bodyBottom": 230.9
-      },
-      "file": "gojo/attack_diag_up_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 814,
@@ -1643,7 +1606,13 @@
       "bodyBottom": "foot=0.952 (character)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "edited": {
+     "renderScale": 0.286,
+     "bodyBottom": 151.1
+    },
+    "needsReplacement": "quality",
+    "replacementNote": "Only the punching fist should be visible, because the other one should be on the opposite side of his body in this pose. He is drawn side-on facing right: the NEAR arm throws the punch up the diagonal, and the off hand recovers to the chest ON THE FAR SIDE of the torso, where the body hides it. At most the far elbow clears the silhouette. Never a second fist on the near face of the chest \u2014 that is where both deliveries so far have put it, and it reads as a spare fist or an arm coming out of his own back. Exactly one hand is visible in this drawing."
    },
    "domain_expansion": {
     "w": 466,
@@ -66597,6 +66566,55 @@
       "file": "gojo/archive/throw_down_2.png",
       "label": "Superseded",
       "supersededAt": "2026-08-24T03:13:55+00:00"
+     }
+    ]
+   },
+   "attack_diag_up_b": {
+    "options": [
+     {
+      "w": 814,
+      "h": 1668,
+      "ox": -247.6,
+      "oy": -1437,
+      "bodyBottom": 151.1,
+      "bodyH": 476.9,
+      "bodyTop": 0,
+      "centroidX": 154.1,
+      "renderScale": 0.286,
+      "anchors": {
+       "com": [
+        404.4,
+        688.5
+       ]
+      },
+      "file": "gojo/incoming/attack_diag_up_b.png",
+      "label": "In game"
+     },
+     {
+      "w": 849,
+      "h": 1697,
+      "ox": -241.7,
+      "oy": -1386,
+      "bodyBottom": 196.4,
+      "bodyH": 295.6,
+      "bodyTop": 0,
+      "centroidX": 130.7,
+      "renderScale": 0.1742,
+      "anchors": {
+       "com": [
+        398.7,
+        673.6
+       ]
+      },
+      "needsReplacement": "quality",
+      "replacementNote": "weird arm behind back pose",
+      "edited": {
+       "renderScale": 0.281,
+       "bodyBottom": 230.9
+      },
+      "file": "gojo/attack_diag_up_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-25T02:13:05+00:00"
      }
     ]
    }
