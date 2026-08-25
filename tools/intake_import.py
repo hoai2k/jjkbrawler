@@ -283,6 +283,75 @@ def place(frame, old_meta, idle_meta, keep_scale=False):
     return meta
 
 
+SAME_DRAWING = 0.5
+# How far the vote step reduces both frames before it looks for the offset.
+COARSE = 4
+
+
+def same_drawing(old_frame, new_frame):
+    """How much of two frames is the same PIXELS, at their best alignment.
+
+    A re-key changes alpha and a re-crop changes bounds; neither repaints the
+    figure, so the two frames carry identical colour wherever both are solid.
+    A different delivery of the same pose does not — the artist drew it again.
+
+    Aligned by voting rather than by the bounding box: the bounds are exactly
+    what a re-key moves. Sample pixels of the smaller frame each vote for every
+    offset that would explain them, and the winner is checked in full.
+
+    The vote runs on both frames reduced by COARSE, which is what makes this
+    affordable: at full size it is dozens of passes over a megapixel per pose,
+    and a 255-pose batch spent the better part of an hour in here. The offset is
+    then refined at full size over the coarse cell it landed in, so the answer
+    is the same one.
+    """
+    a, b = old_frame, new_frame
+    big, small = (a, b) if a.shape[0] * a.shape[1] > b.shape[0] * b.shape[1] else (b, a)
+    H, W = big.shape[:2]
+    h, w = small.shape[:2]
+    if h > H or w > W:
+        return 0.0
+    rgb = small[:, :, :3].astype(np.int16)
+    solid = small[:, :, 3] == 255
+    ys, xs = np.nonzero(solid)
+    if len(ys) < 200:
+        return 0.0
+
+    cs, cb = small[::COARSE, ::COARSE], big[::COARSE, ::COARSE]
+    ch, cw = cs.shape[:2]
+    cH, cW = cb.shape[:2]
+    crgb = cs[:, :, :3].astype(np.int16)
+    cys, cxs = np.nonzero(cs[:, :, 3] == 255)
+    if not len(cys):
+        return 0.0
+    take = np.linspace(0, len(cys) - 1, 32).astype(int)
+    sy, sx = cys[take], cxs[take]
+    ny, nx = cH - ch + 1, cW - cw + 1
+    votes = np.zeros((ny, nx), np.int32)
+    cfield = cb[:, :, :3].astype(np.int16)
+    for k in range(len(take)):
+        hit = np.abs(cfield - crgb[sy[k], sx[k]]).max(axis=2) <= 2
+        votes += hit[sy[k]:sy[k] + ny, sx[k]:sx[k] + nx]
+    gy, gx = np.unravel_index(int(np.argmax(votes)), votes.shape)
+
+    probe_y, probe_x = ys[::37], xs[::37]
+    want = rgb[probe_y, probe_x]
+    best = (-1.0, 0, 0)
+    for dy in range(max(0, gy * COARSE - COARSE), min(H - h, gy * COARSE + COARSE) + 1):
+        for dx in range(max(0, gx * COARSE - COARSE), min(W - w, gx * COARSE + COARSE) + 1):
+            got = big[dy + probe_y, dx + probe_x, :3].astype(np.int16)
+            score = float((np.abs(got - want).max(axis=1) <= 2).mean())
+            if score > best[0]:
+                best = (score, dy, dx)
+    _, dy, dx = best
+    field = big[:, :, :3].astype(np.int16)
+    both = solid & (big[dy:dy + h, dx:dx + w, 3] == 255)
+    if both.sum() < 1000:
+        return 0.0
+    d = np.abs(field[dy:dy + h, dx:dx + w] - rgb).max(axis=2)
+    return float((d[both] <= 2).mean())
+
+
 def content_box(frame):
     """The opaque bounding box, at the SAME threshold generated_frame_meta uses.
 
@@ -556,6 +625,33 @@ def main():
             if new_box:
                 meta["srcBox"] = list(new_box)
                 meta["srcFlip"] = new_flip
+
+            # A TOUCH-UP THAT IS NOT THE SAME DRAWING IS NOT A TOUCH-UP.
+            #
+            # The plate a pose was keyed from is not recorded anywhere, so a
+            # batch re-key has to feed each pose its NEWEST archived plate —
+            # and for eleven of 255 that was a different delivery of the same
+            # pose, not the one the art in the game came from. `gojo/fall` came
+            # back 886x1467 where the art in the game is 644x1016: a redraw,
+            # landing as an alpha fix, with the placement carried across from a
+            # drawing it has nothing to do with.
+            #
+            # So the claim is checked rather than believed. A keep or a reframe
+            # says the DRAWING is unchanged and only its alpha or its framing
+            # moved, and that is a statement about pixels: the two frames must
+            # agree where both are opaque. They do, decisively — a real re-key
+            # scores 100%, and the eleven scored 3-7%.
+            if keeps in ("keep", "reframe") and stored:
+                old_path = os.path.join(SPRITES, stored.get("file", f"{char}/{key}.png"))
+                if os.path.exists(old_path):
+                    agree = same_drawing(np.asarray(Image.open(old_path).convert("RGBA")),
+                                         frame)
+                    if agree < SAME_DRAWING:
+                        skipped.append(
+                            f"{char}/{key}: agrees with the art in the game on "
+                            f"{agree * 100:.0f}% of its pixels — this plate is a "
+                            "different drawing, not a touch-up of what is in the game")
+                        continue
 
             carried = []
             if keeps in ("keep", "reframe") and stored:

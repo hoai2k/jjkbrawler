@@ -118,6 +118,18 @@ a matte that grows all round, one cut back on a single side, one that reaches
 the feet — and requires the same source pixel to land in the same place to
 within a millionth of a pixel. It is in `npm run check`.
 
+**A touch-up is checked for being the same drawing, not believed.** The plate a
+pose was keyed from is not recorded anywhere, so a batch re-key has to feed each
+pose its NEWEST archived plate — and for eleven of the first 255 that was a
+different delivery of the same pose, not the one the art in the game came from.
+`gojo/fall` came back 886x1467 where the art in the game is 644x1016: a redraw,
+landing as an alpha fix, with the placement carried across from a drawing it has
+nothing to do with. A keep or a reframe is a claim about pixels — the drawing is
+unchanged and only its alpha or its framing moved — so `same_drawing()` tests it:
+the two frames must agree where both are opaque, aligned by a vote rather than by
+their bounds, since the bounds are exactly what a re-key moves. It separates them
+outright. A real re-key scores 100%; those eleven scored 0-12%.
+
 **A re-key we started needs to say why.** `survives()` reads the pose's flag to
 decide what carries across, which covers a delivery answering a request and not a
 re-run of our own: re-keying a plate because its shadow-or-gap verdicts are now
