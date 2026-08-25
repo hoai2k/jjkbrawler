@@ -398,7 +398,14 @@ TINT_FIX = {
 # as a neutral smear that no flatness test can catch, because the trail itself
 # is shaded. Named frames only — "neutral mid-tone" also describes Toji's
 # shirt and half the roster's shading.
-GREY_TINT_FIX = {"momo/dodge_air", "momo/dodge_roll"}
+# Hakari and Toji's air dodges are the same frame in the same round with the
+# same trail behind them, and both came back carrying it: a grey cloud round
+# Hakari's back that broke into 399 loose specks, a smaller smear at Toji's
+# knee. They were flagged for alpha and left flagged through four rounds of
+# work on the sealed-pocket rules, which could never have touched them — a
+# trail is not a sealed region and this plate has none.
+GREY_TINT_FIX = {"momo/dodge_air", "momo/dodge_roll",
+                 "hakari/dodge_air", "toji/dodge_air"}
 
 
 def grey_tint_mask(rgb, key, alpha, min_px=400):
