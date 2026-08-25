@@ -30,21 +30,33 @@ import { caption } from "./verify_common.js";
 const QUEUE = "../sprites/assets/sealed_queue.json";
 const PLATE_ROOT = "../";
 
-export async function provider() {
+/** Everything the game can put on screen, or that somebody is waiting on. */
+export const provider = () => build((r) => r.band !== "other");
+
+/** The rest: cells and banked alternates nothing reaches. Its own queue so the
+ *  main one is all art with consequences — a patch nobody can see should never
+ *  be between the reviewer and one that is on screen. */
+export const unusedProvider = () => build((r) => r.band === "other");
+
+async function build(inBand) {
   const doc = await fetch(QUEUE).then((r) => (r.ok ? r.json() : { regions: [] }))
     .catch(() => ({ regions: [] }));
   // ONE FIGHTER AT A TIME, from the address bar: `&char=kashimo`. The queue is
-  // 1,567 regions and it is meant to be worked at leisure, so the useful unit
-  // is a fighter — their plates share a costume and a palette, and the same
-  // judgement carries down the list. Without it the order still groups them,
-  // biggest question first within each.
+  // meant to be worked at leisure, so the useful unit is a fighter — their
+  // plates share a costume and a palette, and the same judgement carries down
+  // the list. Without it the order still groups them, band first.
   const want = new URL(location.href).searchParams.get("char");
-  const regions = (doc.regions || []).filter((r) => !want || r.char === want);
+  const regions = (doc.regions || [])
+    .filter(inBand)
+    .filter((r) => !want || r.char === want);
 
   const tasks = regions.map((r) => ({
     id: `${r.char}/${r.pose}@${r.x},${r.y}`,
     title: `${r.char} · ${r.pose}`,
-    subtitle: `${r.px.toLocaleString()} px — the keyer ${r.now === "cut" ? "cuts" : "keeps"} it today`,
+    subtitle: `${r.px.toLocaleString()} px — the keyer ${r.now === "cut" ? "cuts" : "keeps"} it today`
+      + (r.band === "flagged" ? " · flagged" : r.band === "held" ? " · held" : "")
+      + (r.mark === "mixed" ? " · marked part-and-part"
+         : r.mark === "other" ? " · marked another alpha fault" : ""),
     ...r,
     exportKeys: { char: r.char, pose: r.pose, x: r.x, y: r.y },
   }));
@@ -55,9 +67,24 @@ export async function provider() {
     // rebuild is a different set of questions and older decisions were answers
     // to a different one.
     fingerprint: `sealed-${regions.length}-${regions.map((r) => `${r.char}/${r.pose}@${r.x},${r.y}`).join("|").length}`,
-    initialValue: (task) => ({ background: task.now === "cut" }),
+    initialValue: (task) => ({
+      background: task.now === "cut",
+      mixed: task.mark === "mixed",
+      other: task.mark === "other",
+    }),
     describe: (task, value) => {
       const now = task.now === "cut" ? "cuts it away" : "keeps it";
+      if (value.mixed) {
+        return `The keyer <b>${now}</b> today. Marked as <b>part gap, part shadow</b>.<br>`
+          + "One point cannot answer for two halves, so nothing overrides the keyer here — "
+          + "it is recorded as art that needs a hand mask or a redraw, and comes back "
+          + "to be judged again once that is done.";
+      }
+      if (value.other) {
+        return `The keyer <b>${now}</b> today. Marked as <b>a different alpha fault</b>.<br>`
+          + "Not a keying decision at all — a ghost image, a trail, something that wants "
+          + "removing rather than a better key. Recorded and brought back afterwards.";
+      }
       const want = value.background ? "the stage showing through" : "drawn on the fighter";
       return `The keyer <b>${now}</b> today. Marked as <b>${want}</b>.<br>`
         + "Is the outlined patch a hole in the fighter, or a shadow lying on them?";
@@ -84,7 +111,12 @@ function ensureReady(task) {
     job = new Promise((resolve) => {
       const img = new Image();
       img.onload = () => { plates.set(task.src, img); resolve(true); };
-      img.onerror = () => { plates.set(task.src, null); resolve(true); };
+      // A FAILURE IS NOT CACHED. These plates are a megabyte and a half and the
+      // queue prefetches its neighbours, so a request that loses a race leaves
+      // one item permanently reading "no plate loaded" if the miss is stored
+      // as an answer. Nothing is written, the next visit asks again, and the
+      // canvas says "loading" rather than "not there" in the meantime.
+      img.onerror = () => resolve(true);
       img.src = PLATE_ROOT + task.src;
     }).then((v) => { loading.delete(task.src); return v; });
     loading.set(task.src, job);
@@ -93,54 +125,31 @@ function ensureReady(task) {
 }
 
 /**
- * The region itself, found again in the browser rather than shipped.
+ * The region, decoded from the run lengths the queue carries.
  *
- * A mask is a picture and the queue is a list of numbers; sending 1,600 of them
- * would be sending the plates twice. The seed point is enough: flood the screen
- * colour out from it and the same patch comes back, because "sealed" is what
- * makes it a question in the first place — nothing joins it to the border.
- *
- * The key colour is read from the plate's own corner, which is what
- * `border_key` does on the other side.
+ * IT USED TO BE FOUND AGAIN HERE, by flooding the screen colour out from the
+ * seed point, and that was wrong twice. The key was read from the plate's
+ * top-left corner, so Dagon's magenta screen — whose corner is 36 apart from
+ * the patch in the middle of him — matched nothing and the patch was never
+ * outlined at all: the reviewer was shown a picture with no question on it.
+ * And where the key was right, a flood with no variance test and nothing to
+ * stop it at the silhouette ran 36% past the real region. Asking somebody to
+ * judge one patch means outlining that patch, so the keyer sends its own.
  */
 function maskFor(task) {
   const hit = masks.get(task.id);
   if (hit) return hit;
-  const img = plates.get(task.src);
-  if (!img) return null;
-  const [x0, y0, x1, y1] = task.crop;
-  const w = x1 - x0, h = y1 - y0;
-  const off = document.createElement("canvas");
-  off.width = w; off.height = h;
-  const c = off.getContext("2d", { willReadFrequently: true });
-  c.drawImage(img, x0, y0, w, h, 0, 0, w, h);
-  const data = c.getImageData(0, 0, w, h).data;
-
-  const corner = document.createElement("canvas");
-  corner.width = corner.height = 1;
-  const cc = corner.getContext("2d", { willReadFrequently: true });
-  cc.drawImage(img, 0, 0, 1, 1, 0, 0, 1, 1);
-  const [kr, kg, kb] = cc.getImageData(0, 0, 1, 1).data;
-
-  const near = (i) => Math.abs(data[i] - kr) + Math.abs(data[i + 1] - kg)
-                    + Math.abs(data[i + 2] - kb) < 24;
+  if (!task.rle || !task.box) return null;
+  const [bx0, by0, bx1, by1] = task.box;
+  const w = bx1 - bx0, h = by1 - by0;
   const inside = new Uint8Array(w * h);
-  const sx = task.x - x0, sy = task.y - y0;
-  const stack = [sy * w + sx];
-  inside[stack[0]] = 1;
-  while (stack.length) {
-    const p = stack.pop();
-    const px = p % w, py = (p - px) / w;
-    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-      const nx = px + dx, ny = py + dy;
-      if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
-      const q = ny * w + nx;
-      if (inside[q] || !near(q * 4)) continue;
-      inside[q] = 1;
-      stack.push(q);
-    }
+  let at = 0, on = 0;
+  for (const run of task.rle) {
+    if (on) inside.fill(1, at, at + run);
+    at += run;
+    on ^= 1;
   }
-  const out = { w, h, x0, y0, inside };
+  const out = { w, h, x0: bx0, y0: by0, inside };
   masks.set(task.id, out);
   return out;
 }
@@ -153,15 +162,31 @@ function renderEditor(task, { container, value, onChange, bindSync }) {
   wrap.innerHTML =
     `<button class="ghost sm" data-act="gap" type="button">Gap — cut it away</button>`
     + `<button class="ghost sm" data-act="shadow" type="button">Shadow — it is the fighter</button>`
+    + `<button class="ghost sm" data-act="both" type="button">Both — part gap, part shadow</button>`
+    + `<button class="ghost sm" data-act="other" type="button">Other alpha fault — ghosts, trails</button>`
     + `<button class="ghost sm" data-act="reset" type="button">Back to what the keyer does</button>`;
   const paint = () => {
-    wrap.querySelector('[data-act="gap"]').classList.toggle("on", live.background);
-    wrap.querySelector('[data-act="shadow"]').classList.toggle("on", !live.background);
+    const plain = !live.mixed && !live.other;
+    wrap.querySelector('[data-act="gap"]').classList.toggle("on", plain && live.background);
+    wrap.querySelector('[data-act="shadow"]').classList.toggle("on", plain && !live.background);
+    wrap.querySelector('[data-act="both"]').classList.toggle("on", !!live.mixed);
+    wrap.querySelector('[data-act="other"]').classList.toggle("on", !!live.other);
   };
-  wrap.querySelector('[data-act="gap"]').addEventListener("click", () => onChange({ background: true }));
-  wrap.querySelector('[data-act="shadow"]').addEventListener("click", () => onChange({ background: false }));
+  // DELIBERATELY DOES NOT ADVANCE. The answer repaints the canvas — a gap turns
+  // into the hole it would leave — and seeing that is half of checking it. The
+  // bench's own Next is one key away.
+  // Every button states the WHOLE answer. `onChange` merges its patch into the
+  // value in play rather than replacing it — which is right for a slider that
+  // owns one axis, and wrong for four buttons that are one choice between them:
+  // pressing Gap on a patch already marked part-and-part left both flags on,
+  // and the panel went on reading "part gap, part shadow" whatever was pressed.
+  const answer = (v) => onChange({ background: false, mixed: false, other: false, ...v });
+  wrap.querySelector('[data-act="gap"]').addEventListener("click", () => answer({ background: true }));
+  wrap.querySelector('[data-act="shadow"]').addEventListener("click", () => answer({ background: false }));
+  wrap.querySelector('[data-act="both"]').addEventListener("click", () => answer({ mixed: true }));
+  wrap.querySelector('[data-act="other"]').addEventListener("click", () => answer({ other: true }));
   wrap.querySelector('[data-act="reset"]')
-    .addEventListener("click", () => onChange({ background: task.now === "cut" }));
+    .addEventListener("click", () => answer({ background: task.now === "cut" }));
   bindSync((v) => { live = v; paint(); });
   paint();
   container.append(wrap);
@@ -174,7 +199,8 @@ function draw(task, { ctx, canvas, value }) {
   if (!img) {
     ctx.fillStyle = "#9aa4c0";
     ctx.font = "13px system-ui";
-    ctx.fillText(`no plate loaded for ${task.src}`, 20, 40);
+    ctx.fillText(`loading ${task.src.split("/").slice(-3).join("/")}…`, 20, 40);
+    ensureReady(task);
     return;
   }
   const m = maskFor(task);
@@ -200,7 +226,19 @@ function draw(task, { ctx, canvas, value }) {
       const edge = !(m.inside[i - 1] && m.inside[i + 1]
                      && m.inside[i - m.w] && m.inside[i + m.w]);
       const j = i * 4;
-      if (value.background) {
+      if (value.mixed || value.other) {
+        // Neither answer, and it should not look like either: a hatch over art
+        // left exactly as it is — amber for part-and-part, blue for a fault the
+        // key cannot fix.
+        const x = i % m.w, y = (i - x) / m.w;
+        const on = ((x + y) >> 2) & 1;
+        if (value.mixed) {
+          px.data[j] = 235; px.data[j + 1] = on ? 170 : 120; px.data[j + 2] = 20;
+        } else {
+          px.data[j] = on ? 90 : 40; px.data[j + 1] = on ? 170 : 110; px.data[j + 2] = 245;
+        }
+        px.data[j + 3] = edge ? 255 : 120;
+      } else if (value.background) {
         // a checker, so it reads as absence rather than as paint
         const x = i % m.w, y = (i - x) / m.w;
         const on = ((x >> 3) + (y >> 3)) & 1;
@@ -240,7 +278,8 @@ function exportBlock(decisions) {
       continue;
     }
     const ref = `${d.char}/${d.pose}`;
-    const what = d.value.background ? "background" : "figure";
+    const what = d.value.mixed ? "mixed" : d.value.other ? "other"
+      : d.value.background ? "background" : "figure";
     ((out[ref] ??= {})[what] ??= []).push([d.x, d.y]);
   }
   const body = JSON.stringify(out, null, 1);

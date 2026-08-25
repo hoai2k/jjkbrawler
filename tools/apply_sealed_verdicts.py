@@ -26,7 +26,20 @@ import os
 import sys
 
 STORE = os.path.join(os.path.dirname(sprite_paths.MANIFEST), "sealed_verdicts.json")
-KINDS = ("background", "figure")
+# Two of these are instructions the keyer can carry out and two are the reviewer
+# saying the question is the wrong one:
+#
+#   background / figure   cut it, or keep it
+#   mixed                 part gap and part shadow. One point cannot answer for
+#                         two halves, so the keyer is left alone and the plate
+#                         wants a hand mask or a redraw.
+#   other                 not a keying fault at all — a ghost image, a trail,
+#                         something that wants removing rather than a better
+#                         key. Hakari's special_side carries four of them.
+#
+# The last two are stored so the patch keeps its mark and comes back to be
+# judged again once the art has been fixed, rather than being asked cold twice.
+KINDS = ("background", "figure", "mixed", "other")
 
 
 def main():
@@ -74,6 +87,16 @@ def main():
         print(f"  -> {os.path.relpath(STORE, os.path.dirname(os.path.dirname(STORE)))}")
     elif args.dry_run:
         print("  (dry run — nothing written)")
+    for kind, why in (("mixed", "part gap, part shadow — the keyer cannot be told which, "
+                                "so these want a hand mask or a redraw"),
+                      ("other", "not a keying fault — ghosts, trails and the like, which "
+                                "want removing rather than a better key")):
+        marked = sorted(ref for ref, e in store.items() if e.get(kind))
+        if not marked:
+            continue
+        print(f"\n{why}:")
+        for ref in marked:
+            print(f"  {ref}  ({len(store[ref][kind])} patch(es))")
     if touched:
         print("\nworth re-keying, now that these are settled:")
         for ref in sorted(touched):

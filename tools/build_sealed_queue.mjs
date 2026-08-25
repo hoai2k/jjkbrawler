@@ -8,12 +8,20 @@
 //
 // This writes the queue that bench reads.
 //
-// ONLY SPRITES THE GAME RENDERS. Asking about a drawing nobody sees is asking a
-// question with no consequence, and there are 1,618 unanswered regions across
-// the whole tree — most of them on sheet cells and banked alternates that no
-// state resolves to. The game's own resolver decides what is in, exactly as it
-// does for `delete_tagged_sprites.mjs`: a pose is in the queue when some state
-// of its character resolves to it.
+// WHAT THE GAME DRAWS COMES FIRST. Every pose is in the queue, but in three
+// bands, because a patch nobody can see is a question with no consequence and
+// should not be between you and one that matters:
+//
+//   flagged  the pose carries a "needs improvement" flag — somebody is actively
+//            trying to solve this one, so it goes first
+//   held     a replacement waiting to be approved
+//   drawn    a state of that character resolves to it; it is on screen in play
+//   other    a cell or a banked alternate nothing reaches — its own low-priority
+//            queue in the bench, so the main one is all impactful
+//
+// The game's own resolver decides which, the same way `apply_deletions.mjs`
+// decides what may be deleted. Within a band it is by fighter and then biggest
+// first, so a pass can be worked one costume at a time.
 //
 // Two programs, for the reason the deletion pair is: this half needs the game
 // (JavaScript), and the pixel half needs scipy (Python). This one lists the
@@ -58,16 +66,23 @@ function deliveredFor(char, pose) {
 }
 
 const active = [];
+const bands = { flagged: 0, held: 0, drawn: 0, other: 0 };
 for (const char of chars) {
   const anims = animsOf(char) || {};
-  for (const pose of Object.keys(man.characters?.[char] || {})) {
-    if (!Object.keys(anims).some((s) => resolvedAnim(char, s).frames.includes(pose))) continue;
+  for (const [pose, meta] of Object.entries(man.characters?.[char] || {})) {
     const src = deliveredFor(char, pose);
-    if (src) active.push({ char, pose, src });
+    if (!src) continue;
+    const drawn = Object.keys(anims).some((s) => resolvedAnim(char, s).frames.includes(pose));
+    const band = meta?.wantsImprovement || meta?.needsReplacement ? "flagged"
+      : meta?.awaitingApproval ? "held" : drawn ? "drawn" : "other";
+    bands[band]++;
+    active.push({ char, pose, src, band });
   }
 }
 
-console.log(`${active.length} pose(s) the game draws have an archived original`);
+console.log(`${active.length} pose(s) with an archived original — ${bands.flagged} flagged `
+  + `for improvement, ${bands.held} held, ${bands.drawn} drawn by the game, `
+  + `${bands.other} neither`);
 const py = spawnSync("python3",
   [fileURLToPath(new URL("sealed_regions.py", import.meta.url)),
    ...(process.argv.includes("--check") ? ["--check"] : [])],
