@@ -9,29 +9,29 @@
       "hem": 998
     },
     "uro/attack_air_a": {
-      "art": "8a987879d5db",
+      "art": "20c390a67435",
       "share": 0.0343,
       "top": 0.36,
       "bottom": 0.662,
       "hem": 756
     },
     "uro/attack_air_b": {
-      "art": "66abe05bfe0f",
-      "share": 0.0837,
+      "art": "e00561dab394",
+      "share": 0.0849,
       "top": 0.219,
       "bottom": 0.695,
-      "hem": 1820
+      "hem": 1830
     },
     "uro/attack_air_diag_down_b": {
-      "art": "66cfcc00ffcc",
+      "art": "3a3a3b02ef18",
       "share": 0.0389,
       "top": 0.348,
       "bottom": 0.681,
       "hem": 980
     },
     "uro/attack_dash": {
-      "art": "13477c58bc9a",
-      "share": 0.0238,
+      "art": "444ac6b7dd8f",
+      "share": 0.0239,
       "top": 0.331,
       "bottom": 0.657,
       "hem": 656
@@ -44,7 +44,7 @@
       "hem": 960
     },
     "uro/attack_down": {
-      "art": "9dd9a3bfcbfa",
+      "art": "19783ef65d24",
       "share": 0.042,
       "top": 0.412,
       "bottom": 0.733,
@@ -86,28 +86,28 @@
       "hem": 464
     },
     "uro/attack_up": {
-      "art": "f4f261acf438",
+      "art": "4c93440d1a98",
       "share": 0.0599,
       "top": 0.234,
       "bottom": 0.586,
       "hem": 986
     },
     "uro/charge": {
-      "art": "af31e6312ca4",
+      "art": "a5201686976f",
       "share": 0.0427,
       "top": 0.339,
       "bottom": 0.691,
       "hem": 902
     },
     "uro/crouch_a": {
-      "art": "b40705a78ed4",
+      "art": "3e7997f5a8df",
       "share": 0.0739,
       "top": 0.375,
       "bottom": 0.817,
       "hem": 1030
     },
     "uro/crouch_attack_a": {
-      "art": "678655200afa",
+      "art": "aae8478b5a6b",
       "share": 0.0441,
       "top": 0.412,
       "bottom": 0.824,
@@ -128,25 +128,25 @@
       "hem": 1144
     },
     "uro/dash": {
-      "art": "67c7f673de9c",
+      "art": "de7cd00b9426",
       "share": 0.0467,
       "top": 0.372,
       "bottom": 0.721,
       "hem": 768
     },
     "uro/dizzy": {
-      "art": "5c143e798699",
+      "art": "f07a4bb89a63",
       "share": 0.0504,
       "top": 0.306,
       "bottom": 0.611,
       "hem": 822
     },
     "uro/dodge_air": {
-      "art": "113628ab3a14",
-      "share": 0.0689,
+      "art": "f8fb8d79c8c1",
+      "share": 0.069,
       "top": 0.292,
       "bottom": 0.64,
-      "hem": 836
+      "hem": 838
     },
     "uro/dodge_roll": {
       "art": "8639a4f40990",
@@ -156,14 +156,14 @@
       "hem": 780
     },
     "uro/fall": {
-      "art": "7a8845ed7f25",
+      "art": "60c793a85b99",
       "share": 0.0427,
       "top": 0.313,
       "bottom": 0.612,
       "hem": 820
     },
     "uro/grab_hold": {
-      "art": "237b9bb5d334",
+      "art": "7cfdf53e1e7e",
       "share": 0.0487,
       "top": 0.305,
       "bottom": 0.63,
@@ -177,28 +177,28 @@
       "hem": 958
     },
     "uro/grabbed": {
-      "art": "30dbec1acdf5",
+      "art": "a9aa7edfecf0",
       "share": 0.0437,
       "top": 0.296,
       "bottom": 0.622,
       "hem": 1004
     },
     "uro/guard": {
-      "art": "0ffc94139dcc",
+      "art": "f68716fc7a31",
       "share": 0.0469,
       "top": 0.298,
       "bottom": 0.628,
       "hem": 748
     },
     "uro/hurt": {
-      "art": "d71379c6e78b",
+      "art": "b4d0f0fdeeff",
       "share": 0.0455,
       "top": 0.282,
       "bottom": 0.609,
       "hem": 966
     },
     "uro/idle_a": {
-      "art": "831ad0e8c595",
+      "art": "dc3357a7bfac",
       "share": 0.0702,
       "top": 0.283,
       "bottom": 0.609,
@@ -212,21 +212,21 @@
       "hem": 864
     },
     "uro/jump_rise": {
-      "art": "394ef9e5774a",
+      "art": "d8d0ebad8e5d",
       "share": 0.0472,
       "top": 0.368,
       "bottom": 0.721,
       "hem": 776
     },
     "uro/land": {
-      "art": "be0fa1f12e73",
+      "art": "72b4d79613d2",
       "share": 0.064,
       "top": 0.411,
       "bottom": 0.825,
       "hem": 1008
     },
     "uro/ledge_hang": {
-      "art": "6e27ff23ddfe",
+      "art": "c4bc2febcaec",
       "share": 0.0564,
       "top": 0.332,
       "bottom": 0.596,
@@ -251,49 +251,49 @@
       "hem": 722
     },
     "uro/run_pass_a": {
-      "art": "57b7d37f608f",
+      "art": "7dbd2b5afd2b",
       "share": 0.048,
       "top": 0.291,
       "bottom": 0.59,
       "hem": 820
     },
     "uro/run_pass_b": {
-      "art": "4afe9ad0a9a8",
+      "art": "519629b4ef2f",
       "share": 0.0528,
       "top": 0.288,
       "bottom": 0.593,
       "hem": 778
     },
     "uro/run_reach_a": {
-      "art": "79a5364881e7",
+      "art": "b0dfe98f1c18",
       "share": 0.032,
       "top": 0.297,
       "bottom": 0.628,
       "hem": 728
     },
     "uro/run_reach_b": {
-      "art": "b6eb71484827",
+      "art": "382d8c725abf",
       "share": 0.0336,
       "top": 0.327,
       "bottom": 0.634,
       "hem": 710
     },
     "uro/special_down": {
-      "art": "8a38c52943e1",
-      "share": 0.039,
+      "art": "cdb30e02563f",
+      "share": 0.0391,
       "top": 0.284,
       "bottom": 0.601,
       "hem": 950
     },
     "uro/special_neutral": {
-      "art": "254941265566",
+      "art": "308fd33adfd3",
       "share": 0.0459,
       "top": 0.283,
       "bottom": 0.609,
-      "hem": 912
+      "hem": 916
     },
     "uro/special_side": {
-      "art": "7bfd883112db",
+      "art": "1a79862ae80a",
       "share": 0.0464,
       "top": 0.418,
       "bottom": 0.801,
@@ -314,7 +314,7 @@
       "hem": 864
     },
     "uro/throw_down": {
-      "art": "067e69b768b5",
+      "art": "f7f7e9415344",
       "share": 0.0293,
       "top": 0.408,
       "bottom": 0.703,
@@ -335,7 +335,7 @@
       "hem": 862
     },
     "uro/ult_a": {
-      "art": "82ee83e222d6",
+      "art": "db7d7bc726f2",
       "share": 0.0666,
       "top": 0.293,
       "bottom": 0.609,
@@ -349,7 +349,7 @@
       "hem": 880
     },
     "uro/victory": {
-      "art": "ed0be6c9fa68",
+      "art": "5a9a116d8f5c",
       "share": 0.0582,
       "top": 0.279,
       "bottom": 0.609,
