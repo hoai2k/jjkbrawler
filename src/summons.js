@@ -221,7 +221,11 @@ function spawnSurfaceY(owner, x) {
     if (plat.ghost) continue;
     const margin = plat.kind === "main" ? 14 : 24;
     if (x < plat.x - margin || x > plat.x + plat.w + margin) continue;
-    if (plat.y < owner.y - 4) continue;      // never above the caster
+    // The slack is a TIER of the board being compared against a body, not a
+    // height on one: it is the same 4 px render.js allows a fighter when it
+    // picks the surface to paint a shadow on, and it did not shrink with the
+    // roster either.
+    if (plat.y < owner.y - 4) continue;      // never above the caster — board length
     if (plat.y < best) best = plat.y;
   }
   return best;

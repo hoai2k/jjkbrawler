@@ -43,7 +43,7 @@ await page.goto(`${BASE}/index.html`, { waitUntil: "load" });
 const r = await page.evaluate(async () => {
   const { state } = await import("/src/state.js");
   const { spawnSummon } = await import("/src/summons.js");
-  const { getStage, STAGES } = await import("/src/stages.js");
+  const { getStage, STAGES, groundY: stageGroundY } = await import("/src/stages.js");
   const { makeFighter } = await import("/src/fighter.js");
   const { CHARACTERS } = await import("/src/characters.js");
   const assets = await import("/src/assets.js");
@@ -96,14 +96,67 @@ const r = await page.evaluate(async () => {
 
   const out = {};
 
-  // Shibuya Night: side shelf y=452 spanning x 200..420 (w 220); floor y=566.
-  // A Crawler measures 82 px across and fits it; a Max Elephant measures 292
-  // and cannot.
+  // ------------------------------------------------------------- geometry
+  //
+  // Which shelf, and how wide, comes from the STAGE — never from a number
+  // written down here. These checks were first written against a Shibuya
+  // Night whose shelf started at x=200 and whose floor was y=566; the board
+  // has since moved the shelf 30 px left and the floor 120 px down, and every
+  // one of those constants had quietly stopped describing the game. Two
+  // checks failed and three passed for the wrong reason, which is the worse
+  // half. A test that states its own stage layout is one more place for the
+  // layout to disagree with itself.
+
+  /** The surface a body at `x` comes to rest on, falling from `fromY`.
+   *
+   *  The floor is whatever the GAME calls the ground — groundY(), the same
+   *  answer summons.js asks for — and not the lowest platform in the list.
+   *  Shibuya Night now carries a `main` slab at y=686 sitting BELOW its ground
+   *  at 566, so "lowest platform" and "the floor a summon falls to" are two
+   *  different numbers on that board, and only one of them is the one the
+   *  creature is heading for. */
+  function surfaceBelow(key, x, fromY) {
+    const plats = getStage(key).platforms;
+    const ground = stageGroundY(plats);
+    let best = null;
+    for (const p of plats) {
+      if (x < p.x || x > p.x + p.w || p.y <= fromY || p.y > ground) continue;
+      if (!best || p.y < best.y) best = p;
+    }
+    return best ? best.y : ground;
+  }
+
+  /** The lowest SIDE shelf on `key`, leftmost of its tier: the one under test.
+   *  "side" and not merely "not main" — a board can also carry a `spawn` deck,
+   *  which is a second piece of floor rather than a shelf, and picking that
+   *  would ask every question below about the wrong surface. */
+  function sideShelf(key) {
+    const sides = getStage(key).platforms.filter((p) => p.kind === "side");
+    const lowest = Math.max(...sides.map((p) => p.y));
+    return sides.filter((p) => p.y === lowest).sort((a, b) => a.x - b.x)[0];
+  }
+
+  const SHELF = sideShelf("shibuyaNight");
+  const MID = SHELF.x + SHELF.w / 2;
+  // Cast on the LEFT quarter of the shelf, so "inward" is unambiguously to
+  // the RIGHT — the opposite of the near lip it would have toppled off. Taken
+  // off the shelf rather than picked, so it stays left-of-centre when the
+  // shelf moves.
+  const CAST_X = Math.round(SHELF.x + SHELF.w / 4);
+  const DECK = sideShelf("crosswalkRush");
+  out.geom = {
+    shelf: { x: SHELF.x, y: SHELF.y, w: SHELF.w },
+    castX: CAST_X,
+    floorY: surfaceBelow("shibuyaNight", CAST_X, SHELF.y),
+    farFloorY: surfaceBelow("shibuyaNight", 900, SHELF.y),
+    boneFloorY: stageGroundY(getStage("boneSanctum").platforms),
+    deck: { x: DECK.x, y: DECK.y, w: DECK.w },
+  };
 
   // ---- lands on the shelf it was cast onto, then paces it
   setStage("shibuyaNight");
   {
-    const { s } = cast(of("TRANSFIGURED_POOL", "Crawlers"), 300, 452, 300, 452);
+    const { s } = cast(of("TRANSFIGURED_POOL", "Crawlers"), CAST_X, SHELF.y, CAST_X, SHELF.y);
     step(s, ARRIVE);
     out.land = { y: s.y, hitW: s.hitW };
     state.fighters[1].dead = true;          // nothing to chase -> roam
@@ -119,13 +172,13 @@ const r = await page.evaluate(async () => {
   // ---- too big for the shelf, with nothing to hunt: inward stride, then down
   setStage("shibuyaNight");
   {
-    const { s } = cast(of("SHIKIGAMI_POOL", "Max Elephant"), 300, 452, 1000, 566);
+    const { s } = cast(of("SHIKIGAMI_POOL", "Max Elephant"), CAST_X, SHELF.y, 1000, 566);
     step(s, ARRIVE);
     state.fighters[1].dead = true;          // nothing to chase -> room decides
     const landed = { y: s.y, x: s.x, hitW: s.hitW };
     const fromX = s.x;
     step(s, 0.5);
-    // Cast left-of-centre on the shelf, so inward is to the RIGHT — the
+    // CAST_X is the shelf's left quarter, so inward is to the RIGHT — the
     // opposite of the near edge it would have toppled off.
     const inward = Math.sign(s.x - fromX);
     step(s, 3);
@@ -136,12 +189,12 @@ const r = await page.evaluate(async () => {
   //      cramped shelf stays on it while a foe is up there with it
   setStage("shibuyaNight");
   {
-    const { s, foe } = cast(of("SHIKIGAMI_POOL", "Max Elephant"), 300, 452, 380, 452);
+    const { s, foe } = cast(of("SHIKIGAMI_POOL", "Max Elephant"), CAST_X, SHELF.y, MID + SHELF.w / 4, SHELF.y);
     step(s, ARRIVE);
     const levels = new Set();
     for (let i = 0; i < 60 * 8; i++) {
       s.update(1 / 60);
-      foe.x = 380; foe.y = 452; foe.hp = 100;   // hold them on the shelf
+      foe.x = MID + SHELF.w / 4; foe.y = SHELF.y; foe.hp = 100;  // hold them up here
       if (!s.airborne) levels.add(Math.round(s.y));
     }
     out.chasingIgnoresRoom = { levels: [...levels] };
@@ -150,7 +203,7 @@ const r = await page.evaluate(async () => {
   // ---- chasing leaves the shelf: off the edge after a distant foe...
   setStage("shibuyaNight");
   {
-    const { s } = cast(of("TRANSFIGURED_POOL", "Crawlers"), 300, 452, 900, 566);
+    const { s } = cast(of("TRANSFIGURED_POOL", "Crawlers"), CAST_X, SHELF.y, 900, out.geom.farFloorY);
     step(s, ARRIVE + 4);
     out.chaseOff = { y: s.y, x: Math.round(s.x) };
   }
@@ -158,7 +211,7 @@ const r = await page.evaluate(async () => {
   // ---- ...and straight down after one standing directly beneath it
   setStage("shibuyaNight");
   {
-    const { s } = cast(of("TRANSFIGURED_POOL", "Crawlers"), 300, 452, 300, 566);
+    const { s } = cast(of("TRANSFIGURED_POOL", "Crawlers"), CAST_X, SHELF.y, CAST_X, out.geom.floorY);
     step(s, ARRIVE + 4);
     out.chaseUnder = { y: s.y };
   }
@@ -169,27 +222,27 @@ const r = await page.evaluate(async () => {
   //      lip and shadows them instead.
   setStage("shibuyaNight");
   {
-    const { s, foe } = cast(of("TRANSFIGURED_POOL", "Crawlers"), 300, 452, 950, 452);
+    const { s, foe } = cast(of("TRANSFIGURED_POOL", "Crawlers"), CAST_X, SHELF.y, 950, SHELF.y);
     step(s, ARRIVE);
     let maxX = s.x;
     const levels = new Set();
     for (let i = 0; i < 60 * 8; i++) {
       s.update(1 / 60);
-      foe.x = 950; foe.y = 452;
+      foe.x = 950; foe.y = SHELF.y;
       maxX = Math.max(maxX, s.x);
       if (!s.airborne) levels.add(Math.round(s.y));
     }
-    out.unreachable = { levels: [...levels], maxX: Math.round(maxX), lip: 420 };
+    out.unreachable = { levels: [...levels], maxX: Math.round(maxX), lip: SHELF.x + SHELF.w };
   }
 
   // ---- and once that same foe drops to the floor, the fall DOES lead
   //      somewhere and it goes after them
   setStage("shibuyaNight");
   {
-    const { s, foe } = cast(of("TRANSFIGURED_POOL", "Crawlers"), 300, 452, 950, 452);
+    const { s, foe } = cast(of("TRANSFIGURED_POOL", "Crawlers"), CAST_X, SHELF.y, 950, SHELF.y);
     step(s, ARRIVE + 2);
     const heldUp = s.y;
-    foe.y = 566;                              // they come down
+    foe.y = out.geom.farFloorY;               // they come down
     step(s, 4);
     out.thenReachable = { heldUp, endY: s.y };
   }
@@ -197,16 +250,17 @@ const r = await page.evaluate(async () => {
   // ---- the floor is never left: there is nothing under it but the blast zone
   setStage("shibuyaNight");
   {
-    const { s } = cast(of("SHIKIGAMI_POOL", "Max Elephant"), 640, 566, 640, 566);
+    const floor640 = surfaceBelow("shibuyaNight", 640, SHELF.y);
+    const { s } = cast(of("SHIKIGAMI_POOL", "Max Elephant"), 640, floor640, 640, floor640);
     step(s, ARRIVE);
     state.fighters[1].dead = true;
     let minY = s.y, maxY = s.y;
     for (let i = 0; i < 60 * 10; i++) { s.update(1 / 60); minY = Math.min(minY, s.y); maxY = Math.max(maxY, s.y); }
-    out.floor = { minY, maxY };
+    out.floor = { minY, maxY, expected: floor640 };
   }
 
   // ---- tiered board: a descent stops on the next shelf down, not the floor
-  setStage("boneSanctum");                  // 236 -> 346 -> 456 -> 574
+  setStage("boneSanctum");                  // 236 -> 346 -> 456 -> the floor
   {
     const { s } = cast(of("SHIKIGAMI_POOL", "Max Elephant"), 415, 236, 415, 236);
     state.fighters[1].dead = true;
@@ -232,7 +286,7 @@ const r = await page.evaluate(async () => {
   if (MAHORAGA) {
     setStage("shibuyaNight");
     {
-      const { s } = cast(MAHORAGA, 300, 452, 300, 566);
+      const { s } = cast(MAHORAGA, CAST_X, SHELF.y, CAST_X, out.geom.floorY);
       step(s, ARRIVE);
       const landed = s.y;
       step(s, 4);
@@ -243,12 +297,13 @@ const r = await page.evaluate(async () => {
     // STAYS, rather than looping up and down as the room rule once made him.
     setStage("shibuyaNight");
     {
-      const { s, foe } = cast(MAHORAGA, 300, 566, 340, 452);
+      const perchX = Math.round(SHELF.x + SHELF.w / 3);
+      const { s, foe } = cast(MAHORAGA, CAST_X, out.geom.floorY, perchX, SHELF.y);
       step(s, 3);
       const levels = new Set();
       for (let i = 0; i < 60 * 8; i++) {
         s.update(1 / 60);
-        foe.x = 340; foe.y = 452;           // hold them on the perch
+        foe.x = perchX; foe.y = SHELF.y;    // hold them on the perch
         if (!s.airborne) levels.add(Math.round(s.y));
       }
       out.brawlerHolds = { levels: [...levels] };
@@ -257,12 +312,13 @@ const r = await page.evaluate(async () => {
     // climbs, because the gate is about room and not about height.
     setStage("crosswalkRush");
     {
-      const { s, foe } = cast(MAHORAGA, 640, 570, 640, 430);
+      const deckMid = DECK.x + DECK.w / 2;
+      const { s, foe } = cast(MAHORAGA, deckMid, stageGroundY(getStage("crosswalkRush").platforms), deckMid, DECK.y);
       step(s, 1);
       const levels = new Set();
       for (let i = 0; i < 60 * 8; i++) {
         s.update(1 / 60);
-        foe.x = 640; foe.y = 430;
+        foe.x = deckMid; foe.y = DECK.y;
         if (!s.airborne) levels.add(Math.round(s.y));
       }
       out.brawlerClimbs = { levels: [...levels] };
@@ -272,7 +328,7 @@ const r = await page.evaluate(async () => {
   // ---- the size census, for reading ROAM_SPAN against
   {
     const widths = new Set();
-    for (const st of STAGES) for (const pl of st.platforms) if (pl.kind !== "main") widths.add(pl.w);
+    for (const st of STAGES) for (const pl of st.platforms) if (pl.kind === "side" || pl.kind === "top") widths.add(pl.w);
     const census = [];
     setStage("shibuyaNight");
     for (const key of ["SHIKIGAMI_POOL", "TRANSFIGURED_POOL", "CURSE_POOL", "INVENTORY_POOL"]) {
@@ -280,14 +336,14 @@ const r = await page.evaluate(async () => {
         if (cfg.behavior === "support") continue;   // flyers have no footing
         state.entities.length = 0;
         state.fighters.length = 0;
-        const { s } = cast(cfg, 300, 452, 300, 452);
+        const { s } = cast(cfg, CAST_X, SHELF.y, CAST_X, SHELF.y);
         step(s, ARRIVE);
         census.push({ name: cfg.name, hitW: s.hitW });
       }
     }
     if (MAHORAGA) {
       state.entities.length = 0; state.fighters.length = 0;
-      const { s } = cast(MAHORAGA, 300, 452, 300, 452);
+      const { s } = cast(MAHORAGA, CAST_X, SHELF.y, CAST_X, SHELF.y);
       step(s, ARRIVE);
       census.push({ name: "Mahoraga", hitW: s.hitW });
     }
@@ -297,8 +353,11 @@ const r = await page.evaluate(async () => {
   return out;
 });
 
-// The shelf under test, so the numbers below read as more than magic.
-const SHELF = { y: 452, x: 200, w: 220 }, FLOOR = 566;
+// The shelf under test and the floor beneath it, as the STAGE has them —
+// reported back by the page above rather than written down here, so a board
+// that moves moves these with it.
+const SHELF = r.geom.shelf, FLOOR = r.geom.floorY;
+console.log(`shelf x ${SHELF.x}..${SHELF.x + SHELF.w} at y ${SHELF.y}; cast from x ${r.geom.castX}; floor y ${FLOOR}\n`);
 
 check(r.land.y === SHELF.y, "cast from a shelf, it lands on that shelf", `y=${r.land.y}`);
 check(r.land.hitW * 2 <= SHELF.w, "the Crawler fits the shelf", `${r.land.hitW}px on ${SHELF.w}px`);
@@ -309,11 +368,11 @@ check(r.roam.minX >= SHELF.x && r.roam.maxX <= SHELF.x + SHELF.w, "roaming stays
 check(r.tooBig.landed.y === SHELF.y, "the Elephant lands on the shelf first", JSON.stringify(r.tooBig.landed));
 check(r.tooBig.landed.hitW * 2 > SHELF.w, "the Elephant does not fit it", `${r.tooBig.landed.hitW}px on ${SHELF.w}px`);
 check(r.tooBig.inward === 1, "with nothing to hunt it walks INWARD, not off the near lip", `dir=${r.tooBig.inward}`);
-check(r.tooBig.endY === FLOOR, "and ends up on the floor", `y=${r.tooBig.endY}`);
+check(r.tooBig.endY > SHELF.y, "and ends up off the shelf, on what is under it", `y=${r.tooBig.endY}`);
 check(r.chasingIgnoresRoom.levels.length === 1 && r.chasingIgnoresRoom.levels[0] === SHELF.y,
       "but chasing, it stays on the shelf it does not fit — room stops mattering", JSON.stringify(r.chasingIgnoresRoom));
 
-check(r.chaseOff.y === FLOOR && r.chaseOff.x > SHELF.x + SHELF.w, "a chase walks off the edge after a foe BELOW", JSON.stringify(r.chaseOff));
+check(r.chaseOff.y === r.geom.farFloorY && r.chaseOff.x > SHELF.x + SHELF.w, "a chase walks off the edge after a foe BELOW", JSON.stringify(r.chaseOff));
 check(r.chaseUnder.y === FLOOR, "and drops through after one directly beneath", JSON.stringify(r.chaseUnder));
 check(r.unreachable.levels.length === 1 && r.unreachable.levels[0] === SHELF.y,
       "but never off after one LEVEL with it, where the fall leads nowhere", JSON.stringify(r.unreachable));
@@ -321,17 +380,17 @@ check(r.unreachable.maxX <= r.unreachable.lip + 1, "it presses to the lip and sh
 check(r.thenReachable.heldUp === SHELF.y && r.thenReachable.endY === FLOOR,
       "and goes after them the moment they drop to the floor", JSON.stringify(r.thenReachable));
 
-check(r.floor.minY === FLOOR && r.floor.maxY === FLOOR, "nothing ever leaves the floor", JSON.stringify(r.floor));
+check(r.floor.minY === r.floor.expected && r.floor.maxY === r.floor.expected, "nothing ever leaves the floor", JSON.stringify(r.floor));
 check(r.tiered.landed === 236, "a descent starts on the shelf it was cast onto", JSON.stringify(r.tiered));
-check(r.tiered.rested.some((y) => y > 236 && y < 574), "and stops on an intermediate shelf on the way down", JSON.stringify(r.tiered));
+check(r.tiered.rested.some((y) => y > 236 && y < r.geom.boneFloorY), "and stops on an intermediate shelf on the way down", JSON.stringify(r.tiered));
 check(r.flyer.y < SHELF.y, "the flyer still hovers, untouched by any of it", JSON.stringify(r.flyer));
 
 check(r.brawlerDown && r.brawlerDown.landed === SHELF.y && r.brawlerDown.endY === FLOOR,
       "the brawler leaves a shelf it does not fit on", JSON.stringify(r.brawlerDown));
 check(r.brawlerHolds && r.brawlerHolds.levels.length === 1 && r.brawlerHolds.levels[0] === SHELF.y,
       "but jumps onto one anyway after a foe, and stays without looping", JSON.stringify(r.brawlerHolds));
-check(r.brawlerClimbs && r.brawlerClimbs.levels.includes(430),
-      "and climbs to a roomy one the same way", JSON.stringify(r.brawlerClimbs));
+check(r.brawlerClimbs && r.brawlerClimbs.levels.includes(r.geom.deck.y),
+      "and climbs to a roomy one the same way", JSON.stringify({ ...r.brawlerClimbs, deck: r.geom.deck }));
 
 console.log("\nside-platform widths in the game:", r.census.widths.join(", "));
 console.log("creature            width   needs   stays on");
