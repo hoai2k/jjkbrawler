@@ -163,10 +163,22 @@ def replaced_note(stored, keeps, at, how="import"):
     return {"at": at, "kept": keeps, "how": how, "lost": lost_work(stored, keeps)}
 
 
-# What placing a sprite means, as field names: where it sits, how big it is
-# drawn, and where its feet are. A re-key that changes none of them has not
-# moved the sprite, whatever it did to the matte.
-PLACEMENT_FIELDS = ("renderScale", "bodyBottom", "bodyH")
+# What placing a sprite means, as field names: how big the drawing is rendered
+# and where its feet are. Everything else about the placement is a CONSEQUENCE
+# of those two plus the art, once the trim box has carried `ox`/`oy`.
+#
+# `ox`, `oy`, `w` and `h` are deliberately not here. An exact carry MOVES them —
+# by exactly the change in the trim box — and that movement is what holds the
+# drawing still, so requiring them to match would reject the very case this is
+# meant to catch.
+#
+# Nor is `bodyH`. It is a MEASUREMENT of the art, the content box's height times
+# the render scale, so a re-key moves it whenever the matte reaches a pixel
+# further out. It moved on 128 of the 161 poses this list was carrying while
+# everything a person places stood still, and 113 of those were a stale number
+# being corrected rather than art changing at all: the stored value disagreed
+# with the pose's own `h * renderScale`, in one case by a factor of 2.5.
+PLACEMENT_FIELDS = ("renderScale", "bodyBottom")
 
 
 def unmoved(stored, meta, exact):
@@ -175,9 +187,10 @@ def unmoved(stored, meta, exact):
     The placement carry has to have been EXACT — by the trim box, on both sides —
     because the fallback rule lines the new silhouette's centre and bottom up
     with the old one's, and a re-key changes the silhouette, so "the numbers came
-    out the same" means nothing there. With an exact carry the drawing is at the
-    same size in the same spot by construction, and `ox`/`oy` differing is how
-    that was achieved rather than evidence against it.
+    out the same" would mean nothing there. Given an exact carry, every source
+    pixel lands where it did by construction, and the only two things that could
+    still move the sprite are the scale it is drawn at and the foot line it
+    stands on.
     """
     if not stored or not exact:
         return False

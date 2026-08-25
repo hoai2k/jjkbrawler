@@ -279,6 +279,16 @@ changed. `unmoved()` in `tools/intake_import.py` leaves those off the list, and
 requires the carry to have been EXACT: the fallback rule lines silhouettes up
 rather than pixels, so under it "the numbers came out the same" means nothing.
 
+What it compares is `renderScale` and `bodyBottom`, and nothing else. `ox`, `oy`,
+`w` and `h` all MOVE under an exact carry — that movement is what holds the
+drawing still — so requiring them to match would reject the very case this is
+for. And `bodyH` is a measurement of the matte rather than a placement, so it
+moves whenever the matte does: it was the only thing that had changed on 128 of
+the 161 poses the list was carrying, and on 113 of those it was a stale number
+being corrected, disagreeing with the pose's own `h × renderScale` by as much as
+a factor of 2.5. `tools/clear_unmoved_updates.py --since <rev>` took the ones
+already there off it.
+
 **A verdict answers the region it lands in, and no other.** The queue drops a
 region once somebody has answered it, and it decided that by testing the answer's
 point against the region's `crop` — the window the bench DRAWS, which is the
