@@ -43,6 +43,9 @@ const ROUTES = [
   ["anim", "/render3d/workbench/"],
   ["pose", "/render3d/workbench/"],
   ["reads", "/render3d/workbench/"],
+  ["glb", "/render3d/workbench/"],
+  ["viewer", "/render3d/workbench/"],
+  ["raw", "/render3d/workbench/"],
 ];
 
 const page = await browser.newPage();
@@ -82,7 +85,7 @@ for (const [mode, expect] of [
 // The modes that carry their own `edit` through to the destination must arrive
 // with it — landing on the 3D directory is not the same as landing on the
 // keyframe bench.
-for (const [mode, expectEdit] of [["actions", "actions"], ["animation", "animation"], ["pose", "pose"], ["reads", "reads"]]) {
+for (const [mode, expectEdit] of [["actions", "actions"], ["animation", "animation"], ["pose", "pose"], ["reads", "reads"], ["glb", "3d"], ["viewer", "3d"]]) {
   await page.goto(`${BASE}/workbench/?edit=${mode}`, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(150);
   const got = new URL(page.url()).searchParams.get("edit");

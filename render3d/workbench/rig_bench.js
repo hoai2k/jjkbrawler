@@ -85,7 +85,7 @@ $("facingOverlay")?.remove();
 $("mobileBar")?.remove();
 
 document.querySelector("main.layout").outerHTML = `
-  <main class="layout rigs">
+  <main class="layout rigs viewport3d">
     <section class="stage-col">
       <div id="viewWrap"><canvas id="view"></canvas></div>
       <p class="hint">Drag the background to orbit · wheel to zoom · click a

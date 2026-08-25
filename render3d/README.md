@@ -19,6 +19,7 @@ needing `tools/conform_delivery.mjs` before the intake will look at them —
     open 'http://127.0.0.1:5174/?render=3d'               # the real thing
     open 'http://127.0.0.1:5174/?render=3d&mannequin=none' # sprites where no rig exists
     open 'http://127.0.0.1:5174/render3d/workbench/'      # look-dev + review
+    open 'http://127.0.0.1:5174/render3d/workbench/?edit=3d'  # the .glb itself
     open 'http://127.0.0.1:5174/?render=3d&shade=roster'  # every fighter on the OLD shared shade tint
 
 `?render=render3d`, `?render=model(s)` and `?render=anime` are aliases
@@ -69,7 +70,8 @@ render3d/
   workbench/   /render3d/workbench/ — pose editor, look-dev dials,
                sweeping-light check, comparison sprite, aim crosshair,
                clip inheritance, approval; ?edit=pose is the SPRITE POSE
-               EDITOR (sprite_pose.js), a separate tool on the same page
+               EDITOR (sprite_pose.js) and ?edit=3d the MODEL VIEWER
+               (model_view.js) — separate tools on the same page
   docs/        plan, asset requests (D-rounds), image requests (DI-rounds)
 ```
 
@@ -83,6 +85,42 @@ in `sprites/docs/pose-reads/` and drives nothing in the game yet; it is the
 reference the clip tables get checked against. See
 [sprites/docs/pose-reads.md](../sprites/docs/pose-reads.md) for the format, the
 orientation and sidedness rules, and what reading Yuji's sheet turned up.
+
+## Looking at the file: the model viewer (`?edit=3d`)
+
+Every other bench shows a fighter THROUGH something — the anime pass, a clip, a
+pose library, a sprite to match. That is right for judging what a player sees
+and wrong for judging what was delivered: a toon ramp flattens the shading a
+modeller worked on, an ink outline hides the silhouette it is drawn from, and a
+pose can make a fault look like a choice. `?edit=3d` is the .glb with nothing
+on top of it — delivered materials, delivered textures, delivered rest pose, in
+a plain lit scene that orbits, zooms and pans (`?edit=glb`, `?edit=viewer` and
+`?edit=raw` reach it too, from the hub or from here).
+
+Three things make it a bench rather than a bookmarked gltf viewer:
+
+- **Versions.** A fighter can have more than one body on file — D6 and D7 each
+  kept the model they replaced as `<char>_alt.glb` — and the picker switches
+  between them AT THE SAME CAMERA, which is the only way a difference of a few
+  centimetres is visible at all.
+- **The correction layer, on or off.** Some of what the engine draws is not in
+  the file: a head tilted back, arm roots pushed out, a bandy shin straightened,
+  a lopsided skeleton mirrored, the rig turned to face +Z (`rig_fixes.js`, via
+  `pose.js`). The switch is the engine's own — `setModelFixesEnabled`, the one a
+  complete bake must make a no-op — so the difference between its two positions
+  IS the modelling work still owed, and the panel lists it by name.
+  `renderScale` is listed but not applied: it says how big a fighter is DRAWN,
+  and this viewer frames on the model's own height.
+- **The facts, measured off the model** rather than read from the manifest —
+  triangles against the budget, what it really measures against what the
+  manifest claims, whether it stands on the floor, its bones, its prop bones,
+  its own clips, its textures, and whether the D-spec channels are there. The
+  two disagreeing is itself a finding.
+
+Smoke: `node tools/smoke_model_view.mjs` — the file on screen is the file, a
+version switch loads the other body rather than relabelling this one, the
+correction switch moves the rig and puts it back, and drag/pan/zoom are three
+different gestures.
 
 ## Posing by hand: the workbench pose editor
 
