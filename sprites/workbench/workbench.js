@@ -59,14 +59,16 @@ import {
   $, canvas, ctx, GROUND_Y, PLATFORM_W, platformX, BENCHMARK_INSET, CELL_W, stateLabel,
   stateRank, OTHER_KEY, OTHER_LABEL, ACTOR_KEYS, WB_FIGHTERS, isStaged, RECENT_KEY,
   RECENT_LABEL, FLAGGED_KEY, FLAGGED_LABEL, ACTIONS_KEY, ACTIONS_LABEL,
-  isOther, inRecent, inFlagged, inList, inActions,
+  UNRESOLVED_KEY, UNRESOLVED_LABEL,
+  isOther, inRecent, inFlagged, inUnresolved, inList, inActions,
   BACKGROUNDS, state, HANDLE_R, round1,
 } from "./bench_state.js";
 import {
   VIEWS, primaryState, frameLabel, actorOf, sharedOwner, sharedUsage, movesDrawing,
   effectsOf, statesUsing, allFramesOf, isPending, approvalNote, awaitingApproval, isUsed,
   framesOf, updateNote,
-  TODO_MARK, NO_TODO_PAD, charTodo, updatesCleared, isUpdateReviewed, recentUpdates,
+  TODO_MARK, NO_TODO_PAD, charTodo, poseTodo, unresolvedPoses, TODO_REASONS, TODO_PLACE,
+  updatesCleared, isUpdateReviewed, recentUpdates,
   flaggedPoses, allFlagBearingPoses, updateSummary, autoTuneSummary, poseVariants,
   variantEntry, takeBanked, poseView, variantPicks, variantFlagEdits, currentOption,
   isDeleteTagged, hasDeleteTag, drawnFiles, ensureVariantOption,
@@ -95,14 +97,27 @@ import {
 /** The "not a request" entry in the replacement menu — see its onchange. */
 const BORROW_OPTION = "__chooseSprite";
 
-/** Stamp the dropdown with who still has work waiting. Runs once the manifest
- *  is loaded — before it there is nothing to read. */
+/** Everything in the dropdown that reports outstanding work: the per-character
+ *  dots and the three lists' counts. One call, because they are one answer read
+ *  two ways and drifting apart is exactly the bug — a character with no dot
+ *  while their pose sits on the unresolved list is a lie about both.
+ *
+ *  Called from buildPoseList, so it lands after every edit, flag, approval and
+ *  undo without each of those having to remember to. */
+function refreshWorkMarkers() {
+  markEditedChars();
+  refreshRecentOption();
+}
+
+/** Stamp the dropdown with who still has work waiting. Needs the manifest —
+ *  before it is loaded there is nothing to read. */
 function markEditedChars() {
   for (const o of $("charSel")?.options || []) {
     const key = o.value;
-    // The two work lists carry their own counts (refreshRecentOption), so
+    // The work lists carry their own counts (refreshRecentOption), so
     // stamping a to-do marker over them would overwrite it.
-    if (!o.dataset.name || isOther(key) || key === RECENT_KEY || key === FLAGGED_KEY) continue;
+    if (!o.dataset.name || isOther(key) || key === RECENT_KEY || key === FLAGGED_KEY
+        || key === UNRESOLVED_KEY) continue;
     const todo = charTodo(key);
     o.textContent = (todo ? TODO_MARK : NO_TODO_PAD) + o.dataset.name;
     o.title = todo || "Nothing waiting \u2014 every pose placed, every replacement approved";
@@ -2513,9 +2528,16 @@ function refreshRecentOption() {
   const waiting = recentUpdates().filter((e) => !isUpdateReviewed(e.char, e.frame)).length;
   opt.textContent = waiting ? `${RECENT_LABEL} (${waiting})` : RECENT_LABEL;
   const flagged = $("charSel")?.querySelector(`option[value="${FLAGGED_KEY}"]`);
-  if (!flagged) return;
-  const open = flaggedPoses().length;
-  flagged.textContent = open ? `${FLAGGED_LABEL} (${open})` : FLAGGED_LABEL;
+  if (flagged) {
+    const open = flaggedPoses().length;
+    flagged.textContent = open ? `${FLAGGED_LABEL} (${open})` : FLAGGED_LABEL;
+  }
+  const unresolved = $("charSel")?.querySelector(`option[value="${UNRESOLVED_KEY}"]`);
+  if (!unresolved) return;
+  // The one count that reaches zero exactly when every dot has gone, which is
+  // what makes it readable from the closed select as "how much is left".
+  const left = unresolvedPoses().length;
+  unresolved.textContent = left ? `${UNRESOLVED_LABEL} (${left})` : UNRESOLVED_LABEL;
 }
 
 /** Character-level, so it must update even when no pose is selected. */
@@ -2536,6 +2558,9 @@ function refreshHeadControl() {
 function buildPoseList() {
   const list = $("poseList");
   list.innerHTML = "";
+  // The grid is rebuilt after every change that could settle or open a pose, so
+  // this is where the dots and the list counts are kept honest.
+  refreshWorkMarkers();
   // The view filter is a question about one character's poses ("which of these
   // has nobody dealt with"). The updated list is already a filter, of a
   // different kind, so the select is locked while it is open rather than
@@ -2549,6 +2574,7 @@ function buildPoseList() {
   $("poseLabelWord").textContent = inActions() ? "Action" : "Pose";
   if (inRecent()) { buildRecentPoseList(list); return; }
   if (inFlagged()) { buildFlaggedPoseList(list); return; }
+  if (inUnresolved()) { buildUnresolvedPoseList(list); return; }
   if (inActions()) { buildActionCharList(list); return; }
 
   const frames = framesOf(state.char);
@@ -2626,13 +2652,14 @@ function buildPoseEntry(charKey, key, { owner = false, sub: subOverride = null,
               + " are still playing their fallback until you approve it")
         : "");
   const selected = charKey === state.char && key === state.frame;
-  // THE TWO THINGS THE CHARACTER DOT COUNTS, said per pose. The dropdown marks
-  // a fighter with work left and names the reason in its tooltip, but the grid
-  // said nothing about WHICH poses, so the dot pointed at a set of 47 cells.
-  // `charTodo` orders them the same way: art the game is not drawing yet
-  // because nobody has picked, then poses nobody has placed.
+  // WHAT THE CHARACTER DOT COUNTS, said per pose. The dropdown marks a fighter
+  // with work left and names the reasons in its tooltip, but the grid said
+  // nothing about WHICH poses, so the dot pointed at a set of 47 cells.
+  // Read through `poseTodo` rather than re-derived, so a cell cannot claim to
+  // be placed while the dot is still counting it — and so placing one this
+  // session clears its mark here at the same moment it clears the dot.
   const awaiting = awaitingApproval(charKey, key);
-  const unplaced = isUsed(charKey, key) && !hasSavedEdits(charKey, key);
+  const unplaced = poseTodo(charKey, key) === TODO_PLACE;
   b.className = (selected ? "sel " : "")
     + (isDirty(charKey, key) || variantFlagEdits.has(`${charKey}/${key}`) ? "dirty " : "")
     + (needsReplacement(charKey, key) || doomed ? "flagged " : "")
@@ -2843,6 +2870,49 @@ function buildFlaggedPoseList(list) {
   }
 }
 
+/** The cross-character list of everything the character dots are counting.
+ *
+ *  The other two lists are each one KIND of outstanding work; this is the union,
+ *  in the order the dot ranks it, and it exists so the dots can be worked down
+ *  to nothing from one place instead of by opening every character and reading
+ *  their tooltips. A pose leaves it the moment it is settled — approved,
+ *  unflagged, placed or marked reviewed — which is the same moment its
+ *  character's dot goes if it was the last one.
+ *
+ *  Each cell says which of the four reasons put it here, because they are not
+ *  the same job: "approve this" and "place this" are answered by different
+ *  controls, and a mixed list that did not say which would have to be guessed
+ *  at cell by cell. */
+function buildUnresolvedPoseList(list) {
+  const entries = unresolvedPoses();
+  const byWhy = new Map();
+  for (const e of entries) byWhy.set(e.why, (byWhy.get(e.why) || 0) + 1);
+  const word = new Map(TODO_REASONS.map(([id, label]) => [id, label]));
+  $("poseCount").textContent = entries.length
+    ? `${entries.length} unresolved · `
+      + [...byWhy].map(([why, n]) => `${n} ${word.get(why)}`).join(" · ")
+    : "none";
+  if (!entries.length) {
+    const empty = document.createElement("p");
+    empty.className = "note";
+    empty.textContent = "Nothing is unresolved — every dot in the character list "
+      + "is gone. Poses land here when a replacement arrives to be approved, when "
+      + "one is flagged for a redraw or a fix, or when the game draws one nobody "
+      + "has placed, and leave as each is answered.";
+    list.appendChild(empty);
+    return;
+  }
+  for (const entry of entries) {
+    // The reason under the pose name rather than the character's, which the
+    // cell's own colours already carry: this is the one list where the WHY
+    // differs from cell to cell, and it is what decides which control answers it.
+    list.appendChild(buildPoseEntry(entry.char, entry.frame, {
+      owner: true,
+      sub: `${actorOf(entry.char).name} · ${word.get(entry.why)}`,
+    }));
+  }
+}
+
 /** Drawings a delivery has just put on this pose that nobody has looked at.
  *
  *  An alternate arrives without changing what the game draws — that is the
@@ -2951,6 +3021,7 @@ function poseColumns() {
 function poseEntries() {
   if (inRecent()) return recentUpdates().map((e) => ({ char: e.char, frame: e.frame }));
   if (inFlagged()) return flaggedPoses().map((e) => ({ char: e.char, frame: e.frame }));
+  if (inUnresolved()) return unresolvedPoses().map((e) => ({ char: e.char, frame: e.frame }));
   return framesOf(state.char).map((frame) => ({ char: state.char, frame }));
 }
 
@@ -3077,6 +3148,11 @@ function setFlagged(wantChar = null, wantFrame = null) {
   openList(FLAGGED_KEY, flaggedPoses(), wantChar, wantFrame);
 }
 
+/** Open the cross-character list of everything a dot is counting. */
+function setUnresolved(wantChar = null, wantFrame = null) {
+  openList(UNRESOLVED_KEY, unresolvedPoses(), wantChar, wantFrame);
+}
+
 /** Both lists open the same way, so they cannot drift apart: land on the pose
  *  asked for if it is on the list, on the first entry otherwise, and leave the
  *  pose on screen alone when the list is empty — blanking the canvas to say
@@ -3130,7 +3206,7 @@ function rememberInUrl() {
   // set whether or not the updated list is what it was reached through; `list`
   // says which of the two the dropdown was on.
   const list = inRecent() ? "updated" : inFlagged() ? "flagged"
-    : inActions() ? "actions" : null;
+    : inUnresolved() ? "unresolved" : inActions() ? "actions" : null;
   // Which pose the Actions view is on — the thing that view IS, and not
   // recoverable from `frame`, which is the pose being edited on the character
   // the grid happens to have landed on.
@@ -3544,11 +3620,13 @@ async function boot() {
   rule.disabled = true;
   rule.textContent = "──────────";
   charSel.appendChild(rule);
-  for (const key of [...ACTOR_KEYS, OTHER_KEY, ACTIONS_KEY, RECENT_KEY, FLAGGED_KEY]) {
+  for (const key of [...ACTOR_KEYS, OTHER_KEY, ACTIONS_KEY, RECENT_KEY, FLAGGED_KEY,
+                     UNRESOLVED_KEY]) {
     const o = document.createElement("option");
     o.value = key;
     o.dataset.name = key === RECENT_KEY ? RECENT_LABEL
       : key === FLAGGED_KEY ? FLAGGED_LABEL
+      : key === UNRESOLVED_KEY ? UNRESOLVED_LABEL
       : key === ACTIONS_KEY ? ACTIONS_LABEL
       : isOther(key) ? OTHER_LABEL
       : `${actorOf(key).name} (not a fighter)`;
@@ -3558,6 +3636,7 @@ async function boot() {
   charSel.onchange = () =>
     (charSel.value === RECENT_KEY ? setRecent()
       : charSel.value === FLAGGED_KEY ? setFlagged()
+      : charSel.value === UNRESOLVED_KEY ? setUnresolved()
       : charSel.value === ACTIONS_KEY ? setActions()
       : setChar(charSel.value));
 
@@ -4159,8 +4238,7 @@ async function boot() {
   // can move the numbers those defaults are derived from.
   warmAnchors([...WB_FIGHTERS, ...ACTOR_KEYS]);
   $("loadState").textContent = "manifest loaded";
-  markEditedChars();
-  refreshRecentOption();
+  refreshWorkMarkers();
 
   const params = new URLSearchParams(location.search);
   const wanted = params.get("char");
@@ -4197,6 +4275,7 @@ async function boot() {
 
   if (startList === "updated") setRecent(startChar, wantedFrame);
   else if (startList === "flagged") setFlagged(startChar, wantedFrame);
+  else if (startList === "unresolved") setUnresolved(startChar, wantedFrame);
   else if (startList === "actions") setActions(startChar, params.get("action"));
   else if (startOwner) {
     state.effectsOwner = startOwner;
@@ -4222,6 +4301,11 @@ async function boot() {
   // Same shape as `window.__render3d`, and nothing here mutates.
   window.__spriteWorkbench = {
     flaggedPoses, allFlagBearingPoses, needsReplacement,
+    // The dot and the list it is made of. Both, because the rule worth
+    // asserting is that they agree: a character with a dot has entries here,
+    // and a character with entries here has a dot.
+    unresolvedPoses, poseTodo, charTodo,
+    fighters: () => [...WB_FIGHTERS, ...ACTOR_KEYS],
     // The updated list and what an export would carry, for the one rule that
     // has no DOM either: a shared drawing marked reviewed has to leave by the
     // export, not just by dimming on screen.

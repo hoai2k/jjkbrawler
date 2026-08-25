@@ -873,6 +873,35 @@ tag, which is what the variants menu and `delete` want. `tools/smoke_workbench.m
 asserts both halves, because on screen a listed pose and an unlisted one look
 exactly alike.
 
+### All Unresolved Poses — the list the dots are made of
+
+The dot beside a name in the character dropdown means *this set has work left*,
+and `charTodo` counts four things: a replacement waiting to be approved, a pose
+flagged for a redraw, a pose waiting on a file fix, and a pose the game draws
+that nobody has placed. The two lists above are each one of those, so neither
+could be worked down to "no dots left" — and the dot itself used to read
+committed state only, so it survived every approval and every placement until an
+export had been applied and the page reloaded, which is exactly when it mattered.
+
+**All Unresolved Poses** is the third list, and it is the same predicate read the
+other way round: `poseTodo(char, frame)` says why one pose is outstanding, the
+dot counts it per character, and the list collects it across the roster. Clear
+the list and every dot is gone, by construction rather than by maintenance —
+`tools/smoke_workbench.mjs` asserts the two directions of that (a dot with
+nothing listed, an entry with no dot) since neither is visible on screen.
+
+It reads live: flag a pose and the dot comes back with the flag, approve the last
+replacement on a character and the dot goes as the button is clicked. Session
+work counts as settled here — a pose placed but not yet exported, or marked
+reviewed — and *only* here. The pose grid's own filters still read the committed
+answer (`hasSavedEdits`), so the working views hold still while they are worked
+through; the dot is the thing that has to move.
+
+The shared set is deliberately not on it. It carries no dot — an effect plate has
+no placement work of the kind the dot means — and listing drawings that nothing
+could ever clear would break the list's one promise. Rejected effect plates are
+on **All Needing Regeneration**, which does cover the shared set.
+
 ### Improvement requests
 
 `wantsImprovement` is the softer ask: the art *works*, it is just not as good as

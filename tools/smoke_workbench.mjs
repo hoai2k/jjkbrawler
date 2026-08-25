@@ -592,6 +592,103 @@ check(await page.evaluate(() => {
     || `${leaked.length} reassigned pose(s) still asked for: ${leaked[0].char}/${leaked[0].frame}`;
 }) === true, "a pose pointed at a drawing that works is not asked for again");
 
+// ---- the third list: everything the character dots are counting
+//
+// The dot beside a name means "this set has work left". Two things had to be
+// true and were not: it had to go when the work went (it read committed state,
+// so it survived until an export and a reload), and there had to be a way to
+// see all of it at once instead of opening every character to read a tooltip.
+// This list is that way, and it is made of the same predicate the dot counts —
+// which is the invariant asserted here, since the contents depend on what is
+// outstanding and cannot be fixtured.
+check(await page.evaluate(() =>
+  [...document.querySelectorAll("#charSel option")].some((o) => o.value === "__unresolved"
+    && /Unresolved/.test(o.textContent))),
+  "the character list offers every unresolved pose");
+
+await page.selectOption("#charSel", "__unresolved");
+await page.waitForTimeout(600);
+const unresolved = await page.evaluate(() => ({
+  locked: document.getElementById("viewSel").disabled,
+  count: document.getElementById("poseCount").textContent,
+  poses: document.querySelectorAll("#poseList button").length,
+  note: document.querySelector("#poseList .note")?.textContent ?? "",
+  list: new URL(location.href).searchParams.get("list"),
+  frame: document.getElementById("frameTag").textContent,
+}));
+check(unresolved.locked, "it locks the per-character view filter too");
+check(unresolved.poses > 0 || /Nothing is unresolved/.test(unresolved.note),
+  "it lists the unresolved poses, or says there are none", JSON.stringify(unresolved.count));
+check(unresolved.list === "unresolved", "the address bar tells all three lists apart");
+check(/\w+\/\w+/.test(unresolved.frame), "a pose is on the canvas either way", unresolved.frame);
+if (unresolved.poses) {
+  check(await page.evaluate(() =>
+    [...document.querySelectorAll("#poseList button .pose-file")]
+      .every((i) => /·/.test(i.textContent))),
+    "each entry says whose it is and why it is here");
+}
+
+// THE RULE THE LIST EXISTS FOR, both ways round. A character with a dot must
+// have something on the list, or the dot points at nothing findable; and a
+// character with something on the list must have a dot, or clearing the list
+// would leave dots behind. Read off the same hooks the dropdown uses.
+check(await page.evaluate(() => {
+  const wb = window.__spriteWorkbench;
+  if (!wb) return "no test hook";
+  const listed = new Set(wb.unresolvedPoses().map((e) => e.char));
+  const dotted = wb.fighters().filter((c) => wb.charTodo(c));
+  const missing = dotted.filter((c) => !listed.has(c));
+  const extra = [...listed].filter((c) => !wb.charTodo(c));
+  return (!missing.length && !extra.length)
+    || `dot with nothing listed: ${missing.join(",") || "none"}; `
+       + `listed with no dot: ${extra.join(",") || "none"}`;
+}) === true, "every dot has entries on the list, and every entry has a dot");
+
+// And that the list is exactly its own predicate — an entry that `poseTodo`
+// calls settled is one nothing on screen could ever clear.
+check(await page.evaluate(() => {
+  const wb = window.__spriteWorkbench;
+  if (!wb) return "no test hook";
+  const wrong = wb.unresolvedPoses().filter((e) => wb.poseTodo(e.char, e.frame) !== e.why);
+  return wrong.length === 0 || `${wrong.length} listed for a reason that no longer holds`;
+}) === true, "everything listed is still outstanding, for the reason it says");
+
+// THE DOT KEEPS UP. Flagging a pose on a character puts a dot there and an
+// entry on the list; clearing it takes both away again — without an export and
+// without a reload, which is what the dot used to need.
+await page.selectOption("#charSel", "maki");
+await page.waitForTimeout(500);
+const dotState = () => page.evaluate(() => {
+  const o = [...document.querySelectorAll("#charSel option")].find((x) => x.value === "maki");
+  return { dot: /^\u25cf/.test(o.textContent), listed: window.__spriteWorkbench
+    .unresolvedPoses().filter((e) => e.char === "maki").length };
+});
+const dotBefore = await dotState();
+// A pose of hers that is settled today, so the flag is the only thing that can
+// be putting it on the list. If she has none, she is already dotted and the
+// flag half of this is unobservable — the check below still holds either way.
+const cleanPose = await page.evaluate(() =>
+  [...document.querySelectorAll("#poseList button:not(.pose-variant)")]
+    .map((b) => b.title.split(" ")[0])
+    .find((k) => !window.__spriteWorkbench.poseTodo("maki", k)) ?? null);
+if (cleanPose) {
+  await page.evaluate((k) => {
+    [...document.querySelectorAll("#poseList button:not(.pose-variant)")]
+      .find((b) => b.title.startsWith(k))?.click();
+  }, cleanPose);
+  await page.waitForTimeout(300);
+  await page.check("#replaceBox");
+  await page.waitForTimeout(400);
+  const flaggedNow = await dotState();
+  check(flaggedNow.dot && flaggedNow.listed === dotBefore.listed + 1,
+    "flagging a pose puts the dot back and the pose on the list", cleanPose);
+  await page.uncheck("#replaceBox");
+  await page.waitForTimeout(400);
+  const dotAfter = await dotState();
+  check(dotAfter.dot === dotBefore.dot && dotAfter.listed === dotBefore.listed,
+    "clearing the flag takes both away again, with no reload");
+}
+
 // ---- WHICH DRAWINGS CAN BE THROWN AWAY
 //
 // One rule, in two places: a drawing the game is SHOWING cannot be deleted, and

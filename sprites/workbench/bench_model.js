@@ -490,24 +490,110 @@ export function charHasTuning(charKey) {
 // is a to-do list again, and it answers the question you actually ask when
 // picking who to do next.
 //
-// Committed state only, so a set does not sprout or lose its dot as you nudge
-// things this session; that is what the dirty markers are for.
+// Kept in step with the work as it happens (poseTodo): approve the last
+// replacement on a character and their dot goes now, flag a pose and it comes
+// back now. It used to read committed state only — the argument being that a
+// set should not sprout or lose its dot as you nudge things — but that made it
+// stalest exactly while it was being worked, and there was no way to see that a
+// character had been cleared short of exporting and reloading.
 export const TODO_MARK = "\u25cf ";
 
 export const NO_TODO_PAD = "  ";
 
-/** What is still waiting on this character, as a short reason or null.
+// WHAT THE DOT IS MADE OF, one pose at a time.
+//
+// Four ways a pose can be outstanding, in the order they block: art the game is
+// not drawing because nobody has agreed to it, art that was sent back to be
+// drawn again, a file waiting on a fix, and a drawing nobody has placed. The
+// character dot counts these, the tooltip names them, and the unresolved list
+// is the same poses across the roster — all three off this one function, so the
+// dot cannot say a character is clear while the list still holds one of theirs.
+//
+// LIVE, not committed. `charTodo` used to read committed state only, so a set
+// kept its dot until the export was applied and the page reloaded — which made
+// the dot unreadable exactly when it was being worked: approve everything on a
+// character and the dot stayed, so you could not tell what you had already
+// done. Session work counts here, and only here; the pose list's own filters
+// still read the committed answer (hasSavedEdits) so the grid holds still while
+// it is worked through.
+export const TODO_APPROVAL = "approval";
+export const TODO_REDRAW = "redraw";
+export const TODO_FIX = "fix";
+export const TODO_PLACE = "place";
+
+/** The reasons in the order the dot ranks them; also the list's grouping. */
+export const TODO_REASONS = [
+  [TODO_APPROVAL, "awaiting approval", (n) => `${n} replacement${n === 1 ? "" : "s"} awaiting approval`],
+  [TODO_REDRAW, "awaiting a redraw", (n) => `${n} pose${n === 1 ? "" : "s"} flagged for a redraw`],
+  [TODO_FIX, "awaiting a fix", (n) => `${n} pose${n === 1 ? "" : "s"} waiting on a file fix`],
+  [TODO_PLACE, "not placed", (n) => `${n} pose${n === 1 ? "" : "s"} with no saved edits`],
+];
+
+/** A pose has been DEALT WITH, whether or not the export has been applied yet.
  *
- *  Two things count, ordered by how much they block: art the game is NOT yet
- *  drawing because nobody has approved it, then poses nobody has placed. Both
- *  read committed state.
- */
+ *  Three doors, all of which mean the same thing to the dot: it arrived already
+ *  placed, it was placed this session, or somebody looked at it and said it
+ *  needed nothing. Without the last two, resolving a pose left its dot on until
+ *  a reload, which is the whole complaint this exists to answer. */
+function poseSettled(charKey, frameKey) {
+  return hasSavedEdits(charKey, frameKey)
+    || isDirty(charKey, frameKey)
+    || isUpdateReviewed(charKey, frameKey);
+}
+
+/** Why this pose is still outstanding — a TODO_* reason, or null when it is
+ *  not. The single predicate behind the dot, its tooltip and the unresolved
+ *  list. */
+export function poseTodo(charKey, frameKey) {
+  if (awaitingApproval(charKey, frameKey)) return TODO_APPROVAL;
+  // `delete` is a verdict on one drawing among several, not a request for art,
+  // so it is no more outstanding than the chevron it lives on — the same rule
+  // that keeps it off flaggedPoses().
+  const kind = replacementKind(rawMeta(charKey, frameKey));
+  if (kind && !VARIANT_ONLY_KINDS.has(kind)) return TODO_REDRAW;
+  if (wantsImprovement(charKey, frameKey)) return TODO_FIX;
+  if (isUsed(charKey, frameKey) && !poseSettled(charKey, frameKey)) return TODO_PLACE;
+  return null;
+}
+
+/** What is still waiting on this character, as a short sentence or null. */
 export function charTodo(charKey) {
-  const frames = allFramesOf(charKey);
-  const waiting = frames.filter((k) => awaitingApproval(charKey, k)).length;
-  if (waiting) return `${waiting} replacement${waiting === 1 ? "" : "s"} awaiting approval`;
-  const unplaced = frames.filter((k) => isUsed(charKey, k) && !hasSavedEdits(charKey, k)).length;
-  return unplaced ? `${unplaced} pose${unplaced === 1 ? "" : "s"} with no saved edits` : null;
+  const reasons = allFramesOf(charKey).map((k) => poseTodo(charKey, k));
+  // Every reason it has, not just the worst one: "3 awaiting approval" on a
+  // character who also has eleven unplaced poses reads as a short job, and the
+  // tooltip is the only place the difference is ever said.
+  const parts = TODO_REASONS
+    .map(([id, , sentence]) => [reasons.filter((r) => r === id).length, sentence])
+    .filter(([n]) => n > 0)
+    .map(([n, sentence]) => sentence(n));
+  return parts.length ? parts.join(" \u00b7 ") : null;
+}
+
+/** Every pose that puts a dot on somebody, across the roster.
+ *
+ *  Exactly the poses `charTodo` counts, and over exactly the sets the dropdown
+ *  stamps a dot on — fighters and actors. The shared set is deliberately out:
+ *  it carries no dot (markEditedChars skips it, an effect plate having no
+ *  placement work of the kind the dot means), and putting its drawings on a
+ *  list whose promise is "clear this and the dots go" would leave entries
+ *  nothing could ever clear. Rejected effect plates are on the flagged list,
+ *  which does cover the shared set.
+ *
+ *  Grouped by reason and by character within it, so it holds still while it is
+ *  worked through. */
+export function unresolvedPoses() {
+  const out = [];
+  for (const charKey of [...WB_FIGHTERS, ...ACTOR_KEYS]) {
+    for (const frameKey of allFramesOf(charKey)) {
+      const why = poseTodo(charKey, frameKey);
+      if (why) out.push({ char: charKey, frame: frameKey, why });
+    }
+  }
+  const order = TODO_REASONS.map(([id]) => id);
+  return out.sort((a, b) =>
+    order.indexOf(a.why) - order.indexOf(b.why)
+    || a.char.localeCompare(b.char)
+    || byPose(a.frame, b.frame));
 }
 
 /** The stand-in marker for a surfaced pose, shaped like an intake one so the

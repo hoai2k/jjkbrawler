@@ -165,13 +165,29 @@ export const FLAGGED_LABEL = "All Needing Regeneration";
 export const ACTIONS_KEY = "__actions";
 export const ACTIONS_LABEL = "Actions";
 
+// The third work list, and the one the dot in the dropdown is made of.
+//
+// A dot beside a name means "this set has work left", and the two lists above
+// each answer only part of what that means: one is what a delivery landed, the
+// other is what was sent back. Neither is the whole of it, so there was no way
+// to work the dots down to nothing except by opening every character in turn
+// and reading their tooltips.
+//
+// This is that list: every pose that puts a dot on somebody, whoever it belongs
+// to, in the order the dot names them. Clear it and every dot is gone — that is
+// not a coincidence to be maintained, it is the same predicate (`poseTodo`)
+// read per pose here and counted per character there.
+export const UNRESOLVED_KEY = "__unresolved";
+export const UNRESOLVED_LABEL = "All Unresolved Poses";
+
 export const isOther = (charKey) => charKey === OTHER_KEY;
 export const isActor = (charKey) => ACTOR_KEYS.includes(charKey);
 export const inActions = () => state.group === ACTIONS_KEY;
 export const inRecent = () => state.group === RECENT_KEY;
 export const inFlagged = () => state.group === FLAGGED_KEY;
-/** Either cross-character work list — neither is a sprite set. */
-export const inList = () => inRecent() || inFlagged();
+export const inUnresolved = () => state.group === UNRESOLVED_KEY;
+/** Any cross-character work list — none of them is a sprite set. */
+export const inList = () => inRecent() || inFlagged() || inUnresolved();
 
 export const BACKGROUNDS = [
   ["#12151f", "dark"], ["#5c6478", "grey"], ["#f2f4f8", "white"],
