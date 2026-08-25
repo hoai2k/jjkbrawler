@@ -123,16 +123,22 @@ def main():
         mine = settled.get(ref) or {}
         done = [tuple(p) for k in ("background", "figure") for p in mine.get(k, [])]
         open_marks = {tuple(p): k for k in ("mixed", "other") for p in mine.get(k, [])}
+        # A split is an answer AND a drawing, and the drawing has to come back
+        # with it: reopening the window on a patch that was already split should
+        # start from the loops that are there, not from a blank canvas.
+        splits = {tuple(e["at"]): e["shadow"] for e in mine.get("split", [])}
         for r in found:
             x0, y0, x1, y1 = r["crop"]
             inside = lambda pt: x0 <= pt[0] < x1 and y0 <= pt[1] < y1
             if any(inside(pt) for pt in done):
                 answered += 1
                 continue
+            loops = next((v for pt, v in splits.items() if inside(pt)), None)
             mark = next((k for pt, k in open_marks.items() if inside(pt)), None)
             rows.append({"char": item["char"], "pose": item["pose"], "src": item["src"],
-                         "band": "flagged" if mark else item.get("band", "drawn"),
-                         **({"mark": mark} if mark else {}), **r})
+                         "band": "flagged" if (mark or loops) else item.get("band", "drawn"),
+                         **({"mark": mark} if mark else {}),
+                         **({"loops": loops} if loops else {}), **r})
     # Band first — what somebody is actively trying to solve, then what is
     # waiting to be approved, then what is on screen, then the rest. Character
     # next, so a pass can be worked one costume at a time, then the biggest

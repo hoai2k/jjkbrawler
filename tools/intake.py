@@ -28,7 +28,7 @@ import re
 import subprocess
 
 import numpy as np
-from PIL import Image, ImageOps
+from PIL import Image, ImageDraw, ImageOps
 from scipy import ndimage
 
 from process_round5_sprites import border_key
@@ -280,10 +280,23 @@ KEY_IS_A_DRAWN_TONE = {"gakuganji/throw_up"}
 #
 #   "background"  the stage should show through here; cut it
 #   "figure"      this is drawn on the fighter; keep it
-#   "mixed"       part gap, part shadow. NOT an instruction — one point cannot
-#                 answer for two halves of a patch, so the rules are left to
-#                 decide and the plate is counted as wanting a hand mask or a
-#                 redraw. Recorded so the same patch is not asked about twice.
+#   "mixed"       part gap, part shadow, and nobody has drawn the line yet. NOT
+#                 an instruction — one point cannot answer for two halves — so
+#                 the rules are left to decide and the plate is counted as
+#                 wanting a split. Recorded so the patch keeps its mark.
+#   "other"       not a keying fault at all: a ghost image, a trail. Same
+#                 treatment, for the same reason.
+#
+# And one answer that is drawn rather than named:
+#
+#   "split": [{"at": [x, y], "shadow": [[[x, y], ...], ...]}]
+#
+#                 the reviewer lassoed the parts of the patch that ARE the
+#                 fighter, in the verification bench. Everything else in that
+#                 patch is background. This is the only verdict that works
+#                 inside a region rather than on the whole of it, which is the
+#                 whole point of it: a shadow that runs into the gap beside it
+#                 keys as one region and cannot be answered any other way.
 #
 # Anything not named still goes through the rules above.
 #
@@ -319,16 +332,37 @@ def settled(guessed, regions, lab, ref):
         return guessed
     out = guessed.copy()
     h, w = lab.shape
+
+    def region_at(point):
+        x, y = int(point[0]), int(point[1])
+        if not (0 <= y < h and 0 <= x < w):
+            return None
+        region = lab[y, x]
+        return region if region and regions[y, x] else None
+
     for what, points in verdicts.items():
         if what not in ("background", "figure"):
-            continue          # "mixed" answers the reviewer, not the keyer
-        for x, y in points:
-            if not (0 <= int(y) < h and 0 <= int(x) < w):
-                continue
-            region = lab[int(y), int(x)]
-            if not region or not regions[int(y), int(x)]:
-                continue
-            out[lab == region] = (what == "background")
+            continue          # "mixed" and "other" answer the reviewer, not the keyer
+        for point in points:
+            region = region_at(point)
+            if region:
+                out[lab == region] = (what == "background")
+
+    # A SPLIT, which is the only verdict that works inside a region. The whole
+    # patch is cut, then the loops are painted back — so the shadow stays on the
+    # fighter and the gap beside it goes, which is what "both" means.
+    for entry in verdicts.get("split", []):
+        region = region_at(entry["at"])
+        if not region:
+            continue
+        m = lab == region
+        out[m] = True
+        keep = Image.new("1", (w, h), 0)
+        pen = ImageDraw.Draw(keep)
+        for loop in entry["shadow"]:
+            if len(loop) >= 3:
+                pen.polygon([(int(x), int(y)) for x, y in loop], fill=1)
+        out[m & np.asarray(keep, bool)] = False
     return out
 
 
