@@ -26,6 +26,7 @@
 // Provider contract: see verification.js and verify_strike_points.js.
 
 import { caption } from "./verify_common.js";
+import { openLasso } from "./sealed_lasso.js";
 
 const QUEUE = "../sprites/assets/sealed_queue.json";
 const PLATE_ROOT = "../";
@@ -55,7 +56,8 @@ async function build(inBand) {
     title: `${r.char} · ${r.pose}`,
     subtitle: `${r.px.toLocaleString()} px — the keyer ${r.now === "cut" ? "cuts" : "keeps"} it today`
       + (r.band === "flagged" ? " · flagged" : r.band === "held" ? " · held" : "")
-      + (r.mark === "mixed" ? " · marked part-and-part"
+      + (r.loops ? ` · split into ${r.loops.length}`
+         : r.mark === "mixed" ? " · marked part-and-part"
          : r.mark === "other" ? " · marked another alpha fault" : ""),
     ...r,
     exportKeys: { char: r.char, pose: r.pose, x: r.x, y: r.y },
@@ -69,16 +71,23 @@ async function build(inBand) {
     fingerprint: `sealed-${regions.length}-${regions.map((r) => `${r.char}/${r.pose}@${r.x},${r.y}`).join("|").length}`,
     initialValue: (task) => ({
       background: task.now === "cut",
-      mixed: task.mark === "mixed",
+      mixed: task.mark === "mixed" || !!task.loops,
       other: task.mark === "other",
+      ...(task.loops ? { loops: task.loops } : {}),
     }),
     describe: (task, value) => {
       const now = task.now === "cut" ? "cuts it away" : "keeps it";
+      if (value.mixed && value.loops?.length) {
+        return `The keyer <b>${now}</b> today. Split by hand into <b>${value.loops.length} `
+          + `drawn part${value.loops.length === 1 ? "" : "s"}</b>.<br>`
+          + "What the loops cover is the fighter and is kept; the rest of the patch is "
+          + "background and is cut. Reopen the window to change where the line goes.";
+      }
       if (value.mixed) {
         return `The keyer <b>${now}</b> today. Marked as <b>part gap, part shadow</b>.<br>`
-          + "One point cannot answer for two halves, so nothing overrides the keyer here — "
-          + "it is recorded as art that needs a hand mask or a redraw, and comes back "
-          + "to be judged again once that is done.";
+          + "One point cannot answer for two halves. Draw the split to say where the line "
+          + "goes — or leave it, and it is recorded as art wanting a hand mask or a redraw "
+          + "and comes back to be judged again.";
       }
       if (value.other) {
         return `The keyer <b>${now}</b> today. Marked as <b>a different alpha fault</b>.<br>`
@@ -154,6 +163,19 @@ function maskFor(task) {
   return out;
 }
 
+/** Even-odd point in polygon, over however many loops were drawn. */
+function inAnyLoop(loops, x, y) {
+  for (const loop of loops) {
+    let inside = false;
+    for (let i = 0, j = loop.length - 1; i < loop.length; j = i++) {
+      const [xi, yi] = loop[i], [xj, yj] = loop[j];
+      if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+    if (inside) return true;
+  }
+  return false;
+}
+
 function renderEditor(task, { container, value, onChange, bindSync }) {
   container.replaceChildren();
   let live = value;
@@ -164,6 +186,7 @@ function renderEditor(task, { container, value, onChange, bindSync }) {
     + `<button class="ghost sm" data-act="shadow" type="button">Shadow — it is the fighter</button>`
     + `<button class="ghost sm" data-act="both" type="button">Both — part gap, part shadow</button>`
     + `<button class="ghost sm" data-act="other" type="button">Other alpha fault — ghosts, trails</button>`
+    + `<button class="ghost sm" data-act="split" type="button" hidden>Draw the split…</button>`
     + `<button class="ghost sm" data-act="reset" type="button">Back to what the keyer does</button>`;
   const paint = () => {
     const plain = !live.mixed && !live.other;
@@ -171,6 +194,14 @@ function renderEditor(task, { container, value, onChange, bindSync }) {
     wrap.querySelector('[data-act="shadow"]').classList.toggle("on", plain && !live.background);
     wrap.querySelector('[data-act="both"]').classList.toggle("on", !!live.mixed);
     wrap.querySelector('[data-act="other"]').classList.toggle("on", !!live.other);
+    // Only offered on a patch that has been called part-and-part, because that
+    // is the only answer a line through the middle can improve on.
+    const split = wrap.querySelector('[data-act="split"]');
+    split.hidden = !live.mixed;
+    split.textContent = live.loops?.length
+      ? `Redraw the split (${live.loops.length} loop${live.loops.length === 1 ? "" : "s"})`
+      : "Draw the split…";
+    split.classList.toggle("on", !!live.loops?.length);
   };
   // DELIBERATELY DOES NOT ADVANCE. The answer repaints the canvas — a gap turns
   // into the hole it would leave — and seeing that is half of checking it. The
@@ -185,6 +216,14 @@ function renderEditor(task, { container, value, onChange, bindSync }) {
   wrap.querySelector('[data-act="shadow"]').addEventListener("click", () => answer({ background: false }));
   wrap.querySelector('[data-act="both"]').addEventListener("click", () => answer({ mixed: true }));
   wrap.querySelector('[data-act="other"]').addEventListener("click", () => answer({ other: true }));
+  wrap.querySelector('[data-act="split"]').addEventListener("click", async () => {
+    const img = plates.get(task.src);
+    if (!img) return;
+    // Cancel and "no loops" are different answers, so a cancel leaves whatever
+    // was there rather than quietly clearing it.
+    const loops = await openLasso({ task, img, loops: live.loops || [], mask: maskFor(task) });
+    if (loops) onChange({ mixed: true, background: false, other: false, loops });
+  });
   wrap.querySelector('[data-act="reset"]')
     .addEventListener("click", () => answer({ background: task.now === "cut" }));
   bindSync((v) => { live = v; paint(); });
@@ -226,7 +265,20 @@ function draw(task, { ctx, canvas, value }) {
       const edge = !(m.inside[i - 1] && m.inside[i + 1]
                      && m.inside[i - m.w] && m.inside[i + m.w]);
       const j = i * 4;
-      if (value.mixed || value.other) {
+      if (value.mixed && value.loops?.length) {
+        // The split, drawn as what it produces: kept where a loop covers it,
+        // cut everywhere else in the patch.
+        const x = i % m.w, y = (i - x) / m.w;
+        const keep = inAnyLoop(value.loops, x + m.x0, y + m.y0);
+        if (keep) {
+          px.data[j] = 255; px.data[j + 1] = 214; px.data[j + 2] = 64;
+          px.data[j + 3] = edge ? 255 : 70;
+        } else {
+          const on = ((x >> 3) + (y >> 3)) & 1;
+          px.data[j] = on ? 235 : 40; px.data[j + 1] = on ? 60 : 20;
+          px.data[j + 2] = on ? 150 : 40; px.data[j + 3] = edge ? 255 : 205;
+        }
+      } else if (value.mixed || value.other) {
         // Neither answer, and it should not look like either: a hatch over art
         // left exactly as it is — amber for part-and-part, blue for a fault the
         // key cannot fix.
@@ -250,8 +302,15 @@ function draw(task, { ctx, canvas, value }) {
       }
     }
     oc.putImageData(px, 0, 0);
+    // THE MASK IS THE REGION'S OWN BOX, NOT THE CROP. It used to be the size of
+    // the crop, because the bench found the region itself by flooding over the
+    // crop, and this blitted it corner to corner. Now the keyer sends the region
+    // in its own bounding box — smaller, and offset inside the crop — so it has
+    // to be placed and scaled like anything else, or the highlight stretches
+    // across the whole picture and lands nowhere near the patch it describes.
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(off, dx, dy, dw, dh);
+    ctx.drawImage(off, dx + (m.x0 - x0) * scale, dy + (m.y0 - y0) * scale,
+                  m.w * scale, m.h * scale);
     ctx.imageSmoothingEnabled = true;
   }
 
@@ -278,6 +337,12 @@ function exportBlock(decisions) {
       continue;
     }
     const ref = `${d.char}/${d.pose}`;
+    // A split is a different shape of answer — a point AND the loops that cut it
+    // in two — so it goes in its own list rather than pretending to be a point.
+    if (d.value.mixed && d.value.loops?.length) {
+      ((out[ref] ??= {}).split ??= []).push({ at: [d.x, d.y], shadow: d.value.loops });
+      continue;
+    }
     const what = d.value.mixed ? "mixed" : d.value.other ? "other"
       : d.value.background ? "background" : "figure";
     ((out[ref] ??= {})[what] ??= []).push([d.x, d.y]);

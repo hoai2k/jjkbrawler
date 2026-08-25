@@ -177,8 +177,21 @@ the patch comes back to be judged again once the art has been fixed:
 |---|---|---|
 | `background` | the stage should show through | the keyer cuts it |
 | `figure` | it is drawn on the fighter | the keyer keeps it |
-| `mixed` | part gap, part shadow — one point cannot answer for two halves | wants a hand mask or a redraw |
+| `mixed` | part gap, part shadow — one point cannot answer for two halves | wants the line drawn, a hand mask, or a redraw |
+| `split` | the line, drawn: loops round the parts that ARE the fighter | the keyer cuts the patch except what the loops cover |
 | `other` | not a keying fault at all: a ghost image, a trail | wants removing, not a better key |
+
+**A split is drawn, not named.** Answer *both*, press **Draw the split**, and the
+patch opens in a full window — wheel to zoom, right-drag or space to pan,
+left-drag to lasso. Loop the parts that are the fighter; everything else in that
+patch is background. It draws the result rather than the tool, so the part that
+will be cut shows as the hole it will leave.
+
+The loops are stored in the delivered plate's own pixels beside the verdict, so
+they survive every re-key of that drawing exactly as a verdict does, and the
+window reopens on them. It is the only verdict that works INSIDE a region rather
+than on the whole of it, which is the whole point: a shadow that runs into the
+gap beside it keys as one region and cannot be answered any other way.
 
 **Bands, in the order they are asked.** Flagged for improvement first, because
 that is what somebody is actively trying to solve; then art held for approval;
