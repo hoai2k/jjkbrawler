@@ -44,6 +44,7 @@ why the numbering is not strictly chronological.
 | 22L | The twenty-nine sprites the workbench had flagged — eighteen `pose` notes, ten `quality`, one `character` (29 sprites) | Delivered whole; seventeen of the twenty-nine were poses drawing another pose's file, so the roster's substitutions drop from 52 to 35. Every frame is in the approval queue; `hakari/attack_light` and `mahoraga/attack_light` measure inverted and thin respectively and want a look before they are said yes to |
 | 24 | The four throws for the whole roster, plus Mahoraga's walk, teeter and crouch strike (143 sprites) | Delivered whole. `check_pose_coverage` now reports **0 undrawn poses** across 34 fighters and Mahoraga — no stand-ins left anywhere. `throw_back` and `throw_down` came back wrong roster-wide twice before the request was rewritten; see [pose-brief §6](../sprites/docs/pose-brief.md) |
 | 25 | The strike frame of both aimed diagonal attacks, and the domain-expansion seal for the nine fighters with a domain (79 sprites) | Delivered whole, with 25B's wiring: a `domain` state is held for the call-out. Gojo's seal is his canonical one-handed sign. `attack_air_diag_down_b` needed its weapon/kick branch resolved before the prompt, not inside it |
+| 25C | The three sprites the workbench flagged after round 25 landed (3 sprites) | Delivered whole. Not a written request: three faults raised one pose at a time while placing 25A's diagonals and 24A's throws — an arm behind the back, a third braid, a broken broom. Held for approval like any redraw |
 
 ---
 
@@ -4909,3 +4910,30 @@ sign that does not exist. Delivered as `<character>/domain_expansion.png` like
 the rest.
 
 ---
+
+## 25C. The three the workbench had flagged — 3 sprites
+
+Not written as a request in advance. `docs/image-requests.md` reports workbench
+flags in *Outstanding by manifest, not by request* — art that exists and is
+wrong, raised one sprite at a time by whoever was placing it — and rounds 24A
+and 25A left three. This delivery is those three, and the note each flag
+carried is what the drawing was made against.
+
+| Fighter | Pose | What the flag asked for | What came back |
+|---|---|---|---|
+| Satoru Gojo | `attack_diag_up_b` | weird arm behind back pose | The strike arm carried up the diagonal in front of the shoulder, and the far arm bent across the chest instead of trailing behind the back |
+| Mei Mei | `attack_air_diag_down_b` | She doesn't have 3 braids, only 2 | Two braids |
+| Momo Nishimiya | `throw_fwd` | broken broom | One continuous shaft from bristles to tip, passing behind the body rather than ending at it |
+
+**All three are redraws of art that shipped**, so each landed in
+`<char>/incoming/` beside the drawing it replaces and waits to be approved in
+the workbench — the game goes on drawing the old one until somebody stands the
+two side by side. The originals they answer are in
+`assets/reference/round25c/`; round 25's own originals keep their place under
+`assets/reference/round25/`, which is why this batch archives to a directory of
+its own rather than overwriting them.
+
+**A flag is answered by a delivery, not by the approval.** The three come off
+the flag list here — `docs/image-requests.md` drops from four outstanding to
+one — and the decision about whether the new drawing is better is the
+workbench's, tracked as an approval like every other redraw.

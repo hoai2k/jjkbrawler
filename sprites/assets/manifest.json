@@ -1580,39 +1580,70 @@
     }
    },
    "attack_diag_up_b": {
-    "w": 849,
-    "h": 1697,
-    "ox": -241.7,
-    "oy": -1386,
-    "bodyBottom": 196.4,
-    "bodyH": 295.6,
-    "centroidX": 130.7,
-    "renderScale": 0.1742,
-    "file": "gojo/attack_diag_up_b.png",
+    "w": 814,
+    "h": 1668,
+    "ox": -247.6,
+    "oy": -1437,
+    "bodyBottom": 151.1,
+    "bodyH": 476.9,
+    "centroidX": 154.1,
+    "renderScale": 0.286,
+    "file": "gojo/incoming/attack_diag_up_b.png",
+    "replaced": {
+     "at": "2026-08-25T02:13:05+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": [
+      "bodyBottom",
+      "renderScale",
+      "anchors"
+     ]
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T02:13:05+00:00",
+     "live": {
+      "w": 849,
+      "h": 1697,
+      "ox": -241.7,
+      "oy": -1386,
+      "bodyBottom": 196.4,
+      "bodyH": 295.6,
+      "bodyTop": 0,
+      "centroidX": 130.7,
+      "renderScale": 0.1742,
+      "anchors": {
+       "com": [
+        398.7,
+        673.6
+       ]
+      },
+      "needsReplacement": "quality",
+      "replacementNote": "weird arm behind back pose",
+      "edited": {
+       "renderScale": 0.281,
+       "bodyBottom": 230.9
+      },
+      "file": "gojo/attack_diag_up_b.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 849,
-    "coreLeft": 74.2,
-    "coreRight": 774.3,
+    "bodyRight": 814,
+    "coreLeft": 62.6,
+    "coreRight": 740.2,
     "anchors": {
      "com": [
-      398.7,
-      673.6
+      404.4,
+      688.5
      ]
     },
     "autoTuned": {
-     "at": "2026-08-24T02:14:21+00:00",
+     "at": "2026-08-24T22:13:47-04:00",
      "fields": {
-      "bodyBottom": "foot=0.953 (character)",
+      "bodyBottom": "foot=0.952 (character)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "edited": {
-     "renderScale": 0.281,
-     "bodyBottom": 230.9
-    },
-    "needsReplacement": "quality",
-    "replacementNote": "weird arm behind back pose"
+    }
    },
    "domain_expansion": {
     "w": 466,
@@ -8726,40 +8757,70 @@
     "surfacedReviewed": true
    },
    "throw_fwd": {
-    "w": 972,
-    "h": 1289,
-    "ox": -296.1,
-    "oy": -978,
-    "bodyBottom": 261.7,
-    "bodyH": 318.3,
-    "centroidX": 123.6,
-    "renderScale": 0.247,
-    "file": "momo/throw_fwd.png",
+    "w": 934,
+    "h": 1323,
+    "ox": -258.3,
+    "oy": -1061,
+    "bodyBottom": 165.5,
+    "bodyH": 332.3,
+    "centroidX": 104.8,
+    "renderScale": 0.2512,
+    "file": "momo/incoming/throw_fwd.png",
+    "replaced": {
+     "at": "2026-08-25T02:13:05+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": [
+      "renderScale",
+      "anchors"
+     ]
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T02:13:05+00:00",
+     "live": {
+      "w": 972,
+      "h": 1289,
+      "ox": -296.1,
+      "oy": -978,
+      "bodyBottom": 261.7,
+      "bodyH": 318.3,
+      "bodyTop": 0,
+      "centroidX": 123.6,
+      "renderScale": 0.247,
+      "anchors": {
+       "com": [
+        454.8,
+        530.3
+       ]
+      },
+      "needsReplacement": "quality",
+      "replacementNote": "broken broom",
+      "edited": {
+       "renderScale": 0.241
+      },
+      "file": "momo/throw_fwd.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 972,
-    "coreLeft": 56.4,
-    "coreRight": 845.9,
+    "bodyRight": 934,
+    "coreLeft": 74.4,
+    "coreRight": 802.1,
     "anchors": {
      "com": [
-      454.8,
-      530.3
+      415.9,
+      541.6
      ]
     },
     "autoTuned": {
-     "at": "2026-08-23T18:50:45+00:00",
+     "at": "2026-08-24T22:13:47-04:00",
      "fields": {
-      "bodyBottom": "foot=0.962 (character)",
-      "bodyH": "area, no pose ratio",
-      "renderScale": "area, no pose ratio",
+      "bodyBottom": "foot=0.927 (throwFwd)",
+      "bodyH": "area x 1.056 (throwFwd)",
+      "renderScale": "area x 1.056 (throwFwd)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "edited": {
-     "renderScale": 0.241
-    },
-    "needsReplacement": "quality",
-    "replacementNote": "broken broom"
+    }
    },
    "throw_up": {
     "w": 755,
@@ -34226,40 +34287,70 @@
     }
    },
    "attack_air_diag_down_b": {
-    "w": 988,
-    "h": 1381,
-    "ox": -320.2,
-    "oy": -1070,
-    "bodyBottom": 263.3,
-    "bodyH": 318.7,
-    "centroidX": 139.7,
-    "renderScale": 0.2308,
-    "file": "meimei/attack_air_diag_down_b.png",
+    "w": 1031,
+    "h": 1261,
+    "ox": -357.6,
+    "oy": -997,
+    "bodyBottom": 222.4,
+    "bodyH": 219.5,
+    "centroidX": 155.6,
+    "renderScale": 0.1741,
+    "file": "meimei/incoming/attack_air_diag_down_b.png",
+    "replaced": {
+     "at": "2026-08-25T02:13:05+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": [
+      "renderScale",
+      "anchors"
+     ]
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T02:13:05+00:00",
+     "live": {
+      "w": 988,
+      "h": 1381,
+      "ox": -320.2,
+      "oy": -1070,
+      "bodyBottom": 263.3,
+      "bodyH": 318.7,
+      "bodyTop": 0,
+      "centroidX": 139.7,
+      "renderScale": 0.2308,
+      "anchors": {
+       "com": [
+        475.5,
+        594.4
+       ]
+      },
+      "needsReplacement": "quality",
+      "replacementNote": "She doesn't have 3 braids, only 2",
+      "edited": {
+       "renderScale": 0.1762
+      },
+      "file": "meimei/attack_air_diag_down_b.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 988,
-    "coreLeft": 60.4,
-    "coreRight": 914.9,
+    "bodyRight": 1031,
+    "coreLeft": 70.9,
+    "coreRight": 977.3,
     "anchors": {
      "com": [
-      475.5,
-      594.4
+      515.5,
+      489.9
      ]
     },
     "autoTuned": {
-     "at": "2026-08-23T18:50:45+00:00",
+     "at": "2026-08-24T22:13:47-04:00",
      "fields": {
-      "bodyBottom": "foot=0.965 (character)",
+      "bodyBottom": "foot=0.967 (character)",
       "bodyH": "area, no pose ratio",
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "edited": {
-     "renderScale": 0.1762
-    },
-    "needsReplacement": "quality",
-    "replacementNote": "She doesn't have 3 braids, only 2"
+    }
    },
    "attack_diag_up_b": {
     "w": 911,
@@ -64148,7 +64239,11 @@
        "bodyBottom": 58.6
       },
       "file": "hanami/attack_diag_up_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 979,
+      "coreLeft": 92.9,
+      "coreRight": 836.4
      },
      {
       "w": 979,
@@ -64249,7 +64344,11 @@
        "renderScale": 0.269
       },
       "file": "hanami/throw_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1038,
+      "coreLeft": 64.9,
+      "coreRight": 895.3
      },
      {
       "w": 1038,
@@ -64348,7 +64447,11 @@
        "bodyBottom": 194.9
       },
       "file": "hanami/throw_fwd.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1018,
+      "coreLeft": 91.5,
+      "coreRight": 887.6
      },
      {
       "w": 1018,
@@ -64449,7 +64552,11 @@
        "renderScale": 0.3547
       },
       "file": "hanami/incoming/throw_up.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 496,
+      "coreLeft": 45.7,
+      "coreRight": 420.6
      },
      {
       "w": 496,
@@ -66435,7 +66542,11 @@
        ]
       },
       "file": "gojo/attack_light_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 966,
+      "coreLeft": 83.9,
+      "coreRight": 838.7
      },
      {
       "file": "gojo/archive/attack_light_a_2.png",
@@ -66533,7 +66644,11 @@
        "ox": -272.9
       },
       "file": "gojo/throw_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 943,
+      "coreLeft": 56.2,
+      "coreRight": 794.5
      },
      {
       "w": 943,
@@ -66586,7 +66701,11 @@
        "renderScale": 0.295
       },
       "file": "hakari/incoming/dodge_air.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 590,
+      "coreLeft": 174.4,
+      "coreRight": 549.9
      },
      {
       "file": "hakari/alt/dodge_air.png",
@@ -71067,8 +71186,8 @@
       "renderScale": 0.2796,
       "anchors": {
        "com": [
-        587.4,
-        344.1
+        529.3,
+        373.6
        ]
       },
       "file": "maki/attack_light_b.png",
@@ -81921,7 +82040,11 @@
        "renderScale": 0.2239
       },
       "file": "momo/throw_up.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 755,
+      "coreLeft": 73.6,
+      "coreRight": 683.7
      },
      {
       "w": 755,
@@ -82678,7 +82801,11 @@
        "bodyBottom": 257.9
       },
       "file": "meimei/throw_fwd.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 869,
+      "coreLeft": 96.1,
+      "coreRight": 720.5
      },
      {
       "w": 869,
@@ -83559,7 +83686,11 @@
        ]
       },
       "file": "uro/attack_air_diag_down_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 960,
+      "coreLeft": 62.1,
+      "coreRight": 869.1
      },
      {
       "w": 960,
@@ -83604,7 +83735,11 @@
        ]
       },
       "file": "uro/throw_back.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 813,
+      "coreLeft": 161,
+      "coreRight": 764.8
      },
      {
       "w": 813,
@@ -84490,9 +84625,9 @@
        "bodyBottom": 276.5
       },
       "bodyLeft": 0,
-      "bodyRight": 1296,
-      "coreLeft": 81,
-      "coreRight": 1093.5
+      "bodyRight": 925,
+      "coreLeft": 62.2,
+      "coreRight": 839.5
      },
      {
       "file": "gakuganji/archive/crouch_attack_b_2.png",
@@ -86091,7 +86226,11 @@
        "ox": -160.4
       },
       "file": "yuji/incoming/throw_back.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 647,
+      "coreLeft": 49.2,
+      "coreRight": 590.1
      },
      {
       "w": 647,
@@ -86265,7 +86404,11 @@
        }
       },
       "file": "yuki/attack_heavy_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1496,
+      "coreLeft": 102.8,
+      "coreRight": 1383.8
      },
      {
       "file": "yuki/archive/attack_heavy_b_3.png",
@@ -89179,7 +89322,11 @@
        "ox": -277.3
       },
       "file": "kashimo/throw_back.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 885,
+      "coreLeft": 78.2,
+      "coreRight": 781.9
      },
      {
       "w": 885,
@@ -89280,7 +89427,11 @@
        "bodyBottom": 233.1
       },
       "file": "kashimo/throw_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 924,
+      "coreLeft": 70.2,
+      "coreRight": 786.8
      },
      {
       "w": 924,
@@ -89460,7 +89611,11 @@
        "bodyBottom": 217.6
       },
       "file": "kashimo/throw_up.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 700,
+      "coreLeft": 54.1,
+      "coreRight": 594.8
      },
      {
       "w": 700,
@@ -89783,7 +89938,11 @@
        "bodyBottom": 227.3
       },
       "file": "haruta/throw_up.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 835,
+      "coreLeft": 78.1,
+      "coreRight": 712.7
      },
      {
       "w": 835,
@@ -90227,7 +90386,11 @@
        ]
       },
       "file": "miwa/throw_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 755,
+      "coreLeft": 63.2,
+      "coreRight": 640.4
      },
      {
       "w": 755,
