@@ -17,7 +17,6 @@ is exactly how 172 images once went missing from this list.
 - **The sprite game** — 1 image: [1 flagged in the workbench](#outstanding-by-manifest-not-by-request) as art that exists and is wrong
 - **The live-3D anime path** — 0 images
 - Separately, 9 poses are drawing another pose's file. Not counted above: those are substitutions somebody chose, not images anybody is owed.
-- Separately, 56 variant drawings are tagged for [deletion](#outstanding-by-manifest-not-by-request). Not counted above: that is a cleanup in the repository, not an image anybody is owed.
 
 ## Rules that hold everywhere here
 
@@ -303,18 +302,6 @@ the rounds above are for.
 | Aoi Todo | `attack_light_b` | drawing another pose's file | it is `attack_heavy_b`, not `attack_light_b` | [special_side.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/todo/special_side.png) | [todo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/todo_idle.png) |
 | Yoshinobu Gakuganji | `crouch_attack_b` | drawing another pose's file | it is `attack_dash`, not `crouch_attack_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gakuganji/attack_dash.png) | [gakuganji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/gakuganji_idle.png) |
 | Naoya Zen'in | `attack_heavy_a` | drawing another pose's file | it is `run_pass_a`, not `attack_heavy_a` | [run_pass_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/run_pass_a.png) | [naoya_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_idle.png) |
-
-Separately, **56 variant drawings are tagged for deletion** —
-discarded at the next cleanup. **Not an image request and not counted above**:
-the ask is to throw a drawing away, not to draw one, and the pose keeps
-whichever drawing is selected.
-
-By fighter: Nobara Kugisaki 20, Satoru Gojo 14, Hanami 13, Jogo 9.
-
-`node tools/apply_deletions.mjs` carries them out — it deletes each drawing
-and every reference to it, and holds anything the game is still drawing.
-`python3 tools/list_replacements.py` prints them file by file, and the sprite
-workbench is where the tags are set and cleared.
 
 Separately, **6 improvement requests** — the art works and is just
 not as good as it should be. Nothing is blocked by one, and the standing
