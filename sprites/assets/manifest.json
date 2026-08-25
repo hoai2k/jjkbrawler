@@ -540,7 +540,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 980,
+    "coreLeft": 79.6,
+    "coreRight": 894.2
    },
    "attack_air_a": {
     "w": 970,
@@ -648,7 +653,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 939,
+    "coreLeft": 73.4,
+    "coreRight": 831.3
    },
    "attack_heavy_a": {
     "file": "gojo/attack_heavy_a.png",
@@ -849,7 +859,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 960,
+    "coreLeft": 51.5,
+    "coreRight": 837.7
    },
    "crouch_attack_a": {
     "w": 876,
@@ -884,7 +899,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 876,
+    "coreLeft": 66.3,
+    "coreRight": 812.8
    },
    "crouch_attack_b": {
     "w": 965,
@@ -961,7 +981,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 813,
+    "coreLeft": 56.4,
+    "coreRight": 745.2
    },
    "dash": {
     "w": 918,
@@ -1034,7 +1059,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 796,
+    "coreLeft": 113.9,
+    "coreRight": 737.0
    },
    "special_down": {
     "w": 939,
@@ -1069,7 +1099,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 939,
+    "coreLeft": 71.7,
+    "coreRight": 824.6
    },
    "special_neutral": {
     "w": 959,
@@ -1104,7 +1139,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 959,
+    "coreLeft": 74.3,
+    "coreRight": 854.4
    },
    "special_side": {
     "w": 976,
@@ -1630,7 +1670,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 644,
+    "coreLeft": 67.5,
+    "coreRight": 539.6
    },
    "walk_b": {
     "w": 459,
@@ -1761,45 +1806,83 @@
     ]
    },
    "attack_diag_up_b": {
-    "w": 814,
-    "h": 1668,
-    "ox": -247.6,
-    "oy": -1437,
-    "bodyBottom": 103.6,
-    "bodyH": 302.8,
-    "centroidX": 154.1,
-    "renderScale": 0.1816,
-    "file": "gojo/incoming/attack_diag_up_b.png",
+    "w": 874,
+    "h": 1788,
+    "ox": -281.8,
+    "oy": -1636,
+    "bodyBottom": 66.6,
+    "bodyH": 477.0,
+    "centroidX": 158.3,
+    "renderScale": 0.267,
+    "file": "gojo/incoming/attack_diag_up_b-2.png",
+    "srcBox": [
+     64,
+     64,
+     938,
+     1852
+    ],
+    "srcFlip": false,
+    "replaced": {
+     "at": "2026-08-25T20:23:33+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": [
+      "bodyBottom",
+      "renderScale",
+      "anchors"
+     ]
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T20:23:33+00:00",
+     "live": {
+      "w": 814,
+      "h": 1668,
+      "ox": -247.6,
+      "oy": -1437,
+      "bodyBottom": 103.6,
+      "bodyH": 302.8,
+      "bodyTop": 0,
+      "centroidX": 154.1,
+      "renderScale": 0.1816,
+      "anchors": {
+       "com": [
+        404.4,
+        688.5
+       ]
+      },
+      "srcBox": [
+       64,
+       67,
+       878,
+       1735
+      ],
+      "needsReplacement": "quality",
+      "replacementNote": "Only the punching fist should be visible, because the other one should be on the opposite side of his body in this pose. He is drawn side-on facing right: the NEAR arm throws the punch up the diagonal, and the off hand recovers to the chest ON THE FAR SIDE of the torso, where the body hides it. At most the far elbow clears the silhouette. Never a second fist on the near face of the chest \u2014 that is where both deliveries so far have put it, and it reads as a spare fist or an arm coming out of his own back. Exactly one hand is visible in this drawing.",
+      "edited": {
+       "renderScale": 0.286,
+       "bodyBottom": 151.1
+      },
+      "file": "gojo/incoming/attack_diag_up_b.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 814,
-    "coreLeft": 62.6,
-    "coreRight": 740.2,
+    "bodyRight": 874,
+    "coreLeft": 67.1,
+    "coreRight": 793.4,
     "anchors": {
      "com": [
-      404.4,
-      688.5
+      437.8,
+      745.7
      ]
     },
     "autoTuned": {
-     "at": "2026-08-24T22:13:47-04:00",
+     "at": "2026-08-25T20:29:58+00:00",
      "fields": {
       "bodyBottom": "foot=0.952 (character)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "edited": {
-     "renderScale": 0.286,
-     "bodyBottom": 151.1
-    },
-    "needsReplacement": "quality",
-    "replacementNote": "Only the punching fist should be visible, because the other one should be on the opposite side of his body in this pose. He is drawn side-on facing right: the NEAR arm throws the punch up the diagonal, and the off hand recovers to the chest ON THE FAR SIDE of the torso, where the body hides it. At most the far elbow clears the silhouette. Never a second fist on the near face of the chest \u2014 that is where both deliveries so far have put it, and it reads as a spare fist or an arm coming out of his own back. Exactly one hand is visible in this drawing.",
-    "srcBox": [
-     64,
-     67,
-     878,
-     1735
-    ]
+    }
    },
    "domain_expansion": {
     "w": 466,
@@ -1912,7 +1995,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 943,
+    "coreLeft": 56.2,
+    "coreRight": 794.5
    },
    "throw_fwd": {
     "w": 935,
@@ -3828,7 +3916,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 606,
+    "coreLeft": 43.2,
+    "coreRight": 519.0
    },
    "jump_rise": {
     "w": 655,
@@ -4028,7 +4121,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 658,
+    "coreLeft": 64.1,
+    "coreRight": 586.4
    },
    "charge": {
     "w": 943,
@@ -4063,7 +4161,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 943,
+    "coreLeft": 88.8,
+    "coreRight": 784.4
    },
    "dizzy": {
     "w": 681,
@@ -4137,7 +4240,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 856,
+    "coreLeft": 125.0,
+    "coreRight": 808.1
    },
    "ledge_hang": {
     "w": 323,
@@ -4174,7 +4282,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 323,
+    "coreLeft": 33.3,
+    "coreRight": 299.5
    },
    "dodge_air": {
     "w": 731,
@@ -4208,7 +4321,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 731,
+    "coreLeft": 106.1,
+    "coreRight": 677.5
    },
    "dodge_roll": {
     "w": 1057,
@@ -4441,7 +4559,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 981,
+    "coreLeft": 127.9,
+    "coreRight": 875.1
    },
    "attack_heavy_a": {
     "w": 721,
@@ -4627,7 +4750,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 869,
+    "coreLeft": 54.3,
+    "coreRight": 749.5
    },
    "crouch_attack_a": {
     "w": 903,
@@ -4660,7 +4788,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 903,
+    "coreLeft": 146.7,
+    "coreRight": 869.1
    },
    "crouch_attack_b": {
     "w": 1014,
@@ -4693,7 +4826,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1014,
+    "coreLeft": 82.4,
+    "coreRight": 899.9
    },
    "crouch_b": {
     "w": 854,
@@ -4726,7 +4864,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 854,
+    "coreLeft": 58.2,
+    "coreRight": 786.4
    },
    "dash": {
     "w": 1181,
@@ -4805,7 +4948,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1042,
+    "coreLeft": 117.2,
+    "coreRight": 898.7
    },
    "special_down": {
     "w": 890,
@@ -4879,7 +5027,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1025,
+    "coreLeft": 93.8,
+    "coreRight": 945.3
    },
    "ult_b": {
     "w": 1043,
@@ -4913,7 +5066,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1043,
+    "coreLeft": 123.5,
+    "coreRight": 979.5
    },
    "prone": {
     "w": 1495,
@@ -5185,7 +5343,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 875,
+    "coreLeft": 33.8,
+    "coreRight": 734.6
    },
    "grab_reach": {
     "w": 1345,
@@ -5316,7 +5479,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 795,
+    "coreLeft": 75.9,
+    "coreRight": 658.1
    },
    "walk_b": {
     "w": 447,
@@ -5437,7 +5605,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 986,
+    "coreLeft": 103.8,
+    "coreRight": 895.3
    },
    "attack_diag_up_b": {
     "w": 979,
@@ -5471,7 +5644,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 979,
+    "coreLeft": 92.9,
+    "coreRight": 836.4
    },
    "throw_back": {
     "w": 694,
@@ -5544,7 +5722,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1038,
+    "coreLeft": 64.9,
+    "coreRight": 895.3
    },
    "throw_fwd": {
     "w": 1018,
@@ -5578,7 +5761,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1018,
+    "coreLeft": 91.5,
+    "coreRight": 887.6
    },
    "throw_up": {
     "w": 496,
@@ -5611,7 +5799,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 496,
+    "coreLeft": 45.7,
+    "coreRight": 420.6
    }
   },
   "geto": {
@@ -6248,7 +6441,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1043,
+    "coreLeft": 306.4,
+    "coreRight": 990.9
    },
    "attack_down": {
     "w": 860,
@@ -6328,7 +6526,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 895,
+    "coreLeft": 76.0,
+    "coreRight": 770.0
    },
    "special_side": {
     "w": 932,
@@ -6362,7 +6565,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 932,
+    "coreLeft": 67.4,
+    "coreRight": 863.2
    },
    "attack_air_a": {
     "w": 900,
@@ -6395,7 +6603,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 900,
+    "coreLeft": 95.6,
+    "coreRight": 812.9
    },
    "attack_air_b": {
     "w": 1001,
@@ -6559,7 +6772,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 947,
+    "coreLeft": 64.1,
+    "coreRight": 769.6
    },
    "crouch_a": {
     "w": 705,
@@ -6639,7 +6857,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 876,
+    "coreLeft": 47.2,
+    "coreRight": 795.0
    },
    "crouch_attack_b": {
     "file": "geto/crouch_attack_b.png",
@@ -6778,7 +7001,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 846,
+    "coreLeft": 91.8,
+    "coreRight": 780.2
    },
    "special_down": {
     "w": 995,
@@ -6846,7 +7074,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 988,
+    "coreLeft": 110.7,
+    "coreRight": 909.2
    },
    "ult_b": {
     "w": 993,
@@ -6954,7 +7187,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 783,
+    "coreLeft": 71.1,
+    "coreRight": 689.3
    },
    "run_pass_b": {
     "w": 722,
@@ -6988,7 +7226,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 722,
+    "coreLeft": 49.3,
+    "coreRight": 640.4
    },
    "run_reach_a": {
     "w": 985,
@@ -7022,7 +7265,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 985,
+    "coreLeft": 117.0,
+    "coreRight": 898.8
    },
    "run_reach_b": {
     "w": 995,
@@ -7232,7 +7480,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 791,
+    "coreLeft": 121.1,
+    "coreRight": 736.2
    },
    "walk_a": {
     "w": 675,
@@ -7474,7 +7727,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 821,
+    "coreLeft": 108.6,
+    "coreRight": 759.9
    },
    "throw_down": {
     "w": 1212,
@@ -7507,7 +7765,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1212,
+    "coreLeft": 68.2,
+    "coreRight": 1045.4
    },
    "throw_fwd": {
     "w": 924,
@@ -7541,7 +7804,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 924,
+    "coreLeft": 72.6,
+    "coreRight": 806.9
    },
    "throw_up": {
     "w": 807,
@@ -9511,7 +9779,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 934,
+    "coreLeft": 74.4,
+    "coreRight": 802.1
    },
    "throw_up": {
     "w": 755,
@@ -16266,7 +16539,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 827,
+    "coreLeft": 86.8,
+    "coreRight": 775.0
    },
    "crouch_attack_a": {
     "w": 996,
@@ -16486,7 +16764,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 905,
+    "coreLeft": 71.3,
+    "coreRight": 831.5
    },
    "special_neutral": {
     "w": 967,
@@ -16558,7 +16841,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 771,
+    "coreLeft": 37.4,
+    "coreRight": 683.0
    },
    "ult_b": {
     "w": 996,
@@ -16592,7 +16880,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 996,
+    "coreLeft": 74.1,
+    "coreRight": 944.8
    },
    "prone": {
     "w": 934,
@@ -18122,7 +18415,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 806,
+    "coreLeft": 56.0,
+    "coreRight": 744.6
    },
    "attack_air_b": {
     "w": 968,
@@ -18386,7 +18684,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 798,
+    "coreLeft": 66.7,
+    "coreRight": 719.0
    },
    "crouch_attack_a": {
     "w": 883,
@@ -18420,7 +18723,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 883,
+    "coreLeft": 71.7,
+    "coreRight": 772.6
    },
    "crouch_attack_b": {
     "w": 970,
@@ -18455,7 +18763,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 970,
+    "coreLeft": 42.4,
+    "coreRight": 897.2
    },
    "crouch_b": {
     "w": 718,
@@ -18490,7 +18803,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 718,
+    "coreLeft": 35.1,
+    "coreRight": 639.3
    },
    "dash": {
     "w": 970,
@@ -18599,11 +18917,46 @@
     "h": 1042,
     "ox": -328.6,
     "oy": -731,
-    "bodyBottom": 212.9,
+    "bodyBottom": 240.4,
     "bodyH": 305.2,
     "centroidX": 200.1,
     "renderScale": 0.2929,
     "file": "hakari/incoming/special_side.png",
+    "replaced": {
+     "at": "2026-08-25T14:14:52+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": [
+      "bodyBottom",
+      "renderScale",
+      "anchors"
+     ]
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T14:14:52+00:00",
+     "live": {
+      "w": 949,
+      "h": 1047,
+      "ox": -317.8,
+      "oy": -736,
+      "bodyBottom": 207.9,
+      "bodyH": 336.7,
+      "bodyTop": 0,
+      "centroidX": 139,
+      "renderScale": 0.3011,
+      "anchors": {
+       "com": [
+        457.2,
+        393.7
+       ]
+      },
+      "edited": {
+       "renderScale": 0.322,
+       "bodyBottom": 310.4
+      },
+      "file": "hakari/special_side.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 884,
@@ -18623,9 +18976,6 @@
       "renderScale": "area x 1.070 (specialSide)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "edited": {
-     "bodyBottom": 240.4
     }
    },
    "ult_a": {
@@ -18660,7 +19010,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 983,
+    "coreLeft": 73.8,
+    "coreRight": 922.5
    },
    "ult_b": {
     "w": 999,
@@ -18695,7 +19050,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 999,
+    "coreLeft": 53.2,
+    "coreRight": 912.8
    },
    "prone": {
     "w": 915,
@@ -18729,7 +19089,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 915,
+    "coreLeft": 40.0,
+    "coreRight": 875.0
    },
    "run_pass_a": {
     "w": 719,
@@ -19019,7 +19384,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1007,
+    "coreLeft": 70.4,
+    "coreRight": 860.8
    },
    "grabbed": {
     "w": 860,
@@ -19192,7 +19562,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 824,
+    "coreLeft": 92.7,
+    "coreRight": 724.6
    },
    "attack_air_diag_down_b": {
     "w": 985,
@@ -19344,7 +19719,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 920,
+    "coreLeft": 84.1,
+    "coreRight": 807.6
    },
    "throw_down": {
     "w": 978,
@@ -19375,7 +19755,11 @@
      "how": "import",
      "lost": []
     },
-    "wantsImprovement": "alpha"
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 978,
+    "coreLeft": 55.0,
+    "coreRight": 849.6
    },
    "throw_fwd": {
     "w": 970,
@@ -19419,46 +19803,83 @@
     ]
    },
    "throw_up": {
-    "w": 701,
-    "h": 1522,
-    "ox": -151.1,
-    "oy": -1211,
-    "bodyBottom": 207.8,
-    "bodyH": 362.8,
-    "centroidX": 114.1,
-    "renderScale": 0.2384,
-    "file": "hakari/throw_up.png",
+    "w": 599,
+    "h": 1486,
+    "ox": -132.0,
+    "oy": -1278,
+    "bodyBottom": 107.3,
+    "bodyH": 379.1,
+    "centroidX": 146.0,
+    "renderScale": 0.2551,
+    "file": "hakari/incoming/throw_up.png",
+    "srcBox": [
+     182,
+     67,
+     781,
+     1553
+    ],
+    "srcFlip": false,
+    "replaced": {
+     "at": "2026-08-25T20:23:33+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": [
+      "renderScale",
+      "anchors"
+     ]
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T20:23:33+00:00",
+     "live": {
+      "w": 701,
+      "h": 1522,
+      "ox": -151.1,
+      "oy": -1211,
+      "bodyBottom": 207.8,
+      "bodyH": 362.8,
+      "bodyTop": 0,
+      "centroidX": 114.1,
+      "renderScale": 0.2384,
+      "anchors": {
+       "com": [
+        309.6,
+        641.2
+       ]
+      },
+      "srcBox": [
+       166,
+       64,
+       867,
+       1586
+      ],
+      "needsReplacement": "quality",
+      "replacementNote": "Weird arms going on",
+      "edited": {
+       "renderScale": 0.2408
+      },
+      "file": "hakari/throw_up.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 701,
-    "coreLeft": 66.6,
-    "coreRight": 580.3,
+    "bodyRight": 599,
+    "coreLeft": 65.0,
+    "coreRight": 520.1,
     "anchors": {
      "com": [
-      309.6,
-      641.2
+      287.0,
+      638.2
      ]
     },
     "autoTuned": {
-     "at": "2026-08-23T19:27:16+00:00",
+     "at": "2026-08-25T20:29:58+00:00",
      "fields": {
       "bodyBottom": "foot=0.932 (character)",
-      "bodyH": "area x 1.030 (throwUp)",
-      "renderScale": "area x 1.030 (throwUp)",
+      "bodyH": "area x 1.014 (throwUp)",
+      "renderScale": "area x 1.014 (throwUp)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "edited": {
-     "renderScale": 0.2408
-    },
-    "needsReplacement": "quality",
-    "replacementNote": "Weird arms going on",
-    "srcBox": [
-     166,
-     64,
-     867,
-     1586
-    ]
+    }
    }
   },
   "yuta": {
@@ -25700,7 +26121,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1010,
+    "coreLeft": 126.2,
+    "coreRight": 953.2
    },
    "attack_air_a": {
     "w": 767,
@@ -25733,7 +26159,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 767,
+    "coreLeft": 39.8,
+    "coreRight": 661.4
    },
    "attack_air_b": {
     "w": 946,
@@ -25801,7 +26232,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 840,
+    "coreLeft": 97.1,
+    "coreRight": 776.9
    },
    "attack_heavy_a": {
     "w": 947,
@@ -25836,7 +26272,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 947,
+    "coreLeft": 75.2,
+    "coreRight": 818.9
    },
    "attack_heavy_b": {
     "w": 961,
@@ -26014,7 +26455,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 886,
+    "coreLeft": 65.9,
+    "coreRight": 778.1
    },
    "crouch_attack_b": {
     "w": 938,
@@ -26088,7 +26534,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 711,
+    "coreLeft": 44.0,
+    "coreRight": 653.9
    },
    "dash": {
     "w": 891,
@@ -26159,7 +26610,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 906,
+    "coreLeft": 94.7,
+    "coreRight": 825.0
    },
    "special_down": {
     "w": 876,
@@ -26200,7 +26656,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 876,
+    "coreLeft": 81.7,
+    "coreRight": 772.9
    },
    "special_neutral": {
     "w": 886,
@@ -27022,7 +27483,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 949,
+    "coreLeft": 56.8,
+    "coreRight": 816.5
    },
    "throw_fwd": {
     "w": 999,
@@ -32659,7 +33125,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1192,
+    "coreLeft": 111.8,
+    "coreRight": 1043.0
    },
    "attack_heavy": {
     "w": 969,
@@ -32820,7 +33291,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 816,
+    "coreLeft": 82.2,
+    "coreRight": 754.3
    },
    "crouch_a": {
     "w": 880,
@@ -32854,7 +33330,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 880,
+    "coreLeft": 72.6,
+    "coreRight": 810.7
    },
    "crouch_attack_a": {
     "w": 1178,
@@ -32889,7 +33370,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1178,
+    "coreLeft": 139.9,
+    "coreRight": 1074.9
    },
    "crouch_attack_b": {
     "w": 1253,
@@ -32923,7 +33409,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1253,
+    "coreLeft": 78.3,
+    "coreRight": 1104.2
    },
    "crouch_b": {
     "w": 849,
@@ -33051,7 +33542,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 668,
+    "coreLeft": 111.4,
+    "coreRight": 612.6
    },
    "dodge_roll": {
     "w": 1045,
@@ -33254,7 +33750,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 791,
+    "coreLeft": 66.0,
+    "coreRight": 703.8
    },
    "land": {
     "w": 1022,
@@ -33295,7 +33796,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1022,
+    "coreLeft": 95.8,
+    "coreRight": 875.1
    },
    "ledge_hang": {
     "w": 240,
@@ -33426,7 +33932,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 528,
+    "coreLeft": 52.8,
+    "coreRight": 448.8
    },
    "special_neutral": {
     "w": 899,
@@ -33495,7 +34006,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 607,
+    "coreLeft": 43.2,
+    "coreRight": 535.9
    },
    "ult_a": {
     "w": 957,
@@ -33530,7 +34046,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 957,
+    "coreLeft": 74.8,
+    "coreRight": 855.5
    },
    "ult_b": {
     "w": 780,
@@ -33630,7 +34151,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 768,
+    "coreLeft": 86.9,
+    "coreRight": 695.4
    },
    "attack_air_b": {
     "w": 947,
@@ -33664,7 +34190,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 947,
+    "coreLeft": 41.4,
+    "coreRight": 846.4
    },
    "attack_heavy_a": {
     "w": 926,
@@ -33698,7 +34229,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 926,
+    "coreLeft": 60.5,
+    "coreRight": 772.0
    },
    "attack_heavy_b": {
     "w": 952,
@@ -33765,7 +34301,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 930,
+    "coreLeft": 46.5,
+    "coreRight": 900.9
    },
    "run_pass_a": {
     "w": 748,
@@ -34281,7 +34822,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 932,
+    "coreLeft": 44.4,
+    "coreRight": 852.0
    },
    "attack_diag_up_b": {
     "w": 1079,
@@ -34355,7 +34901,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 832,
+    "coreLeft": 94.7,
+    "coreRight": 778.4
    },
    "throw_down": {
     "w": 1134,
@@ -34388,7 +34939,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1134,
+    "coreLeft": 70.9,
+    "coreRight": 985.2
    },
    "throw_fwd": {
     "w": 974,
@@ -34465,7 +35021,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 878,
+    "coreLeft": 80.2,
+    "coreRight": 751.4
    }
   },
   "meimei": {
@@ -39675,7 +40236,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 647,
+    "coreLeft": 49.2,
+    "coreRight": 590.1
    },
    "throw_down": {
     "w": 999,
@@ -41491,7 +42057,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 788,
+    "coreLeft": 70.3,
+    "coreRight": 606.3
    },
    "attack_air": {
     "w": 978,
@@ -41557,7 +42128,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 992,
+    "coreLeft": 86.2,
+    "coreRight": 915.1
    },
    "attack_heavy": {
     "w": 975,
@@ -41735,7 +42311,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 900,
+    "coreLeft": 56.1,
+    "coreRight": 827.5
    },
    "crouch_a": {
     "w": 950,
@@ -41861,7 +42442,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 922,
+    "coreLeft": 51.5,
+    "coreRight": 801.8
    },
    "dash": {
     "w": 985,
@@ -41894,7 +42480,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 985,
+    "coreLeft": 73.9,
+    "coreRight": 837.2
    },
    "dizzy": {
     "w": 742,
@@ -41928,7 +42519,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 742,
+    "coreLeft": 59.0,
+    "coreRight": 615.0
    },
    "dodge_air": {
     "w": 767,
@@ -41961,7 +42557,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 767,
+    "coreLeft": 87.7,
+    "coreRight": 709.8
    },
    "dodge_roll": {
     "w": 970,
@@ -42028,7 +42629,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 901,
+    "coreLeft": 96.0,
+    "coreRight": 775.0
    },
    "guard": {
     "w": 744,
@@ -42068,7 +42674,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 744,
+    "coreLeft": 47.5,
+    "coreRight": 712.7
    },
    "hurt": {
     "w": 864,
@@ -42103,7 +42714,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 864,
+    "coreLeft": 105.4,
+    "coreRight": 770.1
    },
    "idle_b": {
     "w": 760,
@@ -42137,7 +42753,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 760,
+    "coreLeft": 70.5,
+    "coreRight": 572.4
    },
    "jump_rise": {
     "w": 892,
@@ -42170,7 +42791,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 892,
+    "coreLeft": 56.7,
+    "coreRight": 800.9
    },
    "land": {
     "w": 948,
@@ -42204,7 +42830,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 948,
+    "coreLeft": 55.5,
+    "coreRight": 825.6
    },
    "ledge_hang": {
     "w": 598,
@@ -42241,7 +42872,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 598,
+    "coreLeft": 55.1,
+    "coreRight": 496.1
    },
    "run_a": {
     "w": 990,
@@ -42338,7 +42974,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 978,
+    "coreLeft": 54.4,
+    "coreRight": 870.8
    },
    "special_neutral": {
     "w": 901,
@@ -42373,7 +43014,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 901,
+    "coreLeft": 66.0,
+    "coreRight": 783.8
    },
    "special_side": {
     "w": 965,
@@ -42407,7 +43053,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 965,
+    "coreLeft": 81.1,
+    "coreRight": 843.0
    },
    "ult_a": {
     "w": 887,
@@ -42441,7 +43092,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 887,
+    "coreLeft": 71.9,
+    "coreRight": 799.4
    },
    "ult_b": {
     "w": 854,
@@ -42475,7 +43131,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 854,
+    "coreLeft": 74.6,
+    "coreRight": 770.7
    },
    "victory": {
     "w": 635,
@@ -42515,7 +43176,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 635,
+    "coreLeft": 65.2,
+    "coreRight": 577.8
    },
    "attack_air_a": {
     "w": 906,
@@ -42549,7 +43215,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 906,
+    "coreLeft": 66.3,
+    "coreRight": 809.9
    },
    "attack_air_b": {
     "w": 1070,
@@ -42582,7 +43253,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1070,
+    "coreLeft": 64.4,
+    "coreRight": 873.1
    },
    "attack_heavy_a": {
     "w": 835,
@@ -42616,7 +43292,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 835,
+    "coreLeft": 62.2,
+    "coreRight": 764.3
    },
    "attack_heavy_b": {
     "w": 929,
@@ -42651,7 +43332,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 929,
+    "coreLeft": 49.6,
+    "coreRight": 729.4
    },
    "prone": {
     "w": 981,
@@ -42770,7 +43456,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 908,
+    "coreLeft": 68.3,
+    "coreRight": 728.4
    },
    "run_reach_a": {
     "w": 942,
@@ -42803,7 +43494,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 942,
+    "coreLeft": 80.7,
+    "coreRight": 856.5
    },
    "run_reach_b": {
     "w": 970,
@@ -42836,7 +43532,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 970,
+    "coreLeft": 79.5,
+    "coreRight": 868.9
    },
    "attack_dash": {
     "w": 1404,
@@ -42869,7 +43570,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1404,
+    "coreLeft": 87.8,
+    "coreRight": 1202.2
    },
    "grab_hold": {
     "w": 936,
@@ -42902,7 +43608,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 936,
+    "coreLeft": 36.9,
+    "coreRight": 720.0
    },
    "grab_reach": {
     "w": 924,
@@ -42942,7 +43653,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 924,
+    "coreLeft": 50.6,
+    "coreRight": 750.4
    },
    "grabbed": {
     "w": 895,
@@ -42986,7 +43702,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 895,
+    "coreLeft": 81.6,
+    "coreRight": 788.4
    },
    "walk_a": {
     "w": 646,
@@ -43020,7 +43741,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 646,
+    "coreLeft": 75.9,
+    "coreRight": 573.8
    },
    "walk_b": {
     "w": 665,
@@ -43101,7 +43827,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 912,
+    "coreLeft": 129.1,
+    "coreRight": 766.0
    },
    "attack_air_diag_down_b": {
     "w": 1080,
@@ -43134,7 +43865,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1080,
+    "coreLeft": 50.2,
+    "coreRight": 924.8
    },
    "attack_diag_up_b": {
     "w": 920,
@@ -43168,7 +43904,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 920,
+    "coreLeft": 51.4,
+    "coreRight": 719.2
    },
    "throw_back": {
     "w": 851,
@@ -43201,7 +43942,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 851,
+    "coreLeft": 80.6,
+    "coreRight": 755.6
    },
    "throw_down": {
     "w": 924,
@@ -43234,7 +43980,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 924,
+    "coreLeft": 60.4,
+    "coreRight": 750.9
    },
    "throw_fwd": {
     "w": 911,
@@ -43267,7 +44018,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 911,
+    "coreLeft": 70.2,
+    "coreRight": 751.9
    },
    "throw_up": {
     "w": 780,
@@ -43301,7 +44057,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 780,
+    "coreLeft": 111.0,
+    "coreRight": 666.2
    }
   },
   "mahoraga": {
@@ -44860,7 +45621,11 @@
      "how": "import",
      "lost": []
     },
-    "wantsImprovement": "alpha"
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1351,
+    "coreLeft": 109.8,
+    "coreRight": 1148.3
    },
    "attack_diag_up_b": {
     "w": 1055,
@@ -45373,7 +46138,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1289,
+    "coreLeft": 128.9,
+    "coreRight": 1192.3
    },
    "attack_down": {
     "w": 1125,
@@ -45406,7 +46176,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1125,
+    "coreLeft": 98.4,
+    "coreRight": 1012.5
    },
    "attack_heavy_a": {
     "w": 1265,
@@ -45518,7 +46293,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 945,
+    "coreLeft": 81.2,
+    "coreRight": 873.2
    },
    "attack_light_b": {
     "w": 1252,
@@ -45552,7 +46332,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1252,
+    "coreLeft": 62.6,
+    "coreRight": 1134.6
    },
    "attack_up": {
     "w": 802,
@@ -45632,7 +46417,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1285,
+    "coreLeft": 88.3,
+    "coreRight": 1180.6
    },
    "crouch_a": {
     "w": 1065,
@@ -45665,7 +46455,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1065,
+    "coreLeft": 66.6,
+    "coreRight": 998.4
    },
    "crouch_attack_a": {
     "w": 1210,
@@ -45700,7 +46495,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1210,
+    "coreLeft": 98.3,
+    "coreRight": 1126.8
    },
    "crouch_attack_b": {
     "w": 1524,
@@ -45771,7 +46571,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1146,
+    "coreLeft": 71.6,
+    "coreRight": 1074.4
    },
    "dash": {
     "w": 1348,
@@ -45805,7 +46610,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1348,
+    "coreLeft": 84.2,
+    "coreRight": 1246.9
    },
    "dizzy": {
     "w": 818,
@@ -45840,7 +46650,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 818,
+    "coreLeft": 48.6,
+    "coreRight": 762.0
    },
    "dodge_air": {
     "w": 801,
@@ -45873,7 +46688,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 801,
+    "coreLeft": 91.6,
+    "coreRight": 737.7
    },
    "dodge_roll": {
     "w": 1113,
@@ -45907,7 +46727,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1113,
+    "coreLeft": 97.4,
+    "coreRight": 1029.5
    },
    "fall": {
     "w": 767,
@@ -45940,7 +46765,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 767,
+    "coreLeft": 46.1,
+    "coreRight": 707.2
    },
    "guard": {
     "w": 1025,
@@ -45974,7 +46804,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1025,
+    "coreLeft": 89.7,
+    "coreRight": 960.9
    },
    "hurt": {
     "w": 1149,
@@ -46009,7 +46844,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1149,
+    "coreLeft": 107.7,
+    "coreRight": 1026.9
    },
    "idle_a": {
     "w": 878,
@@ -46043,7 +46883,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 878,
+    "coreLeft": 51.0,
+    "coreRight": 806.9
    },
    "idle_b": {
     "w": 875,
@@ -46077,7 +46922,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 875,
+    "coreLeft": 51.0,
+    "coreRight": 806.9
    },
    "jump_rise": {
     "w": 683,
@@ -46110,7 +46960,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 683,
+    "coreLeft": 42.2,
+    "coreRight": 616.8
    },
    "land": {
     "w": 851,
@@ -46144,7 +46999,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 851,
+    "coreLeft": 42.5,
+    "coreRight": 781.4
    },
    "ledge_hang": {
     "w": 523,
@@ -46181,7 +47041,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 523,
+    "coreLeft": 38.6,
+    "coreRight": 470.5
    },
    "prone": {
     "w": 1435,
@@ -46253,7 +47118,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 850,
+    "coreLeft": 45.5,
+    "coreRight": 780.9
    },
    "run_pass_b": {
     "w": 877,
@@ -46287,7 +47157,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 877,
+    "coreLeft": 51.1,
+    "coreRight": 800.2
    },
    "run_reach_a": {
     "w": 958,
@@ -46415,7 +47290,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 920,
+    "coreLeft": 74.8,
+    "coreRight": 833.8
    },
    "special_neutral": {
     "w": 1274,
@@ -46456,7 +47336,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1274,
+    "coreLeft": 103.5,
+    "coreRight": 1098.8
    },
    "special_side": {
     "w": 1252,
@@ -46492,7 +47377,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1252,
+    "coreLeft": 117.4,
+    "coreRight": 1205.0
    },
    "ult_a": {
     "w": 1397,
@@ -46532,7 +47422,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1397,
+    "coreLeft": 104.8,
+    "coreRight": 1213.6
    },
    "ult_b": {
     "w": 1445,
@@ -46572,7 +47467,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1445,
+    "coreLeft": 90.3,
+    "coreRight": 1345.7
    },
    "victory": {
     "w": 1060,
@@ -46606,7 +47506,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1060,
+    "coreLeft": 48.6,
+    "coreRight": 944.3
    },
    "attack_dash": {
     "w": 1135,
@@ -46640,7 +47545,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1135,
+    "coreLeft": 63.8,
+    "coreRight": 1057.0
    },
    "grab_hold": {
     "w": 1001,
@@ -46723,7 +47633,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1093,
+    "coreLeft": 58.1,
+    "coreRight": 1003.5
    },
    "grabbed": {
     "w": 993,
@@ -46763,7 +47678,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 993,
+    "coreLeft": 98.9,
+    "coreRight": 880.8
    },
    "walk_a": {
     "w": 869,
@@ -46797,7 +47717,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 869,
+    "coreLeft": 50.6,
+    "coreRight": 800.4
    },
    "walk_b": {
     "w": 599,
@@ -46880,7 +47805,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 960,
+    "coreLeft": 60.6,
+    "coreRight": 814.3
    },
    "attack_air_diag_down_b": {
     "w": 1098,
@@ -46954,7 +47884,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1042,
+    "coreLeft": 85.5,
+    "coreRight": 932.2
    },
    "domain_expansion": {
     "w": 973,
@@ -46987,7 +47922,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 973,
+    "coreLeft": 47.4,
+    "coreRight": 929.2
    },
    "throw_back": {
     "w": 917,
@@ -47021,7 +47961,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 917,
+    "coreLeft": 117.9,
+    "coreRight": 870.6
    },
    "throw_down": {
     "w": 1510,
@@ -52596,7 +53541,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 872,
+    "coreLeft": 67.8,
+    "coreRight": 788.8
    },
    "attack_heavy_a": {
     "w": 797,
@@ -52629,7 +53579,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 797,
+    "coreLeft": 88.2,
+    "coreRight": 756.0
    },
    "attack_heavy_b": {
     "w": 1149,
@@ -52701,7 +53656,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 953,
+    "coreLeft": 217.6,
+    "coreRight": 890.8
    },
    "attack_light_b": {
     "w": 982,
@@ -52736,7 +53696,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 982,
+    "coreLeft": 58.9,
+    "coreRight": 799.1
    },
    "attack_up": {
     "w": 754,
@@ -52776,7 +53741,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 754,
+    "coreLeft": 48.9,
+    "coreRight": 656.2
    },
    "charge": {
     "w": 571,
@@ -52809,7 +53779,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 571,
+    "coreLeft": 42.6,
+    "coreRight": 524.9
    },
    "crouch_a": {
     "w": 881,
@@ -52842,7 +53817,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 881,
+    "coreLeft": 121.1,
+    "coreRight": 715.8
    },
    "crouch_attack_a": {
     "w": 938,
@@ -52876,7 +53856,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 938,
+    "coreLeft": 76.2,
+    "coreRight": 855.9
    },
    "crouch_attack_b": {
     "w": 1124,
@@ -52910,7 +53895,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1124,
+    "coreLeft": 56.2,
+    "coreRight": 941.4
    },
    "crouch_b": {
     "w": 710,
@@ -52943,7 +53933,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 710,
+    "coreLeft": 62.2,
+    "coreRight": 617.6
    },
    "dash": {
     "w": 914,
@@ -52983,7 +53978,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 914,
+    "coreLeft": 127.0,
+    "coreRight": 857.2
    },
    "dizzy": {
     "w": 485,
@@ -53016,7 +54016,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 485,
+    "coreLeft": 98.0,
+    "coreRight": 413.0
    },
    "dodge_air": {
     "w": 694,
@@ -53128,7 +54133,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1095,
+    "coreLeft": 102.7,
+    "coreRight": 1012.9
    },
    "guard": {
     "w": 494,
@@ -53161,7 +54171,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 494,
+    "coreLeft": 50.5,
+    "coreRight": 467.1
    },
    "hurt": {
     "w": 942,
@@ -53194,7 +54209,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 942,
+    "coreLeft": 218.0,
+    "coreRight": 871.9
    },
    "idle_a": {
     "w": 370,
@@ -53227,7 +54247,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 370,
+    "coreLeft": 20.9,
+    "coreRight": 307.2
    },
    "idle_b": {
     "w": 372,
@@ -53260,7 +54285,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 372,
+    "coreLeft": 21.0,
+    "coreRight": 308.0
    },
    "jump_rise": {
     "w": 759,
@@ -53335,7 +54365,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 844,
+    "coreLeft": 145.9,
+    "coreRight": 782.5
    },
    "ledge_hang": {
     "w": 289,
@@ -53372,7 +54407,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 289,
+    "coreLeft": 36.4,
+    "coreRight": 276.7
    },
    "prone": {
     "w": 1356,
@@ -53444,7 +54484,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 740,
+    "coreLeft": 190.1,
+    "coreRight": 662.2
    },
    "run_pass_b": {
     "w": 750,
@@ -53572,7 +54617,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1186,
+    "coreLeft": 51.9,
+    "coreRight": 1089.6
    },
    "special_down": {
     "w": 1055,
@@ -53606,7 +54656,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1055,
+    "coreLeft": 53.0,
+    "coreRight": 999.4
    },
    "special_neutral": {
     "w": 1023,
@@ -53708,7 +54763,17 @@
       471.1
      ]
     },
-    "surfacedReviewed": true
+    "replaced": {
+     "at": "2026-08-25T18:04:25+00:00",
+     "kept": "keep",
+     "how": "import",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 854,
+    "coreLeft": 109.3,
+    "coreRight": 794.3
    },
    "ult_b": {
     "w": 941,
@@ -53742,7 +54807,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 941,
+    "coreLeft": 91.5,
+    "coreRight": 858.6
    },
    "victory": {
     "w": 529,
@@ -53775,7 +54845,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 529,
+    "coreLeft": 51.1,
+    "coreRight": 466.8
    },
    "attack_dash": {
     "w": 1176,
@@ -53854,7 +54929,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 672,
+    "coreLeft": 47.6,
+    "coreRight": 557.1
    },
    "grab_reach": {
     "w": 972,
@@ -54036,7 +55116,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 474,
+    "coreLeft": 40.2,
+    "coreRight": 395.7
    },
    "walk_b": {
     "w": 483,
@@ -54076,7 +55161,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 483,
+    "coreLeft": 47.9,
+    "coreRight": 396.9
    },
    "attack_air_diag_down_b": {
     "w": 1205,
@@ -54101,7 +55191,17 @@
       323.8
      ]
     },
-    "surfacedReviewed": true
+    "replaced": {
+     "at": "2026-08-25T18:04:25+00:00",
+     "kept": "keep",
+     "how": "import",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1205,
+    "coreLeft": 60.2,
+    "coreRight": 1001.7
    },
    "attack_diag_up_b": {
     "w": 1281,
@@ -54136,7 +55236,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1281,
+    "coreLeft": 64.0,
+    "coreRight": 1072.8
    },
    "throw_back": {
     "w": 885,
@@ -54171,7 +55276,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 885,
+    "coreLeft": 78.2,
+    "coreRight": 781.9
    },
    "throw_down": {
     "w": 924,
@@ -54205,7 +55315,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 924,
+    "coreLeft": 70.2,
+    "coreRight": 786.8
    },
    "throw_fwd": {
     "w": 1152,
@@ -54239,7 +55354,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1152,
+    "coreLeft": 77.6,
+    "coreRight": 1009.1
    },
    "throw_up": {
     "w": 700,
@@ -54273,7 +55393,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 700,
+    "coreLeft": 54.1,
+    "coreRight": 594.8
    }
   },
   "naoya": {
@@ -57970,7 +59095,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 954,
+    "coreLeft": 63.4,
+    "coreRight": 841.7
    },
    "attack_up": {
     "w": 511,
@@ -58208,7 +59338,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 738,
+    "coreLeft": 66.5,
+    "coreRight": 635.2
    },
    "dash": {
     "w": 824,
@@ -58281,7 +59416,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 449,
+    "coreLeft": 44.6,
+    "coreRight": 392.4
    },
    "dodge_air": {
     "w": 596,
@@ -58348,7 +59488,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 402,
+    "coreLeft": 34.2,
+    "coreRight": 371.0
    },
    "fall": {
     "w": 744,
@@ -58378,7 +59523,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 744,
+    "coreLeft": 127.5,
+    "coreRight": 637.7
    },
    "guard": {
     "w": 566,
@@ -58412,7 +59562,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 566,
+    "coreLeft": 47.0,
+    "coreRight": 477.7
    },
    "hurt": {
     "w": 788,
@@ -58485,7 +59640,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 413,
+    "coreLeft": 43.8,
+    "coreRight": 367.8
    },
    "idle_b": {
     "w": 418,
@@ -58603,7 +59763,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 711,
+    "coreLeft": 99.2,
+    "coreRight": 663.4
    },
    "ledge_hang": {
     "w": 268,
@@ -58677,7 +59842,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1342,
+    "coreLeft": 75.5,
+    "coreRight": 1300.1
    },
    "run_pass_a": {
     "w": 716,
@@ -59021,7 +60191,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 926,
+    "coreLeft": 70.5,
+    "coreRight": 863.6
    },
    "ult_b": {
     "w": 903,
@@ -59055,7 +60230,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 903,
+    "coreLeft": 70.8,
+    "coreRight": 857.7
    },
    "victory": {
     "w": 546,
@@ -59421,7 +60601,17 @@
       448.9
      ]
     },
-    "surfacedReviewed": true
+    "replaced": {
+     "at": "2026-08-25T18:04:25+00:00",
+     "kept": "keep",
+     "how": "import",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 946,
+    "coreLeft": 123.6,
+    "coreRight": 850.4
    },
    "attack_diag_up_b": {
     "w": 769,
@@ -59495,7 +60685,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 770,
+    "coreLeft": 104.8,
+    "coreRight": 712.3
    },
    "throw_down": {
     "w": 975,
@@ -59528,7 +60723,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 975,
+    "coreLeft": 47.3,
+    "coreRight": 804.5
    },
    "throw_fwd": {
     "w": 817,
@@ -59562,7 +60762,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 817,
+    "coreLeft": 36.3,
+    "coreRight": 671.1
    },
    "throw_up": {
     "w": 651,
@@ -59816,7 +61021,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 999,
+    "coreLeft": 62.4,
+    "coreRight": 749.2
    },
    "attack_light_a": {
     "w": 859,
@@ -59850,7 +61060,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 859,
+    "coreLeft": 89.1,
+    "coreRight": 688.5
    },
    "attack_light_b": {
     "w": 1075,
@@ -59885,7 +61100,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1075,
+    "coreLeft": 73.9,
+    "coreRight": 826.4
    },
    "attack_up": {
     "w": 752,
@@ -59937,9 +61157,9 @@
     "ox": -165.3,
     "oy": -1120,
     "bodyBottom": 234.7,
-    "bodyH": 382.8,
+    "bodyH": 357.8,
     "centroidX": 157.2,
-    "renderScale": 0.2675,
+    "renderScale": 0.25,
     "file": "haruta/charge.png",
     "srcBox": [
      139,
@@ -59954,9 +61174,17 @@
       577.9
      ]
     },
-    "edited": {
-     "renderScale": 0.25
-    }
+    "replaced": {
+     "at": "2026-08-25T18:04:25+00:00",
+     "kept": "keep",
+     "how": "import",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 663,
+    "coreLeft": 53.7,
+    "coreRight": 563.5
    },
    "crouch_a": {
     "w": 783,
@@ -59989,7 +61217,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 783,
+    "coreLeft": 111.1,
+    "coreRight": 722.1
    },
    "crouch_attack_a": {
     "w": 1186,
@@ -59997,9 +61230,9 @@
     "ox": -660.7,
     "oy": -368,
     "bodyBottom": 274.8,
-    "bodyH": 192.8,
+    "bodyH": 169.8,
     "centroidX": 156.6,
-    "renderScale": 0.2838,
+    "renderScale": 0.25,
     "file": "haruta/crouch_attack_a.png",
     "srcBox": [
      23,
@@ -60014,9 +61247,17 @@
       357
      ]
     },
-    "edited": {
-     "renderScale": 0.25
-    }
+    "replaced": {
+     "at": "2026-08-25T18:04:25+00:00",
+     "kept": "keep",
+     "how": "import",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1186,
+    "coreLeft": 222.4,
+    "coreRight": 1134.1
    },
    "crouch_attack_b": {
     "w": 1202,
@@ -60089,7 +61330,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 760,
+    "coreLeft": 93.7,
+    "coreRight": 705.6
    },
    "dash": {
     "w": 830,
@@ -60161,7 +61407,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1487,
+    "coreLeft": 46.5,
+    "coreRight": 1421.9
    },
    "dodge_air": {
     "w": 802,
@@ -60271,7 +61522,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 782,
+    "coreLeft": 57.0,
+    "coreRight": 719.6
    },
    "guard": {
     "w": 486,
@@ -60359,9 +61615,9 @@
     "ox": -128.3,
     "oy": -1120,
     "bodyBottom": 234.7,
-    "bodyH": 382.8,
+    "bodyH": 357.8,
     "centroidX": 156.8,
-    "renderScale": 0.2675,
+    "renderScale": 0.25,
     "file": "haruta/idle_a.png",
     "srcBox": [
      183,
@@ -60376,9 +61632,17 @@
       638.7
      ]
     },
-    "edited": {
-     "renderScale": 0.25
-    }
+    "replaced": {
+     "at": "2026-08-25T18:04:25+00:00",
+     "kept": "keep",
+     "how": "import",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 553,
+    "coreLeft": 53.7,
+    "coreRight": 474.0
    },
    "idle_b": {
     "w": 552,
@@ -60386,9 +61650,9 @@
     "ox": -127.5,
     "oy": -1120,
     "bodyBottom": 234.7,
-    "bodyH": 382.8,
+    "bodyH": 357.8,
     "centroidX": 156.7,
-    "renderScale": 0.2675,
+    "renderScale": 0.25,
     "file": "haruta/idle_b.png",
     "srcBox": [
      183,
@@ -60403,9 +61667,17 @@
       638
      ]
     },
-    "edited": {
-     "renderScale": 0.25
-    }
+    "replaced": {
+     "at": "2026-08-25T18:04:25+00:00",
+     "kept": "keep",
+     "how": "import",
+     "lost": []
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 552,
+    "coreLeft": 53.7,
+    "coreRight": 474.0
    },
    "jump_rise": {
     "w": 613,
@@ -60438,7 +61710,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 613,
+    "coreLeft": 32.1,
+    "coreRight": 497.9
    },
    "land": {
     "w": 849,
@@ -60473,7 +61750,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 849,
+    "coreLeft": 74.9,
+    "coreRight": 736.8
    },
    "ledge_hang": {
     "w": 339,
@@ -60510,7 +61792,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 339,
+    "coreLeft": 45.5,
+    "coreRight": 318.7
    },
    "prone": {
     "w": 1336,
@@ -60582,7 +61869,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 789,
+    "coreLeft": 81.3,
+    "coreRight": 704.6
    },
    "run_pass_b": {
     "w": 763,
@@ -60879,7 +62171,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 615,
+    "coreLeft": 57.4,
+    "coreRight": 525.9
    },
    "ult_b": {
     "w": 843,
@@ -60912,7 +62209,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 843,
+    "coreLeft": 74.2,
+    "coreRight": 723.5
    },
    "victory": {
     "w": 635,
@@ -60946,7 +62248,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 635,
+    "coreLeft": 36.0,
+    "coreRight": 584.6
    },
    "attack_dash": {
     "w": 875,
@@ -61028,7 +62335,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 816,
+    "coreLeft": 100.1,
+    "coreRight": 733.7
    },
    "grab_reach": {
     "w": 849,
@@ -61068,7 +62380,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 849,
+    "coreLeft": 92.8,
+    "coreRight": 723.9
    },
    "grabbed": {
     "w": 761,
@@ -61196,7 +62513,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 592,
+    "coreLeft": 58.2,
+    "coreRight": 473.8
    },
    "walk_b": {
     "w": 639,
@@ -61230,7 +62552,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 639,
+    "coreLeft": 52.0,
+    "coreRight": 563.1
    },
    "attack_air_diag_down_b": {
     "w": 935,
@@ -61263,7 +62590,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 935,
+    "coreLeft": 49.0,
+    "coreRight": 784.7
    },
    "attack_diag_up_b": {
     "w": 979,
@@ -61336,7 +62668,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 797,
+    "coreLeft": 73.1,
+    "coreRight": 741.9
    },
    "throw_down": {
     "w": 1041,
@@ -61369,7 +62706,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 1041,
+    "coreLeft": 65.1,
+    "coreRight": 904.4
    },
    "throw_fwd": {
     "w": 897,
@@ -61402,7 +62744,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 897,
+    "coreLeft": 59.5,
+    "coreRight": 807.5
    },
    "throw_up": {
     "w": 835,
@@ -61435,7 +62782,12 @@
      "kept": "keep",
      "how": "import",
      "lost": []
-    }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 835,
+    "coreLeft": 78.1,
+    "coreRight": 712.7
    }
   },
   "tengen": {
@@ -65204,7 +66556,7 @@
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 869,
-      "coreLeft": 48.9,
+      "coreLeft": 54.3,
       "coreRight": 749.5
      },
      {
@@ -66186,7 +67538,7 @@
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 1043,
-      "coreLeft": 131.7,
+      "coreLeft": 123.5,
       "coreRight": 979.5
      },
      {
@@ -66952,7 +68304,7 @@
       "oy": -1021,
       "bodyBottom": 310,
       "bodyH": 342.1,
-      "bodyTop": 1,
+      "bodyTop": 0,
       "centroidX": 161.3,
       "renderScale": 0.257,
       "anchors": {
@@ -66967,7 +68319,7 @@
       },
       "file": "hanami/ledge_hang.png",
       "label": "In game",
-      "bodyLeft": 10,
+      "bodyLeft": 0,
       "bodyRight": 323,
       "coreLeft": 33.3,
       "coreRight": 299.5
@@ -67893,7 +69245,11 @@
       },
       "file": "hanami/throw_up.png",
       "label": "Superseded",
-      "supersededAt": "2026-08-25T00:33:46+00:00"
+      "supersededAt": "2026-08-25T00:33:46+00:00",
+      "bodyLeft": 0,
+      "bodyRight": 496,
+      "coreLeft": 45.7,
+      "coreRight": 420.6
      }
     ]
    }
@@ -71215,23 +72571,31 @@
    "special_side": {
     "options": [
      {
-      "w": 884,
-      "h": 1042,
-      "ox": -328.6,
-      "oy": -731,
-      "bodyBottom": 240.4,
-      "bodyH": 305.2,
+      "file": "hakari/special_side.png",
+      "label": "Delivered",
+      "w": 949,
+      "h": 1047,
+      "ox": -317.8,
+      "oy": -736,
+      "bodyBottom": 207.9,
+      "bodyH": 336.7,
       "bodyTop": 0,
-      "centroidX": 200.1,
-      "renderScale": 0.2929,
+      "centroidX": 139,
+      "renderScale": 0.3011,
       "anchors": {
        "com": [
-        486.6,
-        431.4
+        457.2,
+        393.7
        ]
       },
-      "file": "hakari/incoming/special_side.png",
-      "label": "In game"
+      "edited": {
+       "renderScale": 0.322,
+       "bodyBottom": 310.4
+      },
+      "bodyLeft": 0,
+      "bodyRight": 949,
+      "coreLeft": 104.7,
+      "coreRight": 804.9
      },
      {
       "file": "hakari/r1c3.png",
@@ -71268,30 +72632,6 @@
         97.5
        ]
       }
-     },
-     {
-      "w": 949,
-      "h": 1047,
-      "ox": -317.8,
-      "oy": -736,
-      "bodyBottom": 207.9,
-      "bodyH": 336.7,
-      "bodyTop": 0,
-      "centroidX": 139,
-      "renderScale": 0.3011,
-      "anchors": {
-       "com": [
-        457.2,
-        393.7
-       ]
-      },
-      "edited": {
-       "renderScale": 0.322,
-       "bodyBottom": 310.4
-      },
-      "file": "hakari/special_side.png",
-      "label": "Superseded",
-      "supersededAt": "2026-08-25T14:14:52+00:00"
      }
     ]
    },
@@ -71321,7 +72661,7 @@
       },
       "bodyLeft": 0,
       "bodyRight": 983,
-      "coreLeft": 83,
+      "coreLeft": 73.8,
       "coreRight": 922.5
      },
      {
@@ -85460,8 +86800,8 @@
       "renderScale": 0.247,
       "anchors": {
        "com": [
-        454.8,
-        530.3
+        415.9,
+        541.6
        ]
       },
       "needsReplacement": "quality",
@@ -85471,7 +86811,11 @@
       },
       "file": "momo/throw_fwd.png",
       "label": "Superseded",
-      "supersededAt": "2026-08-25T02:13:05+00:00"
+      "supersededAt": "2026-08-25T02:13:05+00:00",
+      "bodyLeft": 0,
+      "bodyRight": 934,
+      "coreLeft": 74.4,
+      "coreRight": 802.1
      }
     ]
    }
@@ -86256,7 +87600,11 @@
        ]
       },
       "file": "meimei/incoming/attack_air_diag_down_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1031,
+      "coreLeft": 70.9,
+      "coreRight": 977.3
      },
      {
       "w": 988,
@@ -87587,16 +88935,16 @@
       "renderScale": 0.224,
       "anchors": {
        "com": [
-        339.1,
-        497.5
+        348.1,
+        496.5
        ]
       },
       "file": "gakuganji/attack_heavy_b.png",
       "label": "In game",
       "bodyLeft": 0,
-      "bodyRight": 928,
-      "coreLeft": 44.1,
-      "coreRight": 668.3
+      "bodyRight": 929,
+      "coreLeft": 49.6,
+      "coreRight": 729.4
      },
      {
       "w": 861,
@@ -89751,7 +91099,11 @@
       },
       "file": "yuji/throw_back.png",
       "label": "Superseded",
-      "supersededAt": "2026-08-25T00:33:46+00:00"
+      "supersededAt": "2026-08-25T00:33:46+00:00",
+      "bodyLeft": 0,
+      "bodyRight": 647,
+      "coreLeft": 49.2,
+      "coreRight": 590.1
      }
     ]
    },
@@ -92554,7 +93906,7 @@
       "bodyLeft": 0,
       "bodyRight": 754,
       "coreLeft": 48.9,
-      "coreRight": 649.3
+      "coreRight": 656.2
      },
      {
       "w": 446,
@@ -92666,7 +94018,7 @@
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 1205,
-      "coreLeft": 67.8,
+      "coreLeft": 60.2,
       "coreRight": 1001.7
      },
      {
@@ -92718,8 +94070,8 @@
       "label": "In game",
       "bodyLeft": 0,
       "bodyRight": 1281,
-      "coreLeft": 56,
-      "coreRight": 1080.8
+      "coreLeft": 64.0,
+      "coreRight": 1072.8
      },
      {
       "w": 1281,
@@ -93159,16 +94511,16 @@
       "renderScale": 0.402,
       "anchors": {
        "com": [
-        183.3,
-        305.9
+        761.3,
+        313.9
        ]
       },
       "file": "haruta/dizzy.png",
       "label": "In game",
       "bodyLeft": 0,
-      "bodyRight": 360,
-      "coreLeft": 32.1,
-      "coreRight": 304.9
+      "bodyRight": 1487,
+      "coreLeft": 46.5,
+      "coreRight": 1421.9
      },
      {
       "file": "haruta/archive/dizzy_2.png",
@@ -95270,8 +96622,7 @@
   "miwa": 398.3,
   "tengen": 347.65,
   "naoya": 280.35,
-  "yaga": 280.1,
-  "haruta": 362.81
+  "yaga": 280.1
  },
  "otherSprites": {
   "effect:aura_chitin": {
@@ -96435,11 +97786,9 @@
   },
   "summon:toad": {
    "edited": {
-    "faceLeft": null,
-    "renderScale": null
+    "faceLeft": null
    },
-   "faceLeft": false,
-   "renderScale": 0.69
+   "faceLeft": false
   },
   "summon:rabbitEscape": {
    "edited": {
