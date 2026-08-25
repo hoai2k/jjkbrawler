@@ -152,6 +152,7 @@ VARIANT_PLACEMENT = [
     "centroidX", "renderScale", "rotationDeg", "anchors", "faceLeft",
     # where the trimmed art sat in the delivered plate; see sprites.js
     "srcBox",
+    "srcFlip",
 ]
 VARIANT_REVIEW = ["needsReplacement", "wantsImprovement",
                   "replacementNote", "improvementNote",

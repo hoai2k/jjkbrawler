@@ -16,6 +16,11 @@ reported and left alone rather than given a number that would move it.
 Verdicts are suppressed while matching, because a verdict is a change the art on
 disk does not have yet — that is the whole reason a re-key is pending.
 
+A frame the pipeline MIRRORED to face right is compared mirrored, and recorded
+with `srcFlip`. Without that its alpha never lines up with the keyer's output
+and the pose reads as unmatched — which is what happened to eleven of them —
+and the box would carry by the wrong edge if it were believed anyway.
+
   python3 tools/backfill_src_boxes.py --dry-run
   python3 tools/backfill_src_boxes.py
   python3 tools/backfill_src_boxes.py --chars gojo hakari
@@ -77,6 +82,15 @@ def main():
             if not rel or stem(rel) != pose:
                 skipped += 1
                 continue
+            # A frame one of the mask fixes re-trims is keyed and then trimmed
+            # AGAIN, so `key_and_trim` alone does not produce the box that was
+            # used. Rather than record one that is a little wrong — which would
+            # move the art on the next re-key — leave it; the next run of
+            # intake.py writes the right one.
+            if f"{char}/{pose}" in (intake.GHOSTED | intake.GREY_TINT_FIX
+                                    | set(intake.TINT_FIX)):
+                skipped += 1
+                continue
             path = os.path.join(SPRITES, rel)
             cands = sorted(glob.glob(os.path.join(ROOT, "assets", "reference",
                                                   "round*", char, f"{pose}.png")))
@@ -93,21 +107,28 @@ def main():
                         continue
                     if frame is None or frame.shape[:2] != now.shape[:2]:
                         continue
-                    agree = float((np.abs(frame[:, :, 3].astype(int)
-                                          - now[:, :, 3].astype(int)) <= 2).mean())
-                    if agree >= AGREE:
-                        hit = (box, agree, src)
+                    for flip in (False, True):
+                        a = frame[:, ::-1, 3] if flip else frame[:, :, 3]
+                        agree = float((np.abs(a.astype(int)
+                                              - now[:, :, 3].astype(int)) <= 2).mean())
+                        if agree >= AGREE:
+                            hit = (box, agree, src, flip)
+                            break
+                    if hit:
                         break
             if hit is None:
                 missed.append(f"{char}/{pose}")
                 continue
             found.append((char, pose, [int(v) for v in hit[0]], hit[1],
-                          os.path.relpath(hit[2], ROOT)))
+                          os.path.relpath(hit[2], ROOT), hit[3]))
             if not args.dry_run:
                 meta["srcBox"] = [int(v) for v in hit[0]]
+                if hit[3]:
+                    meta["srcFlip"] = True
 
-    for char, pose, box, agree, src in found[:12]:
-        print(f"  {char}/{pose:26} {str(box):24} {agree*100:5.1f}%  {src.split('/')[2]}")
+    for char, pose, box, agree, src, flip in found[:12]:
+        print(f"  {char}/{pose:26} {str(box):24} {agree*100:5.1f}%  {src.split('/')[2]}"
+              + ("  mirrored" if flip else ""))
     if len(found) > 12:
         print(f"  ... {len(found) - 12} more")
     if missed:
@@ -115,8 +136,10 @@ def main():
               "re-key of one still has to be placed by hand:")
         for ref in missed:
             print(f"    {ref}")
-    print(f"\n{len(found)} box(es) {'would be ' if args.dry_run else ''}recorded, "
-          f"{len(missed)} unmatched, {skipped} skipped (borrowed art or no plate)")
+    flips = sum(1 for f in found if f[5])
+    print(f"\n{len(found)} box(es) {'would be ' if args.dry_run else ''}recorded "
+          f"({flips} mirrored), {len(missed)} unmatched, {skipped} skipped "
+          "(borrowed art or no plate)")
     if found and not args.dry_run:
         json.dump(man, open(MANIFEST, "w"), indent=1)
         open(MANIFEST, "a").write("\n")

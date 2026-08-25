@@ -507,13 +507,7 @@
     "bodyLeft": 0,
     "bodyRight": 516,
     "coreLeft": 42.4,
-    "coreRight": 460.3,
-    "srcBox": [
-     469,
-     175,
-     985,
-     1144
-    ]
+    "coreRight": 460.3
    },
    "dodge_roll": {
     "w": 980,
@@ -572,7 +566,14 @@
     "bodyLeft": 0,
     "bodyRight": 970,
     "coreLeft": 57.5,
-    "coreRight": 863.2
+    "coreRight": 863.2,
+    "srcBox": [
+     27,
+     70,
+     997,
+     1093
+    ],
+    "srcFlip": true
    },
    "attack_air_b": {
     "w": 952,
@@ -919,7 +920,14 @@
      "ox": -369.1,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     33,
+     453,
+     998,
+     1387
+    ],
+    "srcFlip": true
    },
    "crouch_b": {
     "w": 813,
@@ -953,7 +961,14 @@
      "renderScale": 0.403,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     96,
+     377,
+     909,
+     1379
+    ],
+    "srcFlip": true
    },
    "dash": {
     "w": 918,
@@ -1018,7 +1033,14 @@
     "bodyLeft": 0,
     "bodyRight": 796,
     "coreLeft": 113.9,
-    "coreRight": 737
+    "coreRight": 737,
+    "srcBox": [
+     111,
+     302,
+     907,
+     1374
+    ],
+    "srcFlip": true
    },
    "special_down": {
     "w": 939,
@@ -3784,7 +3806,14 @@
      "renderScale": 0.23108,
      "ox": -152.1,
      "bodyBottom": 199.8
-    }
+    },
+    "srcBox": [
+     241,
+     51,
+     850,
+     1456
+    ],
+    "srcFlip": true
    },
    "idle_b": {
     "w": 606,
@@ -3854,7 +3883,14 @@
     },
     "edited": {
      "renderScale": 0.193
-    }
+    },
+    "srcBox": [
+     152,
+     56,
+     807,
+     1443
+    ],
+    "srcFlip": true
    },
    "fall": {
     "w": 720,
@@ -3885,7 +3921,14 @@
     },
     "edited": {
      "renderScale": 0.222
-    }
+    },
+    "srcBox": [
+     142,
+     99,
+     862,
+     1362
+    ],
+    "srcFlip": true
    },
    "hurt": {
     "w": 663,
@@ -3920,7 +3963,14 @@
      "bodyBottom": 239.2,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     230,
+     97,
+     893,
+     1412
+    ],
+    "srcFlip": true
    },
    "guard": {
     "w": 706,
@@ -3955,7 +4005,14 @@
      "bodyBottom": 238.7,
      "rotationDeg": null
     },
-    "rotationDeg": 6
+    "rotationDeg": 6,
+    "srcBox": [
+     177,
+     78,
+     883,
+     1402
+    ],
+    "srcFlip": true
    },
    "attack_up": {
     "w": 658,
@@ -4035,7 +4092,14 @@
      "bodyBottom": 246.2,
      "rotationDeg": null
     },
-    "rotationDeg": 8
+    "rotationDeg": 8,
+    "srcBox": [
+     20,
+     162,
+     963,
+     1346
+    ],
+    "srcFlip": true
    },
    "dizzy": {
     "w": 681,
@@ -4225,7 +4289,14 @@
     },
     "edited": {
      "renderScale": 0.398
-    }
+    },
+    "srcBox": [
+     242,
+     225,
+     1299,
+     870
+    ],
+    "srcFlip": true
    },
    "special_neutral": {
     "w": 826,
@@ -4301,7 +4372,14 @@
      "bodyBottom": 223.3,
      "rotationDeg": null
     },
-    "rotationDeg": -4
+    "rotationDeg": -4,
+    "srcBox": [
+     117,
+     227,
+     956,
+     1328
+    ],
+    "srcFlip": true
    },
    "attack_air_a": {
     "w": 837,
@@ -4449,7 +4527,14 @@
     },
     "edited": {
      "renderScale": 0.328
-    }
+    },
+    "srcBox": [
+     170,
+     89,
+     891,
+     1401
+    ],
+    "srcFlip": true
    },
    "attack_heavy_b": {
     "w": 1041,
@@ -4595,7 +4680,14 @@
     "edited": {
      "renderScale": 0.473,
      "bodyBottom": 268.8
-    }
+    },
+    "srcBox": [
+     342,
+     144,
+     1211,
+     928
+    ],
+    "srcFlip": true
    },
    "crouch_attack_a": {
     "w": 903,
@@ -4787,7 +4879,14 @@
        414.2
       ]
      }
-    }
+    },
+    "srcBox": [
+     233,
+     47,
+     1275,
+     971
+    ],
+    "srcFlip": true
    },
    "special_down": {
     "w": 890,
@@ -4936,7 +5035,14 @@
     },
     "edited": {
      "bodyBottom": 310
-    }
+    },
+    "srcBox": [
+     94,
+     388,
+     1589,
+     769
+    ],
+    "srcFlip": true
    },
    "run_pass_a": {
     "w": 799,
@@ -6213,13 +6319,7 @@
     "bodyLeft": 0,
     "bodyRight": 1165,
     "coreLeft": 400.5,
-    "coreRight": 1063.1,
-    "srcBox": [
-     200,
-     106,
-     1365,
-     943
-    ]
+    "coreRight": 1063.1
    },
    "dodge_roll": {
     "w": 1043,
@@ -6289,7 +6389,14 @@
        612.6
       ]
      }
-    }
+    },
+    "srcBox": [
+     78,
+     157,
+     938,
+     1316
+    ],
+    "srcFlip": true
    },
    "special_neutral": {
     "w": 895,
@@ -6904,7 +7011,14 @@
      "bodyBottom": 310,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     41,
+     727,
+     981,
+     973
+    ],
+    "srcFlip": true
    },
    "run_pass_a": {
     "w": 783,
@@ -15579,7 +15693,14 @@
      "renderScale": 0.219,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     161,
+     141,
+     931,
+     1368
+    ],
+    "srcFlip": true
    },
    "idle_b": {
     "w": 770,
@@ -16027,7 +16148,14 @@
     "bodyLeft": 0,
     "bodyRight": 862,
     "coreLeft": 114.5,
-    "coreRight": 793.6
+    "coreRight": 793.6,
+    "srcBox": [
+     50,
+     126,
+     912,
+     1435
+    ],
+    "srcFlip": true
    },
    "attack_air_a": {
     "w": 897,
@@ -16186,7 +16314,14 @@
     "bodyLeft": 0,
     "bodyRight": 980,
     "coreLeft": 62.9,
-    "coreRight": 912
+    "coreRight": 912,
+    "srcBox": [
+     26,
+     124,
+     1006,
+     1382
+    ],
+    "srcFlip": true
    },
    "attack_light_a": {
     "w": 978,
@@ -16215,7 +16350,14 @@
     "bodyLeft": 0,
     "bodyRight": 978,
     "coreLeft": 128.3,
-    "coreRight": 922.2
+    "coreRight": 922.2,
+    "srcBox": [
+     35,
+     179,
+     1013,
+     1462
+    ],
+    "srcFlip": true
    },
    "attack_light_b": {
     "w": 973,
@@ -16251,7 +16393,14 @@
      "faceLeft": null,
      "ox": -395.7
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     49,
+     171,
+     1022,
+     1335
+    ],
+    "srcFlip": true
    },
    "crouch_a": {
     "w": 827,
@@ -16286,7 +16435,14 @@
      "bodyBottom": 262.2,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     128,
+     383,
+     955,
+     1375
+    ],
+    "srcFlip": true
    },
    "crouch_attack_a": {
     "w": 996,
@@ -16397,7 +16553,14 @@
      "bodyBottom": 253.2,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     50,
+     284,
+     998,
+     1460
+    ],
+    "srcFlip": true
    },
    "dash": {
     "w": 904,
@@ -16456,7 +16619,14 @@
     "bodyLeft": 0,
     "bodyRight": 936,
     "coreLeft": 104.9,
-    "coreRight": 818.3
+    "coreRight": 818.3,
+    "srcBox": [
+     3,
+     295,
+     939,
+     1414
+    ],
+    "srcFlip": true
    },
    "special_down": {
     "w": 905,
@@ -16484,7 +16654,14 @@
     "bodyLeft": 0,
     "bodyRight": 905,
     "coreLeft": 71.3,
-    "coreRight": 831.5
+    "coreRight": 831.5,
+    "srcBox": [
+     53,
+     162,
+     958,
+     1429
+    ],
+    "srcFlip": true
    },
    "special_neutral": {
     "w": 967,
@@ -16513,7 +16690,14 @@
     "bodyLeft": 0,
     "bodyRight": 967,
     "coreLeft": 129.4,
-    "coreRight": 905.8
+    "coreRight": 905.8,
+    "srcBox": [
+     25,
+     140,
+     992,
+     1434
+    ],
+    "srcFlip": true
    },
    "ult_a": {
     "w": 771,
@@ -16541,7 +16725,14 @@
     "bodyLeft": 0,
     "bodyRight": 771,
     "coreLeft": 37.4,
-    "coreRight": 683
+    "coreRight": 683,
+    "srcBox": [
+     62,
+     22,
+     833,
+     1519
+    ],
+    "srcFlip": true
    },
    "ult_b": {
     "w": 996,
@@ -16892,7 +17083,14 @@
      "bodyBottom": 243.6,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     40,
+     90,
+     977,
+     1413
+    ],
+    "srcFlip": true
    },
    "grab_reach": {
     "w": 1000,
@@ -16978,7 +17176,14 @@
       "grabChest": null
      }
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     120,
+     33,
+     952,
+     1484
+    ],
+    "srcFlip": true
    },
    "walk_a": {
     "w": 750,
@@ -17991,13 +18196,7 @@
       "ox": "on the placed centre of mass"
      }
     },
-    "wantsImprovement": "alpha",
-    "srcBox": [
-     168,
-     187,
-     758,
-     1260
-    ]
+    "wantsImprovement": "alpha"
    },
    "dodge_roll": {
     "w": 937,
@@ -18315,7 +18514,14 @@
      "bodyBottom": 160.8,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     31,
+     143,
+     999,
+     1449
+    ],
+    "srcFlip": true
    },
    "crouch_a": {
     "w": 798,
@@ -25701,13 +25907,7 @@
     "bodyLeft": 0,
     "bodyRight": 583,
     "coreLeft": 79.9,
-    "coreRight": 515.6,
-    "srcBox": [
-     331,
-     186,
-     914,
-     1348
-    ]
+    "coreRight": 515.6
    },
    "dodge_roll": {
     "w": 1010,
@@ -25823,7 +26023,14 @@
     "bodyLeft": 0,
     "bodyRight": 840,
     "coreLeft": 97.1,
-    "coreRight": 776.9
+    "coreRight": 776.9,
+    "srcBox": [
+     66,
+     394,
+     906,
+     1308
+    ],
+    "srcFlip": true
    },
    "attack_heavy_a": {
     "w": 947,
@@ -25952,7 +26159,14 @@
     "bodyLeft": 0,
     "bodyRight": 898,
     "coreLeft": 146.3,
-    "coreRight": 826.2
+    "coreRight": 826.2,
+    "srcBox": [
+     87,
+     99,
+     985,
+     1476
+    ],
+    "srcFlip": true
    },
    "crouch_a": {
     "w": 614,
@@ -32898,7 +33112,14 @@
     "bodyLeft": 0,
     "bodyRight": 1178,
     "coreLeft": 147.2,
-    "coreRight": 1074.9
+    "coreRight": 1074.9,
+    "srcBox": [
+     63,
+     135,
+     1241,
+     1087
+    ],
+    "srcFlip": true
    },
    "crouch_attack_b": {
     "w": 1253,
@@ -38518,7 +38739,14 @@
     "bodyLeft": 0,
     "bodyRight": 630,
     "coreLeft": 40.7,
-    "coreRight": 577.8
+    "coreRight": 577.8,
+    "srcBox": [
+     186,
+     96,
+     816,
+     1398
+    ],
+    "srcFlip": true
    },
    "idle_b": {
     "file": "yuji/idle_b.png",
@@ -41990,7 +42218,14 @@
     "bodyLeft": 0,
     "bodyRight": 970,
     "coreLeft": 60.6,
-    "coreRight": 897.2
+    "coreRight": 897.2,
+    "srcBox": [
+     32,
+     228,
+     1002,
+     1170
+    ],
+    "srcFlip": true
    },
    "fall": {
     "w": 901,
@@ -42086,7 +42321,14 @@
     "bodyLeft": 0,
     "bodyRight": 864,
     "coreLeft": 105.4,
-    "coreRight": 770.1
+    "coreRight": 770.1,
+    "srcBox": [
+     80,
+     69,
+     944,
+     1366
+    ],
+    "srcFlip": true
    },
    "idle_b": {
     "w": 760,
@@ -43942,7 +44184,14 @@
     "bodyLeft": 0,
     "bodyRight": 974,
     "coreLeft": 128.2,
-    "coreRight": 888.5
+    "coreRight": 888.5,
+    "srcBox": [
+     46,
+     83,
+     1020,
+     1450
+    ],
+    "srcFlip": true
    },
    "idle_a": {
     "w": 729,
@@ -43977,7 +44226,14 @@
      "ox": -147.6,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     144,
+     29,
+     873,
+     1273
+    ],
+    "srcFlip": true
    },
    "idle_b": {
     "w": 726,
@@ -44014,7 +44270,14 @@
      "ox": -148,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     150,
+     29,
+     876,
+     1276
+    ],
+    "srcFlip": true
    },
    "jump_rise": {
     "w": 947,
@@ -44535,7 +44798,14 @@
      "bodyBottom": 310.4,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     19,
+     640,
+     987,
+     1002
+    ],
+    "srcFlip": true
    },
    "run_pass_a": {
     "w": 951,
@@ -46894,7 +47164,14 @@
      "bodyBottom": 184.7,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     21,
+     51,
+     1022,
+     1475
+    ],
+    "srcFlip": true
    },
    "grab_reach": {
     "w": 1093,
@@ -51740,7 +52017,14 @@
     "edited": {
      "renderScale": 0.25,
      "ox": -370.1
-    }
+    },
+    "srcBox": [
+     120,
+     210,
+     1124,
+     1523
+    ],
+    "srcFlip": true
    },
    "prone": {
     "w": 1461,

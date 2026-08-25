@@ -295,10 +295,13 @@ def content_box(frame):
 
 
 def boxes_from_report():
-    """Each processed frame's trim box in its delivered plate, from the report.
+    """Each processed frame's trim box in its delivered plate, and its facing.
 
-    `intake.py` writes it because only that half ever sees the source; this half
-    only ever sees the trimmed PNG, and the box is what makes a re-key free.
+    `intake.py` writes both because only that half ever sees the source; this
+    half only ever sees the trimmed PNG, and the box is what makes a re-key
+    free. The facing comes with it because a mirrored frame's image x runs the
+    other way down the plate and carries by the other edge.
+
     Cached: the report is one file for the whole round.
     """
     if boxes_from_report.cache is None:
@@ -307,7 +310,8 @@ def boxes_from_report():
         if os.path.exists(path):
             for row in json.load(open(path)):
                 if row.get("box"):
-                    out[(row["char"], row["key"])] = [int(v) for v in row["box"]]
+                    out[(row["char"], row["key"])] = ([int(v) for v in row["box"]],
+                                                      bool(row.get("mirrored")))
         boxes_from_report.cache = out
     return boxes_from_report.cache
 
@@ -315,7 +319,7 @@ def boxes_from_report():
 boxes_from_report.cache = None
 
 
-def reframe_placement(meta, old_meta, old_frame, new_frame, boxes=None):
+def reframe_placement(meta, old_meta, old_frame, new_frame, boxes=None, flips=None):
     """Re-point `meta`'s ox/oy so the DRAWING lands exactly where it did.
 
     `generated_frame_meta` places a frame from scratch: content box centred in
@@ -345,8 +349,16 @@ def reframe_placement(meta, old_meta, old_frame, new_frame, boxes=None):
     #
     # Both boxes are in the delivered plate's own pixels, so this holds however
     # much the matte changed, and it holds for a re-crop too.
-    if boxes and boxes[0] and boxes[1]:
-        out["ox"] = round(old_meta.get("ox", 0) + (boxes[1][0] - boxes[0][0]), 1)
+    # A MIRRORED FRAME CARRIES BY THE OTHER EDGE. The saved image is the plate
+    # flipped, so its pixel i is the plate's box[2]-1-i, and holding that pixel
+    # still means ox moves by MINUS the change in the box's right edge. If the
+    # two deliveries disagree about which way the frame faces there is no shift
+    # that holds the drawing still at all, so the rule stands aside and the
+    # silhouette rule below does what it can.
+    was_flipped, now_flipped = flips or (False, False)
+    if boxes and boxes[0] and boxes[1] and bool(was_flipped) == bool(now_flipped):
+        dx = (boxes[0][2] - boxes[1][2]) if now_flipped else (boxes[1][0] - boxes[0][0])
+        out["ox"] = round(old_meta.get("ox", 0) + dx, 1)
         out["oy"] = round(old_meta.get("oy", 0) + (boxes[1][1] - boxes[0][1]))
         if "centroidX" in meta:
             out["centroidX"] = round(meta["centroidX"] + (out["ox"] - meta["ox"]), 1)
@@ -525,7 +537,7 @@ def main():
                 skipped.append(f"{char}/{key}: not in _processed")
                 continue
             frame = np.asarray(Image.open(src).convert("RGBA"))
-            new_box = boxes_from_report().get((char, key))
+            new_box, new_flip = boxes_from_report().get((char, key), (None, False))
             stored = man["characters"].get(char, {}).get(key)
             keeps = survives(stored)
             asked = (stated.get(key) or {}).get("as") if isinstance(stated.get(key), dict) else None
@@ -543,6 +555,7 @@ def main():
             meta["file"] = f"{char}/{key}.png"
             if new_box:
                 meta["srcBox"] = list(new_box)
+                meta["srcFlip"] = new_flip
 
             carried = []
             if keeps in ("keep", "reframe") and stored:
@@ -552,10 +565,13 @@ def main():
                 old_path = os.path.join(SPRITES, stored.get("file", f"{char}/{key}.png"))
                 if os.path.exists(old_path):
                     old_frame = np.asarray(Image.open(old_path).convert("RGBA"))
-                    meta = reframe_placement(meta, stored, old_frame, frame,
-                                             boxes=(stored.get("srcBox"), new_box))
-                    carried.append("placement"
-                                   + (" (exact)" if stored.get("srcBox") and new_box else ""))
+                    exact = bool(stored.get("srcBox")) and bool(new_box) \
+                        and bool(stored.get("srcFlip")) == new_flip
+                    meta = reframe_placement(
+                        meta, stored, old_frame, frame,
+                        boxes=(stored.get("srcBox"), new_box),
+                        flips=(bool(stored.get("srcFlip")), new_flip))
+                    carried.append("placement" + (" (exact)" if exact else ""))
                 else:
                     skipped.append(f"{char}/{key}: previous art missing, cannot reframe")
                 anchors, moved = carry_anchors(stored, old, meta)
