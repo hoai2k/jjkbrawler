@@ -105,6 +105,47 @@ def current_frames_for(anims, man, char, key):
 
 # ---------------------------------------------------------------- keying
 
+def screen_kind(key):
+    """"magenta" | "green" | "neutral" — which screen this plate was shot on."""
+    if key[0] > 180 and key[2] > 180 and key[1] < 100:
+        return "magenta"
+    if key[1] > 120 and key[1] > key[0] + 25 and key[1] > key[2] + 25:
+        return "green"
+    return "neutral"
+
+
+def screen_masks(rgb, key):
+    """What MIGHT be the screen, and what UNMISTAKABLY is.
+
+    `cand` is what a flood from the border is allowed to travel through; `sure`
+    is colour no drawing arrives in by accident, so it is background wherever it
+    sits, sealed inside the figure or not. The bar for `sure` is high on purpose
+    — it has to leave Geto's pink curse and Hanami's blossoms alone.
+
+    A NEUTRAL SCREEN HAS NO `sure`, and that is the whole shadow-or-gap problem:
+    grey shading on a grey screen is the same pixels, so nothing can be settled
+    by colour and a person has to say. Magenta and green have no such collision,
+    which is why the fix at the source is the screen colour.
+
+    Shared with tools/sealed_regions.py so the queue asks about the same pixels
+    the keyer is undecided about. It used to run the neutral test on every plate
+    whatever its screen, and so asked 584 questions about sealed magenta that
+    this function answers outright.
+    """
+    r, g, b = np.moveaxis(rgb, 2, 0)
+    kind = screen_kind(key)
+    if kind == "magenta":
+        cand = (r > 145) & (b > 145) & ((np.minimum(r, b) - g) > 70)
+        sure = (r > 190) & (b > 190) & (g < 85) & ((np.minimum(r, b) - g) > 115)
+    elif kind == "green":
+        cand = (g > key[1] - 60) & (g > r + 25) & (g > b + 25)
+        sure = (g > 170) & (r < 120) & (b < 120) & ((g - np.maximum(r, b)) > 90)
+    else:
+        cand = np.linalg.norm(rgb - key, axis=2) < 30
+        sure = np.zeros(cand.shape, bool)
+    return cand, sure
+
+
 def key_and_trim(path, ref=None):
     """Key the delivered background out and trim to content.
 
@@ -118,27 +159,15 @@ def key_and_trim(path, ref=None):
         key = None
     else:
         key = border_key(rgb)
-        r, g, b = np.moveaxis(rgb, 2, 0)
-        if key[0] > 180 and key[2] > 180 and key[1] < 100:          # magenta
-            cand = (r > 145) & (b > 145) & ((np.minimum(r, b) - g) > 70)
-        elif key[1] > 120 and key[1] > key[0] + 25 and key[1] > key[2] + 25:  # green
-            cand = (g > key[1] - 60) & (g > r + 25) & (g > b + 25)
-        else:                                                        # flat neutral
-            cand = np.linalg.norm(rgb - key, axis=2) < 30
+        cand, sure = screen_masks(rgb, key)
         seed = np.zeros(cand.shape, bool)
         seed[[0, -1], :] = cand[[0, -1], :]
         seed[:, [0, -1]] |= cand[:, [0, -1]]
-        background = flood_background(cand, seed)
         # Background sealed inside the silhouette — between an arm and the
         # body, inside a robe, through the gap in a curl of hair — never
-        # touches the canvas border, so the flood fill above cannot reach it.
-        # Only UNMISTAKABLE key colour qualifies here, which leaves Geto's pink
-        # curse and Hanami's blossoms alone; anything softer is judged by eye
-        # on the intake board instead.
-        if key[0] > 180 and key[2] > 180 and key[1] < 100:
-            background |= (r > 190) & (b > 190) & (g < 85) & ((np.minimum(r, b) - g) > 115)
-        elif key[1] > 120 and key[1] > key[0] + 25 and key[1] > key[2] + 25:
-            background |= (g > 170) & (r < 120) & (b < 120) & ((g - np.maximum(r, b)) > 90)
+        # touches the canvas border, so the flood fill cannot reach it. On a
+        # coloured screen `sure` settles those outright.
+        background = flood_background(cand, seed) | sure
         alpha = (~background).astype(np.float32)
         soft = ndimage.binary_dilation(background, iterations=2) & ~background
         d = np.linalg.norm(rgb - key, axis=2)

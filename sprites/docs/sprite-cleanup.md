@@ -300,6 +300,21 @@ this delivery, and it was wrong about roughly nine regions in ten. It is still
 right often enough elsewhere — Toji, Dagon and Mei Mei — that turning it off is
 not the answer either.
 
+**And it only ever applied to a NEUTRAL screen.** `intake.py` has always had a
+confident rule for a coloured one: sealed background is cut outright wherever the
+colour is unmistakable — `r>190 & b>190 & g<85 & min(r,b)-g > 115` on magenta,
+the mirror of it on green — with the bar set high on purpose so it leaves Geto's
+pink curse and Hanami's blossoms alone. The queue builder did not know that. It
+ran the flat-neutral test on every plate whatever its screen, and built its
+opaque mask from the flood alone, so it put **584 questions about sealed magenta**
+in front of the reviewer — 60% of the queue, across 246 plates, every one of them
+100% unmistakable by the keyer's own test and already answered by it.
+
+Both halves now call `intake.screen_masks()`, which returns what MIGHT be the
+screen and what unmistakably IS, and the queue skips a plate that was not shot on
+a neutral screen. A neutral screen is the only one with no `sure` — that absence
+is the whole problem, and it is why the paragraph below is the real fix.
+
 **The fix at the source is the screen colour.** A magenta or green key cannot
 collide with a shadow, and `intake.py` already keys both. Every heuristic here
 exists because a neutral grey screen was used for art that is itself neutral

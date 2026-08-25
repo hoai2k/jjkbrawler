@@ -6180,6 +6180,1698 @@
    [
     166,
     340
+   ],
+   [
+    360,
+    334
+   ],
+   [
+    252,
+    228
+   ]
+  ]
+ },
+ "nanami/special_side": {
+  "background": [
+   [
+    707,
+    499
+   ],
+   [
+    724,
+    337
+   ]
+  ]
+ },
+ "nanami/crouch_b": {
+  "background": [
+   [
+    639,
+    816
+   ]
+  ]
+ },
+ "nanami/attack_heavy_a": {
+  "background": [
+   [
+    489,
+    574
+   ]
+  ]
+ },
+ "nanami/dodge_roll": {
+  "background": [
+   [
+    384,
+    496
+   ]
+  ]
+ },
+ "momo/ult_a": {
+  "background": [
+   [
+    647,
+    1314
+   ],
+   [
+    421,
+    842
+   ],
+   [
+    323,
+    1154
+   ],
+   [
+    710,
+    1397
+   ],
+   [
+    534,
+    1414
+   ],
+   [
+    650,
+    1364
+   ],
+   [
+    445,
+    1411
+   ],
+   [
+    717,
+    1339
+   ],
+   [
+    457,
+    398
+   ],
+   [
+    383,
+    171
+   ],
+   [
+    298,
+    409
+   ],
+   [
+    547,
+    1337
+   ],
+   [
+    308,
+    1269
+   ],
+   [
+    218,
+    567
+   ],
+   [
+    287,
+    879
+   ],
+   [
+    265,
+    457
+   ],
+   [
+    629,
+    654
+   ],
+   [
+    746,
+    1147
+   ],
+   [
+    422,
+    554
+   ],
+   [
+    622,
+    536
+   ],
+   [
+    519,
+    1118
+   ],
+   [
+    317,
+    619
+   ],
+   [
+    288,
+    765
+   ],
+   [
+    371,
+    446
+   ],
+   [
+    550,
+    959
+   ],
+   [
+    457,
+    1179
+   ],
+   [
+    827,
+    754
+   ],
+   [
+    383,
+    939
+   ],
+   [
+    691,
+    428
+   ],
+   [
+    754,
+    625
+   ],
+   [
+    274,
+    345
+   ],
+   [
+    624,
+    1224
+   ],
+   [
+    751,
+    978
+   ],
+   [
+    634,
+    225
+   ],
+   [
+    282,
+    1060
+   ]
+  ]
+ },
+ "momo/ult_b": {
+  "background": [
+   [
+    654,
+    568
+   ],
+   [
+    494,
+    414
+   ],
+   [
+    561,
+    487
+   ],
+   [
+    497,
+    770
+   ],
+   [
+    732,
+    248
+   ],
+   [
+    238,
+    663
+   ],
+   [
+    603,
+    634
+   ],
+   [
+    647,
+    887
+   ],
+   [
+    758,
+    920
+   ],
+   [
+    641,
+    643
+   ],
+   [
+    586,
+    486
+   ],
+   [
+    775,
+    800
+   ],
+   [
+    559,
+    609
+   ],
+   [
+    420,
+    657
+   ],
+   [
+    603,
+    997
+   ],
+   [
+    531,
+    414
+   ],
+   [
+    668,
+    1075
+   ],
+   [
+    580,
+    946
+   ],
+   [
+    455,
+    548
+   ],
+   [
+    461,
+    754
+   ]
+  ]
+ },
+ "momo/special_down": {
+  "background": [
+   [
+    435,
+    1248
+   ],
+   [
+    631,
+    1246
+   ],
+   [
+    382,
+    1197
+   ],
+   [
+    304,
+    1158
+   ],
+   [
+    444,
+    1117
+   ],
+   [
+    522,
+    1271
+   ],
+   [
+    360,
+    1092
+   ],
+   [
+    554,
+    1141
+   ],
+   [
+    538,
+    828
+   ],
+   [
+    533,
+    1018
+   ],
+   [
+    405,
+    1010
+   ],
+   [
+    661,
+    1019
+   ]
+  ]
+ },
+ "momo/attack_air_b": {
+  "background": [
+   [
+    658,
+    636
+   ],
+   [
+    960,
+    557
+   ]
+  ]
+ },
+ "momo/special_side": {
+  "background": [
+   [
+    420,
+    628
+   ],
+   [
+    584,
+    894
+   ],
+   [
+    650,
+    722
+   ]
+  ]
+ },
+ "momo/attack_heavy_b": {
+  "background": [
+   [
+    471,
+    674
+   ]
+  ]
+ },
+ "momo/land": {
+  "background": [
+   [
+    678,
+    908
+   ],
+   [
+    401,
+    902
+   ]
+  ]
+ },
+ "momo/crouch_attack_b": {
+  "background": [
+   [
+    566,
+    1133
+   ],
+   [
+    510,
+    984
+   ],
+   [
+    332,
+    919
+   ]
+  ]
+ },
+ "momo/crouch_a": {
+  "background": [
+   [
+    602,
+    902
+   ]
+  ]
+ },
+ "momo/walk_a": {
+  "background": [
+   [
+    575,
+    625
+   ],
+   [
+    744,
+    762
+   ]
+  ]
+ },
+ "momo/prone": {
+  "background": [
+   [
+    854,
+    779
+   ]
+  ]
+ },
+ "momo/special_neutral": {
+  "background": [
+   [
+    323,
+    589
+   ],
+   [
+    506,
+    674
+   ]
+  ]
+ },
+ "momo/throw_up": {
+  "background": [
+   [
+    279,
+    1092
+   ],
+   [
+    330,
+    983
+   ]
+  ]
+ },
+ "momo/crouch_attack_a": {
+  "background": [
+   [
+    610,
+    1065
+   ],
+   [
+    563,
+    863
+   ],
+   [
+    377,
+    786
+   ]
+  ]
+ },
+ "momo/walk_b": {
+  "background": [
+   [
+    613,
+    631
+   ]
+  ]
+ },
+ "momo/attack_dash": {
+  "background": [
+   [
+    522,
+    394
+   ]
+  ]
+ },
+ "momo/attack_air_a": {
+  "background": [
+   [
+    395,
+    571
+   ]
+  ]
+ },
+ "momo/attack_down": {
+  "background": [
+   [
+    375,
+    576
+   ],
+   [
+    615,
+    1027
+   ]
+  ]
+ },
+ "momo/attack_air_diag_down_b": {
+  "background": [
+   [
+    387,
+    496
+   ]
+  ]
+ },
+ "momo/crouch_b": {
+  "background": [
+   [
+    701,
+    763
+   ],
+   [
+    483,
+    700
+   ]
+  ]
+ },
+ "momo/throw_down": {
+  "background": [
+   [
+    551,
+    399
+   ]
+  ]
+ },
+ "momo/attack_heavy_a": {
+  "background": [
+   [
+    310,
+    534
+   ],
+   [
+    424,
+    699
+   ]
+  ]
+ },
+ "momo/teeter": {
+  "background": [
+   [
+    299,
+    675
+   ]
+  ]
+ },
+ "miwa/hurt": {
+  "background": [
+   [
+    176,
+    498
+   ],
+   [
+    151,
+    477
+   ]
+  ]
+ },
+ "miwa/walk_a": {
+  "background": [
+   [
+    556,
+    765
+   ],
+   [
+    310,
+    880
+   ]
+  ]
+ },
+ "miwa/jump_rise": {
+  "background": [
+   [
+    268,
+    508
+   ],
+   [
+    388,
+    1065
+   ]
+  ]
+ },
+ "miwa/ult_a": {
+  "background": [
+   [
+    542,
+    873
+   ],
+   [
+    386,
+    789
+   ]
+  ]
+ },
+ "miwa/dash": {
+  "background": [
+   [
+    418,
+    481
+   ],
+   [
+    438,
+    594
+   ]
+  ]
+ },
+ "miwa/land": {
+  "background": [
+   [
+    507,
+    878
+   ]
+  ]
+ },
+ "miwa/attack_down": {
+  "background": [
+   [
+    528,
+    782
+   ]
+  ]
+ },
+ "miwa/crouch_attack_a": {
+  "background": [
+   [
+    473,
+    1177
+   ],
+   [
+    461,
+    1404
+   ]
+  ]
+ },
+ "miwa/fall": {
+  "background": [
+   [
+    667,
+    628
+   ],
+   [
+    328,
+    293
+   ]
+  ]
+ },
+ "miwa/run_pass_a": {
+  "background": [
+   [
+    608,
+    726
+   ],
+   [
+    414,
+    619
+   ],
+   [
+    526,
+    1019
+   ]
+  ]
+ },
+ "miwa/attack_air_a": {
+  "background": [
+   [
+    189,
+    357
+   ]
+  ]
+ },
+ "miwa/prone": {
+  "background": [
+   [
+    1466,
+    589
+   ]
+  ]
+ },
+ "miwa/attack_light_a": {
+  "background": [
+   [
+    371,
+    588
+   ],
+   [
+    332,
+    676
+   ]
+  ]
+ },
+ "miwa/dodge_roll": {
+  "background": [
+   [
+    173,
+    632
+   ]
+  ]
+ },
+ "miwa/ult_b": {
+  "background": [
+   [
+    169,
+    760
+   ]
+  ]
+ },
+ "miwa/run_reach_b": {
+  "background": [
+   [
+    446,
+    251
+   ]
+  ]
+ },
+ "miwa/special_down": {
+  "background": [
+   [
+    332,
+    638
+   ],
+   [
+    71,
+    1603
+   ],
+   [
+    431,
+    1605
+   ],
+   [
+    437,
+    1333
+   ]
+  ]
+ },
+ "miwa/idle_a": {
+  "background": [
+   [
+    345,
+    583
+   ]
+  ]
+ },
+ "miwa/idle_b": {
+  "background": [
+   [
+    336,
+    592
+   ]
+  ]
+ },
+ "miwa/crouch_attack_b": {
+  "background": [
+   [
+    673,
+    494
+   ]
+  ]
+ },
+ "miwa/attack_heavy_a": {
+  "background": [
+   [
+    295,
+    304
+   ],
+   [
+    249,
+    438
+   ]
+  ]
+ },
+ "miwa/victory": {
+  "background": [
+   [
+    574,
+    583
+   ]
+  ]
+ },
+ "miwa/charge": {
+  "background": [
+   [
+    349,
+    619
+   ]
+  ]
+ },
+ "miwa/run_reach_a": {
+  "background": [
+   [
+    314,
+    707
+   ]
+  ]
+ },
+ "miwa/attack_up": {
+  "background": [
+   [
+    556,
+    413
+   ]
+  ]
+ },
+ "miwa/throw_down": {
+  "background": [
+   [
+    562,
+    781
+   ]
+  ]
+ },
+ "miwa/teeter": {
+  "background": [
+   [
+    677,
+    554
+   ]
+  ]
+ },
+ "miwa/run_pass_b": {
+  "background": [
+   [
+    375,
+    703
+   ]
+  ]
+ },
+ "miwa/special_side": {
+  "background": [
+   [
+    263,
+    869
+   ]
+  ]
+ },
+ "meimei/victory": {
+  "background": [
+   [
+    366,
+    371
+   ],
+   [
+    521,
+    275
+   ],
+   [
+    441,
+    1300
+   ],
+   [
+    438,
+    510
+   ]
+  ]
+ },
+ "meimei/charge": {
+  "background": [
+   [
+    562,
+    645
+   ],
+   [
+    780,
+    512
+   ]
+  ]
+ },
+ "meimei/throw_fwd": {
+  "background": [
+   [
+    142,
+    931
+   ],
+   [
+    165,
+    825
+   ]
+  ]
+ },
+ "meimei/jump_rise": {
+  "background": [
+   [
+    655,
+    330
+   ]
+  ]
+ },
+ "meimei/idle_b": {
+  "background": [
+   [
+    454,
+    479
+   ],
+   [
+    461,
+    1301
+   ],
+   [
+    521,
+    263
+   ],
+   [
+    361,
+    713
+   ],
+   [
+    656,
+    935
+   ]
+  ]
+ },
+ "meimei/special_down": {
+  "background": [
+   [
+    449,
+    1296
+   ],
+   [
+    440,
+    508
+   ],
+   [
+    500,
+    276
+   ],
+   [
+    630,
+    940
+   ],
+   [
+    345,
+    720
+   ]
+  ]
+ },
+ "meimei/idle_a": {
+  "background": [
+   [
+    430,
+    511
+   ],
+   [
+    449,
+    1296
+   ],
+   [
+    500,
+    271
+   ],
+   [
+    345,
+    717
+   ],
+   [
+    637,
+    933
+   ]
+  ]
+ },
+ "meimei/hurt": {
+  "background": [
+   [
+    521,
+    444
+   ],
+   [
+    499,
+    640
+   ]
+  ]
+ },
+ "meimei/ledge_hang": {
+  "background": [
+   [
+    477,
+    618
+   ],
+   [
+    519,
+    432
+   ],
+   [
+    634,
+    1068
+   ],
+   [
+    388,
+    799
+   ]
+  ]
+ },
+ "meimei/ult_a": {
+  "background": [
+   [
+    522,
+    318
+   ],
+   [
+    437,
+    554
+   ]
+  ]
+ },
+ "meimei/dodge_air": {
+  "background": [
+   [
+    712,
+    302
+   ],
+   [
+    554,
+    489
+   ]
+  ]
+ },
+ "meimei/attack_heavy_b": {
+  "background": [
+   [
+    391,
+    328
+   ],
+   [
+    201,
+    688
+   ]
+  ]
+ },
+ "meimei/dodge_roll": {
+  "background": [
+   [
+    601,
+    570
+   ]
+  ]
+ },
+ "meimei/attack_light_b": {
+  "background": [
+   [
+    674,
+    512
+   ],
+   [
+    613,
+    304
+   ]
+  ]
+ },
+ "meimei/guard": {
+  "background": [
+   [
+    492,
+    423
+   ],
+   [
+    686,
+    431
+   ],
+   [
+    572,
+    433
+   ]
+  ]
+ },
+ "meimei/attack_light_a": {
+  "background": [
+   [
+    409,
+    317
+   ]
+  ]
+ },
+ "meimei/special_neutral": {
+  "background": [
+   [
+    457,
+    1300
+   ],
+   [
+    436,
+    547
+   ],
+   [
+    507,
+    313
+   ],
+   [
+    628,
+    963
+   ]
+  ]
+ },
+ "meimei/ult_b": {
+  "background": [
+   [
+    497,
+    1292
+   ],
+   [
+    447,
+    482
+   ],
+   [
+    640,
+    375
+   ]
+  ]
+ },
+ "meimei/fall": {
+  "background": [
+   [
+    610,
+    624
+   ]
+  ]
+ },
+ "meimei/crouch_b": {
+  "background": [
+   [
+    492,
+    676
+   ],
+   [
+    647,
+    749
+   ]
+  ]
+ },
+ "meimei/crouch_attack_b": {
+  "background": [
+   [
+    914,
+    671
+   ],
+   [
+    861,
+    452
+   ],
+   [
+    584,
+    507
+   ],
+   [
+    810,
+    601
+   ]
+  ]
+ },
+ "meimei/dizzy": {
+  "background": [
+   [
+    596,
+    1057
+   ]
+  ]
+ },
+ "meimei/crouch_a": {
+  "background": [
+   [
+    806,
+    542
+   ],
+   [
+    581,
+    496
+   ]
+  ]
+ },
+ "meimei/crouch_attack_a": {
+  "background": [
+   [
+    684,
+    472
+   ],
+   [
+    863,
+    575
+   ]
+  ]
+ },
+ "meimei/attack_down": {
+  "background": [
+   [
+    841,
+    498
+   ]
+  ]
+ },
+ "meimei/teeter": {
+  "background": [
+   [
+    493,
+    239
+   ]
+  ]
+ },
+ "meimei/attack_up": {
+  "background": [
+   [
+    485,
+    375
+   ]
+  ]
+ },
+ "megumi/dodge_air": {
+  "background": [
+   [
+    352,
+    647
+   ],
+   [
+    631,
+    256
+   ],
+   [
+    493,
+    868
+   ]
+  ]
+ },
+ "megumi/prone": {
+  "background": [
+   [
+    812,
+    831
+   ]
+  ]
+ },
+ "megumi/land": {
+  "background": [
+   [
+    188,
+    1333
+   ],
+   [
+    591,
+    900
+   ]
+  ]
+ },
+ "megumi/attack_light_a": {
+  "background": [
+   [
+    262,
+    554
+   ]
+  ]
+ },
+ "megumi/crouch_b": {
+  "background": [
+   [
+    255,
+    846
+   ],
+   [
+    525,
+    883
+   ]
+  ]
+ },
+ "megumi/attack_air_b": {
+  "background": [
+   [
+    953,
+    662
+   ],
+   [
+    859,
+    544
+   ]
+  ]
+ },
+ "megumi/ult_a": {
+  "background": [
+   [
+    561,
+    182
+   ],
+   [
+    324,
+    382
+   ],
+   [
+    337,
+    423
+   ],
+   [
+    311,
+    311
+   ],
+   [
+    355,
+    262
+   ],
+   [
+    635,
+    634
+   ]
+  ]
+ },
+ "megumi/ult_b": {
+  "background": [
+   [
+    883,
+    434
+   ]
+  ]
+ },
+ "megumi/special_down": {
+  "background": [
+   [
+    564,
+    718
+   ]
+  ]
+ },
+ "megumi/attack_down": {
+  "background": [
+   [
+    658,
+    847
+   ],
+   [
+    730,
+    1209
+   ]
+  ]
+ },
+ "mechamaru/crouch_attack_a": {
+  "background": [
+   [
+    848,
+    796
+   ],
+   [
+    917,
+    768
+   ]
+  ]
+ },
+ "mechamaru/special_side": {
+  "background": [
+   [
+    559,
+    339
+   ]
+  ]
+ },
+ "mechamaru/dash": {
+  "background": [
+   [
+    835,
+    120
+   ]
+  ]
+ },
+ "mechamaru/throw_down": {
+  "background": [
+   [
+    573,
+    684
+   ]
+  ]
+ },
+ "mechamaru/idle_a": {
+  "background": [
+   [
+    372,
+    605
+   ]
+  ]
+ },
+ "maki/dodge_air": {
+  "background": [
+   [
+    230,
+    448
+   ],
+   [
+    245,
+    978
+   ],
+   [
+    541,
+    939
+   ],
+   [
+    337,
+    972
+   ],
+   [
+    550,
+    342
+   ]
+  ]
+ },
+ "maki/special_side": {
+  "background": [
+   [
+    293,
+    723
+   ],
+   [
+    649,
+    598
+   ]
+  ]
+ },
+ "maki/grabbed": {
+  "background": [
+   [
+    124,
+    297
+   ]
+  ]
+ },
+ "maki/crouch_a": {
+  "background": [
+   [
+    414,
+    455
+   ],
+   [
+    377,
+    611
+   ],
+   [
+    433,
+    430
+   ],
+   [
+    344,
+    402
+   ],
+   [
+    448,
+    744
+   ]
+  ]
+ },
+ "maki/walk_a": {
+  "background": [
+   [
+    731,
+    1335
+   ],
+   [
+    453,
+    603
+   ],
+   [
+    406,
+    794
+   ],
+   [
+    529,
+    984
+   ]
+  ]
+ },
+ "maki/ult_a": {
+  "background": [
+   [
+    382,
+    985
+   ],
+   [
+    568,
+    505
+   ],
+   [
+    160,
+    459
+   ],
+   [
+    394,
+    497
+   ],
+   [
+    366,
+    384
+   ]
+  ]
+ },
+ "maki/walk_b": {
+  "background": [
+   [
+    570,
+    585
+   ],
+   [
+    545,
+    888
+   ]
+  ]
+ },
+ "maki/attack_down": {
+  "background": [
+   [
+    617,
+    710
+   ],
+   [
+    658,
+    1203
+   ]
+  ]
+ },
+ "maki/throw_up": {
+  "background": [
+   [
+    577,
+    573
+   ],
+   [
+    381,
+    475
+   ]
+  ]
+ },
+ "maki/crouch_attack_b": {
+  "background": [
+   [
+    368,
+    461
+   ],
+   [
+    442,
+    356
+   ],
+   [
+    562,
+    554
+   ]
+  ]
+ },
+ "maki/attack_air_diag_down_b": {
+  "background": [
+   [
+    563,
+    443
+   ],
+   [
+    918,
+    865
+   ]
+  ]
+ },
+ "maki/crouch_attack_a": {
+  "background": [
+   [
+    342,
+    525
+   ],
+   [
+    320,
+    792
+   ]
+  ]
+ },
+ "maki/dodge_roll": {
+  "background": [
+   [
+    980,
+    705
+   ],
+   [
+    490,
+    775
+   ]
+  ]
+ },
+ "maki/attack_air_b": {
+  "background": [
+   [
+    526,
+    526
+   ],
+   [
+    303,
+    432
+   ]
+  ]
+ },
+ "maki/attack_heavy_a": {
+  "background": [
+   [
+    683,
+    537
+   ]
+  ]
+ },
+ "maki/land": {
+  "background": [
+   [
+    621,
+    937
+   ],
+   [
+    562,
+    710
+   ],
+   [
+    321,
+    911
+   ]
+  ]
+ },
+ "maki/teeter": {
+  "background": [
+   [
+    573,
+    276
+   ]
+  ]
+ },
+ "maki/attack_dash": {
+  "background": [
+   [
+    624,
+    377
+   ]
+  ]
+ },
+ "maki/special_down": {
+  "background": [
+   [
+    509,
+    463
+   ]
+  ]
+ },
+ "maki/dash": {
+  "background": [
+   [
+    347,
+    783
+   ]
+  ]
+ },
+ "mahoraga/guard": {
+  "background": [
+   [
+    413,
+    349
+   ],
+   [
+    469,
+    225
+   ]
+  ]
+ },
+ "mahoraga/run_pass_b": {
+  "background": [
+   [
+    760,
+    329
+   ]
+  ]
+ },
+ "mahoraga/dash": {
+  "background": [
+   [
+    481,
+    306
+   ]
+  ]
+ },
+ "mahoraga/attack_light_b": {
+  "background": [
+   [
+    366,
+    137
+   ]
+  ]
+ },
+ "mahoraga/attack_heavy_a": {
+  "background": [
+   [
+    245,
+    351
+   ]
+  ]
+ },
+ "mahoraga/special_neutral": {
+  "background": [
+   [
+    493,
+    175
+   ]
+  ]
+ },
+ "mahoraga/hurt": {
+  "background": [
+   [
+    380,
+    241
    ]
   ]
  }

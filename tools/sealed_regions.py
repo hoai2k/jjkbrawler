@@ -58,11 +58,22 @@ def regions_of(src):
         return [], lambda pt: None     # delivered with alpha; nothing was keyed
     rgb = rgba[:, :, :3].astype(np.float32)
     key = intake.border_key(rgb)
-    cand = np.linalg.norm(rgb - key, axis=2) < 30
+    # ONLY A NEUTRAL SCREEN HAS THIS PROBLEM.
+    #
+    # Shadow-or-gap exists because grey shading on a grey screen is the same
+    # pixels. Magenta and green do not collide with anything the artist draws,
+    # so `intake.screen_masks` settles sealed screen colour on those plates
+    # outright and there is nothing to ask. This ran the NEUTRAL test on every
+    # plate whatever its screen, and so put 584 questions about sealed magenta
+    # in front of the reviewer — 60% of the queue — every one of which the
+    # keyer already answers with confidence.
+    if intake.screen_kind(key) != "neutral":
+        return [], lambda pt: None
+    cand, sure = intake.screen_masks(rgb, key)
     seed = np.zeros(cand.shape, bool)
     seed[[0, -1], :] = cand[[0, -1], :]
     seed[:, [0, -1]] |= cand[:, [0, -1]]
-    bg = intake.flood_background(cand, seed)
+    bg = intake.flood_background(cand, seed) | sure
     alpha = (~bg).astype(np.float32)
     alpha[alpha >= 48 / 255] = 1.0
     opaque = alpha > 0
