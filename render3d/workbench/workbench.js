@@ -50,8 +50,8 @@ import * as rig from "../src/loader.js";
 import * as scene from "../src/scene.js";
 import { DIALS, initPose, LOOK_STATES, flinchSide, boneOwners, IDLE_ARM_DEG, RIG_CHECK_POSES } from "../src/pose.js";
 import { MODEL_FIXES, pendingFixes } from "../src/rig_fixes.js";
-import { TOON, setToonFor, clearToonFor, PER_CHARACTER_SHADE } from "../src/toon.js";
-import { OUTLINE, setOutlineFor } from "../src/outline.js";
+import { TOON, setToonFor, clearToonFor, setToonEnabled, PER_CHARACTER_SHADE } from "../src/toon.js";
+import { OUTLINE, setOutlineFor, setOutlinesVisible } from "../src/outline.js";
 import { blitPose } from "../src/blit.js";
 import { makeViewport } from "../../billboards/workbench/viewport.js";
 import { makePoseEditor } from "./pose_edit.js";
@@ -90,6 +90,11 @@ const wb = {
    *  rigging can be judged on its own (pose.js poseRigCheck). */
   rigCheck: RIG_CHECK_POSES[params.get("rigcheck")] ? params.get("rigcheck") : null,
   t: 0,
+  /** The anime pass — toon ramp and ink shells — on or off. A VIEW switch and
+   *  not a dial: nothing is saved and no manifest key moves. It exists because
+   *  "is this model bad, or is it the pass?" is asked on this page constantly
+   *  and could only be answered by leaving it. */
+  animePass: params.get("anime") !== "off",
   // Pose mode holds still by definition: the thing being matched is a single
   // drawing, and a body that keeps moving cannot be compared to one.
   playing: MODE === "anim",
@@ -154,7 +159,28 @@ await rig.initRigs(THREE, GLTFLoader, ["all"], CHARACTER_KEYS, [wb.char],
 /** Bring a character's real rig in before showing them. */
 async function ensureChar(charKey) {
   await rig.ensureRig(charKey, GLTFLoader).catch(() => {});
+  // A rig arrives converted — toon materials and ink shells — because that is
+  // what the loader does to everything. If the pass is currently OFF, the body
+  // that just landed has not heard about it, and the fighter you switched to
+  // would come back inked while the switch says otherwise.
+  applyAnimePass();
   scene.clearCache();
+}
+
+/**
+ * Push the anime-pass switch onto every rig this page has loaded.
+ *
+ * All of them rather than the one on screen: the five-across line-up and the
+ * comparison fighter are other rigs, and a row where one body is inked and
+ * four are not is a comparison of the wrong thing.
+ */
+function applyAnimePass() {
+  for (const key of CHARACTER_KEYS) {
+    const r = rig.getRig(key);
+    if (!r?.root) continue;
+    setToonEnabled(r.root, wb.animePass);
+    setOutlinesVisible(r.root, wb.animePass);
+  }
 }
 
 
@@ -823,6 +849,41 @@ $("sweepToggle").onchange = () => { wb.sweep = $("sweepToggle").checked; if (!wb
 // from the one named in the dropdown, in exactly the states that move fastest.
 if (MODE === "pose") DIALS.onTwos = false;
 scene.setKeyLightAngle(0.55); scene.clearCache(); } };
+// RENDER DETAIL. The game's 384 px is the default and stays the default; the
+// bench can ask for more while it is looking closely. `?detail=768` keeps it
+// across a reload, because "why does this look worse than the model viewer"
+// is a question somebody arrives at the page already asking.
+{
+  const sel = $("detailSelect");
+  const wanted = params.get("detail");
+  if (wanted && [...sel.options].some((o) => o.value === wanted)) sel.value = wanted;
+  const push = () => {
+    const px = scene.setTextureSize(Number(sel.value));
+    $("detailVal").textContent = px === 384 ? "game" : `${(px / 384).toFixed(0)}× game`;
+    scene.clearCache();
+    const url = new URL(location);
+    if (px === 384) url.searchParams.delete("detail");
+    else url.searchParams.set("detail", String(px));
+    history.replaceState(null, "", url);
+  };
+  sel.onchange = push;
+  push();
+}
+
+$("animeToggle").checked = wb.animePass;
+if (!wb.animePass) applyAnimePass();
+$("animeToggle").onchange = () => {
+  wb.animePass = $("animeToggle").checked;
+  applyAnimePass();
+  scene.clearCache();
+  const url = new URL(location);
+  if (wb.animePass) url.searchParams.delete("anime");
+  else url.searchParams.set("anime", "off");
+  history.replaceState(null, "", url);
+  notify(wb.animePass
+    ? "the anime pass is back on — toon ramp and ink shells"
+    : "anime pass off: the delivered materials, lit by the stage rig");
+};
 $("ikToggle").onchange = () => { DIALS.footIK = $("ikToggle").checked; scene.clearCache(); };
 $("twosToggle").onchange = () => { DIALS.onTwos = $("twosToggle").checked && !editor.on; scene.clearCache(); };
 $("turnToggle").onchange = () => { wb.faceLeft = $("turnToggle").checked; };

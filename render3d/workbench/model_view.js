@@ -21,13 +21,13 @@
 //     two generations can be judged against each other rather than from
 //     memory. The picker switches between them in place, at the same camera,
 //     which is the comparison that is otherwise impossible to make.
-//   * THE CORRECTION LAYER, ON OR OFF. Some of what the engine draws is not in
-//     the .glb: a head tilted back, arm roots pushed out, a bandy shin
-//     straightened, a lopsided skeleton mirrored, the whole rig turned to face
-//     the way the spec says (`render3d/src/rig_fixes.js`, applied by
-//     `pose.js`). Those are notes for a modelling pass that has not happened
-//     yet, and the difference between the switch's two positions IS the
-//     outstanding work. It is the engine's own switch — the one
+//   * THE CORRECTION LAYER, ON OR OFF. Some of the SHAPE the engine draws is
+//     not in the .glb: a head tilted back, arm roots pushed out, a bandy shin
+//     straightened, a lopsided skeleton mirrored (`render3d/src/rig_fixes.js`,
+//     applied by `pose.js`). Those are notes for a modelling pass that has not
+//     happened yet, and the difference between the switch's two positions IS
+//     the outstanding work. The manifest yaw is deliberately NOT on that
+//     switch — it is framing rather than shape, and it has its own. It is the engine's own switch — the one
 //     `setModelFixesEnabled(false)` flips, which a complete bake must make a
 //     no-op — rather than a second implementation of the same idea.
 //   * WIREFRAME. Topology is half of "what needs fixing" and is invisible
@@ -102,12 +102,20 @@ document.querySelector("main.layout").outerHTML = `
         <button id="viewFront" class="ghost sm">Front</button>
         <button id="viewSide" class="ghost sm">Side</button>
       </div>
+      <label>Ambient light <span class="mono" id="lightVal"></span>
+        <input id="light" type="range" min="0" max="6" step="0.05">
+      </label>
+      <p class="hint">Fills the shadow side without moving the key, so a dark
+        costume opens up and the colours read as painted rather than as lit.
+        It is a viewer dial and nothing else — no manifest key, no engine
+        setting, and not what a player sees.</p>
       <label class="check"><input id="showFixes" type="checkbox"> Correction layer on</label>
-      <p class="hint">What the engine applies on top of this file and the file
-        does not carry yet — the head carriage, the arm roots, the knees, a
-        mirrored skeleton, and the yaw that turns the rig to face the way the
-        spec says. Off is the .glb exactly as delivered; the difference between
-        the two positions is the modelling work still owed.</p>
+      <p class="hint">The SHAPE the engine corrects and the file does not carry
+        yet: the head carriage, the arm roots, the knees, a mirrored skeleton.
+        Off is the .glb exactly as delivered; the difference between the two
+        positions is the modelling work still owed.</p>
+      <label class="check"><input id="applyYaw" type="checkbox"> Turn by the manifest yaw</label>
+      <p class="hint" id="yawNote"></p>
       <label class="check"><input id="wireframe" type="checkbox"> Wireframe</label>
       <label class="check"><input id="showGrid" type="checkbox" checked> Floor grid <span class="dim">(0.5 m)</span></label>
 
@@ -154,6 +162,8 @@ const state = {
   char: DELIVERED.includes(params.get("char")) ? params.get("char") : DELIVERED[0],
   version: params.get("ver") === "alt" ? "alt" : "current",
   fixes: params.get("fixes") === "1",
+  yaw: params.get("yaw") === "1",
+  light: Number(params.get("light")) || 2.4,
   wireframe: false,
   grid: true,
 };
@@ -172,7 +182,20 @@ scene.background = new THREE.Color(0x14192a);
 // dramatic lighting is a model whose flat-shaded faults have been lit out of
 // existence. A soft dome plus a weak key from over the viewer's shoulder shows
 // the form and hides nothing.
-scene.add(new THREE.HemisphereLight(0xffffff, 0x505a70, 2.4));
+// The dome is held rather than dropped into the scene and forgotten: it is the
+// one light with a dial on it, because filling the shadow side is what makes a
+// dark costume legible without moving the key that shows the form.
+//
+// TWO LIGHTS ON ONE DIAL, and the flat one is why the dial works. A dome
+// alone lights the top of everything and leaves the underside of a navy skirt
+// exactly as black however far it is wound up, because the ground half of it
+// IS dark — that is what makes a dome read as daylight. A plain ambient term
+// lifts every surface equally, which is the wrong light for judging form and
+// the right one for judging colour, and this dial is for judging colour.
+const dome = new THREE.HemisphereLight(0xffffff, 0x505a70, 2.4);
+scene.add(dome);
+const ambient = new THREE.AmbientLight(0xffffff, 0);
+scene.add(ambient);
 const key = new THREE.DirectionalLight(0xffffff, 1.25);
 key.position.set(1.2, 2.2, 2.4);
 scene.add(key);
@@ -324,21 +347,23 @@ async function loadModel(url) {
 function applyPose(model) {
   const rigLike = model.rigLike;
   setModelFixesEnabled(state.fixes);
-  if (state.fixes) {
-    bakedBind(rigLike, model.charKey);
-    // THE YAW IS PART OF THE LAYER, and it is applied here rather than inside
-    // `bakedBind` because that function is the BAKE — the rest pose a modeller
-    // would put in the file — and the yaw is not a rest pose, it is the whole
-    // rig turned. `pose.js` composes it exactly this way on the root
-    // (`rotation.y = turnYaw + rig.yawOffset`), so this is the engine's own
-    // number in the engine's own place. It is also what makes two generations
-    // of a fighter comparable: they were built facing different ways, and with
-    // the layer on they both face the way the spec says.
-    rigLike.root.rotation.y = ((model.entry.yawOffsetDeg || 0) * Math.PI) / 180;
-  } else {
-    rigLike.root.rotation.y = 0;
-    applyBindPose(THREE, rigLike.root);
-  }
+  if (state.fixes) bakedBind(rigLike, model.charKey);
+  else applyBindPose(THREE, rigLike.root);
+  // THE YAW IS ITS OWN SWITCH, and it is off by default.
+  //
+  // It looks like the rest of the correction layer — `MODEL_FIXES` lists it,
+  // and its entry says "the model was built facing somewhere other than +Z" —
+  // but the number in the manifest is not that. It is SOLVED against the
+  // fighter's own idle sprite through the game's flat camera
+  // (tools/solve_yaw.mjs), so it carries the framing that camera wants as well
+  // as whatever the model got wrong, and the two cannot be separated after the
+  // fact. Applied here it turned a rig that already faces the viewer away from
+  // them: the conformed Nobara faces +Z exactly as the spec asks and her
+  // manifest says 330°, so ticking "corrections" swung her 30° off front for
+  // no fault of the file's. Now it is what it is — how the GAME turns this
+  // body — and it is worth having for lining two generations up, because they
+  // were built facing different ways.
+  rigLike.root.rotation.y = state.yaw ? ((model.entry.yawOffsetDeg || 0) * Math.PI) / 180 : 0;
   rigLike.root.updateMatrixWorld(true);
 }
 
@@ -419,6 +444,7 @@ async function show() {
   else frame(true);
   syncFacts();
   syncFixList();
+  syncYawNote();
   syncUrl();
   $("status").textContent = "";
 }
@@ -529,21 +555,41 @@ function syncFixList() {
        finished bake looks like</span></div>`;
     return;
   }
-  // `renderScale` is on the bake list but is not SHAPE: it says how big the
-  // fighter is DRAWN against a head-height target, and this viewer frames on
-  // the model's own height, so there is nothing here for it to change. Listed
-  // and marked rather than silently missing. (`yawOffsetDeg` is applied — see
-  // applyPose: it turns the rig, which is a fact about the file you can see.)
-  const PRESENTATION = new Set(["renderScale"]);
+  // Neither of these is SHAPE, so neither rides the correction switch:
+  // `renderScale` says how big the fighter is DRAWN against a head-height
+  // target and this viewer frames on the model's own height, and
+  // `yawOffsetDeg` has its own tick box (see applyPose for why). Listed and
+  // marked rather than silently missing.
+  const PRESENTATION = new Set(["renderScale", "yawOffsetDeg"]);
   $("fixList").innerHTML = keys.map((k) => {
     const value = k === "bones"
       ? `${Object.keys(pending.bones).length} bone(s): ${Object.keys(pending.bones).join(", ")}`
       : String(pending[k]);
     const means = MODEL_FIXES[k]?.means || "";
-    const note = PRESENTATION.has(k) ? " — display only, nothing for this viewer to apply" : "";
+    const note = k === "yawOffsetDeg" ? " — how the GAME turns this body; its own switch above"
+      : PRESENTATION.has(k) ? " — display only, nothing for this viewer to apply" : "";
     return `<div class="factrow${PRESENTATION.has(k) ? " dimrow" : ""}">
       <b>${k} = ${value}</b><span>${means}${note}</span></div>`;
   }).join("");
+}
+
+function syncLight() {
+  dome.intensity = state.light;
+  ambient.intensity = Math.max(0, state.light - 2.4) * 0.45;
+  $("lightVal").textContent = `${state.light.toFixed(2)}×`;
+}
+
+/** What the yaw switch will do to THIS body, in the units the manifest uses —
+ *  or that there is nothing to do, which is the answer for a model that was
+ *  delivered facing the way the spec asks. */
+function syncYawNote() {
+  const deg = shown?.entry.yawOffsetDeg || 0;
+  $("yawNote").textContent = deg
+    ? `${deg}° — how the game turns this body to frame it against the fighter's`
+      + " own idle sprite (tools/solve_yaw.mjs), which is framing rather than a"
+      + " fault in the file. Useful for standing two generations the same way up."
+    : "This body has no yaw in the manifest: it is drawn facing the way it was"
+      + " delivered.";
 }
 
 function syncUrl() {
@@ -554,6 +600,10 @@ function syncUrl() {
   else url.searchParams.delete("ver");
   if (state.fixes) url.searchParams.set("fixes", "1");
   else url.searchParams.delete("fixes");
+  if (state.yaw) url.searchParams.set("yaw", "1");
+  else url.searchParams.delete("yaw");
+  if (Math.abs(state.light - 2.4) > 1e-6) url.searchParams.set("light", state.light.toFixed(2));
+  else url.searchParams.delete("light");
   history.replaceState(null, "", url);
 }
 
@@ -581,6 +631,8 @@ function fillVersionSelect() {
 
 fillCharSelect();
 fillVersionSelect();
+$("light").value = String(state.light);
+$("applyYaw").checked = state.yaw;
 $("showFixes").checked = state.fixes;
 $("wireframe").checked = state.wireframe;
 $("showGrid").checked = state.grid;
@@ -600,6 +652,16 @@ $("showFixes").onchange = (ev) => {
   if (shown) applyPose(shown);
   syncUrl();
 };
+$("applyYaw").onchange = (ev) => {
+  state.yaw = ev.target.checked;
+  if (shown) applyPose(shown);
+  syncUrl();
+};
+$("light").oninput = (ev) => {
+  state.light = Number(ev.target.value);
+  syncLight();
+  syncUrl();
+};
 $("wireframe").onchange = (ev) => {
   state.wireframe = ev.target.checked;
   if (shown) applyLook(shown);
@@ -613,6 +675,7 @@ $("viewFront").onclick = () => { view.yaw = 0; view.pitch = 0; };
 $("viewSide").onclick = () => { view.yaw = 90; view.pitch = 0; };
 
 initPose(THREE);
+syncLight();
 await show();
 resize();
 
@@ -631,6 +694,21 @@ window.__workbenchReady = true;
 window.__modelView = {
   state,
   view,
+  /** The body on screen and the manifest block it is drawn from. The entry is
+   *  LIVE, the same object the panel reads — editing it and re-applying is how
+   *  the rest of this workbench's dials already work, and it is how a check
+   *  can put a correction on a roster that currently has none outstanding. */
+  shown: () => (shown ? { charKey: shown.charKey, version: shown.version, entry: shown.entry } : null),
+  /** Re-read the entry and re-pose. What a dial would call after moving. */
+  refresh: () => {
+    if (!shown) return;
+    shown.rigLike.headTiltDeg = shown.entry.headTiltDeg || 0;
+    shown.rigLike.shoulderOutCm = shown.entry.shoulderOutCm || 0;
+    shown.rigLike.kneeDeg = shown.entry.kneeDeg || 0;
+    applyPose(shown);
+    syncFixList();
+    syncYawNote();
+  },
   versions: () => versionsOf(state.char).map((v) => v.key),
   measure: () => (shown ? measure(shown) : null),
   /** One bone, in the rig's own space: where it sits and which way it is

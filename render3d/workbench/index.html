@@ -269,6 +269,17 @@
 
         <details class="group" id="lookdev" open>
           <summary>Look-dev — <span id="lookdevWho">this character</span></summary>
+          <!-- A VIEW SWITCH, above the dials and visibly not one of them: the
+               four below are saved per character and ride out in the payload,
+               this one is neither and turning it off is how you find out
+               whether a fault is in the model or in the pass over it. -->
+          <label class="check"><input id="animeToggle" type="checkbox" checked> Anime pass</label>
+          <p class="hint">The toon ramp and the ink shells — what a player
+            sees. Off shows the delivered materials under the same lights, which
+            is the comparison that answers “is the model wrong, or is this the
+            pass?”. Not saved anywhere; <code>?anime=off</code> keeps it across
+            a reload. For the file with no engine on it at all, the
+            <a href="?edit=3d">model viewer</a> is next door.</p>
           <p class="hint">These four are saved <b>per character</b> in the
           manifest entry's <code>toon</code> block and ride out in
           <b>Export payload</b>. A <span class="dot"></span> marks one this
@@ -313,6 +324,18 @@
           <p class="hint">Sweeping light is the edited-normals review gate: watch
           the terminator cross the face — one clean arc passes, triangle noise
           fails the delivery.</p>
+          <label>Render detail <span class="mono" id="detailVal"></span>
+            <select id="detailSelect">
+              <option value="384">384 px — what a match renders</option>
+              <option value="768">768 px — 2×</option>
+              <option value="1152">1152 px — 3×</option>
+            </select>
+          </label>
+          <p class="hint">A PREVIEW, not a setting: the game renders each
+            fighter into a 384 px texture and blits it, which is generous at
+            157 px tall and an upscaled thumbnail on a viewport this size. Turn
+            it up to judge a model, and remember what a player is actually
+            getting. Costs memory — the pose cache is 160 of these.</p>
           <label>Stage light preset
             <select id="stageSelect"></select>
           </label>
