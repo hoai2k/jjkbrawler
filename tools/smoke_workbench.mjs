@@ -501,6 +501,49 @@ if (updated.poses) {
     "and the panel explains what the round overwrote");
 }
 
+// AN ALPHA FIX HAS NOTHING TO COMPARE, AND MUST SAY SO.
+//
+// A re-key lands the same drawing on top of itself: the file is rewritten in
+// place, so there is no alternate on the chevron and no old drawing in the repo
+// to show beside it. Two hundred of those arrived at once looking exactly like
+// every other updated pose, and each one asked the reviewer "did the position
+// move too?" with no way to answer it. `kept: "keep"` is what says otherwise —
+// `survives()` in intake_import.py writes it only for an `alpha` flag, the one
+// kind KIND_PLACEMENT carries the placement through — so the check is that the
+// three places a reviewer looks all read it and agree.
+const rekey = await page.evaluate(() =>
+  window.__spriteWorkbench.recentUpdates()
+    .find((e) => e.how === "import" && e.kept === "keep") || null);
+if (rekey) {
+  await page.evaluate((e) => {
+    [...document.querySelectorAll("#poseList button:not(.pose-variant)")]
+      .find((b) => b.title.startsWith(`${e.char}/${e.frame}`))?.click();
+  }, rekey);
+  await page.waitForTimeout(400);
+  const said = await page.evaluate(() => ({
+    count: document.getElementById("poseCount").textContent,
+    head: document.getElementById("updatedVal").textContent,
+    info: document.getElementById("updatedInfo").textContent,
+    cell: [...document.querySelectorAll("#poseList button.sel .pose-file")][0]?.textContent ?? "",
+  }));
+  check(/alpha fix/i.test(said.head) && /nothing moved/i.test(said.head),
+    "an alpha fix says so in the headline, unopened", said.head);
+  check(/alpha only/i.test(said.cell),
+    "...and in its cell, so the grid tells the two jobs apart", said.cell);
+  check(/placement changed/i.test(said.info) && /nothing to compare|no before-and-after/i.test(said.info),
+    "...and the panel says the placement did not change and there is nothing to compare");
+  check(/alpha fixes \(placement unchanged\)/.test(said.count),
+    "...and the count line breaks them out from the poses that need re-tuning", said.count);
+  // The empty comparison slot is where the question gets asked, so it is where
+  // the answer belongs — an empty slot beside a just-updated pose reads as a
+  // delivery that went missing rather than as a drawing that did not move.
+  await page.selectOption("#selfIdleMode", "alternate");
+  await page.waitForTimeout(300);
+  const slot = await page.evaluate(() => window.__spriteWorkbench.compareCaption());
+  check(/alpha fix/i.test(slot || ""),
+    "...and the empty comparison slot says why it is empty", String(slot));
+}
+
 // A SHARED DRAWING ON THE LIST HAS A WAY OFF IT. The list carries effect and
 // summon art the game draws that nobody has ever placed a number on, and the
 // panel tells the reader to mark it reviewed if it is already right — while the

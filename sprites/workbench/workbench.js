@@ -70,7 +70,8 @@ import {
   TODO_MARK, NO_TODO_PAD, charTodo, poseTodo, unresolvedPoses, unresolvedOpen,
   TODO_REASONS, TODO_PLACE,
   updatesCleared, isUpdateReviewed, recentUpdates,
-  flaggedPoses, allFlagBearingPoses, updateSummary, autoTuneSummary, poseVariants,
+  flaggedPoses, allFlagBearingPoses, updateSummary, isAlphaFix, autoTuneSummary,
+  poseVariants,
   variantEntry, takeBanked, poseView, variantPicks, variantFlagEdits, currentOption,
   isDeleteTagged, hasDeleteTag, drawnFiles, ensureVariantOption,
   actionIndex, actionRoster,
@@ -560,7 +561,18 @@ function comparisonTarget() {
     // Asked for, and this pose has not got one. The slot stays empty and says
     // why: the answer to "show me the alternate" is never a different sprite
     // that looks like one, and least of all Gojo.
-    return { caption: "no alternate available", empty: true };
+    //
+    // On an alpha fix it says the REASON rather than the absence. The file was
+    // keyed again and written back over itself, so the drawing it replaced is
+    // not in the repo to show — and an empty slot beside a pose that has just
+    // been updated reads as a delivery that went missing. It is the opposite:
+    // there is nothing to compare because nothing about the picture moved.
+    const fix = isAlphaFix(updateNote(state.char, state.frame) || {});
+    return {
+      caption: fix ? "alpha fix — same drawing, re-keyed in place; nothing to compare"
+                   : "no alternate available",
+      empty: true,
+    };
   }
 
   if (mode === "comparison") {
@@ -2270,6 +2282,11 @@ function refreshUpdatedControl() {
     : note.how === "unreviewed" ? "in the game — never placed"
     : note.how === "placed" ? "placed by a machine — never agreed with"
     : note.how === "approved" ? "approved into the game — placement not agreed with"
+    // The headline is what is read without opening the section, so an alpha fix
+    // says the one thing that decides how to look at it. "Tuning carried over"
+    // was true and useless here: it describes a REDRAW that kept its numbers,
+    // and left the reviewer to work out whether the picture had changed too.
+    : isAlphaFix(note) ? "alpha fix — nothing moved"
     : note.lost?.length ? "tuning rolled back" : "tuning carried over";
   $("updatedInfo").innerHTML = updateSummary(note);
   refreshReviewButton();
@@ -2722,9 +2739,16 @@ function buildRecentPoseList(list) {
   const surfaced = entries.filter((e) => e.how === "surfaced").length;
   const fresh = entries.filter((e) => e.how === "new").length;
   const okd = entries.filter((e) => e.how === "approved").length;
+  // Counted apart from everything else because they are a different JOB. A
+  // re-key asks one question — is the transparency clean — and none of the
+  // placement questions the rest of this list is about, so a pass of two
+  // hundred of them is quick if you know that going in and bewildering if you
+  // do not.
+  const rekeyed = entries.filter(isAlphaFix).length;
   $("poseCount").textContent = entries.length
     ? `${entries.length} updated`
       + (retune ? ` · ${retune} to re-tune` : "")
+      + (rekeyed ? ` · ${rekeyed} alpha fixes (placement unchanged)` : "")
       + (fresh ? ` · ${fresh} new` : "")
       + (okd ? ` · ${okd} newly approved` : "")
       + (surfaced ? ` · ${surfaced} newly in game` : "")
@@ -2741,7 +2765,16 @@ function buildRecentPoseList(list) {
     return;
   }
   for (const entry of entries) {
-    list.appendChild(buildPoseEntry(entry.char, entry.frame, { owner: true }));
+    // The cell says which job it is, so the two kinds are told apart in the
+    // grid rather than one click at a time. An alpha fix has no before-and-after
+    // to open, and a cell that looked like every other one sent the reviewer
+    // hunting for the comparison that is not there.
+    list.appendChild(buildPoseEntry(entry.char, entry.frame, {
+      owner: true,
+      sub: isAlphaFix(entry)
+        ? `${actorOf(entry.char).name} · alpha only, not moved`
+        : null,
+    }));
   }
 }
 
@@ -4323,6 +4356,10 @@ async function boot() {
     // asserting is that they agree: a character with a dot has entries here,
     // and a character with entries here has a dot.
     unresolvedPoses, unresolvedOpen, poseTodo, charTodo,
+    // The comparison slot's caption. Drawn on the canvas with fillText, so a
+    // test has no DOM to read it from — and the caption is the whole of what
+    // an EMPTY slot says, which is the thing worth asserting.
+    compareCaption: () => comparisonTarget()?.caption ?? null,
     fighters: () => [...WB_FIGHTERS, ...ACTOR_KEYS],
     // The updated list and what an export would carry, for the one rule that
     // has no DOM either: a shared drawing marked reviewed has to leave by the

@@ -785,6 +785,18 @@ export function allFlagBearingPoses() {
   return out;
 }
 
+/** An import that was an ALPHA FIX: the same drawing keyed again, landing on
+ *  top of itself with the placement carried whole.
+ *
+ *  `kept: "keep"` says it and nothing else does — `survives()` in
+ *  intake_import.py reads the flag the pose was carrying, and `alpha` is the
+ *  only kind KIND_PLACEMENT maps to "keep". Worth a name rather than the test
+ *  written out twice, because the panel and the list both have to say it and
+ *  they must not drift apart on what counts. */
+export function isAlphaFix(note) {
+  return note?.how === "import" && note?.kept === "keep";
+}
+
 /** What was overwritten, in a sentence. Reads off the marker rather than
  *  guessing, so "nothing was lost" is stated rather than implied by silence. */
 export function updateSummary(note) {
@@ -840,6 +852,30 @@ export function updateSummary(note) {
       + "<b>Nothing changed on screen</b> — the game still draws the original. "
       + "Open the chevron to compare them and pick, or mark it reviewed to keep "
       + "what is there.";
+  }
+  // AN ALPHA FIX IS NOT A NEW PICTURE, and the panel has to say so.
+  //
+  // `kept: "keep"` is written by exactly one kind of delivery. `survives()` in
+  // intake_import.py reads the flag the pose carried, and `alpha` is the only
+  // kind in KIND_PLACEMENT that maps to "keep" — a redraw discards the
+  // placement, crop and bleed reframe it. So this marker means: the same
+  // drawing, keyed again, landed on top of itself with every number untouched.
+  //
+  // It used to say "new art was imported over it", which sent the reviewer
+  // looking for a before-and-after that does not exist: the file was rewritten
+  // in place, so there is no alternate on the chevron and nothing to compare
+  // against. Two hundred and thirty-odd of these arrived at once, each one
+  // asking "did the position change too?" and giving no way to answer it.
+  if (note.how === "import" && note.kept === "keep") {
+    return `An <b>alpha fix</b> landed on ${landed} — the same drawing, keyed `
+      + "again.<br>"
+      + "<b>Nothing about the placement changed.</b> Size, ground contact, "
+      + "centring and anchors are the numbers you set; the fix rewrote the "
+      + "file's transparency and nothing else. There is no before-and-after to "
+      + "compare and no alternate to choose between — that is expected here, "
+      + "not a missing delivery.<br>"
+      + "So judge the EDGES only: fringe, hard cut-outs, holes through the body. "
+      + "Clean transparency means mark it reviewed.";
   }
   const how = note.how === "variant"
     ? "a delivered alternate was selected over it"
