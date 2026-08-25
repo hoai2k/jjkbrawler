@@ -36,6 +36,7 @@ import { meteorAt, paintedHeight } from "./shared_sprites.js";
 import { paintShared } from "./shared_paint.js";
 import { isFoe } from "./teams.js";
 import { bodyY } from "./body_points.js";
+import { spawnOffset } from "./muzzle.js";
 
 // The two halves of an ultimate's opening. They fire on the same frame for the
 // 26 fighters with nothing to say, and a spoken line pushes them apart: the
@@ -121,8 +122,21 @@ export function performUltimate(f) {
 
 const DIRECTORS = {
   // Gojo — Hollow Purple: a massive erasing mass that crosses the stage.
+  //
+  // WHERE IT LEAVES HIM. The charge and the shot were two different points:
+  // the orb drew at (90, bodyY(f, 96)) and the beam spawned at (79, -78) —
+  // eleven pixels apart in both axes, and both about forty forward of his
+  // actual hands. The biggest technique in the game came out of a spot near
+  // his hip, and did not come out of where it had just been gathering.
+  //
+  // Neither number is written here any more. muzzle.js answers "where does
+  // this fighter throw from, in this pose", and Gojo's `ult` point is
+  // HUMAN-VERIFIED — somebody looked at his drawing and placed it. Both halves
+  // ask it once, so they cannot drift apart again, and a redrawn Gojo moves
+  // the orb and the beam together instead of one of them.
   beam(f, p) {
     beginUltAction(f, 0.9);
+    const muzzle = spawnOffset(f.spriteChar || f.charKey, "ult");
     state.entities.push({
       owner: f, t: 0, dead: false,
       update(dt) {
@@ -130,7 +144,7 @@ const DIRECTORS = {
         if (this.t > 0.55 && !this.fired) {
           this.fired = true;
           spawnProjectile(f, {
-            speed: 860, ox: 79, oy: -78, r: p.width / 2, dur: p.duration,
+            speed: 860, ox: muzzle.x, oy: muzzle.y, r: p.width / 2, dur: p.duration,
             dmg: p.dmg, base: p.base, growth: p.growth, angle: 0.4,
             color: p.color, pierce: true, unblockable: true,
             clearsProjectiles: true, label: "Hollow Purple",
@@ -149,8 +163,8 @@ const DIRECTORS = {
           ctx.save();
           ctx.globalCompositeOperation = "lighter";
           ctx.globalAlpha = 0.75;
-          const cx = f.x + f.facing * 90;
-          const cy = bodyY(f, 96);
+          const cx = f.x + f.facing * muzzle.x;
+          const cy = f.y + muzzle.y;   // board length: muzzle.js already put this on the body
           const grad = ctx.createRadialGradient(cx, cy, 4, cx, cy, 20 + g * 70);
           grad.addColorStop(0, "#ffffff");
           grad.addColorStop(0.5, p.color);
