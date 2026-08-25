@@ -535,12 +535,6 @@
     "edited": {
      "renderScale": 0.281
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 980,
@@ -647,12 +641,6 @@
        592.4
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -854,12 +842,6 @@
      "ox": -266.9,
      "bodyBottom": 261.8
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 960,
@@ -893,12 +875,6 @@
      "renderScale": 0.281,
      "bodyBottom": 310.4,
      "rotationDeg": null
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -976,12 +952,6 @@
      "faceLeft": null
     },
     "faceLeft": true,
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 813,
@@ -1054,12 +1024,6 @@
      }
     },
     "faceLeft": true,
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 796,
@@ -1094,12 +1058,6 @@
      "bodyBottom": 242.7,
      "rotationDeg": null
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 939,
@@ -1133,12 +1091,6 @@
      "renderScale": 0.281,
      "ox": -322.8,
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -1665,12 +1617,6 @@
      "renderScale": 0.281,
      "bodyBottom": 246.6
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 644,
@@ -1950,12 +1896,6 @@
     "edited": {
      "ox": -272.9,
      "bodyBottom": 230.3
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -5465,12 +5405,6 @@
     "edited": {
      "renderScale": 0.231
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 986,
@@ -5503,12 +5437,6 @@
     "edited": {
      "renderScale": 0.2952,
      "bodyBottom": 58.6
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -5614,12 +5542,6 @@
     "edited": {
      "renderScale": 0.2681,
      "bodyBottom": 194.9
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -6289,12 +6211,6 @@
     "edited": {
      "renderScale": 0.295
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1043,
@@ -6374,12 +6290,6 @@
      "renderScale": 0.295,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 895,
@@ -6413,12 +6323,6 @@
      "renderScale": 0.295,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 932,
@@ -6450,12 +6354,6 @@
     },
     "edited": {
      "renderScale": 0.313
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -6620,12 +6518,6 @@
       ]
      }
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 947,
@@ -6704,12 +6596,6 @@
        468.4
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -6849,12 +6735,6 @@
      "renderScale": 0.313,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 846,
@@ -6921,12 +6801,6 @@
      "renderScale": 0.313,
      "ox": -337.2,
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -7035,12 +6909,6 @@
      "renderScale": 0.313,
      "bodyBottom": 265.6
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 783,
@@ -7074,12 +6942,6 @@
      "renderScale": 0.313,
      "bodyBottom": 266
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 722,
@@ -7112,12 +6974,6 @@
     "edited": {
      "renderScale": 0.313,
      "bodyBottom": 274.4
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -7327,12 +7183,6 @@
      "anchors": {
       "grabChest": null
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -7575,12 +7425,6 @@
      "renderScale": 0.2035,
      "bodyBottom": 244.9
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 821,
@@ -7612,12 +7456,6 @@
     },
     "edited": {
      "renderScale": 0.2401
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -7651,12 +7489,6 @@
     "edited": {
      "ox": -312.6,
      "bodyBottom": 256.9
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -8333,12 +8165,6 @@
     "edited": {
      "renderScale": 0.291
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 853,
@@ -8370,12 +8196,6 @@
     },
     "edited": {
      "renderScale": 0.291
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -8410,12 +8230,6 @@
      "renderScale": 0.291,
      "ox": -233.8,
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -8456,12 +8270,6 @@
        629.3
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -8606,12 +8414,6 @@
     "edited": {
      "renderScale": 0.326
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1054,
@@ -8644,12 +8446,6 @@
     "edited": {
      "renderScale": 0.291,
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -8684,12 +8480,6 @@
      "renderScale": 0.379,
      "ox": -269.8
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 940,
@@ -8722,12 +8512,6 @@
     "edited": {
      "renderScale": 0.368,
      "bodyBottom": 268.7
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -8805,12 +8589,6 @@
       ]
      }
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 945,
@@ -8850,12 +8628,6 @@
       ]
      }
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 767,
@@ -8890,12 +8662,6 @@
      "ox": -333.2,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 980,
@@ -8928,12 +8694,6 @@
     "edited": {
      "renderScale": 0.291,
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -8972,12 +8732,6 @@
        672.3
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -9049,12 +8803,6 @@
     },
     "edited": {
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -9267,12 +9015,6 @@
       ]
      }
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1468,
@@ -9436,12 +9178,6 @@
      "renderScale": 0.332,
      "bodyBottom": 253.5
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 942,
@@ -9474,12 +9210,6 @@
     "edited": {
      "renderScale": 0.332,
      "bodyBottom": 248.3
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -9523,12 +9253,6 @@
        1367.7
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -10368,12 +10092,6 @@
      "bodyBottom": 310,
      "rotationDeg": null
     },
-    "replaced": {
-     "at": "2026-08-25T20:39:20+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 882,
@@ -10408,12 +10126,6 @@
      "ox": -247.8,
      "bodyBottom": 310,
      "rotationDeg": null
-    },
-    "replaced": {
-     "at": "2026-08-25T20:39:20+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -10507,12 +10219,6 @@
      "renderScale": 0.177,
      "bodyBottom": 310,
      "rotationDeg": null
-    },
-    "replaced": {
-     "at": "2026-08-25T20:39:20+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -10657,12 +10363,6 @@
     },
     "edited": {
      "renderScale": 0.195
-    },
-    "replaced": {
-     "at": "2026-08-25T20:39:20+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -12577,12 +12277,6 @@
      "renderScale": 0.29,
      "ox": -338.2
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 990,
@@ -12621,12 +12315,6 @@
        750.9
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -12730,12 +12418,6 @@
      "bodyBottom": 310.4,
      "ox": -322.8
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 959,
@@ -12811,12 +12493,6 @@
      "ox": -239.8,
      "bodyBottom": 242.2
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 793,
@@ -12850,12 +12526,6 @@
      "renderScale": 0.29,
      "bodyBottom": 310.4,
      "rotationDeg": null
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -12891,12 +12561,6 @@
      "bodyBottom": 310.4,
      "ox": -344.8
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1003,
@@ -12930,12 +12594,6 @@
      "renderScale": 0.29,
      "bodyBottom": 310.4,
      "rotationDeg": null
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -13000,12 +12658,6 @@
        505.3
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -13094,12 +12746,6 @@
      "bodyBottom": 310.4,
      "rotationDeg": null
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1009,
@@ -13158,12 +12804,6 @@
     "edited": {
      "renderScale": 0.29,
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -13229,12 +12869,6 @@
     "edited": {
      "renderScale": 0.313,
      "bodyBottom": 233.9
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -13421,12 +13055,6 @@
       588.7
      ]
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 954,
@@ -13569,12 +13197,6 @@
     "edited": {
      "renderScale": 0.219,
      "bodyBottom": 232.2
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -13753,12 +13375,6 @@
      "renderScale": 0.1823,
      "bodyBottom": 212.7
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 900,
@@ -13792,12 +13408,6 @@
      "renderScale": 0.1964,
      "ox": -455.2,
      "bodyBottom": 243.9
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -16663,12 +16273,6 @@
      "faceLeft": null
     },
     "faceLeft": true,
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 827,
@@ -16888,12 +16492,6 @@
      "faceLeft": null
     },
     "faceLeft": true,
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 905,
@@ -16965,12 +16563,6 @@
      "faceLeft": null
     },
     "faceLeft": true,
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 771,
@@ -17003,12 +16595,6 @@
     "edited": {
      "ox": -341.2,
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -18423,9 +18009,16 @@
     "oy": -762,
     "bodyBottom": 310.4,
     "bodyH": 273.8,
-    "centroidX": 234.5,
+    "centroidX": 173.6,
     "renderScale": 0.2552,
-    "file": "hakari/incoming/dodge_air.png",
+    "file": "hakari/dodge_air.png",
+    "srcBox": [
+     168,
+     187,
+     758,
+     1260
+    ],
+    "srcFlip": false,
     "anchors": {
      "com": [
       355.8,
@@ -18439,14 +18032,7 @@
     "bodyLeft": 0,
     "bodyRight": 590,
     "coreLeft": 174.4,
-    "coreRight": 549.9,
-    "autoTuned": {
-     "at": "2026-08-25T01:17:05+00:00",
-     "fields": {
-      "ox": "on the placed centre of mass"
-     }
-    },
-    "wantsImprovement": "alpha"
+    "coreRight": 549.9
    },
    "dodge_roll": {
     "w": 937,
@@ -22409,12 +21995,6 @@
      "faceLeft": null
     },
     "faceLeft": true,
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1257,
@@ -22474,12 +22054,6 @@
      "renderScale": 0.295,
      "ox": -332.2
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 978,
@@ -22512,12 +22086,6 @@
     "edited": {
      "renderScale": 0.295,
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -22552,12 +22120,6 @@
      "renderScale": 0.295,
      "bodyBottom": 310.4,
      "rotationDeg": null
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -22711,12 +22273,6 @@
      "bodyBottom": 310.4,
      "rotationDeg": null
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 873,
@@ -22756,12 +22312,6 @@
       ]
      }
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1263,
@@ -22793,12 +22343,6 @@
     },
     "edited": {
      "renderScale": 0.406
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -22864,12 +22408,6 @@
       ]
      }
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 812,
@@ -22904,12 +22442,6 @@
      "ox": -283.6,
      "bodyBottom": 231.5,
      "rotationDeg": null
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -22980,12 +22512,6 @@
      "renderScale": 0.295,
      "bodyBottom": 310.4,
      "rotationDeg": null
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -23059,12 +22585,6 @@
       ]
      }
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 995,
@@ -23100,12 +22620,6 @@
      "faceLeft": null
     },
     "faceLeft": true,
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 949,
@@ -23376,12 +22890,6 @@
       "grabHand": null
      }
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 988,
@@ -23487,12 +22995,6 @@
     "edited": {
      "renderScale": 0.198,
      "bodyBottom": 235.1
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -23637,12 +23139,6 @@
     },
     "edited": {
      "bodyBottom": 231.7
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -26236,12 +25732,6 @@
     "edited": {
      "renderScale": 0.254
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1010,
@@ -26273,12 +25763,6 @@
     },
     "edited": {
      "renderScale": 0.254
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -26347,12 +25831,6 @@
      "faceLeft": null
     },
     "faceLeft": true,
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 840,
@@ -26386,12 +25864,6 @@
      "renderScale": 0.254,
      "bodyBottom": 310.4,
      "rotationDeg": null
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -26570,12 +26042,6 @@
      "bodyBottom": 310.4,
      "rotationDeg": null
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 886,
@@ -26649,12 +26115,6 @@
      "renderScale": 0.359,
      "ox": -201.4
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 711,
@@ -26725,12 +26185,6 @@
       ]
      }
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 906,
@@ -26770,12 +26224,6 @@
        527.9
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -27597,12 +27045,6 @@
     },
     "edited": {
      "renderScale": 0.185
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -31852,9 +31294,16 @@
     "oy": -566,
     "bodyBottom": 310.4,
     "bodyH": 237.3,
-    "centroidX": 175.4,
+    "centroidX": 160.7,
     "renderScale": 0.2706,
-    "file": "toji/incoming/dodge_air.png",
+    "file": "toji/dodge_air.png",
+    "srcBox": [
+     482,
+     109,
+     1054,
+     986
+    ],
+    "srcFlip": false,
     "anchors": {
      "com": [
       300.7,
@@ -31864,49 +31313,11 @@
     "edited": {
      "renderScale": 0.299
     },
-    "replaced": {
-     "at": "2026-08-25T01:15:44+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-25T01:15:44+00:00",
-     "live": {
-      "w": 572,
-      "h": 877,
-      "ox": -129.2,
-      "oy": -566,
-      "bodyBottom": 310.4,
-      "bodyH": 262.2,
-      "bodyTop": 0,
-      "centroidX": 172.3,
-      "renderScale": 0.2706,
-      "anchors": {
-       "com": [
-        300.7,
-        400.7
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "edited": {
-       "renderScale": 0.299
-      },
-      "file": "toji/dodge_air.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 572,
     "coreLeft": 65.8,
-    "coreRight": 515.2,
-    "autoTuned": {
-     "at": "2026-08-25T01:17:05+00:00",
-     "fields": {
-      "ox": "on the placed centre of mass"
-     }
-    },
-    "wantsImprovement": "alpha"
+    "coreRight": 515.2
    },
    "dodge_roll": {
     "w": 1242,
@@ -35028,12 +34439,6 @@
      "renderScale": 0.2006,
      "bodyBottom": 236.2
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 878,
@@ -36746,12 +36151,6 @@
      "renderScale": 0.191,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 486,
@@ -36815,12 +36214,6 @@
        891.8
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -36965,12 +36358,6 @@
      "renderScale": 0.239,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 588,
@@ -37005,12 +36392,6 @@
      "bodyBottom": 310.4,
      "rotationDeg": null
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 890,
@@ -37043,12 +36424,6 @@
     "edited": {
      "renderScale": 0.165,
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -37088,12 +36463,6 @@
        821
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -37199,12 +36568,6 @@
     "edited": {
      "renderScale": 0.181
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 885,
@@ -37237,12 +36600,6 @@
     "edited": {
      "renderScale": 0.192
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 601,
@@ -37274,12 +36631,6 @@
     },
     "edited": {
      "renderScale": 0.211
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -37339,12 +36690,6 @@
      "renderScale": 0.191,
      "ox": -186.2
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 686,
@@ -37379,12 +36724,6 @@
      "bodyBottom": 310.4,
      "rotationDeg": null
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 635,
@@ -37416,12 +36755,6 @@
     },
     "edited": {
      "renderScale": 0.168
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -37487,12 +36820,6 @@
       ]
      }
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 746,
@@ -37532,12 +36859,6 @@
       ]
      }
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 750,
@@ -37573,12 +36894,6 @@
     },
     "edited": {
      "renderScale": 0.224
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -37669,12 +36984,6 @@
      "renderScale": 0.19,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 671,
@@ -37708,12 +37017,6 @@
      "renderScale": 0.192,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 712,
@@ -37746,12 +37049,6 @@
     "edited": {
      "renderScale": 0.207,
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -37789,12 +37086,6 @@
      "faceLeft": null
     },
     "faceLeft": true,
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 485,
@@ -37854,12 +37145,6 @@
      "renderScale": 0.199,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 574,
@@ -37897,12 +37182,6 @@
        510.1
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -37942,12 +37221,6 @@
        719.4
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -38096,12 +37369,6 @@
     "edited": {
      "bodyBottom": 228.2
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 634,
@@ -38134,12 +37401,6 @@
     "edited": {
      "renderScale": 0.249,
      "bodyBottom": 228.2
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -38174,12 +37435,6 @@
      "renderScale": 0.249,
      "bodyBottom": 240.8
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 922,
@@ -38212,12 +37467,6 @@
     "edited": {
      "renderScale": 0.249,
      "bodyBottom": 240.2
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -38258,12 +37507,6 @@
       ]
      }
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1066,
@@ -38296,12 +37539,6 @@
     "edited": {
      "renderScale": 0.249,
      "bodyBottom": 214.8
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -38381,12 +37618,6 @@
      "anchors": {
       "grabChest": null
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -38528,12 +37759,6 @@
       583
      ]
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 960,
@@ -38628,12 +37853,6 @@
     },
     "edited": {
      "bodyBottom": 236.2
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -38950,12 +38169,6 @@
     "edited": {
      "renderScale": 0.2683
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 693,
@@ -39130,12 +38343,6 @@
      "renderScale": 0.206,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 949,
@@ -39305,12 +38512,6 @@
      "renderScale": 0.241,
      "ox": -216.8
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 747,
@@ -39457,12 +38658,6 @@
     "edited": {
      "renderScale": 0.206
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 728,
@@ -39530,12 +38725,6 @@
     },
     "edited": {
      "renderScale": 0.2338
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -39632,12 +38821,6 @@
      "renderScale": 0.206,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 564,
@@ -39670,12 +38853,6 @@
     "edited": {
      "renderScale": 0.206,
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -39839,12 +39016,6 @@
      "renderScale": 0.206,
      "ox": -240.8
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 795,
@@ -39917,12 +39088,6 @@
        397.1
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -39998,12 +39163,6 @@
      "renderScale": 0.206,
      "bodyBottom": 310
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 939,
@@ -40036,12 +39195,6 @@
     "edited": {
      "renderScale": 0.206,
      "bodyBottom": 244.3
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -40412,12 +39565,6 @@
     "edited": {
      "renderScale": 0.193,
      "bodyBottom": 239.9
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -42390,12 +41537,6 @@
      "renderScale": 0.201,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 788,
@@ -42460,12 +41601,6 @@
      "renderScale": 0.164,
      "bodyBottom": 310.4,
      "rotationDeg": null
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -42643,12 +41778,6 @@
     "edited": {
      "renderScale": 0.232,
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -42872,12 +42001,6 @@
     "edited": {
      "renderScale": 0.206
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 767,
@@ -42983,12 +42106,6 @@
       ]
      }
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 744,
@@ -43055,12 +42172,6 @@
     "edited": {
      "renderScale": 0.201,
      "bodyBottom": 310.4
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -43163,12 +42274,6 @@
     "edited": {
      "renderScale": 0.221
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 598,
@@ -43264,12 +42369,6 @@
     "edited": {
      "bodyBottom": 310.4,
      "rotationDeg": null
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -43403,12 +42502,6 @@
     "edited": {
      "bodyBottom": 310.4,
      "rotationDeg": null
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -45773,18 +44866,11 @@
       394.6
      ]
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1351,
     "coreLeft": 109.8,
-    "coreRight": 1148.3,
-    "wantsImprovement": "alpha"
+    "coreRight": 1148.3
    },
    "attack_diag_up_b": {
     "w": 1055,
@@ -46131,12 +45217,6 @@
     "centroidX": 86.6,
     "renderScale": 0.4806,
     "file": "effects/aura_indigo.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 426,
@@ -46166,12 +45246,6 @@
     "centroidX": 77.7,
     "renderScale": 0.5098,
     "file": "effects/aura_jade.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 382,
@@ -46201,12 +45275,6 @@
     "centroidX": 69.7,
     "renderScale": 0.5159,
     "file": "effects/aura_slate.png",
-    "replaced": {
-     "at": "2026-08-09T16:00:44+00:00",
-     "kept": "new",
-     "how": "new",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 425,
@@ -47766,12 +46834,6 @@
        1381.7
       ]
      }
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -54912,12 +53974,6 @@
      "renderScale": 0.257,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1152,
@@ -54950,12 +54006,6 @@
     "edited": {
      "renderScale": 0.2281,
      "bodyBottom": 217.6
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -58653,12 +57703,6 @@
      "renderScale": 0.2496,
      "bodyBottom": 129.7
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 954,
@@ -60177,12 +59221,6 @@
      "renderScale": 0.2672,
      "bodyBottom": 182.4
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 770,
@@ -60214,12 +59252,6 @@
     },
     "edited": {
      "renderScale": 0.2389
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -60254,12 +59286,6 @@
      "renderScale": 0.2539,
      "bodyBottom": 196.8
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 817,
@@ -60275,7 +59301,14 @@
     "bodyH": 382.1,
     "centroidX": 156.7,
     "renderScale": 0.2249,
-    "file": "kirara/incoming/throw_up.png",
+    "file": "kirara/throw_up.png",
+    "srcBox": [
+     108,
+     64,
+     759,
+     1763
+    ],
+    "srcFlip": false,
     "anchors": {
      "com": [
       303.9,
@@ -60286,50 +59319,11 @@
      "renderScale": 0.2639,
      "bodyBottom": 219.4
     },
-    "replaced": {
-     "at": "2026-08-25T00:33:46+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": []
-    },
-    "awaitingApproval": {
-     "at": "2026-08-25T00:33:46+00:00",
-     "live": {
-      "w": 651,
-      "h": 1699,
-      "ox": -149.1,
-      "oy": -1388,
-      "bodyBottom": 245.4,
-      "bodyH": 382.1,
-      "bodyTop": 0,
-      "centroidX": 156.7,
-      "renderScale": 0.2249,
-      "anchors": {
-       "com": [
-        303.9,
-        731.3
-       ]
-      },
-      "wantsImprovement": "alpha",
-      "edited": {
-       "renderScale": 0.2639,
-       "bodyBottom": 219.4
-      },
-      "file": "kirara/throw_up.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 651,
     "coreLeft": 53.1,
-    "coreRight": 520.3,
-    "wantsImprovement": "alpha",
-    "srcBox": [
-     108,
-     64,
-     759,
-     1763
-    ]
+    "coreRight": 520.3
    }
   },
   "haruta": {
@@ -70831,7 +69825,11 @@
       },
       "file": "hakari/dodge_air.png",
       "label": "Superseded",
-      "supersededAt": "2026-08-25T01:15:44+00:00"
+      "supersededAt": "2026-08-25T01:15:44+00:00",
+      "bodyLeft": 0,
+      "bodyRight": 590,
+      "coreLeft": 174.4,
+      "coreRight": 549.9
      }
     ]
    },
@@ -79150,7 +78148,7 @@
       },
       "bodyLeft": 0,
       "bodyRight": 572,
-      "coreLeft": 54.8,
+      "coreLeft": 65.8,
       "coreRight": 515.2
      },
      {
@@ -95575,7 +94573,11 @@
        "bodyBottom": 219.4
       },
       "file": "kirara/throw_up.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 651,
+      "coreLeft": 53.1,
+      "coreRight": 520.3
      },
      {
       "w": 651,
