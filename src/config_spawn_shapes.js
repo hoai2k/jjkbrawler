@@ -92,9 +92,12 @@ export const SPAWN_SHAPES = {
   },
   beam: {
     site: "beam (src/ultimates.js)", anchor: "centre", travels: true,
-    // The director charges, then throws a real projectile with offsets of its
-    // OWN, written into the handler rather than into the kit.
-    launch: () => ({ forward: 90, y: -96, scaled: true }), play: "ultShot",
+    // The director charges, then throws a real projectile — and both halves
+    // now leave from the muzzle rather than from offsets written into the
+    // handler. This entry said 90, -96, which was the CHARGE ORB's old point
+    // and never the shot's; read as a displacement it put the crosshair
+    // twenty forward and ten above where anything actually comes from.
+    launch: MUZZLE, play: "ultShot",
   },
   cannonade: {
     site: "cannonade (src/ultimates.js)", anchor: "centre", travels: true, play: "ultShot",
