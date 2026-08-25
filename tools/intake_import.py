@@ -292,7 +292,28 @@ def content_box(frame):
     return int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1
 
 
-def reframe_placement(meta, old_meta, old_frame, new_frame):
+def boxes_from_report():
+    """Each processed frame's trim box in its delivered plate, from the report.
+
+    `intake.py` writes it because only that half ever sees the source; this half
+    only ever sees the trimmed PNG, and the box is what makes a re-key free.
+    Cached: the report is one file for the whole round.
+    """
+    if boxes_from_report.cache is None:
+        out = {}
+        path = os.path.join(intake.PROCESSED, "report.json")
+        if os.path.exists(path):
+            for row in json.load(open(path)):
+                if row.get("box"):
+                    out[(row["char"], row["key"])] = [int(v) for v in row["box"]]
+        boxes_from_report.cache = out
+    return boxes_from_report.cache
+
+
+boxes_from_report.cache = None
+
+
+def reframe_placement(meta, old_meta, old_frame, new_frame, boxes=None):
     """Re-point `meta`'s ox/oy so the DRAWING lands exactly where it did.
 
     `generated_frame_meta` places a frame from scratch: content box centred in
@@ -307,11 +328,32 @@ def reframe_placement(meta, old_meta, old_frame, new_frame):
     keeps its exact position, tuning and all, and the anchors carried alongside
     stay on it.
     """
+    out = dict(meta)
+    # BY THE TRIM BOX, WHEN BOTH SIDES KNOW IT — which is exact.
+    #
+    # `ox`/`oy` place the trimmed image in the cell, and the art is drawn at
+    # ((ox - CELL_W/2) + imgX) * renderScale, so a source pixel lands where it
+    # did if and only if `ox` moves by the change in the trim box's left edge.
+    # The rule below cannot know that: it lines the new silhouette's CENTRE and
+    # BOTTOM up with the old one's, which is right for a re-crop of an unchanged
+    # drawing and wrong for a re-key, because a re-key changes the silhouette.
+    # Cut a gap out of one side and the centre moves; recover a shadow at the
+    # feet and the bottom moves. That is the manual re-placement a re-key used
+    # to cost — up to 111px on Gojo's fall.
+    #
+    # Both boxes are in the delivered plate's own pixels, so this holds however
+    # much the matte changed, and it holds for a re-crop too.
+    if boxes and boxes[0] and boxes[1]:
+        out["ox"] = round(old_meta.get("ox", 0) + (boxes[1][0] - boxes[0][0]), 1)
+        out["oy"] = round(old_meta.get("oy", 0) + (boxes[1][1] - boxes[0][1]))
+        if "centroidX" in meta:
+            out["centroidX"] = round(meta["centroidX"] + (out["ox"] - meta["ox"]), 1)
+        return out
+
     ox0, oy0, ox1, oy1 = content_box(old_frame)
     nx0, ny0, nx1, ny1 = content_box(new_frame)
     old_cx = (ox0 + ox1) / 2
     new_cx = (nx0 + nx1) / 2
-    out = dict(meta)
     out["ox"] = round(old_meta.get("ox", 0) + (old_cx - new_cx), 1)
     out["oy"] = round(old_meta.get("oy", 0) + (oy1 - ny1))
     # centroidX is stored in the same cell space, so it moves with ox.
@@ -465,6 +507,7 @@ def main():
                 skipped.append(f"{char}/{key}: not in _processed")
                 continue
             frame = np.asarray(Image.open(src).convert("RGBA"))
+            new_box = boxes_from_report().get((char, key))
             stored = man["characters"].get(char, {}).get(key)
             keeps = survives(stored)
             # A touch-up keeps the tuning; a redraw rolls it back, because the
@@ -473,6 +516,8 @@ def main():
             idle = man["characters"].get(char, {}).get("idle_a")
             meta = place(frame, old, idle, keep_scale=keeps in ("keep", "reframe"))
             meta["file"] = f"{char}/{key}.png"
+            if new_box:
+                meta["srcBox"] = list(new_box)
 
             carried = []
             if keeps in ("keep", "reframe") and stored:
@@ -482,8 +527,10 @@ def main():
                 old_path = os.path.join(SPRITES, stored.get("file", f"{char}/{key}.png"))
                 if os.path.exists(old_path):
                     old_frame = np.asarray(Image.open(old_path).convert("RGBA"))
-                    meta = reframe_placement(meta, stored, old_frame, frame)
-                    carried.append("placement")
+                    meta = reframe_placement(meta, stored, old_frame, frame,
+                                             boxes=(stored.get("srcBox"), new_box))
+                    carried.append("placement"
+                                   + (" (exact)" if stored.get("srcBox") and new_box else ""))
                 else:
                     skipped.append(f"{char}/{key}: previous art missing, cannot reframe")
                 anchors, moved = carry_anchors(stored, old, meta)
