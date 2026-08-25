@@ -1990,7 +1990,7 @@ function refreshControls() {
 
   // counted across every character touched this session, since that is what
   // Export now emits
-  let poses = 0, heads = 0, chars = 0, actions = 0, reviews = 0;
+  let poses = 0, heads = 0, chars = 0, actions = 0, reviews = 0, tagged = 0;
   for (const c of editedChars()) {
     const n = dirtyFrames(c).length;
     const headChanged = Math.abs(headHeight(c) - (state.originalHeads[c] ?? headHeight(c))) > 1e-4;
@@ -1999,17 +1999,29 @@ function refreshControls() {
     // takes it off the updated list anyway, so counting that twice would
     // overstate what the export carries.
     const r = clearedUpdates(c).filter((pose) => !isDirty(c, pose)).length;
-    if (n || headChanged || a || r) chars++;
+    // A FLAG ON A DRAWING IS A CHANGE, AND THIS SAID "none" TO FORTY-SEVEN OF
+    // THEM. `isDirty` compares the POSE's own numbers, and refusing a drawing
+    // moves none of them — the tag goes on the variant option beside it. So a
+    // session spent going through the alternates marking unused art for
+    // deletion exported all of it and reported, at the top of the screen, that
+    // nothing had been changed. Counted separately rather than folded into
+    // `poses`, because it is a different kind of statement: not "this pose sits
+    // here" but "this drawing should not exist".
+    const f = [...variantFlagEdits]
+      .filter((id) => id.slice(0, id.indexOf("/")) === c).length;
+    if (n || headChanged || a || r || f) chars++;
     poses += n;
     actions += a;
     reviews += r;
+    tagged += f;
     if (headChanged) heads++;
   }
-  $("dirtyCount").textContent = poses || heads || actions || reviews
+  $("dirtyCount").textContent = poses || heads || actions || reviews || tagged
     ? [poses ? `${poses} pose${poses === 1 ? "" : "s"}` : "",
        heads ? `${heads} head height${heads === 1 ? "" : "s"}` : "",
        actions ? `${actions} action${actions === 1 ? "" : "s"}` : "",
-       reviews ? `${reviews} reviewed` : ""].filter(Boolean).join(" + ")
+       reviews ? `${reviews} reviewed` : "",
+       tagged ? `${tagged} flagged` : ""].filter(Boolean).join(" + ")
       + (chars > 1 ? ` across ${chars} characters` : "")
     : "none";
   refreshHistoryButtons();

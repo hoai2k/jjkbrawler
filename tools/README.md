@@ -54,6 +54,12 @@ real draw path; the half of Clothing FX that can be checked on a bare checkout �
 that the key still takes the same thing out of the same art — is
 `check_clothing_fx.mjs`, and that one IS in the gate.
 
+`node tools/smoke_delete_tags.mjs` is outside the gate for the same reason —
+it drives the real sprite workbench. It covers the one thing a refusal has to
+do: a drawing marked for deletion is still marked when the chooser is opened
+again. It was not, for every drawing a pose uses as its own, which is every
+sheet cell nothing draws.
+
 `tools/png.mjs` is not a script. It decodes 8-bit RGBA PNGs in plain node, so a
 check that needs to look at actual pixels does not need a browser to do it.
 
