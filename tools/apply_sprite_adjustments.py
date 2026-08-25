@@ -685,11 +685,21 @@ def main():
     for line in applied:
         print("  " + line)
     if tagged_delete:
-        # Written from a hand-edited export as easily as from the workbench,
-        # and the workbench is the half that knows what the game is drawing.
-        # So the tool that cannot tell says which one can.
-        print("  delete tag(s) written — confirm nothing tagged is still on "
-              f"screen: node ../tools/check_pointing.mjs {' '.join(sorted(tagged_delete))}")
+        # A DELETE TAG IS AN INSTRUCTION, NOT A NOTE. It used to be written here
+        # and left: the tag sat in the manifest, list_replacements collected it,
+        # and it surfaced in docs/image-requests.md as an image somebody was
+        # owed — which is the opposite of what it says. Fifty-six of them had
+        # accumulated that way. The tool that carries it out is one line, and
+        # it is the line that goes out with the tag.
+        #
+        # Not run automatically from here: this tool is fed by hand-edited
+        # exports as readily as by the workbench, and a paste that deletes
+        # artwork as a side effect is not a paste anybody can review. It also
+        # refuses to touch anything the game is still drawing, so running it is
+        # safe — but running it is a decision.
+        chars = " ".join(sorted(tagged_delete))
+        print(f"  delete tag(s) written — carry them out: node ../tools/apply_deletions.mjs "
+              f"{chars}   (add --apply once the plan reads right)")
     if remeasure:
         print("  measured spans dropped where a pose changed drawing — "
               f"run: python3 bake_anchors.py --only {' '.join(sorted(remeasure))}")

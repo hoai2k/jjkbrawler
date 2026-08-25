@@ -58,7 +58,7 @@ fighter without a delivered rig.
 
 | # | Request | Type | Status | Blocked by |
 |---|---|---|---|---|
-| 0 | [**image-requests.md — every open image request**](image-requests.md) | 🖼️ **Images** | **none outstanding.** Generated; supersedes rows 1–3 and DI4 below, which are where those rounds are AUTHORED | — |
+| 0 | [**image-requests.md — every open image request**](image-requests.md) | 🖼️ **Images** | **3 outstanding** — three drawings flagged in the workbench, no round open. (56 variants tagged for deletion are a cleanup, not a request, and are not counted.) Generated; supersedes rows 1–3 and DI4 below, which are where those rounds are AUTHORED | — |
 | 1 | [2D art — round 22](asset-requests.md) *(authoring source)* | 🖼️ **Images** (sprites, backdrops) | **nothing open** — rounds 1–21 delivered; 22 is the round to add to | — |
 | 2 | [3D images — DI1: turnaround boards](../render3d/docs/image-requests.md#round-di1--model-generation-turnaround-boards-the-tripo-inputs) *(authoring source)* | 🖼️ **Images** (reference) | **delivered** — all 20 | — |
 | 2b | [3D images — DI5: regeneration seeds](../render3d/docs/image-requests.md#round-di5--regeneration-seeds-delivered--read-the-verdict-before-generating) *(authoring source)* | 🖼️ **Images** (reference) | **delivered** — all 5 reseeds for the models that came back broken | — |

@@ -19,7 +19,7 @@ Listed in the order the runbook works through them:
 
 | Step | Flag | Kinds | Set where | What the cleanup does |
 |---|---|---|---|---|
-| 1 | `needsReplacement` | `delete`, on a pose with more than one drawing | Artwork dropdown | **Deletes that image** and makes sure the pose's canonical file is the drawing that was kept |
+| 1 | `needsReplacement` | `delete`, on a pose with more than one drawing | Artwork dropdown | **Deletes that image and every reference to it** — `node tools/apply_deletions.mjs`, which holds anything the game is still drawing |
 | 2 | `wantsImprovement` | `alpha`, `crop`, `bleed` | Improvement dropdown | **Attempts a fix in-place**, then shows you before/after to approve |
 | 3 | `needsReplacement` | `quality`, `pose`, `character`, `alternate` | Artwork dropdown | **Cannot be fixed by tooling** — folded into the open asset request round. `alternate` asks for a second drawing beside the current one rather than a replacement for it |
 
@@ -36,28 +36,50 @@ That is the complete worklist. A cleanup that does not begin here is guessing.
 
 ## 1. Deletions — discard the drawings we have replaced
 
-`delete` is tagged on a **variant option**, not on a pose, because it names one
-drawing out of several (`manifest.variants[char][pose].options`). It only appears
-in the dropdown when a pose has an alternative to fall back to, so a deletion can
-never leave a pose with no art.
+**This step is a tool now.** It was four hand steps per drawing, which is why
+fifty-six tags accumulated without one of them being carried out — and why they
+kept arriving in `docs/image-requests.md` as images somebody was owed, which is
+the opposite of what a delete tag says.
 
-For each tagged drawing:
+```bash
+node tools/apply_deletions.mjs            # the plan: what goes, what is held and why
+node tools/apply_deletions.mjs --apply    # carry it out
+node tools/apply_deletions.mjs --apply jogo   # one fighter
+```
 
-1. **Check it is not the selected one.** `list_replacements.py` marks these
-   loudly (`<- CURRENTLY SELECTED`). If the pose is still pointing at the drawing
-   being deleted, stop and ask which drawing should be kept — do not guess.
-2. **Promote the keeper into the canonical location.** The pose's canonical file
-   is `sprites/assets/<char>/<pose>.png`. If the selected drawing lives somewhere
-   else — typically `sprites/assets/<char>/alt/<pose>.png`, where
-   `intake_variants.py` puts imported alternates — move it to the canonical path
-   and update its `file` in both the pose's meta and its variant option.
-3. **Delete the tagged image from disk** and remove its option from the variants
-   list.
-4. **Drop the variants entry entirely** if only one option is left. A pose with
-   one drawing is a pose with no choice, and it should stop showing a chevron.
+It prints the plan and does nothing unless you pass `--apply`, because a tool
+that removes artwork should be run deliberately.
 
-The end state is what you would have got by delivering the winning drawing in the
-first place: the right art at the canonical path, no leftovers, no chevron.
+For each tagged drawing it deletes the PNG and **every reference to it**: the
+variant option, any `characters[char][pose]` entry naming the file, and that
+pose's read in `sprites/docs/pose-reads/<char>.json` — a read of a frame that
+no longer exists fails `check_pose_reads.mjs`, and the reads are hand-formatted,
+so it cuts the stanza out and parses the result back to prove the cut was
+clean. A variants entry left with one option is dropped too: a pose with one
+drawing is a pose with no choice and should stop showing a chevron.
+
+**What it will not do, and this is the part worth trusting it for.** It asks the
+game — `resolvedAnim`, fallbacks and all, the same question
+`tools/check_pointing.mjs` asks — whether anything is still drawing the tagged
+file. If something is, the drawing is HELD and the tag stays, because deleting
+it would take art off the screen and the rule there is the old one: stop, and
+choose the keeper in the workbench first. That question is per character. A
+grid cell like `r4c0` is played by a sheet-era fighter and is dead weight on a
+semantic one, so "is `r4c0` on screen" has thirty-four different answers.
+
+Afterwards:
+
+```bash
+node tools/check_pointing.mjs             # nothing lost its art
+node tools/build_image_requests.mjs       # the request docs move with it
+```
+
+**A keeper living somewhere other than the canonical path is still yours.** If
+the surviving drawing is at `sprites/assets/<char>/alt/<pose>.png` — where
+`intake_variants.py` puts imported alternates — move it to
+`sprites/assets/<char>/<pose>.png` and update its `file` in the pose's meta and
+its variant option. The tool does not, because which drawing deserves the
+canonical name is the same judgement it refuses to make above.
 
 ---
 
