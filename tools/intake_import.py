@@ -46,6 +46,12 @@ That marker is what the workbench's "All Recently Updated Poses" list is built
 from: after a round, the poses whose art moved under previous work are scattered
 across the roster, and finding them by hand means opening every character.
 
+With ONE exception, which is unmoved(): a re-key that carried its placement
+exactly and changed no scale or foot line has not moved the sprite, so there is
+nothing on that list to do about it. The list is for placing and scaling. Whether
+the new matte is an improvement is a different question and the verification
+bench is where it is asked.
+
   --approve FILE   JSON: {"char": ["frame", ...]} or {"char": {"frame": {...}}},
                    where a frame's block may carry {"as": "alpha"} to say why
                    the art is being replaced when no flag on the pose does
@@ -155,6 +161,27 @@ def replaced_note(stored, keeps, at, how="import"):
     if not stored:
         return {"at": at, "kept": "new", "how": "new", "lost": []}
     return {"at": at, "kept": keeps, "how": how, "lost": lost_work(stored, keeps)}
+
+
+# What placing a sprite means, as field names: where it sits, how big it is
+# drawn, and where its feet are. A re-key that changes none of them has not
+# moved the sprite, whatever it did to the matte.
+PLACEMENT_FIELDS = ("renderScale", "bodyBottom", "bodyH")
+
+
+def unmoved(stored, meta, exact):
+    """True when this import changes the matte and nothing a person would place.
+
+    The placement carry has to have been EXACT — by the trim box, on both sides —
+    because the fallback rule lines the new silhouette's centre and bottom up
+    with the old one's, and a re-key changes the silhouette, so "the numbers came
+    out the same" means nothing there. With an exact carry the drawing is at the
+    same size in the same spot by construction, and `ox`/`oy` differing is how
+    that was achieved rather than evidence against it.
+    """
+    if not stored or not exact:
+        return False
+    return all(stored.get(f) == meta.get(f) for f in PLACEMENT_FIELDS)
 
 
 def carry_anchors(stored, old_meta, new_meta):
@@ -654,6 +681,7 @@ def main():
                         continue
 
             carried = []
+            exact = False
             if keeps in ("keep", "reframe") and stored:
                 # The art being replaced is still on disk until the copy below,
                 # which is what lets the new placement be derived from how far
@@ -682,6 +710,20 @@ def main():
                     carried.append("mirror")
 
             note = replaced_note(stored, keeps, at)
+            # AN ALPHA FIX THAT MOVES NOTHING IS NOT PLACEMENT WORK.
+            #
+            # The updated list exists so a round's placing and scaling can be
+            # found in one place, and a re-key that lands the drawing at the
+            # same size in the same spot asks for none of it: `srcBox` carried
+            # the placement to the pixel, the scale and the foot line are the
+            # numbers that were already there, and what changed is the matte.
+            # Putting those on the list buried the poses that DID need placing
+            # under a few hundred that did not. Approving the alpha is a
+            # different question, and the verification bench is where it is
+            # asked.
+            if note and unmoved(stored, meta, exact):
+                note = None
+                carried.append("unmoved, so not on the updated list")
             if note:
                 meta["replaced"] = note
 
