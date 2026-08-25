@@ -48,6 +48,7 @@ PLACEMENT = [
     "centroidX", "renderScale", "rotationDeg", "anchors", "faceLeft",
     # where the trimmed art sat in the delivered plate; see sprites.js
     "srcBox",
+    "srcFlip",
 ]
 REVIEW = ["needsReplacement", "wantsImprovement", "edited", "surfacedReviewed"]
 # A fact about the drawing, not the pose — see VARIANT_ORIGIN in sprites.js.

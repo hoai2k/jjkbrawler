@@ -98,6 +98,15 @@ async function build(inBand) {
       return `The keyer <b>${now}</b> today. Marked as <b>${want}</b>.<br>`
         + "Is the outlined patch a hole in the fighter, or a shadow lying on them?";
     },
+    // ALREADY ANSWERED, AND BACK ANYWAY. A region leaves the queue the moment
+    // its verdict is applied — except the two that are not answers the keyer
+    // can carry out: "part gap, part shadow" and "another alpha fault" come
+    // back on purpose, because they are work somebody still means to do. They
+    // were indistinguishable from a question nobody had touched, so a pass
+    // through the to-do list kept running into decisions already sent. Saying
+    // they are committed puts them under "answered", where they can still be
+    // revisited, and leaves the to-do list as the things genuinely unjudged.
+    committed: (task) => !!task.mark || !!task.loops,
     renderEditor,
     draw,
     exportBlock,

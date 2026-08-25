@@ -46,7 +46,9 @@ That marker is what the workbench's "All Recently Updated Poses" list is built
 from: after a round, the poses whose art moved under previous work are scattered
 across the roster, and finding them by hand means opening every character.
 
-  --approve FILE   JSON: {"char": ["frame", ...]} or {"char": {"frame": {...}}}
+  --approve FILE   JSON: {"char": ["frame", ...]} or {"char": {"frame": {...}}},
+                   where a frame's block may carry {"as": "alpha"} to say why
+                   the art is being replaced when no flag on the pose does
   --dry-run        report only
 
 Usage:
@@ -281,6 +283,75 @@ def place(frame, old_meta, idle_meta, keep_scale=False):
     return meta
 
 
+SAME_DRAWING = 0.5
+# How far the vote step reduces both frames before it looks for the offset.
+COARSE = 4
+
+
+def same_drawing(old_frame, new_frame):
+    """How much of two frames is the same PIXELS, at their best alignment.
+
+    A re-key changes alpha and a re-crop changes bounds; neither repaints the
+    figure, so the two frames carry identical colour wherever both are solid.
+    A different delivery of the same pose does not — the artist drew it again.
+
+    Aligned by voting rather than by the bounding box: the bounds are exactly
+    what a re-key moves. Sample pixels of the smaller frame each vote for every
+    offset that would explain them, and the winner is checked in full.
+
+    The vote runs on both frames reduced by COARSE, which is what makes this
+    affordable: at full size it is dozens of passes over a megapixel per pose,
+    and a 255-pose batch spent the better part of an hour in here. The offset is
+    then refined at full size over the coarse cell it landed in, so the answer
+    is the same one.
+    """
+    a, b = old_frame, new_frame
+    big, small = (a, b) if a.shape[0] * a.shape[1] > b.shape[0] * b.shape[1] else (b, a)
+    H, W = big.shape[:2]
+    h, w = small.shape[:2]
+    if h > H or w > W:
+        return 0.0
+    rgb = small[:, :, :3].astype(np.int16)
+    solid = small[:, :, 3] == 255
+    ys, xs = np.nonzero(solid)
+    if len(ys) < 200:
+        return 0.0
+
+    cs, cb = small[::COARSE, ::COARSE], big[::COARSE, ::COARSE]
+    ch, cw = cs.shape[:2]
+    cH, cW = cb.shape[:2]
+    crgb = cs[:, :, :3].astype(np.int16)
+    cys, cxs = np.nonzero(cs[:, :, 3] == 255)
+    if not len(cys):
+        return 0.0
+    take = np.linspace(0, len(cys) - 1, 32).astype(int)
+    sy, sx = cys[take], cxs[take]
+    ny, nx = cH - ch + 1, cW - cw + 1
+    votes = np.zeros((ny, nx), np.int32)
+    cfield = cb[:, :, :3].astype(np.int16)
+    for k in range(len(take)):
+        hit = np.abs(cfield - crgb[sy[k], sx[k]]).max(axis=2) <= 2
+        votes += hit[sy[k]:sy[k] + ny, sx[k]:sx[k] + nx]
+    gy, gx = np.unravel_index(int(np.argmax(votes)), votes.shape)
+
+    probe_y, probe_x = ys[::37], xs[::37]
+    want = rgb[probe_y, probe_x]
+    best = (-1.0, 0, 0)
+    for dy in range(max(0, gy * COARSE - COARSE), min(H - h, gy * COARSE + COARSE) + 1):
+        for dx in range(max(0, gx * COARSE - COARSE), min(W - w, gx * COARSE + COARSE) + 1):
+            got = big[dy + probe_y, dx + probe_x, :3].astype(np.int16)
+            score = float((np.abs(got - want).max(axis=1) <= 2).mean())
+            if score > best[0]:
+                best = (score, dy, dx)
+    _, dy, dx = best
+    field = big[:, :, :3].astype(np.int16)
+    both = solid & (big[dy:dy + h, dx:dx + w, 3] == 255)
+    if both.sum() < 1000:
+        return 0.0
+    d = np.abs(field[dy:dy + h, dx:dx + w] - rgb).max(axis=2)
+    return float((d[both] <= 2).mean())
+
+
 def content_box(frame):
     """The opaque bounding box, at the SAME threshold generated_frame_meta uses.
 
@@ -293,10 +364,13 @@ def content_box(frame):
 
 
 def boxes_from_report():
-    """Each processed frame's trim box in its delivered plate, from the report.
+    """Each processed frame's trim box in its delivered plate, and its facing.
 
-    `intake.py` writes it because only that half ever sees the source; this half
-    only ever sees the trimmed PNG, and the box is what makes a re-key free.
+    `intake.py` writes both because only that half ever sees the source; this
+    half only ever sees the trimmed PNG, and the box is what makes a re-key
+    free. The facing comes with it because a mirrored frame's image x runs the
+    other way down the plate and carries by the other edge.
+
     Cached: the report is one file for the whole round.
     """
     if boxes_from_report.cache is None:
@@ -305,7 +379,8 @@ def boxes_from_report():
         if os.path.exists(path):
             for row in json.load(open(path)):
                 if row.get("box"):
-                    out[(row["char"], row["key"])] = [int(v) for v in row["box"]]
+                    out[(row["char"], row["key"])] = ([int(v) for v in row["box"]],
+                                                      bool(row.get("mirrored")))
         boxes_from_report.cache = out
     return boxes_from_report.cache
 
@@ -313,7 +388,7 @@ def boxes_from_report():
 boxes_from_report.cache = None
 
 
-def reframe_placement(meta, old_meta, old_frame, new_frame, boxes=None):
+def reframe_placement(meta, old_meta, old_frame, new_frame, boxes=None, flips=None):
     """Re-point `meta`'s ox/oy so the DRAWING lands exactly where it did.
 
     `generated_frame_meta` places a frame from scratch: content box centred in
@@ -343,8 +418,16 @@ def reframe_placement(meta, old_meta, old_frame, new_frame, boxes=None):
     #
     # Both boxes are in the delivered plate's own pixels, so this holds however
     # much the matte changed, and it holds for a re-crop too.
-    if boxes and boxes[0] and boxes[1]:
-        out["ox"] = round(old_meta.get("ox", 0) + (boxes[1][0] - boxes[0][0]), 1)
+    # A MIRRORED FRAME CARRIES BY THE OTHER EDGE. The saved image is the plate
+    # flipped, so its pixel i is the plate's box[2]-1-i, and holding that pixel
+    # still means ox moves by MINUS the change in the box's right edge. If the
+    # two deliveries disagree about which way the frame faces there is no shift
+    # that holds the drawing still at all, so the rule stands aside and the
+    # silhouette rule below does what it can.
+    was_flipped, now_flipped = flips or (False, False)
+    if boxes and boxes[0] and boxes[1] and bool(was_flipped) == bool(now_flipped):
+        dx = (boxes[0][2] - boxes[1][2]) if now_flipped else (boxes[1][0] - boxes[0][0])
+        out["ox"] = round(old_meta.get("ox", 0) + dx, 1)
         out["oy"] = round(old_meta.get("oy", 0) + (boxes[1][1] - boxes[0][1]))
         if "centroidX" in meta:
             out["centroidX"] = round(meta["centroidX"] + (out["ox"] - meta["ox"]), 1)
@@ -501,15 +584,38 @@ def main():
     done, skipped = [], []
     for char, frames in approvals.items():
         keys = frames if isinstance(frames, list) else list(frames)
+        # WHY THE ART IS BEING REPLACED, when the manifest cannot say.
+        #
+        # `survives()` reads the pose's own flag, which is the record of somebody
+        # asking for a fix — and that covers a delivery answering a request. It
+        # does not cover a re-run WE started: re-keying a plate because its
+        # shadow-or-gap verdicts are now settled touches art nobody flagged, and
+        # an unflagged pose reads as a wholesale replacement, so the placement
+        # would be rebuilt from scratch and every one of them would need placing
+        # by hand again. The approval file can say it instead:
+        #
+        #   {"gojo": {"fall": {"as": "alpha"}}}
+        #
+        # Same vocabulary as the flags (KIND_PLACEMENT), same meaning, and it
+        # only ever applies to a pose the manifest is silent about — a real flag
+        # is what somebody asked for and wins.
+        stated = frames if isinstance(frames, dict) else {}
         for key in keys:
             src = os.path.join(intake.PROCESSED, char, f"{key}.png")
             if not os.path.exists(src):
                 skipped.append(f"{char}/{key}: not in _processed")
                 continue
             frame = np.asarray(Image.open(src).convert("RGBA"))
-            new_box = boxes_from_report().get((char, key))
+            new_box, new_flip = boxes_from_report().get((char, key), (None, False))
             stored = man["characters"].get(char, {}).get(key)
             keeps = survives(stored)
+            asked = (stated.get(key) or {}).get("as") if isinstance(stated.get(key), dict) else None
+            if asked and stored and not (stored.get("needsReplacement")
+                                         or stored.get("wantsImprovement")):
+                if asked not in PLACEMENT:
+                    skipped.append(f"{char}/{key}: unknown kind {asked!r}")
+                    continue
+                keeps = PLACEMENT[asked]
             # A touch-up keeps the tuning; a redraw rolls it back, because the
             # tuning existed to compensate for the art being replaced.
             old = stored if keeps in ("keep", "reframe") else pristine(stored)
@@ -518,6 +624,34 @@ def main():
             meta["file"] = f"{char}/{key}.png"
             if new_box:
                 meta["srcBox"] = list(new_box)
+                meta["srcFlip"] = new_flip
+
+            # A TOUCH-UP THAT IS NOT THE SAME DRAWING IS NOT A TOUCH-UP.
+            #
+            # The plate a pose was keyed from is not recorded anywhere, so a
+            # batch re-key has to feed each pose its NEWEST archived plate —
+            # and for eleven of 255 that was a different delivery of the same
+            # pose, not the one the art in the game came from. `gojo/fall` came
+            # back 886x1467 where the art in the game is 644x1016: a redraw,
+            # landing as an alpha fix, with the placement carried across from a
+            # drawing it has nothing to do with.
+            #
+            # So the claim is checked rather than believed. A keep or a reframe
+            # says the DRAWING is unchanged and only its alpha or its framing
+            # moved, and that is a statement about pixels: the two frames must
+            # agree where both are opaque. They do, decisively — a real re-key
+            # scores 100%, and the eleven scored 3-7%.
+            if keeps in ("keep", "reframe") and stored:
+                old_path = os.path.join(SPRITES, stored.get("file", f"{char}/{key}.png"))
+                if os.path.exists(old_path):
+                    agree = same_drawing(np.asarray(Image.open(old_path).convert("RGBA")),
+                                         frame)
+                    if agree < SAME_DRAWING:
+                        skipped.append(
+                            f"{char}/{key}: agrees with the art in the game on "
+                            f"{agree * 100:.0f}% of its pixels — this plate is a "
+                            "different drawing, not a touch-up of what is in the game")
+                        continue
 
             carried = []
             if keeps in ("keep", "reframe") and stored:
@@ -527,10 +661,13 @@ def main():
                 old_path = os.path.join(SPRITES, stored.get("file", f"{char}/{key}.png"))
                 if os.path.exists(old_path):
                     old_frame = np.asarray(Image.open(old_path).convert("RGBA"))
-                    meta = reframe_placement(meta, stored, old_frame, frame,
-                                             boxes=(stored.get("srcBox"), new_box))
-                    carried.append("placement"
-                                   + (" (exact)" if stored.get("srcBox") and new_box else ""))
+                    exact = bool(stored.get("srcBox")) and bool(new_box) \
+                        and bool(stored.get("srcFlip")) == new_flip
+                    meta = reframe_placement(
+                        meta, stored, old_frame, frame,
+                        boxes=(stored.get("srcBox"), new_box),
+                        flips=(bool(stored.get("srcFlip")), new_flip))
+                    carried.append("placement" + (" (exact)" if exact else ""))
                 else:
                     skipped.append(f"{char}/{key}: previous art missing, cannot reframe")
                 anchors, moved = carry_anchors(stored, old, meta)

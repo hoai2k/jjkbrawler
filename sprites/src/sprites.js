@@ -271,6 +271,10 @@ export const VARIANT_PLACEMENT = [
   // `ox` has to move by the change in this box's left edge, and a silhouette
   // that changed shape cannot be asked. Belongs to the image like the rest.
   "srcBox",
+  // ...and which way round the saved image is against that plate, because the
+  // box alone does not say: a mirrored frame's image x runs the other way down
+  // the plate, so it carries by the RIGHT edge instead.
+  "srcFlip",
 ];
 
 /** The review fields, which travel with the image for the same reason.

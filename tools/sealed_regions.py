@@ -46,22 +46,39 @@ PAD = 130
 
 
 def regions_of(src):
-    """Every sealed candidate on one plate, with what the rules do with it."""
+    """Every sealed candidate on one plate, and a way to look one up by point.
+
+    Returns `(rows, at)`. `at((x, y))` gives the index of the region that
+    CONTAINS that point, or None — the same test `intake.settled` applies when
+    it carries a verdict out, and matching it here is the whole point: a region
+    may only be taken off the queue if the keyer will actually act on the answer.
+    """
     rgba = np.asarray(Image.open(os.path.join(ROOT, src)).convert("RGBA"))
     if rgba[:, :, 3].min() < 250:
-        return []                      # delivered with alpha; nothing was keyed
+        return [], lambda pt: None     # delivered with alpha; nothing was keyed
     rgb = rgba[:, :, :3].astype(np.float32)
     key = intake.border_key(rgb)
-    cand = np.linalg.norm(rgb - key, axis=2) < 30
+    # ONLY A NEUTRAL SCREEN HAS THIS PROBLEM.
+    #
+    # Shadow-or-gap exists because grey shading on a grey screen is the same
+    # pixels. Magenta and green do not collide with anything the artist draws,
+    # so `intake.screen_masks` settles sealed screen colour on those plates
+    # outright and there is nothing to ask. This ran the NEUTRAL test on every
+    # plate whatever its screen, and so put 584 questions about sealed magenta
+    # in front of the reviewer — 60% of the queue — every one of which the
+    # keyer already answers with confidence.
+    if intake.screen_kind(key) != "neutral":
+        return [], lambda pt: None
+    cand, sure = intake.screen_masks(rgb, key)
     seed = np.zeros(cand.shape, bool)
     seed[[0, -1], :] = cand[[0, -1], :]
     seed[:, [0, -1]] |= cand[:, [0, -1]]
-    bg = intake.flood_background(cand, seed)
+    bg = intake.flood_background(cand, seed) | sure
     alpha = (~bg).astype(np.float32)
     alpha[alpha >= 48 / 255] = 1.0
     opaque = alpha > 0
     if opaque.sum() < 1000:
-        return []
+        return [], lambda pt: None
     luma = rgb.mean(axis=2)
     loc = ndimage.uniform_filter(luma, 5)
     var = ndimage.uniform_filter(luma * luma, 5) - loc * loc
@@ -71,11 +88,13 @@ def regions_of(src):
     counts[0] = 0
     big = np.isin(lab, np.nonzero(counts >= 250)[0])
     if not big.any():
-        return []
+        return [], lambda pt: None
     declined = intake.shading_on_pale(big, lab, luma, opaque)
     out = []
+    where = {}
     h, w = lab.shape
     for i in np.unique(lab[big]):
+        where[int(i)] = len(out)
         m = lab == i
         # The DEEPEST point rather than the centroid: a crescent's centroid can
         # sit outside it, and a verdict keyed by a point outside its own region
@@ -99,7 +118,14 @@ def regions_of(src):
             "box": [bx0, by0, bx1, by1],
             "rle": [int(v) for v in runs],
         })
-    return out
+
+    def at(point):
+        x, y = int(point[0]), int(point[1])
+        if not (0 <= y < h and 0 <= x < w) or not big[y, x]:
+            return None
+        return where.get(int(lab[y, x]))
+
+    return out, at
 
 
 def main():
@@ -107,9 +133,13 @@ def main():
     plan = json.load(sys.stdin)
     settled = intake.load_verdicts()
     rows, plates, answered = [], 0, 0
+    # Verdicts whose point lands in no region at all: the plate re-keyed, or the
+    # keyer changed under an answer. They are not lost — the store keeps them —
+    # but they are doing nothing, so say so.
+    stray = 0
     for item in plan["active"]:
         ref = f"{item['char']}/{item['pose']}"
-        found = regions_of(item["src"])
+        found, at = regions_of(item["src"])
         if not found:
             continue
         plates += 1
@@ -120,6 +150,16 @@ def main():
         # saying the question is the wrong one — part gap and part shadow, or a
         # ghost image that no key can fix — and those come back, carrying the
         # mark, because they are work somebody still means to do.
+        #
+        # A VERDICT ANSWERS THE REGION IT LANDS IN AND NO OTHER. This used to
+        # test the point against the region's `crop` — the window the bench
+        # DRAWS, which is the patch plus 130px of margin all round — and on a
+        # crowded plate that margin covers the neighbours: 764 of 2,420 sibling
+        # pairs had one region's seed inside another's crop. So one answer took
+        # its neighbours off the queue as well, and they were never fixed,
+        # because `intake.settled` carries a verdict out by the region that
+        # CONTAINS the point. A patch the keyer will not act on must not be
+        # treated as decided, so the test here is now that same containment.
         mine = settled.get(ref) or {}
         done = [tuple(p) for k in ("background", "figure") for p in mine.get(k, [])]
         open_marks = {tuple(p): k for k in ("mixed", "other") for p in mine.get(k, [])}
@@ -127,14 +167,30 @@ def main():
         # with it: reopening the window on a patch that was already split should
         # start from the loops that are there, not from a blank canvas.
         splits = {tuple(e["at"]): e["shadow"] for e in mine.get("split", [])}
-        for r in found:
-            x0, y0, x1, y1 = r["crop"]
-            inside = lambda pt: x0 <= pt[0] < x1 and y0 <= pt[1] < y1
-            if any(inside(pt) for pt in done):
+        answers, marks, drawn = {}, {}, {}
+        for pt in done:
+            i = at(pt)
+            if i is None:
+                stray += 1
+            else:
+                answers[i] = True
+        for pt, kind in open_marks.items():
+            i = at(pt)
+            if i is None:
+                stray += 1
+            else:
+                marks[i] = kind
+        for pt, loops in splits.items():
+            i = at(pt)
+            if i is None:
+                stray += 1
+            else:
+                drawn[i] = loops
+        for n, r in enumerate(found):
+            if n in answers:
                 answered += 1
                 continue
-            loops = next((v for pt, v in splits.items() if inside(pt)), None)
-            mark = next((k for pt, k in open_marks.items() if inside(pt)), None)
+            loops, mark = drawn.get(n), marks.get(n)
             rows.append({"char": item["char"], "pose": item["pose"], "src": item["src"],
                          "band": "flagged" if (mark or loops) else item.get("band", "drawn"),
                          **({"mark": mark} if mark else {}),
@@ -166,7 +222,9 @@ def main():
           f"{answered} already answered\n  "
           f"{tally['flagged']} on art flagged for improvement, {tally['held']} on held art, "
           f"{tally['drawn']} on art the game draws, {tally['other']} on the rest"
-          f"\n  -> {os.path.relpath(QUEUE, ROOT)}")
+          + (f"\n  {stray} verdict(s) land in no region on their plate — nothing "
+             f"acts on those" if stray else "")
+          + f"\n  -> {os.path.relpath(QUEUE, ROOT)}")
     return 0
 
 

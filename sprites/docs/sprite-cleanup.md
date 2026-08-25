@@ -118,6 +118,28 @@ a matte that grows all round, one cut back on a single side, one that reaches
 the feet — and requires the same source pixel to land in the same place to
 within a millionth of a pixel. It is in `npm run check`.
 
+**A touch-up is checked for being the same drawing, not believed.** The plate a
+pose was keyed from is not recorded anywhere, so a batch re-key has to feed each
+pose its NEWEST archived plate — and for eleven of the first 255 that was a
+different delivery of the same pose, not the one the art in the game came from.
+`gojo/fall` came back 886x1467 where the art in the game is 644x1016: a redraw,
+landing as an alpha fix, with the placement carried across from a drawing it has
+nothing to do with. A keep or a reframe is a claim about pixels — the drawing is
+unchanged and only its alpha or its framing moved — so `same_drawing()` tests it:
+the two frames must agree where both are opaque, aligned by a vote rather than by
+their bounds, since the bounds are exactly what a re-key moves. It separates them
+outright. A real re-key scores 100%; those eleven scored 0-12%.
+
+**A re-key we started needs to say why.** `survives()` reads the pose's flag to
+decide what carries across, which covers a delivery answering a request and not a
+re-run of our own: re-keying a plate because its shadow-or-gap verdicts are now
+settled touches art nobody flagged, and an unflagged pose reads as a wholesale
+replacement, so the placement would be rebuilt from scratch and the exact carry
+above would never run. The approval file says it instead —
+`{"gojo": {"fall": {"as": "alpha"}}}` — with the same vocabulary as the flags,
+and only ever for a pose the manifest is silent about; a real flag is what
+somebody asked for and wins.
+
 Art imported before this carries no box. `tools/backfill_src_boxes.py` works
 them out for what is already in the tree, by keying each archived candidate with
 the verdicts suppressed and seeing which one reproduces the art on disk — a real
@@ -232,6 +254,23 @@ window reopens on them. It is the only verdict that works INSIDE a region rather
 than on the whole of it, which is the whole point: a shadow that runs into the
 gap beside it keys as one region and cannot be answered any other way.
 
+**A verdict answers the region it lands in, and no other.** The queue drops a
+region once somebody has answered it, and it decided that by testing the answer's
+point against the region's `crop` — the window the bench DRAWS, which is the
+patch plus 130px of margin all round. On a crowded plate that margin covers the
+neighbours: 764 of 2,420 sibling pairs had one region's seed inside another's
+crop, so a single answer took several regions off the queue and none of them was
+ever fixed, because `intake.settled` carries a verdict out by the region that
+CONTAINS the point. The two halves have to agree about what an answer covers, so
+the test is now that same containment; `tools/test_sealed_matching.py` holds it
+there, and the build reports any verdict that lands in no region at all.
+
+**The two answers that come back are marked as answered.** `mixed` and `other`
+are re-queued on purpose — they are work somebody still means to do — but they
+were indistinguishable from a question nobody had touched, so a pass through the
+to-do list kept running into decisions already sent. The bench's `committed`
+hook now puts them under **answered**, where they can still be revisited.
+
 **Bands, in the order they are asked.** Flagged for improvement first, because
 that is what somebody is actively trying to solve; then art held for approval;
 then everything the game draws. Art nothing draws is a **separate low-priority
@@ -260,6 +299,21 @@ again: the sealed-pocket test is looking for something that is barely present in
 this delivery, and it was wrong about roughly nine regions in ten. It is still
 right often enough elsewhere — Toji, Dagon and Mei Mei — that turning it off is
 not the answer either.
+
+**And it only ever applied to a NEUTRAL screen.** `intake.py` has always had a
+confident rule for a coloured one: sealed background is cut outright wherever the
+colour is unmistakable — `r>190 & b>190 & g<85 & min(r,b)-g > 115` on magenta,
+the mirror of it on green — with the bar set high on purpose so it leaves Geto's
+pink curse and Hanami's blossoms alone. The queue builder did not know that. It
+ran the flat-neutral test on every plate whatever its screen, and built its
+opaque mask from the flood alone, so it put **584 questions about sealed magenta**
+in front of the reviewer — 60% of the queue, across 246 plates, every one of them
+100% unmistakable by the keyer's own test and already answered by it.
+
+Both halves now call `intake.screen_masks()`, which returns what MIGHT be the
+screen and what unmistakably IS, and the queue skips a plate that was not shot on
+a neutral screen. A neutral screen is the only one with no `sure` — that absence
+is the whole problem, and it is why the paragraph below is the real fix.
 
 **The fix at the source is the screen colour.** A magenta or green key cannot
 collide with a shadow, and `intake.py` already keys both. Every heuristic here

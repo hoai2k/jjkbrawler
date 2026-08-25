@@ -25,8 +25,13 @@ CELL_W = 512
 
 
 def screen_x(meta, source_x):
-    """Where a pixel of the DELIVERED plate lands, in game pixels."""
-    img_x = source_x - meta["srcBox"][0]
+    """Where a pixel of the DELIVERED plate lands, in game pixels.
+
+    A frame the pipeline mirrored to face right holds the plate backwards, so
+    the plate's x runs the other way down the saved image.
+    """
+    img_x = (meta["srcBox"][2] - 1 - source_x) if meta.get("srcFlip") \
+        else (source_x - meta["srcBox"][0])
     return ((meta["ox"] - CELL_W / 2) + img_x) * meta["renderScale"]
 
 
@@ -42,7 +47,7 @@ def frame(w, h):
     return out
 
 
-def case(name, old_box, new_box, old_meta, checks):
+def case(name, old_box, new_box, old_meta, checks, flip=False):
     """One re-key: same plate, a matte that reaches different bounds."""
     fails = 0
     old_frame = frame(old_box[2] - old_box[0], old_box[3] - old_box[1])
@@ -50,8 +55,10 @@ def case(name, old_box, new_box, old_meta, checks):
     meta = dict(old_meta)
     meta["srcBox"] = list(new_box)
     out = intake_import.reframe_placement(meta, old_meta, old_frame, new_frame,
-                                          boxes=(old_box, new_box))
+                                          boxes=(old_box, new_box),
+                                          flips=(flip, flip))
     out["srcBox"] = list(new_box)
+    out["srcFlip"] = flip
     for sx, sy in checks:
         dx = abs(screen_x(out, sx) - screen_x(old_meta, sx))
         dy = abs(screen_y(out, sy) - screen_y(old_meta, sy))
@@ -79,6 +86,26 @@ fails += case("taller at the feet", [200, 300, 900, 1400], [200, 300, 900, 1480]
 # and the case that must keep working: nothing changed at all
 fails += case("unchanged bounds", [200, 300, 900, 1400], [200, 300, 900, 1400], OLD,
               [(500, 800)])
+
+# THE SAME PLATE, HELD BACKWARDS. Eleven of the poses in the first batch were
+# mirrored to face right, and for those `ox` carries by the change in the box's
+# RIGHT edge, negated — the left edge says nothing about where their pixels are.
+FLIPPED = dict(OLD, srcFlip=True)
+fails += case("mirrored, grows on all sides", [200, 300, 900, 1400], [180, 260, 940, 1430],
+              FLIPPED, [(500, 800), (210, 320), (880, 1380)], flip=True)
+fails += case("mirrored, cut back on one side", [200, 300, 900, 1400], [200, 300, 760, 1400],
+              FLIPPED, [(500, 800), (240, 1350)], flip=True)
+
+# A delivery that comes back facing the other way has no shift that holds the
+# drawing still, so the exact rule must stand aside rather than answer wrongly.
+turned = intake_import.reframe_placement(dict(OLD), OLD, frame(700, 1100), frame(700, 1100),
+                                         boxes=([200, 300, 900, 1400], [200, 300, 900, 1400]),
+                                         flips=(False, True))
+same = intake_import.reframe_placement(dict(OLD), OLD, frame(700, 1100), frame(700, 1100))
+ok = turned["ox"] == same["ox"] and turned["oy"] == same["oy"]
+print(f"{'OK  ' if ok else 'FAIL'} a frame that comes back facing the other way falls "
+      f"back to the silhouette rule  ox={turned['ox']}")
+fails += 0 if ok else 1
 
 # Without the boxes it falls back to the silhouette rule, which is the behaviour
 # every earlier import had; assert it still runs rather than what it produces.
