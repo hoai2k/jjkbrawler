@@ -515,6 +515,19 @@ bone sword; one brass head wheel with exactly eight spokes; a visible axle to
 the head. "Empty hands" means no held opponent and no new prop — it does not
 touch canonical anatomy.
 
+**And the block is owed by every fighter with a countable feature, not just the
+unusual designs.** Round 25 came back with a third braid on Mei Mei and a broom
+snapped in two on Momo — the same fault as Mahoraga's spokes, on two characters
+nobody thought needed an invariant because their designs are ordinary. If a
+feature can be counted or can be broken in half, count it in the request:
+
+- **Mei Mei**: exactly two braids, both from the same parting, both full length.
+- **Momo**: one broom, one continuous shaft from bristles to tip — it passes
+  behind the body when it crosses it, and is never drawn as two pieces.
+
+The test for whether a fighter needs a line here is not how exotic they look.
+It is whether any part of them has a NUMBER.
+
 ### A replacement describes the pose from scratch
 
 Several of this round's replacements existed because one pose key was pointing

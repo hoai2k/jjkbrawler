@@ -1893,39 +1893,70 @@
     }
    },
    "attack_diag_up_b": {
-    "w": 849,
-    "h": 1697,
-    "ox": -241.7,
-    "oy": -1386,
-    "bodyBottom": 196.4,
-    "bodyH": 295.6,
-    "centroidX": 130.7,
-    "renderScale": 0.1742,
-    "file": "gojo/attack_diag_up_b.png",
+    "w": 814,
+    "h": 1668,
+    "ox": -247.6,
+    "oy": -1437,
+    "bodyBottom": 151.1,
+    "bodyH": 476.9,
+    "centroidX": 154.1,
+    "renderScale": 0.286,
+    "file": "gojo/incoming/attack_diag_up_b.png",
+    "replaced": {
+     "at": "2026-08-25T02:13:05+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": [
+      "bodyBottom",
+      "renderScale",
+      "anchors"
+     ]
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T02:13:05+00:00",
+     "live": {
+      "w": 849,
+      "h": 1697,
+      "ox": -241.7,
+      "oy": -1386,
+      "bodyBottom": 196.4,
+      "bodyH": 295.6,
+      "bodyTop": 0,
+      "centroidX": 130.7,
+      "renderScale": 0.1742,
+      "anchors": {
+       "com": [
+        398.7,
+        673.6
+       ]
+      },
+      "needsReplacement": "quality",
+      "replacementNote": "weird arm behind back pose",
+      "edited": {
+       "renderScale": 0.281,
+       "bodyBottom": 230.9
+      },
+      "file": "gojo/attack_diag_up_b.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 849,
-    "coreLeft": 74.2,
-    "coreRight": 774.3,
+    "bodyRight": 814,
+    "coreLeft": 62.6,
+    "coreRight": 740.2,
     "anchors": {
      "com": [
-      398.7,
-      673.6
+      404.4,
+      688.5
      ]
     },
     "autoTuned": {
-     "at": "2026-08-24T02:14:21+00:00",
+     "at": "2026-08-24T22:13:47-04:00",
      "fields": {
-      "bodyBottom": "foot=0.953 (character)",
+      "bodyBottom": "foot=0.952 (character)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "edited": {
-     "renderScale": 0.281,
-     "bodyBottom": 230.9
-    },
-    "needsReplacement": "quality",
-    "replacementNote": "weird arm behind back pose"
+    }
    },
    "domain_expansion": {
     "w": 466,
@@ -9323,40 +9354,70 @@
     "surfacedReviewed": true
    },
    "throw_fwd": {
-    "w": 972,
-    "h": 1289,
-    "ox": -296.1,
-    "oy": -978,
-    "bodyBottom": 261.7,
-    "bodyH": 318.3,
-    "centroidX": 123.6,
-    "renderScale": 0.247,
-    "file": "momo/throw_fwd.png",
+    "w": 934,
+    "h": 1323,
+    "ox": -258.3,
+    "oy": -1061,
+    "bodyBottom": 165.5,
+    "bodyH": 332.3,
+    "centroidX": 104.8,
+    "renderScale": 0.2512,
+    "file": "momo/incoming/throw_fwd.png",
+    "replaced": {
+     "at": "2026-08-25T02:13:05+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": [
+      "renderScale",
+      "anchors"
+     ]
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T02:13:05+00:00",
+     "live": {
+      "w": 972,
+      "h": 1289,
+      "ox": -296.1,
+      "oy": -978,
+      "bodyBottom": 261.7,
+      "bodyH": 318.3,
+      "bodyTop": 0,
+      "centroidX": 123.6,
+      "renderScale": 0.247,
+      "anchors": {
+       "com": [
+        454.8,
+        530.3
+       ]
+      },
+      "needsReplacement": "quality",
+      "replacementNote": "broken broom",
+      "edited": {
+       "renderScale": 0.241
+      },
+      "file": "momo/throw_fwd.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 972,
-    "coreLeft": 56.4,
-    "coreRight": 845.9,
+    "bodyRight": 934,
+    "coreLeft": 74.4,
+    "coreRight": 802.1,
     "anchors": {
      "com": [
-      454.8,
-      530.3
+      415.9,
+      541.6
      ]
     },
     "autoTuned": {
-     "at": "2026-08-23T18:50:45+00:00",
+     "at": "2026-08-24T22:13:47-04:00",
      "fields": {
-      "bodyBottom": "foot=0.962 (character)",
-      "bodyH": "area, no pose ratio",
-      "renderScale": "area, no pose ratio",
+      "bodyBottom": "foot=0.927 (throwFwd)",
+      "bodyH": "area x 1.056 (throwFwd)",
+      "renderScale": "area x 1.056 (throwFwd)",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "edited": {
-     "renderScale": 0.241
-    },
-    "needsReplacement": "quality",
-    "replacementNote": "broken broom"
+    }
    },
    "throw_up": {
     "w": 755,
@@ -35299,40 +35360,70 @@
     }
    },
    "attack_air_diag_down_b": {
-    "w": 988,
-    "h": 1381,
-    "ox": -320.2,
-    "oy": -1070,
-    "bodyBottom": 263.3,
-    "bodyH": 318.7,
-    "centroidX": 139.7,
-    "renderScale": 0.2308,
-    "file": "meimei/attack_air_diag_down_b.png",
+    "w": 1031,
+    "h": 1261,
+    "ox": -357.6,
+    "oy": -997,
+    "bodyBottom": 222.4,
+    "bodyH": 219.5,
+    "centroidX": 155.6,
+    "renderScale": 0.1741,
+    "file": "meimei/incoming/attack_air_diag_down_b.png",
+    "replaced": {
+     "at": "2026-08-25T02:13:05+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": [
+      "renderScale",
+      "anchors"
+     ]
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T02:13:05+00:00",
+     "live": {
+      "w": 988,
+      "h": 1381,
+      "ox": -320.2,
+      "oy": -1070,
+      "bodyBottom": 263.3,
+      "bodyH": 318.7,
+      "bodyTop": 0,
+      "centroidX": 139.7,
+      "renderScale": 0.2308,
+      "anchors": {
+       "com": [
+        475.5,
+        594.4
+       ]
+      },
+      "needsReplacement": "quality",
+      "replacementNote": "She doesn't have 3 braids, only 2",
+      "edited": {
+       "renderScale": 0.1762
+      },
+      "file": "meimei/attack_air_diag_down_b.png"
+     }
+    },
     "bodyTop": 0,
     "bodyLeft": 0,
-    "bodyRight": 988,
-    "coreLeft": 60.4,
-    "coreRight": 914.9,
+    "bodyRight": 1031,
+    "coreLeft": 70.9,
+    "coreRight": 977.3,
     "anchors": {
      "com": [
-      475.5,
-      594.4
+      515.5,
+      489.9
      ]
     },
     "autoTuned": {
-     "at": "2026-08-23T18:50:45+00:00",
+     "at": "2026-08-24T22:13:47-04:00",
      "fields": {
-      "bodyBottom": "foot=0.965 (character)",
+      "bodyBottom": "foot=0.967 (character)",
       "bodyH": "area, no pose ratio",
       "renderScale": "area, no pose ratio",
       "ox": "centre of mass, not of the box"
      }
-    },
-    "edited": {
-     "renderScale": 0.1762
-    },
-    "needsReplacement": "quality",
-    "replacementNote": "She doesn't have 3 braids, only 2"
+    }
    },
    "attack_diag_up_b": {
     "w": 911,
@@ -65221,7 +65312,11 @@
        "bodyBottom": 58.6
       },
       "file": "hanami/attack_diag_up_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 979,
+      "coreLeft": 92.9,
+      "coreRight": 836.4
      },
      {
       "w": 979,
@@ -65322,7 +65417,11 @@
        "renderScale": 0.269
       },
       "file": "hanami/throw_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1038,
+      "coreLeft": 64.9,
+      "coreRight": 895.3
      },
      {
       "w": 1038,
@@ -65421,7 +65520,11 @@
        "bodyBottom": 194.9
       },
       "file": "hanami/throw_fwd.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1018,
+      "coreLeft": 91.5,
+      "coreRight": 887.6
      },
      {
       "w": 1018,
@@ -65522,7 +65625,11 @@
        "renderScale": 0.3547
       },
       "file": "hanami/incoming/throw_up.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 496,
+      "coreLeft": 45.7,
+      "coreRight": 420.6
      },
      {
       "w": 496,
@@ -65593,7 +65700,11 @@
         98.6
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 258,
+      "coreLeft": 14.5,
+      "coreRight": 241.9
      }
     ]
    },
@@ -65616,7 +65727,11 @@
         96
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 194,
+      "coreLeft": 18.8,
+      "coreRight": 165.5
      }
     ]
    },
@@ -65639,7 +65754,11 @@
         124.8
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 287,
+      "coreLeft": 23.3,
+      "coreRight": 260.1
      }
     ]
    },
@@ -65662,7 +65781,11 @@
         121.1
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 213,
+      "coreLeft": 23.0,
+      "coreRight": 185.7
      }
     ]
    },
@@ -65690,7 +65813,11 @@
       "edited": {
        "renderScale": 0.24,
        "bodyBottom": 310
-      }
+      },
+      "bodyLeft": 13,
+      "bodyRight": 575,
+      "coreLeft": 57.1,
+      "coreRight": 508.0
      }
     ]
    },
@@ -65713,7 +65840,11 @@
         97.7
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 255,
+      "coreLeft": 20.7,
+      "coreRight": 243.8
      }
     ]
    },
@@ -65736,7 +65867,11 @@
         122.5
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 335,
+      "coreLeft": 31.4,
+      "coreRight": 288.9
      }
     ]
    },
@@ -65759,7 +65894,11 @@
         136.2
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 231,
+      "coreLeft": 30.2,
+      "coreRight": 206.0
      }
     ]
    },
@@ -65782,7 +65921,11 @@
         141.5
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 176,
+      "coreLeft": 18.0,
+      "coreRight": 156.6
      }
     ]
    },
@@ -65805,7 +65948,11 @@
         146.1
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 150,
+      "coreLeft": 27.2,
+      "coreRight": 126.9
      }
     ]
    },
@@ -65828,7 +65975,11 @@
         127.9
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 260,
+      "coreLeft": 26.8,
+      "coreRight": 239.5
      }
     ]
    },
@@ -65852,7 +66003,11 @@
         358
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 15,
+      "bodyRight": 1001,
+      "coreLeft": 101.6,
+      "coreRight": 939.8
      }
     ]
    },
@@ -65880,7 +66035,11 @@
       "edited": {
        "renderScale": 0.24,
        "bodyBottom": 310
-      }
+      },
+      "bodyLeft": 13,
+      "bodyRight": 431,
+      "coreLeft": 76.2,
+      "coreRight": 349.2
      }
     ]
    }
@@ -67818,7 +67977,11 @@
        ]
       },
       "file": "gojo/attack_light_a.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 966,
+      "coreLeft": 83.9,
+      "coreRight": 838.7
      },
      {
       "file": "gojo/archive/attack_light_a_2.png",
@@ -67916,7 +68079,11 @@
        "ox": -272.9
       },
       "file": "gojo/throw_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 943,
+      "coreLeft": 56.2,
+      "coreRight": 794.5
      },
      {
       "w": 943,
@@ -67965,7 +68132,11 @@
         69
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 220,
+      "coreLeft": 9.6,
+      "coreRight": 202.1
      }
     ]
    },
@@ -67989,7 +68160,11 @@
         69.5
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 179,
+      "coreLeft": 14.5,
+      "coreRight": 170.0
      }
     ]
    },
@@ -68013,7 +68188,11 @@
         82.2
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 98,
+      "coreLeft": 5.2,
+      "coreRight": 88.2
      }
     ]
    },
@@ -68038,7 +68217,11 @@
        ]
       },
       "faceLeft": true,
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 172,
+      "coreLeft": 18.0,
+      "coreRight": 158.4
      }
     ]
    },
@@ -68063,7 +68246,11 @@
        ]
       },
       "faceLeft": true,
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 198,
+      "coreLeft": 25.0,
+      "coreRight": 177.7
      }
     ]
    },
@@ -68088,7 +68275,11 @@
        ]
       },
       "faceLeft": true,
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 241,
+      "coreLeft": 15.1,
+      "coreRight": 230.5
      }
     ]
    },
@@ -68113,7 +68304,11 @@
        ]
       },
       "faceLeft": true,
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 235,
+      "coreLeft": 29.4,
+      "coreRight": 215.9
      }
     ]
    },
@@ -68137,7 +68332,11 @@
         109.5
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 225,
+      "coreLeft": 16.2,
+      "coreRight": 208.6
      }
     ]
    },
@@ -68161,7 +68360,11 @@
         91.1
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 238,
+      "coreLeft": 20.8,
+      "coreRight": 215.7
      }
     ]
    },
@@ -68186,7 +68389,11 @@
        ]
       },
       "faceLeft": true,
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 115,
+      "coreLeft": 10.4,
+      "coreRight": 105.8
      }
     ]
    },
@@ -68210,7 +68417,11 @@
         109
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 192,
+      "coreLeft": 21.1,
+      "coreRight": 167.2
      }
     ]
    },
@@ -68234,7 +68445,11 @@
         83.5
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 197,
+      "coreLeft": 14.4,
+      "coreRight": 174.7
      }
     ]
    },
@@ -68258,7 +68473,11 @@
         78.8
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 165,
+      "coreLeft": 10.6,
+      "coreRight": 156.3
      }
     ]
    },
@@ -68282,7 +68501,11 @@
         90.9
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 249,
+      "coreLeft": 42.0,
+      "coreRight": 235.0
      }
     ]
    }
@@ -68310,7 +68533,11 @@
        "renderScale": 0.295
       },
       "file": "hakari/incoming/dodge_air.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 590,
+      "coreLeft": 174.4,
+      "coreRight": 549.9
      },
      {
       "file": "hakari/alt/dodge_air.png",
@@ -73125,8 +73352,8 @@
       "renderScale": 0.2796,
       "anchors": {
        "com": [
-        587.4,
-        344.1
+        529.3,
+        373.6
        ]
       },
       "file": "maki/attack_light_b.png",
@@ -76909,7 +77136,11 @@
         138.7
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 272,
+      "coreLeft": 8.5,
+      "coreRight": 251.6
      }
     ]
    },
@@ -76933,7 +77164,11 @@
         106.7
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 239,
+      "coreLeft": 11.4,
+      "coreRight": 224.2
      }
     ]
    },
@@ -76962,7 +77197,11 @@
        "renderScale": null,
        "ox": 58,
        "bodyBottom": 310
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 196,
+      "coreLeft": 13.5,
+      "coreRight": 172.7
      }
     ]
    },
@@ -76985,7 +77224,11 @@
         95.9
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 196,
+      "coreLeft": 19.0,
+      "coreRight": 172.4
      }
     ]
    },
@@ -77014,7 +77257,11 @@
        "renderScale": null,
        "ox": 29,
        "bodyBottom": 311
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 271,
+      "coreLeft": 18.6,
+      "coreRight": 260.8
      }
     ]
    },
@@ -77037,7 +77284,11 @@
         89.9
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 205,
+      "coreLeft": 15.3,
+      "coreRight": 186.8
      }
     ]
    },
@@ -77066,7 +77317,11 @@
        "renderScale": null,
        "ox": 27,
        "bodyBottom": 310
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 158,
+      "coreLeft": 21.3,
+      "coreRight": 144.1
      }
     ]
    },
@@ -77095,7 +77350,11 @@
        "renderScale": null,
        "ox": 2,
        "bodyBottom": 310
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 222,
+      "coreLeft": 23.6,
+      "coreRight": 190.1
      }
     ]
    },
@@ -77124,7 +77383,11 @@
        "renderScale": null,
        "ox": 17,
        "bodyBottom": 310
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 276,
+      "coreLeft": 5.2,
+      "coreRight": 241.5
      }
     ]
    },
@@ -77153,7 +77416,11 @@
        "renderScale": null,
        "ox": 0,
        "bodyBottom": 248
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 235,
+      "coreLeft": 17.6,
+      "coreRight": 213.0
      }
     ]
    },
@@ -77176,7 +77443,11 @@
         85.7
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 174,
+      "coreLeft": 10.4,
+      "coreRight": 157.7
      }
     ]
    },
@@ -77199,7 +77470,11 @@
         96.9
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 148,
+      "coreLeft": 10.8,
+      "coreRight": 126.1
      }
     ]
    },
@@ -77222,7 +77497,11 @@
         78.9
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 231,
+      "coreLeft": 21.7,
+      "coreRight": 218.0
      }
     ]
    },
@@ -77249,7 +77528,11 @@
       "needsReplacement": "delete",
       "edited": {
        "renderScale": null
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 226,
+      "coreLeft": 12.7,
+      "coreRight": 213.3
      }
     ]
    },
@@ -77272,7 +77555,11 @@
         87.9
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 270,
+      "coreLeft": 30.4,
+      "coreRight": 253.1
      }
     ]
    },
@@ -77300,7 +77587,11 @@
       "edited": {
        "renderScale": null,
        "bodyBottom": 313
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 117,
+      "coreLeft": 14.6,
+      "coreRight": 103.7
      }
     ]
    },
@@ -77323,7 +77614,11 @@
         120
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 151,
+      "coreLeft": 18.3,
+      "coreRight": 133.7
      }
     ]
    },
@@ -77351,7 +77646,11 @@
       "edited": {
        "renderScale": null,
        "bodyBottom": 312
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 213,
+      "coreLeft": 22.7,
+      "coreRight": 198.8
      }
     ]
    },
@@ -77379,7 +77678,11 @@
       "edited": {
        "renderScale": null,
        "bodyBottom": 312
-      }
+      },
+      "bodyLeft": 0,
+      "bodyRight": 224,
+      "coreLeft": 14.3,
+      "coreRight": 200.8
      }
     ]
    },
@@ -77402,7 +77705,11 @@
         86.8
        ]
       },
-      "needsReplacement": "delete"
+      "needsReplacement": "delete",
+      "bodyLeft": 0,
+      "bodyRight": 209,
+      "coreLeft": 8.4,
+      "coreRight": 192.3
      }
     ]
    }
@@ -84495,7 +84802,11 @@
        "renderScale": 0.2239
       },
       "file": "momo/throw_up.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 755,
+      "coreLeft": 73.6,
+      "coreRight": 683.7
      },
      {
       "w": 755,
@@ -85252,7 +85563,11 @@
        "bodyBottom": 257.9
       },
       "file": "meimei/throw_fwd.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 869,
+      "coreLeft": 96.1,
+      "coreRight": 720.5
      },
      {
       "w": 869,
@@ -86133,7 +86448,11 @@
        ]
       },
       "file": "uro/attack_air_diag_down_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 960,
+      "coreLeft": 62.1,
+      "coreRight": 869.1
      },
      {
       "w": 960,
@@ -86178,7 +86497,11 @@
        ]
       },
       "file": "uro/throw_back.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 813,
+      "coreLeft": 161.0,
+      "coreRight": 764.8
      },
      {
       "w": 813,
@@ -87064,9 +87387,9 @@
        "bodyBottom": 276.5
       },
       "bodyLeft": 0,
-      "bodyRight": 1296,
-      "coreLeft": 81.0,
-      "coreRight": 1093.5
+      "bodyRight": 925,
+      "coreLeft": 62.2,
+      "coreRight": 839.5
      },
      {
       "file": "gakuganji/archive/crouch_attack_b_2.png",
@@ -88665,7 +88988,11 @@
        "ox": -160.4
       },
       "file": "yuji/incoming/throw_back.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 647,
+      "coreLeft": 49.2,
+      "coreRight": 590.1
      },
      {
       "w": 647,
@@ -88839,7 +89166,11 @@
        }
       },
       "file": "yuki/attack_heavy_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1496,
+      "coreLeft": 102.8,
+      "coreRight": 1383.8
      },
      {
       "file": "yuki/archive/attack_heavy_b_3.png",
@@ -91753,7 +92084,11 @@
        "ox": -277.3
       },
       "file": "kashimo/throw_back.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 885,
+      "coreLeft": 78.2,
+      "coreRight": 781.9
      },
      {
       "w": 885,
@@ -91854,7 +92189,11 @@
        "bodyBottom": 233.1
       },
       "file": "kashimo/throw_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 924,
+      "coreLeft": 70.2,
+      "coreRight": 786.8
      },
      {
       "w": 924,
@@ -92034,7 +92373,11 @@
        "bodyBottom": 217.6
       },
       "file": "kashimo/throw_up.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 700,
+      "coreLeft": 54.1,
+      "coreRight": 594.8
      },
      {
       "w": 700,
@@ -92357,7 +92700,11 @@
        "bodyBottom": 227.3
       },
       "file": "haruta/throw_up.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 835,
+      "coreLeft": 78.1,
+      "coreRight": 712.7
      },
      {
       "w": 835,
@@ -92801,7 +93148,11 @@
        ]
       },
       "file": "miwa/throw_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 755,
+      "coreLeft": 63.2,
+      "coreRight": 640.4
      },
      {
       "w": 755,

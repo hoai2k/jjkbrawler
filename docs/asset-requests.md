@@ -34,12 +34,18 @@ tools/check_pose_coverage.mjs` reports 34 fighters, 1 actor and **0 undrawn
 poses**, and for the first time that is true with no round open behind it —
 every pose the game names is drawn by the fighter who plays it.
 
-**What is outstanding is the approval queue, not a request.** 140 of the 250
-are held in the sprite workbench waiting for somebody to stand each one beside
-what it replaces (or beside the fallback it is taking over from), and three
-poses carry a workbench flag — art that exists and is wrong, listed under
+**What is outstanding is the approval queue, not a request.** What is left of
+the 250 is held in the sprite workbench waiting for somebody to stand each one
+beside what it replaces (or beside the fallback it is taking over from), and
+ONE pose carries a workbench flag — Hakari's `throw_up`, art that exists and is
+wrong, listed under
 [Outstanding by manifest, not by request](image-requests.md#outstanding-by-manifest-not-by-request).
 Neither is art anybody is owed.
+
+The three flags that stood beside it were answered by
+[25C](asset-requests-history.md#25c-the-three-the-workbench-had-flagged--3-sprites)
+— Gojo's arm, Mei Mei's third braid, Momo's broom — and are themselves in the
+approval queue now, which is where a redraw goes rather than into the game.
 
 A further 56 variant drawings are tagged for DELETION, which is the opposite of
 a request: the ask is to throw a drawing away, not to draw one. They are
