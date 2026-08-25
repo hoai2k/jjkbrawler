@@ -158,6 +158,24 @@ region containing it. The delivery is archived and never changes, so a verdict
 survives every re-key. Nothing else about the region is assumed — the answer is
 somebody's, not a measurement's.
 
+**Where the answers come from now.** The verdicts live in
+`sprites/assets/sealed_verdicts.json`, not in the keyer's source, because they
+are data a person produced. The question is asked in the verification bench —
+`workbench/?edit=verification`, **Shadow or gap** — one region at a time, at
+full size, on the art as delivered, with the patch outlined and a picture of the
+hole cutting it would leave. `&char=kashimo` narrows it to one fighter.
+
+    node tools/build_sealed_queue.mjs         # what is still to judge
+    python3 tools/apply_sealed_verdicts.py <export>   # file the answers
+
+The queue holds **only art the game draws** — the game's own resolver decides,
+so cells and banked alternates nobody sees are not questions. That is 1,567
+regions across 35 fighters as this was written, and the ratio from the ten
+plates already judged says most of them are the fighter rather than the stage:
+68 figure to 8 background. The keyer's default of cutting is wrong far more
+often than it is right on this delivery, which is why the queue is worth
+working rather than trusting.
+
 **Do not reach for a sixth heuristic before reading this list.** Colour, local
 variance, depth inside the silhouette, the ink in the fence, elongation, how much
 survives erosion, and whether an unguarded flood would have reached it have all

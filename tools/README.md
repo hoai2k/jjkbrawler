@@ -54,6 +54,15 @@ real draw path; the half of Clothing FX that can be checked on a bare checkout �
 that the key still takes the same thing out of the same art — is
 `check_clothing_fx.mjs`, and that one IS in the gate.
 
+`node tools/build_sealed_queue.mjs` writes the shadow-or-gap queue the
+verification bench reads — every sealed patch of screen colour on art the game
+actually draws that nobody has judged yet. Two programs for the usual reason:
+the game's resolver says what is drawn (JavaScript) and `sealed_regions.py` does
+the pixels (scipy). Answers come back through
+`python3 tools/apply_sealed_verdicts.py <export>`, which merges into
+`sprites/assets/sealed_verdicts.json` and names the plates worth re-keying. It
+is not in `npm run check`: the pixel pass reads 1,568 plates and takes minutes.
+
 `node tools/smoke_delete_tags.mjs` is outside the gate for the same reason —
 it drives the real sprite workbench. It covers the one thing a refusal has to
 do: a drawing marked for deletion is still marked when the chooser is opened

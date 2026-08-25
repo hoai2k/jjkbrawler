@@ -72,6 +72,20 @@ const SETS = {
       + "draw it, and the question is whether it leads with its head.",
     load: () => import(withKey("./verify_creature_facing.js")).then((m) => m.provider()),
   },
+  // The keying question that has no measurable answer. Second because it is the
+  // one with the largest queue behind it and the shortest question in front of
+  // it — gap or shadow, one patch at a time.
+  "sealed-regions": {
+    label: "Shadow or gap",
+    blurb: "A sealed patch of screen colour inside a fighter is either the stage showing "
+      + "through or a shadow drawn in the same neutral the screen was. On round 25's "
+      + "plates they are the same pixels, and seven different measurements failed to "
+      + "tell them apart — so each one is shown at full size on the art as delivered, "
+      + "and the question is whether it is a hole in the fighter or a mark on them. "
+      + "Ordered by fighter, biggest question first; add `&char=kashimo` to the address "
+      + "to work one of them at a time.",
+    load: () => import(withKey("./verify_sealed_regions.js")).then((m) => m.provider()),
+  },
   "strike-points": {
     label: "Strike points",
     blurb: "Where each attack actually lands — the fist, the foot or the blade — "
