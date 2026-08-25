@@ -53,6 +53,32 @@ KINDS = ("background", "figure", "mixed", "other")
 SPLIT = "split"
 
 
+def verdicts_in(doc):
+    """The verdicts, whether that is a bare store or a whole bench export.
+
+    The bench downloads its export — sets, decisions, counts, and the ready-made
+    verdict block under `apply.text` — and that file is what a person actually
+    has in their hands. Requiring the block to be cut out of it by hand was a
+    step with nothing to decide in it, and getting it wrong looked like a crash
+    rather than a mistake, since the export's own top-level keys are strings.
+    """
+    if not isinstance(doc, dict) or "sets" not in doc:
+        return doc
+    out = {}
+    for name, entry in (doc.get("sets") or {}).items():
+        block = (entry.get("apply") or {}).get("text")
+        if not block:
+            continue
+        for ref, kinds in json.loads(block).items():
+            # Two sets in one export could name the same plate; the answers are
+            # about different patches, so they merge rather than replace.
+            for kind, points in kinds.items():
+                out.setdefault(ref, {}).setdefault(kind, []).extend(points)
+    if not out:
+        raise SystemExit("that export carries no verdicts to apply")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("sources", nargs="+")
@@ -66,8 +92,8 @@ def main():
     added, moved, same, touched = 0, [], 0, set()
     added_lines = []
     for src in args.sources:
-        incoming = json.load(open(sys.stdin if src == "-" else src)) if src != "-" \
-            else json.load(sys.stdin)
+        incoming = verdicts_in(json.load(sys.stdin) if src == "-"
+                               else json.load(open(src)))
         for ref, kinds in incoming.items():
             for entry in kinds.pop(SPLIT, []):
                 at = [int(entry["at"][0]), int(entry["at"][1])]

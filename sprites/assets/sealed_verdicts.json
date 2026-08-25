@@ -1068,12 +1068,6 @@
     351
    ]
   ],
-  "mixed": [
-   [
-    322,
-    376
-   ]
-  ],
   "figure": [
    [
     289,
@@ -1122,6 +1116,18 @@
    [
     621,
     339
+   ],
+   [
+    550,
+    542
+   ],
+   [
+    504,
+    417
+   ],
+   [
+    322,
+    376
    ]
   ]
  },
@@ -1138,6 +1144,10 @@
    [
     762,
     467
+   ],
+   [
+    343,
+    698
    ]
   ],
   "background": [
@@ -1164,6 +1174,10 @@
    [
     342,
     280
+   ],
+   [
+    301,
+    398
    ]
   ],
   "figure": [
@@ -1174,6 +1188,10 @@
    [
     259,
     367
+   ],
+   [
+    230,
+    651
    ]
   ]
  },
@@ -1204,6 +1222,10 @@
    [
     340,
     600
+   ],
+   [
+    328,
+    951
    ]
   ]
  },
@@ -1688,6 +1710,14 @@
    [
     862,
     197
+   ],
+   [
+    253,
+    639
+   ],
+   [
+    861,
+    753
    ]
   ]
  },
@@ -1756,6 +1786,10 @@
    [
     973,
     1339
+   ],
+   [
+    930,
+    1309
    ]
   ]
  },
@@ -1880,6 +1914,10 @@
    [
     154,
     518
+   ],
+   [
+    395,
+    937
    ]
   ]
  },
@@ -1888,6 +1926,12 @@
    [
     529,
     226
+   ]
+  ],
+  "figure": [
+   [
+    578,
+    116
    ]
   ]
  },
@@ -1924,6 +1968,26 @@
    [
     469,
     507
+   ],
+   [
+    497,
+    551
+   ],
+   [
+    975,
+    554
+   ],
+   [
+    864,
+    842
+   ],
+   [
+    437,
+    553
+   ],
+   [
+    851,
+    662
    ]
   ]
  },
@@ -2016,6 +2080,10 @@
    [
     336,
     1061
+   ],
+   [
+    401,
+    1013
    ]
   ]
  },
@@ -2072,6 +2140,22 @@
    [
     248,
     523
+   ],
+   [
+    667,
+    654
+   ],
+   [
+    786,
+    780
+   ],
+   [
+    755,
+    797
+   ],
+   [
+    734,
+    656
    ]
   ]
  },
@@ -7872,6 +7956,542 @@
    [
     380,
     241
+   ]
+  ]
+ },
+ "kurourushi/attack_heavy_b": {
+  "background": [
+   [
+    652,
+    512
+   ],
+   [
+    552,
+    320
+   ],
+   [
+    487,
+    312
+   ]
+  ]
+ },
+ "kurourushi/run_reach_b": {
+  "background": [
+   [
+    685,
+    590
+   ]
+  ]
+ },
+ "kurourushi/dodge_air": {
+  "background": [
+   [
+    790,
+    644
+   ]
+  ]
+ },
+ "kurourushi/ult_b": {
+  "background": [
+   [
+    213,
+    572
+   ],
+   [
+    649,
+    582
+   ],
+   [
+    866,
+    427
+   ],
+   [
+    730,
+    367
+   ],
+   [
+    793,
+    378
+   ],
+   [
+    781,
+    671
+   ]
+  ]
+ },
+ "kurourushi/victory": {
+  "background": [
+   [
+    633,
+    575
+   ],
+   [
+    647,
+    457
+   ],
+   [
+    576,
+    596
+   ],
+   [
+    662,
+    698
+   ]
+  ]
+ },
+ "kurourushi/dizzy": {
+  "background": [
+   [
+    625,
+    974
+   ]
+  ]
+ },
+ "kurourushi/idle_a": {
+  "background": [
+   [
+    629,
+    557
+   ]
+  ]
+ },
+ "kurourushi/idle_b": {
+  "background": [
+   [
+    631,
+    541
+   ]
+  ]
+ },
+ "kurourushi/run_pass_a": {
+  "background": [
+   [
+    1175,
+    416
+   ],
+   [
+    1109,
+    381
+   ]
+  ]
+ },
+ "kurourushi/attack_light_a": {
+  "background": [
+   [
+    696,
+    478
+   ],
+   [
+    632,
+    847
+   ]
+  ]
+ },
+ "kurourushi/throw_fwd": {
+  "background": [
+   [
+    680,
+    408
+   ]
+  ]
+ },
+ "kurourushi/special_neutral": {
+  "background": [
+   [
+    616,
+    436
+   ],
+   [
+    564,
+    453
+   ],
+   [
+    650,
+    559
+   ]
+  ]
+ },
+ "kurourushi/attack_dash": {
+  "background": [
+   [
+    730,
+    536
+   ]
+  ]
+ },
+ "kurourushi/fall": {
+  "background": [
+   [
+    677,
+    545
+   ]
+  ]
+ },
+ "kurourushi/guard": {
+  "background": [
+   [
+    712,
+    575
+   ]
+  ]
+ },
+ "kurourushi/grabbed": {
+  "background": [
+   [
+    714,
+    507
+   ]
+  ]
+ },
+ "kurourushi/special_side": {
+  "background": [
+   [
+    779,
+    295
+   ],
+   [
+    175,
+    434
+   ]
+  ]
+ },
+ "kurourushi/charge": {
+  "background": [
+   [
+    669,
+    832
+   ],
+   [
+    770,
+    973
+   ],
+   [
+    287,
+    914
+   ]
+  ]
+ },
+ "kurourushi/run_pass_b": {
+  "background": [
+   [
+    621,
+    534
+   ]
+  ]
+ },
+ "kurourushi/ult_a": {
+  "background": [
+   [
+    807,
+    610
+   ],
+   [
+    807,
+    717
+   ]
+  ]
+ },
+ "kurourushi/grab_reach": {
+  "background": [
+   [
+    570,
+    455
+   ]
+  ]
+ },
+ "kurourushi/jump_rise": {
+  "background": [
+   [
+    710,
+    423
+   ]
+  ]
+ },
+ "kurourushi/attack_down": {
+  "background": [
+   [
+    612,
+    802
+   ],
+   [
+    610,
+    682
+   ],
+   [
+    613,
+    1216
+   ]
+  ]
+ },
+ "kurourushi/special_down": {
+  "background": [
+   [
+    554,
+    399
+   ]
+  ]
+ },
+ "kurourushi/attack_heavy_a": {
+  "background": [
+   [
+    780,
+    417
+   ]
+  ]
+ },
+ "kurourushi/land": {
+  "background": [
+   [
+    849,
+    360
+   ]
+  ]
+ },
+ "kurourushi/run_reach_a": {
+  "background": [
+   [
+    1054,
+    406
+   ]
+  ]
+ },
+ "kurourushi/attack_air_a": {
+  "background": [
+   [
+    567,
+    469
+   ],
+   [
+    619,
+    358
+   ],
+   [
+    591,
+    418
+   ]
+  ]
+ },
+ "kurourushi/crouch_b": {
+  "background": [
+   [
+    1020,
+    373
+   ],
+   [
+    991,
+    406
+   ]
+  ]
+ },
+ "kurourushi/attack_diag_up_b": {
+  "background": [
+   [
+    492,
+    653
+   ]
+  ]
+ },
+ "kurourushi/attack_up": {
+  "background": [
+   [
+    551,
+    472
+   ]
+  ]
+ },
+ "kurourushi/crouch_a": {
+  "background": [
+   [
+    1022,
+    572
+   ],
+   [
+    201,
+    1015
+   ],
+   [
+    1044,
+    580
+   ]
+  ]
+ },
+ "kurourushi/dash": {
+  "background": [
+   [
+    870,
+    594
+   ],
+   [
+    912,
+    607
+   ],
+   [
+    834,
+    575
+   ]
+  ]
+ },
+ "kurourushi/crouch_attack_b": {
+  "background": [
+   [
+    649,
+    799
+   ]
+  ]
+ },
+ "kurourushi/grab_hold": {
+  "background": [
+   [
+    495,
+    414
+   ]
+  ]
+ },
+ "mahito/charge": {
+  "background": [
+   [
+    229,
+    517
+   ],
+   [
+    275,
+    304
+   ]
+  ]
+ },
+ "mahito/victory": {
+  "background": [
+   [
+    298,
+    581
+   ]
+  ],
+  "figure": [
+   [
+    492,
+    1541
+   ],
+   [
+    516,
+    1577
+   ],
+   [
+    516,
+    1516
+   ]
+  ]
+ },
+ "mahito/idle_a": {
+  "background": [
+   [
+    431,
+    585
+   ]
+  ],
+  "figure": [
+   [
+    602,
+    1308
+   ],
+   [
+    585,
+    1285
+   ]
+  ]
+ },
+ "mahito/dodge_air": {
+  "figure": [
+   [
+    376,
+    1369
+   ],
+   [
+    363,
+    1413
+   ],
+   [
+    415,
+    1380
+   ],
+   [
+    412,
+    1405
+   ]
+  ]
+ },
+ "mahito/fall": {
+  "figure": [
+   [
+    726,
+    1129
+   ],
+   [
+    724,
+    1157
+   ]
+  ],
+  "background": [
+   [
+    377,
+    208
+   ]
+  ]
+ },
+ "mahito/guard": {
+  "figure": [
+   [
+    782,
+    1213
+   ]
+  ]
+ },
+ "mahito/attack_up": {
+  "figure": [
+   [
+    789,
+    1291
+   ]
+  ]
+ },
+ "mahito/idle_b": {
+  "figure": [
+   [
+    616,
+    1336
+   ],
+   [
+    592,
+    1376
+   ],
+   [
+    565,
+    1347
+   ]
+  ],
+  "background": [
+   [
+    337,
+    342
+   ]
+  ]
+ },
+ "mahito/jump_rise": {
+  "background": [
+   [
+    346,
+    275
+   ],
+   [
+    351,
+    204
+   ]
+  ]
+ },
+ "mahito/dizzy": {
+  "figure": [
+   [
+    537,
+    1497
    ]
   ]
  }
