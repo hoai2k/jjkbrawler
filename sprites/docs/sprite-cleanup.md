@@ -118,6 +118,16 @@ a matte that grows all round, one cut back on a single side, one that reaches
 the feet — and requires the same source pixel to land in the same place to
 within a millionth of a pixel. It is in `npm run check`.
 
+**A re-key we started needs to say why.** `survives()` reads the pose's flag to
+decide what carries across, which covers a delivery answering a request and not a
+re-run of our own: re-keying a plate because its shadow-or-gap verdicts are now
+settled touches art nobody flagged, and an unflagged pose reads as a wholesale
+replacement, so the placement would be rebuilt from scratch and the exact carry
+above would never run. The approval file says it instead —
+`{"gojo": {"fall": {"as": "alpha"}}}` — with the same vocabulary as the flags,
+and only ever for a pose the manifest is silent about; a real flag is what
+somebody asked for and wins.
+
 Art imported before this carries no box. `tools/backfill_src_boxes.py` works
 them out for what is already in the tree, by keying each archived candidate with
 the verdicts suppressed and seeing which one reproduces the art on disk — a real
@@ -231,6 +241,23 @@ they survive every re-key of that drawing exactly as a verdict does, and the
 window reopens on them. It is the only verdict that works INSIDE a region rather
 than on the whole of it, which is the whole point: a shadow that runs into the
 gap beside it keys as one region and cannot be answered any other way.
+
+**A verdict answers the region it lands in, and no other.** The queue drops a
+region once somebody has answered it, and it decided that by testing the answer's
+point against the region's `crop` — the window the bench DRAWS, which is the
+patch plus 130px of margin all round. On a crowded plate that margin covers the
+neighbours: 764 of 2,420 sibling pairs had one region's seed inside another's
+crop, so a single answer took several regions off the queue and none of them was
+ever fixed, because `intake.settled` carries a verdict out by the region that
+CONTAINS the point. The two halves have to agree about what an answer covers, so
+the test is now that same containment; `tools/test_sealed_matching.py` holds it
+there, and the build reports any verdict that lands in no region at all.
+
+**The two answers that come back are marked as answered.** `mixed` and `other`
+are re-queued on purpose — they are work somebody still means to do — but they
+were indistinguishable from a question nobody had touched, so a pass through the
+to-do list kept running into decisions already sent. The bench's `committed`
+hook now puts them under **answered**, where they can still be revisited.
 
 **Bands, in the order they are asked.** Flagged for improvement first, because
 that is what somebody is actively trying to solve; then art held for approval;

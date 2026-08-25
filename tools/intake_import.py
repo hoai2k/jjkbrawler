@@ -46,7 +46,9 @@ That marker is what the workbench's "All Recently Updated Poses" list is built
 from: after a round, the poses whose art moved under previous work are scattered
 across the roster, and finding them by hand means opening every character.
 
-  --approve FILE   JSON: {"char": ["frame", ...]} or {"char": {"frame": {...}}}
+  --approve FILE   JSON: {"char": ["frame", ...]} or {"char": {"frame": {...}}},
+                   where a frame's block may carry {"as": "alpha"} to say why
+                   the art is being replaced when no flag on the pose does
   --dry-run        report only
 
 Usage:
@@ -501,6 +503,22 @@ def main():
     done, skipped = [], []
     for char, frames in approvals.items():
         keys = frames if isinstance(frames, list) else list(frames)
+        # WHY THE ART IS BEING REPLACED, when the manifest cannot say.
+        #
+        # `survives()` reads the pose's own flag, which is the record of somebody
+        # asking for a fix — and that covers a delivery answering a request. It
+        # does not cover a re-run WE started: re-keying a plate because its
+        # shadow-or-gap verdicts are now settled touches art nobody flagged, and
+        # an unflagged pose reads as a wholesale replacement, so the placement
+        # would be rebuilt from scratch and every one of them would need placing
+        # by hand again. The approval file can say it instead:
+        #
+        #   {"gojo": {"fall": {"as": "alpha"}}}
+        #
+        # Same vocabulary as the flags (KIND_PLACEMENT), same meaning, and it
+        # only ever applies to a pose the manifest is silent about — a real flag
+        # is what somebody asked for and wins.
+        stated = frames if isinstance(frames, dict) else {}
         for key in keys:
             src = os.path.join(intake.PROCESSED, char, f"{key}.png")
             if not os.path.exists(src):
@@ -510,6 +528,13 @@ def main():
             new_box = boxes_from_report().get((char, key))
             stored = man["characters"].get(char, {}).get(key)
             keeps = survives(stored)
+            asked = (stated.get(key) or {}).get("as") if isinstance(stated.get(key), dict) else None
+            if asked and stored and not (stored.get("needsReplacement")
+                                         or stored.get("wantsImprovement")):
+                if asked not in PLACEMENT:
+                    skipped.append(f"{char}/{key}: unknown kind {asked!r}")
+                    continue
+                keeps = PLACEMENT[asked]
             # A touch-up keeps the tuning; a redraw rolls it back, because the
             # tuning existed to compensate for the art being replaced.
             old = stored if keeps in ("keep", "reframe") else pristine(stored)
