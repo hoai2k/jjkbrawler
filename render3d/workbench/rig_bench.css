@@ -1,39 +1,14 @@
-/* THE RIG BENCH's layout: a viewport that takes the whole left side, and a
-   narrow column of controls. Different from the other benches on purpose —
-   they show a fixed-size canvas because they are comparing against a drawing
-   at a fixed size, and this one is a model viewer, where every pixel of the
-   viewport is a pixel you can see a rolled joint in. */
+/* THE RIG BENCH's own bits. The viewport-and-column layout it shares with the
+   model viewer is `.layout.viewport3d` in workbench.css — this file is what is
+   true of THIS bench and no other: the axis rows, the corrections list and the
+   hand-back box.
 
-/* The panel is the page's OWN scrolling column (.panel in workbench.css), not
-   a block that grows off the bottom of the window. It was written as `.pane`,
-   which matches nothing here, so the panel had no height limit and no scroll
-   and the download button sat below the fold — present, styled, and invisible
-   unless you thought to scroll a page that does not look scrollable. */
-body.mode-rigs main.layout.rigs {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
-  gap: 14px;
-}
-
-body.mode-rigs .stage-col { min-width: 0; }
-
-body.mode-rigs #viewWrap {
-  position: relative;
-  height: min(78vh, 860px);
-  border: 1px solid #232c44;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #101522;
-}
-body.mode-rigs #view {
-  display: block;
-  width: 100%;
-  height: 100%;
-  /* The gizmo is dragged, and a drag that also scrolls the page or selects
-     text is a gizmo that fights you on a trackpad. */
-  touch-action: none;
-  user-select: none;
-}
+   The panel is the page's OWN scrolling column (`.panel` in workbench.css),
+   not a block that grows off the bottom of the window. It was written as
+   `.pane`, which matches nothing here, so the panel had no height limit and no
+   scroll and the download button sat below the fold — present, styled, and
+   invisible unless you thought to scroll a page that does not look
+   scrollable. */
 
 body.mode-rigs .panel h3 {
   margin: 14px 0 4px;
@@ -96,7 +71,3 @@ body.mode-rigs .row.handback {
   margin: 0;
 }
 
-@media (max-width: 900px) {
-  body.mode-rigs main.layout.rigs { grid-template-columns: 1fr; }
-  body.mode-rigs #viewWrap { height: 58vh; }
-}

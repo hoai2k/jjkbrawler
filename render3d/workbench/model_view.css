@@ -1,0 +1,43 @@
+/* THE MODEL VIEWER's own bits. The viewport-and-column layout it shares with
+   the rig bench is `.layout.viewport3d` in workbench.css; what is here is the
+   two fact lists, which are this bench's whole panel. */
+
+body.mode-model .panel h3 {
+  margin: 14px 0 4px;
+  font-size: 13px;
+  color: #cdd6ee;
+}
+body.mode-model .panel select { width: 100%; }
+body.mode-model .panel > * { flex: 0 0 auto; }
+body.mode-model .dim { color: #8b96b3; font-weight: 400; }
+
+/* A label and the thing it says, one per line rather than in a table: the
+   values are sentences as often as they are numbers ("on the floor, as the
+   spec asks"), and a column that has to fit both ends up fitting neither. */
+body.mode-model #facts,
+body.mode-model #fixList {
+  border: 1px solid #232c44;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #151b2b;
+  max-height: 34vh;
+  overflow: auto;
+}
+body.mode-model #fixList { min-height: 54px; }
+body.mode-model .factrow { display: flex; flex-direction: column; margin-bottom: 6px; }
+body.mode-model .factrow b { color: #cdd6ee; font-weight: 600; }
+body.mode-model .factrow span { color: #8b96b3; font-size: 11.5px; }
+/* A fact that is out of spec is the reason somebody opened this page. */
+body.mode-model .factrow.warn b { color: #ffcf8a; }
+body.mode-model .factrow.none b { color: #9fd39f; font-weight: 600; }
+body.mode-model .factrow.dimrow b { color: #8b96b3; font-weight: 500; }
+
+body.mode-model #status { color: #8b96b3; min-height: 1.2em; }
+
+/* A body the game is not drawing, said on the page where somebody is looking
+   at it to find out why. */
+body.mode-model .hint.held {
+  border-left: 2px solid #ffcf8a;
+  padding-left: 8px;
+  color: #d8c39d;
+}

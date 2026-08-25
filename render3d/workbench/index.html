@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="sprite_pose.css">
     <link rel="stylesheet" href="anim_viewer.css">
     <link rel="stylesheet" href="rig_bench.css">
+    <link rel="stylesheet" href="model_view.css">
     <!-- BOOT WATCH. This page is one ES module with a top-level await, so
          anything that throws or never settles up there leaves a fully
          rendered page whose every control is dead — which reads as "the
@@ -62,6 +63,7 @@
       <a class="ghost sm pose-only" id="toAnim" href="?edit=keys">Keyframes →</a>
       <a class="ghost sm" href="?edit=animation">Anim viewer →</a>
       <a class="ghost sm" href="?edit=rigs">Rig bench →</a>
+      <a class="ghost sm" href="?edit=3d">Model viewer →</a>
       <a class="ghost sm" href="./?edit=pose">Joint reads →</a>
       <a class="ghost sm" href="../../billboards/workbench/">Billboard Workbench →</a>
       <a class="ghost sm" href="../../sprites/workbench/">Sprite Workbench →</a>
@@ -520,17 +522,21 @@
       </footer>
     </div>
 
-    <!-- Five benches, one page, and only one of them loads.
+    <!-- Six benches, one page, and only one of them loads.
          `?edit=pose` (or `?edit=reads`) is the SPRITE JOINT READS editor: it
          records what the DRAWING does, sixteen 2D joints a frame, and its
          output is data about the art rather than a clip. `?edit=animation`
          is the ANIMATION VIEWER: the in-game roster in a grid, all playing
-         one clip, triggered by mouse or pad. The other two are workbench.js
+         one clip, triggered by mouse or pad. Two are workbench.js
          — no `edit` opens the pose bench (model matched to a drawing),
          `?edit=keys` the keyframe bench. `?edit=rigs` is the RIG BENCH:
          one fighter in a T- or A-pose in a live viewport, with a rotation
          handle on every bone — it edits the GLB correction layer rather than
          any pose, and its output is a corrections file, not a clip.
+         `?edit=3d` (or `?edit=raw`) is the MODEL VIEWER: the delivered .glb
+         with nothing on top of it — no toon pass, no outline, no clip — for
+         the question the other five cannot answer, which is what the file
+         itself looks like and what still needs fixing in it.
          Reads and the viewer replace the page rather than sitting inside it:
          each wants the whole window, and loading everything would pay for
          the look-dev panel, the sprite pipeline and every clip table on a
@@ -541,6 +547,7 @@
       await import(reads ? "./sprite_pose.js"
         : mode === "animation" ? "./anim_viewer.js"
         : (mode === "rigs" || mode === "models") ? "./rig_bench.js"
+        : (mode === "3d" || mode === "raw") ? "./model_view.js"
         : "./workbench.js");
     </script>
   </body>

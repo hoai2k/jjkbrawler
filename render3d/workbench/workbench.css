@@ -15,8 +15,14 @@ body {
 .bar {
   display: flex; align-items: center; gap: 14px; flex: none;
   padding: 10px 16px; background: #121728; border-bottom: 1px solid #232c44;
+  /* WRAP RATHER THAN CRUSH. The bar carries one link per bench and the benches
+     keep arriving; with no wrap the only thing that can give is the sentence
+     saying what THIS bench is, which shrank a line at a time until it was a
+     four-word-wide column nobody reads. A second row of links costs 30px and
+     is legible. */
+  flex-wrap: wrap;
 }
-.bar .hint { color: #8b96b3; font-size: 12.5px; flex: 1; }
+.bar .hint { color: #8b96b3; font-size: 12.5px; flex: 1 1 260px; min-width: 260px; }
 
 main.layout {
   flex: 1; min-height: 0;
@@ -40,6 +46,40 @@ main.layout {
   background: #2c3654; border-radius: 6px; border: 3px solid transparent; background-clip: content-box;
 }
 .panel { scrollbar-width: thin; scrollbar-color: #2c3654 transparent; }
+
+/* A LIVE VIEWPORT AND A COLUMN OF CONTROLS — the shape both 3D benches take
+   (`?edit=rigs`, `?edit=3d`), and one definition because a viewport that
+   behaves differently on two pages of the same workbench is a difference you
+   feel rather than see. The other benches show a fixed-size canvas because
+   they are comparing against a drawing at a fixed size; these two are model
+   viewers, where every pixel of the viewport is a pixel to find a fault in. */
+main.layout.viewport3d {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 14px;
+}
+.layout.viewport3d .stage-col { min-width: 0; }
+.layout.viewport3d #viewWrap {
+  position: relative;
+  height: min(78vh, 860px);
+  border: 1px solid #232c44;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #101522;
+}
+.layout.viewport3d #view {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* Dragged, not scrolled: a drag that also pans the page or selects text is a
+     viewport that fights you on a trackpad. */
+  touch-action: none;
+  user-select: none;
+}
+@media (max-width: 900px) {
+  main.layout.viewport3d { grid-template-columns: 1fr; }
+  .layout.viewport3d #viewWrap { height: 58vh; }
+}
 
 .panel h3 { margin: 8px 0 0; font-size: 12px; text-transform: uppercase;
   letter-spacing: 0.08em; color: #8b96b3; }

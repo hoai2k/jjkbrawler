@@ -46,6 +46,7 @@
     pose: "../render3d/workbench/?edit=pose",
     reads: "../render3d/workbench/?edit=reads",
     rigs: "../render3d/workbench/?edit=rigs",
+    glb: "../render3d/workbench/?edit=3d",
   };
 
   // Spellings people will actually type, in the spirit of the render backend's
@@ -61,6 +62,12 @@
     // they came here when one existed.
     rig: "rigs", bones: "rigs", bone: "rigs", skeleton: "rigs",
     model: "rigs", models: "rigs",
+    // …and the model VIEWER owns the words for "show me the file itself" — the
+    // delivered .glb with no engine on top of it. It sits beside the rig bench
+    // rather than taking "model" off it, because the two answer different
+    // questions about the same body and a word that quietly changed benches
+    // would be worse than one that never worked.
+    viewer: "glb", mesh: "glb", meshes: "glb", raw: "glb",
     anim: "animation", keyframes: "animation", clip: "animation", clips: "animation",
     joints: "reads", "joint-reads": "reads", read: "reads",
     // The review queue. Every word somebody might reach for when what they
