@@ -150,7 +150,22 @@ export function spriteCatalogue(charKey, current, primaryOnly = false) {
     const used = statesUsing(charKey, key).length > 0;
     const near = spriteFamily(key) === family;
     const drawings = [];
-    if (live?.file) drawings.push({ file: live.file, meta: live, primary: true, label: null });
+    // The live drawing carries its own option too, when it has one.
+    //
+    // A DELETE TAG WENT ON AND CAME STRAIGHT BACK OFF. `setDrawingDoomed`
+    // writes the tag onto a variant option, creating one where the pose had
+    // none — which is the case for every sheet cell nothing draws, the exact
+    // place unused art gets refused. But this list rebuilt the primary tile
+    // with no `option` at all, and the loop below skips the option whose file
+    // the pose is already using, so nothing ever handed the tag back. The tile
+    // reads `d.option?.needsReplacement`, so on reopening the picker forty-seven
+    // tagged drawings looked untouched. The tags were real the whole time and
+    // exported correctly; only the picture of them was missing.
+    if (live?.file) {
+      drawings.push({ file: live.file, meta: live, primary: true, label: null,
+                      option: variantEntry(charKey, key)?.options
+                        .find((o) => o.file === live.file) || null });
+    }
     // The LIVE option objects, not variantsOf()'s copies: right-clicking a
     // tile writes a deletion tag onto the drawing, and a tag written to a copy
     // is a tag written to nothing.
