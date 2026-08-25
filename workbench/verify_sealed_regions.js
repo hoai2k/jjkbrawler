@@ -302,8 +302,15 @@ function draw(task, { ctx, canvas, value }) {
       }
     }
     oc.putImageData(px, 0, 0);
+    // THE MASK IS THE REGION'S OWN BOX, NOT THE CROP. It used to be the size of
+    // the crop, because the bench found the region itself by flooding over the
+    // crop, and this blitted it corner to corner. Now the keyer sends the region
+    // in its own bounding box — smaller, and offset inside the crop — so it has
+    // to be placed and scaled like anything else, or the highlight stretches
+    // across the whole picture and lands nowhere near the patch it describes.
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(off, dx, dy, dw, dh);
+    ctx.drawImage(off, dx + (m.x0 - x0) * scale, dy + (m.y0 - y0) * scale,
+                  m.w * scale, m.h * scale);
     ctx.imageSmoothingEnabled = true;
   }
 
