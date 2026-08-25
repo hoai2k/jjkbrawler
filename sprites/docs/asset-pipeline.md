@@ -856,6 +856,30 @@ contact it went in wearing were measured off the new matte rather than chosen by
 anyone. The two exits above are still the only exits: tune it, or say it needed
 nothing.
 
+**An alpha fix is a different job, and the list says so.** A re-key lands the
+*same drawing* on top of itself — the file is rewritten in place, the placement
+carried whole — so there is no alternate on the chevron and no old drawing left
+in the repo to stand beside it. The comparison slot is legitimately empty, which
+looked exactly like a delivery that had gone missing when 237 of them arrived at
+once, and every one of them silently asked "did the position move too?".
+
+`kept: "keep"` is what answers it. `survives()` in `tools/intake_import.py` reads
+the flag the pose was carrying, and `alpha` is the only kind `KIND_PLACEMENT`
+carries the placement through — a redraw discards it, `crop` and `bleed` reframe
+it. So the marker already knew; nothing on screen was reading it. Now four places
+do, off one predicate (`isAlphaFix`):
+
+| Where | What it says |
+|---|---|
+| The count line | `237 alpha fixes (placement unchanged)`, counted apart from the poses that need re-tuning |
+| The cell | `alpha only, not moved` — the grid tells the two jobs apart without a click |
+| The panel headline | `alpha fix — nothing moved`, readable without opening the section |
+| The empty comparison slot | *alpha fix — same drawing, re-keyed in place; nothing to compare* |
+
+The reviewer's question is then the only one a re-key can answer: are the EDGES
+clean — fringe, hard cut-outs, holes through the body. Nothing about size,
+ground contact, centring or anchors is in question, because none of it changed.
+
 Directly beneath it is its mirror image, **All Needing Regeneration**: every pose
 carrying a `needsReplacement` flag, across the whole roster, grouped by kind. The
 updated list is what *arrived*; this one is what was *sent back*, and it is the
