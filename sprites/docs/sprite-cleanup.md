@@ -143,6 +143,14 @@ been measured against regions labelled by eye on both sides. None of them
 separates a shadow from a gap on this delivery, because the difference is not in
 the image.
 
+Round 26's ten flagged plates were settled that way — all 76 regions judged at
+full size, one at a time. **Eight are the stage showing through; sixty-eight are
+drawn on the fighter.** That ratio is worth knowing before touching this code
+again: the sealed-pocket test is looking for something that is barely present in
+this delivery, and it was wrong about roughly nine regions in ten. It is still
+right often enough elsewhere — Toji, Dagon and Mei Mei — that turning it off is
+not the answer either.
+
 **The fix at the source is the screen colour.** A magenta or green key cannot
 collide with a shadow, and `intake.py` already keys both. Every heuristic here
 exists because a neutral grey screen was used for art that is itself neutral

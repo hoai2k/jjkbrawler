@@ -282,7 +282,57 @@ KEY_IS_A_DRAWN_TONE = {"gakuganji/throw_up"}
 #   "figure"      this is drawn on the fighter; keep it
 #
 # Anything not named still goes through the rules above.
-SEALED_VERDICTS = {}
+#
+# Round 26's ten flagged plates were judged this way, region by region, at full
+# size: 68 of the 76 are drawn on the fighter and 8 are the stage showing
+# through. That ratio is the whole story of this delivery — the sealed-pocket
+# test was looking for something that is barely there, and no measurement could
+# have told which one region in nine it was right about.
+SEALED_VERDICTS = {
+    "kashimo/throw_back": {
+        "background": [[299, 581]],
+        "figure": [[359, 1016], [323, 1097], [537, 603], [601, 560], [515, 579],
+                   [837, 1405], [819, 1355], [548, 838], [108, 1444], [227, 1110],
+                   [640, 522], [617, 512], [508, 838], [549, 820]],
+    },
+    "kashimo/throw_down": {
+        "background": [[751, 807], [595, 806], [641, 650], [497, 730]],
+        "figure": [[293, 1101], [521, 948], [494, 920], [662, 1281], [649, 1032],
+                   [712, 1037], [114, 1337], [152, 1238]],
+    },
+    "kashimo/throw_up": {
+        "figure": [[606, 1116], [647, 1437], [563, 949], [325, 1206], [618, 399],
+                   [213, 1497]],
+    },
+    "hanami/attack_diag_up_b": {
+        "figure": [[296, 723], [664, 464], [650, 1310], [545, 538], [494, 378],
+                   [198, 1403], [437, 632], [316, 579], [588, 407], [559, 775],
+                   [283, 619], [305, 612], [553, 406], [416, 673], [445, 605],
+                   [553, 380]],
+    },
+    "hanami/throw_down": {
+        "background": [[819, 762]],
+        "figure": [[741, 566], [106, 1113], [641, 447], [616, 1109], [727, 491],
+                   [672, 384], [774, 332], [657, 408]],
+    },
+    "hanami/throw_fwd": {
+        "figure": [[375, 532], [322, 450], [636, 448], [701, 445], [920, 409],
+                   [378, 621], [720, 1293], [551, 708], [734, 1251], [588, 474]],
+    },
+    "hanami/throw_up": {
+        "background": [[464, 374]],
+        "figure": [[611, 528], [527, 468], [611, 805]],
+    },
+    "kirara/throw_up": {
+        "figure": [[315, 588], [514, 637]],
+    },
+    "yuji/throw_back": {
+        "background": [[489, 456]],
+    },
+    "gakuganji/crouch_attack_b": {
+        "figure": [[192, 984]],
+    },
+}
 
 
 def settled(guessed, regions, lab, ref):
