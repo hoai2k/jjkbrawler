@@ -146,6 +146,49 @@ def screen_masks(rgb, key):
     return cand, sure
 
 
+# How far a cut reaches past the region it removes. The SAME two pixels the
+# outer silhouette gets, for the same reason.
+SEALED_RIM = 2
+
+
+def carry_the_edge(mask, alpha, clean, key):
+    """Finish a cut's edge the way the outer key finishes the silhouette's.
+
+    A sealed region is removed by setting its alpha to zero and nothing else,
+    and that leaves the boundary behind: the anti-aliased ring between the patch
+    and the arm beside it is a BLEND of the screen and the drawing, and it fails
+    `flat_key_mask`'s variance test precisely because it is a gradient. So it
+    survives at full opacity, in the screen's own colour — a grey outline around
+    every gap keyed out from inside the figure. Measured on Choso's four air
+    attacks, 100% of the rim pixels sat within 30 of the screen colour, half of
+    them ON it.
+
+    The outer edge never had this problem, because it gets two steps this one
+    did not: alpha ramped down by how close the pixel is to the key, and then
+    the key UNMIXED out of whatever stays partly opaque
+    (`clean = (rgb - (1-a)*key) / a`). Both are just as right here — the pixel is
+    the same kind of pixel, a blend of screen and drawing — so this applies the
+    same two, on the same 2px reach.
+
+    A rim pixel far from the key keeps its alpha and only loses the cast; one
+    sitting on the key goes entirely. Nothing outside the rim is touched, so the
+    mask a verdict settles is unchanged: this is about the edge of the cut, not
+    about where the cut is.
+    """
+    rim = ndimage.binary_dilation(mask, iterations=SEALED_RIM) & ~mask & (alpha > 0)
+    if not rim.any():
+        return
+    d = np.linalg.norm(clean - key, axis=2)
+    alpha[rim] = np.minimum(alpha[rim], np.clip((d[rim] - 6.0) / 24.0, 0.0, 1.0))
+    part = rim & (alpha > 0) & (alpha < 1)
+    if part.any():
+        a = alpha[part, None]
+        clean[part] = np.clip((clean[part] - (1.0 - a) * key) / a, 0, 255)
+    # The same threshold the outer edge is held to: anything still mostly there
+    # is there, now that the cast has been taken out of it.
+    alpha[alpha >= 48 / 255] = 1.0
+
+
 def key_and_trim(path, ref=None):
     """Key the delivered background out and trim to content.
 
@@ -181,7 +224,9 @@ def key_and_trim(path, ref=None):
     alpha[alpha >= 48 / 255] = 1.0
 
     if key is not None and ref not in KEY_IS_A_DRAWN_TONE:
-        alpha[flat_key_mask(clean, alpha, key, ref=ref)] = 0.0
+        sealed = flat_key_mask(clean, alpha, key, ref=ref)
+        alpha[sealed] = 0.0
+        carry_the_edge(sealed, alpha, clean, key)
 
     vis = alpha >= 8 / 255
     ys, xs = np.nonzero(vis)

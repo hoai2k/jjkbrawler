@@ -1810,10 +1810,10 @@
     "h": 1788,
     "ox": -281.8,
     "oy": -1636,
-    "bodyBottom": 66.6,
-    "bodyH": 477.0,
+    "bodyBottom": 27.6,
+    "bodyH": 302.8,
     "centroidX": 158.3,
-    "renderScale": 0.267,
+    "renderScale": 0.1695,
     "file": "gojo/incoming/attack_diag_up_b-2.png",
     "srcBox": [
      64,
@@ -1822,49 +1822,6 @@
      1852
     ],
     "srcFlip": false,
-    "replaced": {
-     "at": "2026-08-25T20:23:33+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "bodyBottom",
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-25T20:23:33+00:00",
-     "live": {
-      "w": 814,
-      "h": 1668,
-      "ox": -247.6,
-      "oy": -1437,
-      "bodyBottom": 103.6,
-      "bodyH": 302.8,
-      "bodyTop": 0,
-      "centroidX": 154.1,
-      "renderScale": 0.1816,
-      "anchors": {
-       "com": [
-        404.4,
-        688.5
-       ]
-      },
-      "srcBox": [
-       64,
-       67,
-       878,
-       1735
-      ],
-      "needsReplacement": "quality",
-      "replacementNote": "Only the punching fist should be visible, because the other one should be on the opposite side of his body in this pose. He is drawn side-on facing right: the NEAR arm throws the punch up the diagonal, and the off hand recovers to the chest ON THE FAR SIDE of the torso, where the body hides it. At most the far elbow clears the silhouette. Never a second fist on the near face of the chest \u2014 that is where both deliveries so far have put it, and it reads as a spare fist or an arm coming out of his own back. Exactly one hand is visible in this drawing.",
-      "edited": {
-       "renderScale": 0.286,
-       "bodyBottom": 151.1
-      },
-      "file": "gojo/incoming/attack_diag_up_b.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 874,
@@ -1882,6 +1839,10 @@
       "bodyBottom": "foot=0.952 (character)",
       "ox": "centre of mass, not of the box"
      }
+    },
+    "edited": {
+     "renderScale": 0.267,
+     "bodyBottom": 66.6
     }
    },
    "domain_expansion": {
@@ -19888,47 +19849,6 @@
      1553
     ],
     "srcFlip": false,
-    "replaced": {
-     "at": "2026-08-25T20:23:33+00:00",
-     "kept": "await",
-     "how": "await",
-     "lost": [
-      "renderScale",
-      "anchors"
-     ]
-    },
-    "awaitingApproval": {
-     "at": "2026-08-25T20:23:33+00:00",
-     "live": {
-      "w": 701,
-      "h": 1522,
-      "ox": -151.1,
-      "oy": -1211,
-      "bodyBottom": 207.8,
-      "bodyH": 362.8,
-      "bodyTop": 0,
-      "centroidX": 114.1,
-      "renderScale": 0.2384,
-      "anchors": {
-       "com": [
-        309.6,
-        641.2
-       ]
-      },
-      "srcBox": [
-       166,
-       64,
-       867,
-       1586
-      ],
-      "needsReplacement": "quality",
-      "replacementNote": "Weird arms going on",
-      "edited": {
-       "renderScale": 0.2408
-      },
-      "file": "hakari/throw_up.png"
-     }
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 599,
@@ -33189,12 +33109,6 @@
      "renderScale": 0.214,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1192,
@@ -34215,12 +34129,6 @@
     "edited": {
      "renderScale": 0.231
     },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 768,
@@ -34253,12 +34161,6 @@
     "edited": {
      "renderScale": 0.231,
      "ox": -316.8
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -34885,12 +34787,6 @@
     },
     "edited": {
      "renderScale": 0.2173
-    },
-    "replaced": {
-     "at": "2026-08-25T18:04:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -71363,22 +71259,29 @@
    "attack_diag_up_b": {
     "options": [
      {
-      "w": 814,
-      "h": 1668,
-      "ox": -247.6,
-      "oy": -1437,
-      "bodyBottom": 151.1,
-      "bodyH": 476.9,
+      "w": 874,
+      "h": 1788,
+      "ox": -281.8,
+      "oy": -1636,
+      "bodyBottom": 66.6,
+      "bodyH": 477.0,
       "bodyTop": 0,
-      "centroidX": 154.1,
-      "renderScale": 0.286,
+      "centroidX": 158.3,
+      "renderScale": 0.267,
       "anchors": {
        "com": [
-        404.4,
-        688.5
+        437.8,
+        745.7
        ]
       },
-      "file": "gojo/incoming/attack_diag_up_b.png",
+      "srcBox": [
+       64,
+       64,
+       938,
+       1852
+      ],
+      "srcFlip": false,
+      "file": "gojo/incoming/attack_diag_up_b-2.png",
       "label": "In game"
      },
      {
@@ -71406,6 +71309,38 @@
       "file": "gojo/attack_diag_up_b.png",
       "label": "Superseded",
       "supersededAt": "2026-08-25T02:13:05+00:00"
+     },
+     {
+      "w": 814,
+      "h": 1668,
+      "ox": -247.6,
+      "oy": -1437,
+      "bodyBottom": 103.6,
+      "bodyH": 302.8,
+      "bodyTop": 0,
+      "centroidX": 154.1,
+      "renderScale": 0.1816,
+      "anchors": {
+       "com": [
+        404.4,
+        688.5
+       ]
+      },
+      "srcBox": [
+       64,
+       67,
+       878,
+       1735
+      ],
+      "needsReplacement": "quality",
+      "replacementNote": "Only the punching fist should be visible, because the other one should be on the opposite side of his body in this pose. He is drawn side-on facing right: the NEAR arm throws the punch up the diagonal, and the off hand recovers to the chest ON THE FAR SIDE of the torso, where the body hides it. At most the far elbow clears the silhouette. Never a second fist on the near face of the chest \u2014 that is where both deliveries so far have put it, and it reads as a spare fist or an arm coming out of his own back. Exactly one hand is visible in this drawing.",
+      "edited": {
+       "renderScale": 0.286,
+       "bodyBottom": 151.1
+      },
+      "file": "gojo/incoming/attack_diag_up_b.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-25T20:23:33+00:00"
      }
     ]
    }
@@ -72962,6 +72897,67 @@
       "file": "hakari/attack_air_b.png",
       "label": "Superseded",
       "supersededAt": "2026-08-20T00:58:52+00:00"
+     }
+    ]
+   },
+   "throw_up": {
+    "options": [
+     {
+      "w": 599,
+      "h": 1486,
+      "ox": -132.0,
+      "oy": -1278,
+      "bodyBottom": 107.3,
+      "bodyH": 379.1,
+      "bodyTop": 0,
+      "centroidX": 146.0,
+      "renderScale": 0.2551,
+      "anchors": {
+       "com": [
+        287.0,
+        638.2
+       ]
+      },
+      "srcBox": [
+       182,
+       67,
+       781,
+       1553
+      ],
+      "srcFlip": false,
+      "file": "hakari/incoming/throw_up.png",
+      "label": "In game"
+     },
+     {
+      "w": 701,
+      "h": 1522,
+      "ox": -151.1,
+      "oy": -1211,
+      "bodyBottom": 207.8,
+      "bodyH": 362.8,
+      "bodyTop": 0,
+      "centroidX": 114.1,
+      "renderScale": 0.2384,
+      "anchors": {
+       "com": [
+        309.6,
+        641.2
+       ]
+      },
+      "srcBox": [
+       166,
+       64,
+       867,
+       1586
+      ],
+      "needsReplacement": "quality",
+      "replacementNote": "Weird arms going on",
+      "edited": {
+       "renderScale": 0.2408
+      },
+      "file": "hakari/throw_up.png",
+      "label": "Superseded",
+      "supersededAt": "2026-08-25T20:23:33+00:00"
      }
     ]
    }

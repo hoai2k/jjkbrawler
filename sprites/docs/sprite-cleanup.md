@@ -254,6 +254,31 @@ window reopens on them. It is the only verdict that works INSIDE a region rather
 than on the whole of it, which is the whole point: a shadow that runs into the
 gap beside it keys as one region and cannot be answered any other way.
 
+**A cut from inside the figure leaves a grey outline, and it did not have to.**
+Removing a sealed region was one line — set its alpha to zero — and that left the
+boundary behind: the ring between the patch and the arm beside it is a BLEND of
+the screen and the drawing, and it fails `flat_key_mask`'s variance test
+precisely because it is a gradient, so it survived at full opacity in the
+screen's own colour. On Choso's four air attacks **every** rim pixel sat within
+30 of the screen grey, half of them exactly on it.
+
+The outer silhouette never had the problem, because it gets two steps the inner
+cut did not: alpha ramped down by how near the pixel is to the key, then the key
+UNMIXED out of whatever stays partly opaque, `clean = (rgb - (1-a)·key) / a`.
+Both are just as right for a cut made from inside, so `carry_the_edge` in
+`tools/intake.py` applies the same two on the same 2px reach. Across a 40-plate
+sample the screen-coloured share of the rim falls from 15% to 3% on the worst
+plate, no plate gets worse, and 0.04% of the figure goes with it.
+`tools/test_sealed_edge.py` holds it.
+
+**An alpha fix that moves nothing is not placement work.** The workbench's
+updated list exists so a round's placing and scaling can be found in one place,
+and a re-key that lands the drawing at the same size in the same spot asks for
+none of it — `srcBox` carried the placement to the pixel and the matte is what
+changed. `unmoved()` in `tools/intake_import.py` leaves those off the list, and
+requires the carry to have been EXACT: the fallback rule lines silhouettes up
+rather than pixels, so under it "the numbers came out the same" means nothing.
+
 **A verdict answers the region it lands in, and no other.** The queue drops a
 region once somebody has answered it, and it decided that by testing the answer's
 point against the region's `crop` — the window the bench DRAWS, which is the
