@@ -181,6 +181,20 @@ the patch comes back to be judged again once the art has been fixed:
 | `split` | the line, drawn: loops round the parts that ARE the fighter | the keyer cuts the patch except what the loops cover |
 | `other` | not a keying fault at all: a ghost image, a trail | wants removing, not a better key |
 
+**A drawing with its own afterimages in it is not a keying fault.** Hakari's
+`special_side` is one lunge drawn three times — the fighter, and two translucent
+copies trailing behind, composited onto the screen by the generator. No amount of
+work on the key removes something that is on the plate, which is why four rounds
+of shadow-or-gap could only mark it.
+
+What separates a ghost from the fighter is **ink**: a ghost is the drawing seen
+through the screen, so every line in it is a wash, while the fighter is the
+drawing itself and this art style outlines everything in near-black. So the
+figure is whatever hangs together around true ink, and the ghosts fall off it.
+`GHOSTED` in `tools/intake.py` names the frames, for the same reason
+`GREY_TINT_FIX` does: "a pale copy of the fighter" also describes a lot of
+legitimate art.
+
 **A split is drawn, not named.** Answer *both*, press **Draw the split**, and the
 patch opens in a full window — wheel to zoom, right-drag or space to pan,
 left-drag to lasso. Loop the parts that are the fighter; everything else in that
