@@ -15,10 +15,11 @@ import {
   drawCharFrame, currentFrame, warmAnchors, anchorScreenPos, resolvedAnim, animsOf,
 } from "../src/sprites.js";
 import { drawPlatformShape } from "../../src/render.js";
-import { CHARACTERS, CHARACTER_KEYS, byCharacterName } from "../../src/characters.js";
+import { CHARACTERS, CHARACTER_KEYS } from "../../src/characters.js";
 import { lightMove, heavyMove } from "../../src/moves.js";
 import { fighterTransform } from "../../src/motion.js";
 import { initTooltips } from "./tooltip.js";
+import { fillCharSelect } from "./char_select.js";
 import { makeCharLoader, frameLoaded } from "./lazy_sprites.js";
 import { fitStageCanvas } from "./fit_stage.js";
 import { SHIELD_MAX, MAX_FALL } from "../../src/constants.js";
@@ -1014,14 +1015,10 @@ async function boot() {
   ctx = canvas.getContext("2d");
   fitStageCanvas(canvas);
 
-  const sel = $("aChar");
-  // Alphabetically. The sprite bench's own dropdown next door has sorted this
-  // way for the same reason: you come to this list with a name in mind.
-  for (const key of [...CHARACTER_KEYS].sort(byCharacterName)) {
-    const o = document.createElement("option");
-    o.value = key; o.textContent = CHARACTERS[key].name;
-    sel.appendChild(o);
-  }
+  // The shared builder, so this bench and the specials bench next door cannot
+  // drift apart on what the roster looks like. Alphabetically, as before: you
+  // come to this list with a name in mind.
+  const sel = fillCharSelect($("aChar"));
   sel.onchange = () => setChar(sel.value);
 
   const sw = $("aBg");

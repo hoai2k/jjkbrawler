@@ -24,7 +24,7 @@
   // one thing no cache argues with.
   //
   // BUMP THIS WHENEVER THE BENCH CHANGES.
-  var BENCH_VERSION = "29";
+  var BENCH_VERSION = "30";
   if (document.currentScript) document.currentScript.dataset.version = BENCH_VERSION;
   // Where each mode lives. Paths are RELATIVE, so the whole thing keeps working
   // under a subdirectory — the GitHub Pages build serves this at
@@ -40,6 +40,7 @@
     arena: null,
     sprites: "../sprites/workbench/",
     actions: "../sprites/workbench/?edit=actions",
+    specials: "../sprites/workbench/?edit=specials",
     billboards: "../billboards/workbench/",
     "3d": "../render3d/workbench/",
     animation: "../render3d/workbench/?edit=animation",
@@ -55,6 +56,8 @@
     voice: "audio", voices: "audio", sound: "audio", sfx: "audio",
     sprite: "sprites", "2d": "sprites",
     action: "actions",
+    special: "specials", kit: "specials", kits: "specials",
+    ultimate: "specials", ultimates: "specials", domain: "specials", domains: "specials",
     billboard: "billboards", "2.5d": "billboards",
     render3d: "3d", anime: "3d",
     // The rig bench owns every word for "the skeleton is wrong". "model" and
