@@ -12,9 +12,9 @@ stale, and also when a source has an open round the tool did not recognise —
 that second one is the guard, because a round written in an unexpected shape
 is exactly how 172 images once went missing from this list.
 
-**3 images outstanding.** Every one of them is listed below, with a full URL for anything you need to look at.
+**4 images outstanding.** Every one of them is listed below, with a full URL for anything you need to look at.
 
-- **The sprite game** — 3 images: [3 flagged in the workbench](#outstanding-by-manifest-not-by-request) as art that exists and is wrong
+- **The sprite game** — 4 images: [4 flagged in the workbench](#outstanding-by-manifest-not-by-request) as art that exists and is wrong
 - **The live-3D anime path** — 0 images
 - Separately, 9 poses are drawing another pose's file. Not counted above: those are substitutions somebody chose, not images anybody is owed.
 
@@ -55,7 +55,7 @@ Art for the game as a player sees it: `?render=sprite`, the default, and
 the path all 27 fighters actually ship on. Keyed plates, delivered to
 `assets/intake/`, trimmed and measured on import.
 
-**No open round** in [asset-requests.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests.md). 3 images are still outstanding for this mode — they are flagged in the workbench rather than asked for by a round, and they are in [Outstanding by manifest, not by request](#outstanding-by-manifest-not-by-request).
+**No open round** in [asset-requests.md](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/docs/asset-requests.md). 4 images are still outstanding for this mode — they are flagged in the workbench rather than asked for by a round, and they are in [Outstanding by manifest, not by request](#outstanding-by-manifest-not-by-request).
 
 ---
 
@@ -288,11 +288,12 @@ is not its own says so silently, which is how seven of them stayed invisible
 until round 18G. Neither can see a pose that was never drawn — that is what
 the rounds above are for.
 
-**3 flagged, 9 drawing somebody else's art**.
+**4 flagged, 9 drawing somebody else's art**.
 
 | Fighter | Pose | Why | What is wrong | The drawing now | Canon reference |
 |---|---|---|---|---|---|
-| Satoru Gojo | `attack_diag_up_b` | quality | Fist should not be behind body | [attack_diag_up_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gojo/attack_diag_up_b.png) | [gojo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/gojo_idle.png) |
+| Satoru Gojo | `attack_diag_up_b` | quality | weird arm behind back pose | [attack_diag_up_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gojo/attack_diag_up_b.png) | [gojo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/gojo_idle.png) |
+| Kinji Hakari | `throw_up` | quality | Weird arms going on | [throw_up.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hakari/throw_up.png) | [hakari_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/hakari_idle.png) |
 | Mei Mei | `attack_air_diag_down_b` | quality | She doesn't have 3 braids, only 2 | [attack_air_diag_down_b.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/meimei/attack_air_diag_down_b.png) | [meimei_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/meimei_idle.png) |
 | Momo Nishimiya | `throw_fwd` | quality | broken broom | [throw_fwd.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/momo/throw_fwd.png) | [momo_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/momo_idle.png) |
 | Hanami | `attack_light_b` | drawing another pose's file | it is `special_neutral`, not `attack_light_b` | [special_neutral.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/hanami/special_neutral.png) | [hanami_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/hanami_idle.png) |
@@ -305,7 +306,7 @@ the rounds above are for.
 | Yoshinobu Gakuganji | `crouch_attack_b` | drawing another pose's file | it is `attack_dash`, not `crouch_attack_b` | [attack_dash.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/gakuganji/attack_dash.png) | [gakuganji_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/gakuganji_idle.png) |
 | Naoya Zen'in | `attack_heavy_a` | drawing another pose's file | it is `run_pass_a`, not `attack_heavy_a` | [run_pass_a.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/sprites/assets/naoya/run_pass_a.png) | [naoya_idle.png](https://raw.githubusercontent.com/hoai2k/jjkbrawler/main/assets/reference/canon/naoya_idle.png) |
 
-Separately, **1 improvement request** — the art works and is just
+Separately, **6 improvement requests** — the art works and is just
 not as good as it should be. Nothing is blocked by one, and the standing
 ones are alpha fixes to delivered files, which is repo work rather than a
 request.
