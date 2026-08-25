@@ -168,6 +168,24 @@ hole cutting it would leave. `&char=kashimo` narrows it to one fighter.
     node tools/build_sealed_queue.mjs         # what is still to judge
     python3 tools/apply_sealed_verdicts.py <export>   # file the answers
 
+**Four answers, and only two of them are instructions.** *Gap* cuts the patch,
+*shadow* keeps it, and both are carried out by the keyer. The other two are the
+reviewer saying the question is the wrong one, so nothing overrides the keyer and
+the patch comes back to be judged again once the art has been fixed:
+
+| answer | what it means | what happens |
+|---|---|---|
+| `background` | the stage should show through | the keyer cuts it |
+| `figure` | it is drawn on the fighter | the keyer keeps it |
+| `mixed` | part gap, part shadow — one point cannot answer for two halves | wants a hand mask or a redraw |
+| `other` | not a keying fault at all: a ghost image, a trail | wants removing, not a better key |
+
+**Bands, in the order they are asked.** Flagged for improvement first, because
+that is what somebody is actively trying to solve; then art held for approval;
+then everything the game draws. Art nothing draws is a **separate low-priority
+queue** — a patch nobody can see should never sit between the reviewer and one
+that is on screen.
+
 The queue holds **only art the game draws** — the game's own resolver decides,
 so cells and banked alternates nobody sees are not questions. That is 1,567
 regions across 35 fighters as this was written, and the ratio from the ten

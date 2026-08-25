@@ -350,5 +350,1509 @@
     984
    ]
   ]
+ },
+ "choso/ult_a": {
+  "background": [
+   [
+    802,
+    680
+   ],
+   [
+    253,
+    488
+   ],
+   [
+    409,
+    659
+   ]
+  ]
+ },
+ "choso/attack_air_a": {
+  "background": [
+   [
+    393,
+    508
+   ],
+   [
+    353,
+    525
+   ]
+  ],
+  "figure": [
+   [
+    809,
+    592
+   ]
+  ]
+ },
+ "choso/special_down": {
+  "background": [
+   [
+    588,
+    350
+   ]
+  ]
+ },
+ "choso/attack_air_b": {
+  "background": [
+   [
+    452,
+    640
+   ]
+  ]
+ },
+ "choso/crouch_attack_b": {
+  "background": [
+   [
+    616,
+    830
+   ]
+  ]
+ },
+ "choso/attack_air_diag_down_b": {
+  "background": [
+   [
+    445,
+    491
+   ]
+  ]
+ },
+ "choso/jump_rise": {
+  "background": [
+   [
+    577,
+    640
+   ]
+  ]
+ },
+ "choso/dodge_air": {
+  "background": [
+   [
+    398,
+    476
+   ]
+  ]
+ },
+ "choso/throw_down": {
+  "background": [
+   [
+    1020,
+    807
+   ],
+   [
+    622,
+    631
+   ]
+  ]
+ },
+ "choso/attack_down": {
+  "background": [
+   [
+    786,
+    589
+   ]
+  ]
+ },
+ "choso/crouch_attack_a": {
+  "figure": [
+   [
+    952,
+    823
+   ]
+  ],
+  "background": [
+   [
+    775,
+    637
+   ]
+  ]
+ },
+ "choso/charge": {
+  "background": [
+   [
+    672,
+    561
+   ]
+  ]
+ },
+ "choso/crouch_a": {
+  "background": [
+   [
+    673,
+    701
+   ],
+   [
+    417,
+    696
+   ]
+  ]
+ },
+ "choso/land": {
+  "background": [
+   [
+    641,
+    622
+   ]
+  ]
+ },
+ "choso/special_side": {
+  "background": [
+   [
+    644,
+    444
+   ]
+  ]
+ },
+ "choso/attack_light_b": {
+  "background": [
+   [
+    150,
+    709
+   ]
+  ]
+ },
+ "choso/throw_back": {
+  "background": [
+   [
+    372,
+    766
+   ]
+  ]
+ },
+ "choso/throw_up": {
+  "figure": [
+   [
+    680,
+    359
+   ]
+  ]
+ },
+ "choso/prone": {
+  "background": [
+   [
+    884,
+    854
+   ]
+  ]
+ },
+ "dagon/special_neutral": {
+  "background": [
+   [
+    877,
+    651
+   ],
+   [
+    982,
+    243
+   ],
+   [
+    954,
+    813
+   ],
+   [
+    982,
+    836
+   ]
+  ]
+ },
+ "dagon/ledge_hang": {
+  "background": [
+   [
+    585,
+    324
+   ]
+  ]
+ },
+ "dagon/dash": {
+  "background": [
+   [
+    692,
+    299
+   ]
+  ]
+ },
+ "dagon/special_side": {
+  "background": [
+   [
+    965,
+    450
+   ],
+   [
+    659,
+    464
+   ]
+  ]
+ },
+ "dagon/attack_dash": {
+  "background": [
+   [
+    285,
+    404
+   ],
+   [
+    417,
+    501
+   ],
+   [
+    187,
+    478
+   ]
+  ]
+ },
+ "dagon/grabbed": {
+  "background": [
+   [
+    339,
+    606
+   ],
+   [
+    655,
+    528
+   ]
+  ]
+ },
+ "dagon/victory": {
+  "background": [
+   [
+    456,
+    549
+   ],
+   [
+    734,
+    552
+   ]
+  ]
+ },
+ "dagon/attack_down": {
+  "background": [
+   [
+    850,
+    774
+   ],
+   [
+    862,
+    531
+   ],
+   [
+    980,
+    988
+   ]
+  ]
+ },
+ "dagon/charge": {
+  "background": [
+   [
+    923,
+    488
+   ],
+   [
+    1068,
+    715
+   ],
+   [
+    1008,
+    603
+   ],
+   [
+    1143,
+    649
+   ],
+   [
+    1124,
+    467
+   ],
+   [
+    1218,
+    669
+   ],
+   [
+    1241,
+    580
+   ]
+  ]
+ },
+ "dagon/attack_light_b": {
+  "background": [
+   [
+    397,
+    398
+   ]
+  ]
+ },
+ "dagon/domain_expansion": {
+  "background": [
+   [
+    739,
+    538
+   ],
+   [
+    366,
+    538
+   ],
+   [
+    356,
+    699
+   ],
+   [
+    750,
+    699
+   ]
+  ]
+ },
+ "dagon/special_down": {
+  "background": [
+   [
+    495,
+    179
+   ],
+   [
+    912,
+    482
+   ],
+   [
+    1051,
+    534
+   ],
+   [
+    882,
+    456
+   ],
+   [
+    904,
+    371
+   ],
+   [
+    1001,
+    299
+   ],
+   [
+    912,
+    394
+   ],
+   [
+    1018,
+    328
+   ],
+   [
+    1014,
+    558
+   ]
+  ]
+ },
+ "dagon/dodge_air": {
+  "background": [
+   [
+    720,
+    293
+   ],
+   [
+    795,
+    539
+   ]
+  ]
+ },
+ "dagon/crouch_a": {
+  "background": [
+   [
+    799,
+    675
+   ],
+   [
+    816,
+    1012
+   ]
+  ]
+ },
+ "dagon/fall": {
+  "background": [
+   [
+    409,
+    534
+   ],
+   [
+    373,
+    690
+   ],
+   [
+    637,
+    539
+   ]
+  ]
+ },
+ "dagon/idle_a": {
+  "background": [
+   [
+    388,
+    580
+   ],
+   [
+    653,
+    588
+   ],
+   [
+    857,
+    914
+   ]
+  ]
+ },
+ "dagon/ult_a": {
+  "background": [
+   [
+    458,
+    416
+   ],
+   [
+    737,
+    449
+   ]
+  ],
+  "figure": [
+   [
+    1037,
+    292
+   ],
+   [
+    1139,
+    239
+   ]
+  ]
+ },
+ "dagon/idle_b": {
+  "background": [
+   [
+    391,
+    586
+   ],
+   [
+    679,
+    558
+   ],
+   [
+    854,
+    907
+   ]
+  ]
+ },
+ "dagon/run_pass_b": {
+  "background": [
+   [
+    398,
+    576
+   ]
+  ]
+ },
+ "dagon/crouch_b": {
+  "background": [
+   [
+    925,
+    921
+   ],
+   [
+    1023,
+    653
+   ],
+   [
+    881,
+    620
+   ]
+  ]
+ },
+ "dagon/ult_b": {
+  "background": [
+   [
+    356,
+    453
+   ],
+   [
+    1046,
+    269
+   ],
+   [
+    598,
+    482
+   ]
+  ],
+  "figure": [
+   [
+    1189,
+    302
+   ],
+   [
+    1086,
+    332
+   ]
+  ]
+ },
+ "dagon/attack_light_a": {
+  "background": [
+   [
+    835,
+    416
+   ]
+  ]
+ },
+ "dagon/walk_a": {
+  "background": [
+   [
+    408,
+    616
+   ]
+  ]
+ },
+ "dagon/throw_back": {
+  "background": [
+   [
+    402,
+    511
+   ]
+  ]
+ },
+ "dagon/land": {
+  "background": [
+   [
+    435,
+    582
+   ],
+   [
+    671,
+    592
+   ]
+  ]
+ },
+ "dagon/jump_rise": {
+  "background": [
+   [
+    445,
+    460
+   ],
+   [
+    580,
+    867
+   ]
+  ]
+ },
+ "dagon/run_pass_a": {
+  "background": [
+   [
+    483,
+    490
+   ]
+  ]
+ },
+ "dagon/crouch_attack_a": {
+  "background": [
+   [
+    583,
+    547
+   ],
+   [
+    889,
+    541
+   ]
+  ]
+ },
+ "dagon/attack_air_b": {
+  "background": [
+   [
+    723,
+    408
+   ]
+  ]
+ },
+ "dagon/grab_reach": {
+  "background": [
+   [
+    323,
+    500
+   ]
+  ]
+ },
+ "dagon/dodge_roll": {
+  "background": [
+   [
+    1095,
+    644
+   ]
+  ]
+ },
+ "dagon/dizzy": {
+  "background": [
+   [
+    412,
+    625
+   ]
+  ]
+ },
+ "dagon/guard": {
+  "background": [
+   [
+    819,
+    490
+   ]
+  ]
+ },
+ "dagon/hurt": {
+  "background": [
+   [
+    621,
+    497
+   ]
+  ]
+ },
+ "dagon/attack_diag_up_b": {
+  "background": [
+   [
+    515,
+    584
+   ]
+  ]
+ },
+ "gakuganji/grab_hold": {
+  "background": [
+   [
+    80,
+    864
+   ]
+  ]
+ },
+ "gakuganji/attack_air_diag_down_b": {
+  "mixed": [
+   [
+    369,
+    272
+   ],
+   [
+    797,
+    712
+   ]
+  ]
+ },
+ "gakuganji/attack_air_b": {
+  "background": [
+   [
+    625,
+    510
+   ]
+  ],
+  "mixed": [
+   [
+    322,
+    376
+   ],
+   [
+    289,
+    518
+   ]
+  ]
+ },
+ "gakuganji/hurt": {
+  "figure": [
+   [
+    370,
+    714
+   ]
+  ]
+ },
+ "gakuganji/throw_down": {
+  "background": [
+   [
+    276,
+    550
+   ]
+  ]
+ },
+ "gakuganji/grabbed": {
+  "background": [
+   [
+    146,
+    627
+   ]
+  ],
+  "figure": [
+   [
+    365,
+    1033
+   ]
+  ]
+ },
+ "gakuganji/attack_diag_up_b": {
+  "mixed": [
+   [
+    237,
+    703
+   ]
+  ]
+ },
+ "gakuganji/throw_up": {
+  "mixed": [
+   [
+    248,
+    737
+   ]
+  ]
+ },
+ "geto/special_side": {
+  "background": [
+   [
+    679,
+    903
+   ],
+   [
+    660,
+    1205
+   ],
+   [
+    377,
+    948
+   ],
+   [
+    414,
+    957
+   ]
+  ]
+ },
+ "geto/land": {
+  "background": [
+   [
+    610,
+    736
+   ],
+   [
+    340,
+    471
+   ],
+   [
+    292,
+    558
+   ]
+  ]
+ },
+ "geto/ult_a": {
+  "background": [
+   [
+    728,
+    270
+   ],
+   [
+    795,
+    897
+   ],
+   [
+    849,
+    268
+   ],
+   [
+    887,
+    811
+   ],
+   [
+    143,
+    467
+   ],
+   [
+    763,
+    287
+   ],
+   [
+    835,
+    843
+   ],
+   [
+    891,
+    774
+   ],
+   [
+    712,
+    222
+   ],
+   [
+    871,
+    742
+   ]
+  ]
+ },
+ "geto/crouch_attack_a": {
+  "background": [
+   [
+    344,
+    733
+   ],
+   [
+    617,
+    801
+   ]
+  ]
+ },
+ "geto/attack_heavy_a": {
+  "background": [
+   [
+    228,
+    512
+   ],
+   [
+    276,
+    598
+   ],
+   [
+    284,
+    560
+   ]
+  ]
+ },
+ "geto/attack_air_a": {
+  "background": [
+   [
+    334,
+    604
+   ],
+   [
+    190,
+    329
+   ],
+   [
+    621,
+    516
+   ],
+   [
+    354,
+    552
+   ]
+  ]
+ },
+ "geto/crouch_attack_b": {
+  "background": [
+   [
+    598,
+    735
+   ]
+  ]
+ },
+ "geto/attack_light_b": {
+  "background": [
+   [
+    206,
+    567
+   ]
+  ]
+ },
+ "geto/run_reach_a": {
+  "background": [
+   [
+    437,
+    429
+   ],
+   [
+    481,
+    352
+   ]
+  ]
+ },
+ "geto/run_pass_b": {
+  "background": [
+   [
+    676,
+    605
+   ]
+  ]
+ },
+ "geto/dodge_roll": {
+  "background": [
+   [
+    696,
+    334
+   ],
+   [
+    784,
+    205
+   ],
+   [
+    606,
+    305
+   ]
+  ]
+ },
+ "geto/throw_back": {
+  "background": [
+   [
+    290,
+    359
+   ],
+   [
+    716,
+    561
+   ]
+  ]
+ },
+ "geto/run_pass_a": {
+  "background": [
+   [
+    376,
+    362
+   ],
+   [
+    511,
+    269
+   ]
+  ]
+ },
+ "geto/special_neutral": {
+  "background": [
+   [
+    129,
+    423
+   ]
+  ]
+ },
+ "geto/throw_fwd": {
+  "background": [
+   [
+    250,
+    476
+   ]
+  ]
+ },
+ "geto/throw_down": {
+  "background": [
+   [
+    1095,
+    718
+   ],
+   [
+    699,
+    564
+   ]
+  ]
+ },
+ "geto/grabbed": {
+  "background": [
+   [
+    137,
+    490
+   ]
+  ]
+ },
+ "gojo/attack_down": {
+  "background": [
+   [
+    702,
+    885
+   ],
+   [
+    855,
+    1245
+   ],
+   [
+    820,
+    1233
+   ]
+  ]
+ },
+ "gojo/crouch_a": {
+  "background": [
+   [
+    752,
+    639
+   ]
+  ]
+ },
+ "gojo/throw_down": {
+  "background": [
+   [
+    706,
+    673
+   ]
+  ]
+ },
+ "gojo/crouch_b": {
+  "background": [
+   [
+    626,
+    888
+   ]
+  ]
+ },
+ "gojo/land": {
+  "background": [
+   [
+    533,
+    782
+   ],
+   [
+    230,
+    1266
+   ]
+  ]
+ },
+ "gojo/walk_a": {
+  "background": [
+   [
+    422,
+    659
+   ]
+  ]
+ },
+ "gojo/dodge_roll": {
+  "background": [
+   [
+    295,
+    573
+   ]
+  ]
+ },
+ "gojo/special_neutral": {
+  "background": [
+   [
+    227,
+    698
+   ],
+   [
+    233,
+    613
+   ]
+  ]
+ },
+ "gojo/special_down": {
+  "background": [
+   [
+    831,
+    455
+   ]
+  ]
+ },
+ "gojo/crouch_attack_a": {
+  "background": [
+   [
+    316,
+    644
+   ]
+  ]
+ },
+ "hakari/ult_a": {
+  "background": [
+   [
+    838,
+    845
+   ],
+   [
+    370,
+    657
+   ],
+   [
+    413,
+    815
+   ],
+   [
+    771,
+    966
+   ],
+   [
+    922,
+    789
+   ],
+   [
+    787,
+    81
+   ],
+   [
+    690,
+    832
+   ],
+   [
+    181,
+    775
+   ],
+   [
+    746,
+    899
+   ],
+   [
+    801,
+    629
+   ],
+   [
+    820,
+    814
+   ],
+   [
+    76,
+    253
+   ],
+   [
+    885,
+    722
+   ],
+   [
+    731,
+    844
+   ],
+   [
+    763,
+    161
+   ],
+   [
+    96,
+    216
+   ],
+   [
+    217,
+    599
+   ],
+   [
+    238,
+    654
+   ],
+   [
+    926,
+    235
+   ],
+   [
+    862,
+    197
+   ]
+  ]
+ },
+ "hakari/ult_b": {
+  "background": [
+   [
+    209,
+    730
+   ],
+   [
+    568,
+    899
+   ],
+   [
+    133,
+    1159
+   ],
+   [
+    640,
+    1149
+   ],
+   [
+    160,
+    414
+   ],
+   [
+    687,
+    1258
+   ],
+   [
+    779,
+    774
+   ],
+   [
+    121,
+    1210
+   ],
+   [
+    851,
+    491
+   ],
+   [
+    192,
+    1033
+   ],
+   [
+    384,
+    1215
+   ],
+   [
+    917,
+    1101
+   ],
+   [
+    158,
+    1073
+   ],
+   [
+    889,
+    1166
+   ],
+   [
+    335,
+    1275
+   ],
+   [
+    973,
+    1339
+   ]
+  ]
+ },
+ "hakari/crouch_attack_a": {
+  "background": [
+   [
+    589,
+    778
+   ],
+   [
+    292,
+    607
+   ]
+  ]
+ },
+ "hakari/crouch_a": {
+  "background": [
+   [
+    694,
+    874
+   ]
+  ]
+ },
+ "hakari/crouch_attack_b": {
+  "background": [
+   [
+    168,
+    709
+   ],
+   [
+    401,
+    854
+   ]
+  ]
+ },
+ "hakari/crouch_b": {
+  "background": [
+   [
+    260,
+    1044
+   ],
+   [
+    651,
+    897
+   ],
+   [
+    224,
+    1129
+   ]
+  ]
+ },
+ "hakari/grab_reach": {
+  "background": [
+   [
+    708,
+    442
+   ]
+  ]
+ },
+ "hakari/throw_back": {
+  "background": [
+   [
+    353,
+    472
+   ]
+  ]
+ },
+ "hakari/throw_down": {
+  "background": [
+   [
+    1059,
+    608
+   ],
+   [
+    899,
+    415
+   ]
+  ]
+ },
+ "hakari/prone": {
+  "background": [
+   [
+    858,
+    803
+   ],
+   [
+    337,
+    856
+   ]
+  ]
+ },
+ "hakari/attack_air_a": {
+  "background": [
+   [
+    629,
+    522
+   ]
+  ]
+ },
+ "hakari/teeter": {
+  "background": [
+   [
+    290,
+    423
+   ]
+  ]
+ },
+ "hanami/ult_a": {
+  "background": [
+   [
+    807,
+    864
+   ],
+   [
+    473,
+    899
+   ]
+  ]
+ },
+ "hanami/ledge_hang": {
+  "background": [
+   [
+    529,
+    226
+   ]
+  ]
+ },
+ "hanami/idle_b": {
+  "background": [
+   [
+    384,
+    542
+   ]
+  ]
+ },
+ "hanami/ult_b": {
+  "background": [
+   [
+    933,
+    365
+   ],
+   [
+    879,
+    754
+   ],
+   [
+    801,
+    537
+   ],
+   [
+    857,
+    602
+   ],
+   [
+    473,
+    645
+   ],
+   [
+    469,
+    507
+   ]
+  ]
+ },
+ "hanami/victory": {
+  "background": [
+   [
+    769,
+    596
+   ]
+  ]
+ },
+ "hanami/crouch_b": {
+  "background": [
+   [
+    642,
+    676
+   ],
+   [
+    282,
+    689
+   ]
+  ]
+ },
+ "hanami/land": {
+  "background": [
+   [
+    593,
+    531
+   ]
+  ]
+ },
+ "hanami/crouch_a": {
+  "background": [
+   [
+    687,
+    499
+   ]
+  ]
+ },
+ "hanami/attack_light_b": {
+  "mixed": [
+   [
+    588,
+    467
+   ],
+   [
+    213,
+    512
+   ]
+  ]
+ },
+ "hanami/attack_down": {
+  "background": [
+   [
+    696,
+    976
+   ],
+   [
+    510,
+    1050
+   ]
+  ]
+ },
+ "hanami/crouch_attack_a": {
+  "background": [
+   [
+    534,
+    548
+   ]
+  ]
+ },
+ "hanami/grab_hold": {
+  "background": [
+   [
+    304,
+    517
+   ]
+  ]
+ },
+ "hanami/crouch_attack_b": {
+  "background": [
+   [
+    333,
+    543
+   ]
+  ]
+ },
+ "hanami/walk_a": {
+  "background": [
+   [
+    401,
+    595
+   ]
+  ]
+ },
+ "hanami/charge": {
+  "background": [
+   [
+    670,
+    590
+   ],
+   [
+    706,
+    682
+   ]
+  ]
+ },
+ "hanami/attack_air_diag_down_b": {
+  "mixed": [
+   [
+    380,
+    557
+   ],
+   [
+    620,
+    557
+   ]
+  ]
  }
 }

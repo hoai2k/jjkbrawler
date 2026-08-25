@@ -280,6 +280,10 @@ KEY_IS_A_DRAWN_TONE = {"gakuganji/throw_up"}
 #
 #   "background"  the stage should show through here; cut it
 #   "figure"      this is drawn on the fighter; keep it
+#   "mixed"       part gap, part shadow. NOT an instruction — one point cannot
+#                 answer for two halves of a patch, so the rules are left to
+#                 decide and the plate is counted as wanting a hand mask or a
+#                 redraw. Recorded so the same patch is not asked about twice.
 #
 # Anything not named still goes through the rules above.
 #
@@ -316,6 +320,8 @@ def settled(guessed, regions, lab, ref):
     out = guessed.copy()
     h, w = lab.shape
     for what, points in verdicts.items():
+        if what not in ("background", "figure"):
+            continue          # "mixed" answers the reviewer, not the keyer
         for x, y in points:
             if not (0 <= int(y) < h and 0 <= int(x) < w):
                 continue

@@ -82,9 +82,20 @@ const SETS = {
       + "plates they are the same pixels, and seven different measurements failed to "
       + "tell them apart — so each one is shown at full size on the art as delivered, "
       + "and the question is whether it is a hole in the fighter or a mark on them. "
-      + "Ordered by fighter, biggest question first; add `&char=kashimo` to the address "
-      + "to work one of them at a time.",
+      + "Flagged-for-improvement art first, then art waiting on approval, then everything "
+      + "the game draws; add `&char=kashimo` to the address to work one fighter at a time.",
     load: () => import(withKey("./verify_sealed_regions.js")).then((m) => m.provider()),
+  },
+  // The same question on art nothing draws. A separate queue rather than a tail
+  // on the one above, so the main queue is entirely patches with consequences —
+  // a cell nobody sees should never sit between the reviewer and one on screen.
+  "sealed-regions-unused": {
+    archived: true,
+    label: "Shadow or gap — unused art",
+    blurb: "The same question, on sheet cells and banked alternates no animation reaches. "
+      + "Worth answering eventually, because a cell can be pointed at later, and worth "
+      + "answering last.",
+    load: () => import(withKey("./verify_sealed_regions.js")).then((m) => m.unusedProvider()),
   },
   "strike-points": {
     label: "Strike points",
