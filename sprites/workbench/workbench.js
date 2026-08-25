@@ -67,7 +67,8 @@ import {
   VIEWS, primaryState, frameLabel, actorOf, sharedOwner, sharedUsage, movesDrawing,
   effectsOf, statesUsing, allFramesOf, isPending, approvalNote, awaitingApproval, isUsed,
   framesOf, updateNote,
-  TODO_MARK, NO_TODO_PAD, charTodo, poseTodo, unresolvedPoses, TODO_REASONS, TODO_PLACE,
+  TODO_MARK, NO_TODO_PAD, charTodo, poseTodo, unresolvedPoses, unresolvedOpen,
+  TODO_REASONS, TODO_PLACE,
   updatesCleared, isUpdateReviewed, recentUpdates,
   flaggedPoses, allFlagBearingPoses, updateSummary, autoTuneSummary, poseVariants,
   variantEntry, takeBanked, poseView, variantPicks, variantFlagEdits, currentOption,
@@ -2534,9 +2535,11 @@ function refreshRecentOption() {
   }
   const unresolved = $("charSel")?.querySelector(`option[value="${UNRESOLVED_KEY}"]`);
   if (!unresolved) return;
-  // The one count that reaches zero exactly when every dot has gone, which is
-  // what makes it readable from the closed select as "how much is left".
-  const left = unresolvedPoses().length;
+  // What is LEFT, not what is listed: an answered pose stays on the list to be
+  // adjusted further, and counting it would leave the entry stuck at a number
+  // that never falls however much work got done. This is the one that reaches
+  // zero exactly when the last dot goes.
+  const left = unresolvedOpen();
   unresolved.textContent = left ? `${UNRESOLVED_LABEL} (${left})` : UNRESOLVED_LABEL;
 }
 
@@ -2612,7 +2615,8 @@ function buildPoseList() {
 /** One cell of the pose grid. Takes the character rather than reading
  *  `state.char`, because the updated list mixes several in one grid. */
 function buildPoseEntry(charKey, key, { owner = false, sub: subOverride = null,
-                                        name: nameOverride = null } = {}) {
+                                        name: nameOverride = null,
+                                        settled = false } = {}) {
   remember(charKey, key);
   const options = poseVariants(charKey, key);
   // A pose with a choice of drawings is a cell plus a chevron, so the two
@@ -2667,7 +2671,11 @@ function buildPoseEntry(charKey, key, { owner = false, sub: subOverride = null,
     + (requested ? "warned " : "")
     + (awaiting ? "awaiting " : "")
     + (unplaced ? "unplaced " : "")
-    + (isUpdateReviewed(charKey, key) ? "reviewed" : "");
+    // `reviewed` is the dim-and-tick the updated list marks a done pose with,
+    // and a settled entry on the unresolved list is the same statement about the
+    // same kind of thing — answered, still here, still editable. One appearance
+    // for one meaning rather than a second dimmed style to learn.
+    + (isUpdateReviewed(charKey, key) || settled ? "reviewed" : "");
   const kind = doomed ? "delete" : replacementKind(rawMeta(charKey, key));
   if (kind) b.dataset.kind = kind;
   const want = improvementKind(rawMeta(charKey, key));
@@ -2875,9 +2883,10 @@ function buildFlaggedPoseList(list) {
  *  The other two lists are each one KIND of outstanding work; this is the union,
  *  in the order the dot ranks it, and it exists so the dots can be worked down
  *  to nothing from one place instead of by opening every character and reading
- *  their tooltips. A pose leaves it the moment it is settled — approved,
- *  unflagged, placed or marked reviewed — which is the same moment its
- *  character's dot goes if it was the last one.
+ *  their tooltips. Answering a pose clears its character's DOT on the spot, but
+ *  the pose stays here, greyed and ticked, to be adjusted further — a list that
+ *  emptied under the cursor would take the thing you had just decided about with
+ *  it. So the count on the dropdown falls while the grid holds still.
  *
  *  Each cell says which of the four reasons put it here, because they are not
  *  the same job: "approve this" and "place this" are answered by different
@@ -2885,12 +2894,18 @@ function buildFlaggedPoseList(list) {
  *  at cell by cell. */
 function buildUnresolvedPoseList(list) {
   const entries = unresolvedPoses();
+  const open = entries.filter((e) => !e.settled);
   const byWhy = new Map();
-  for (const e of entries) byWhy.set(e.why, (byWhy.get(e.why) || 0) + 1);
+  for (const e of open) byWhy.set(e.why, (byWhy.get(e.why) || 0) + 1);
   const word = new Map(TODO_REASONS.map(([id, label]) => [id, label]));
+  const done = entries.length - open.length;
+  // The breakdown counts what is still open, and what has been answered is one
+  // number at the end — the same shape the updated list's line has, and the
+  // same reading: how much is left, and how much of this pass is behind you.
   $("poseCount").textContent = entries.length
     ? `${entries.length} unresolved · `
       + [...byWhy].map(([why, n]) => `${n} ${word.get(why)}`).join(" · ")
+      + (done ? `${byWhy.size ? " · " : ""}${done} resolved` : "")
     : "none";
   if (!entries.length) {
     const empty = document.createElement("p");
@@ -2898,7 +2913,7 @@ function buildUnresolvedPoseList(list) {
     empty.textContent = "Nothing is unresolved — every dot in the character list "
       + "is gone. Poses land here when a replacement arrives to be approved, when "
       + "one is flagged for a redraw or a fix, or when the game draws one nobody "
-      + "has placed, and leave as each is answered.";
+      + "has placed, and stay for the rest of the session once answered.";
     list.appendChild(empty);
     return;
   }
@@ -2906,9 +2921,12 @@ function buildUnresolvedPoseList(list) {
     // The reason under the pose name rather than the character's, which the
     // cell's own colours already carry: this is the one list where the WHY
     // differs from cell to cell, and it is what decides which control answers it.
+    // A settled entry keeps saying what it was about, in the past tense, so the
+    // dimmed cell reads as work DONE rather than as work of unknown kind.
     list.appendChild(buildPoseEntry(entry.char, entry.frame, {
       owner: true,
-      sub: `${actorOf(entry.char).name} · ${word.get(entry.why)}`,
+      settled: entry.settled,
+      sub: `${actorOf(entry.char).name} · ${entry.settled ? "was " : ""}${word.get(entry.why)}`,
     }));
   }
 }
@@ -4304,7 +4322,7 @@ async function boot() {
     // The dot and the list it is made of. Both, because the rule worth
     // asserting is that they agree: a character with a dot has entries here,
     // and a character with entries here has a dot.
-    unresolvedPoses, poseTodo, charTodo,
+    unresolvedPoses, unresolvedOpen, poseTodo, charTodo,
     fighters: () => [...WB_FIGHTERS, ...ACTOR_KEYS],
     // The updated list and what an export would carry, for the one rule that
     // has no DOM either: a shared drawing marked reviewed has to leave by the

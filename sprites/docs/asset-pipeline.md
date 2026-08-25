@@ -890,12 +890,23 @@ the list and every dot is gone, by construction rather than by maintenance —
 `tools/smoke_workbench.mjs` asserts the two directions of that (a dot with
 nothing listed, an entry with no dot) since neither is visible on screen.
 
-It reads live: flag a pose and the dot comes back with the flag, approve the last
-replacement on a character and the dot goes as the button is clicked. Session
-work counts as settled here — a pose placed but not yet exported, or marked
-reviewed — and *only* here. The pose grid's own filters still read the committed
-answer (`hasSavedEdits`), so the working views hold still while they are worked
-through; the dot is the thing that has to move.
+**The dot moves; the list remembers.** The dot reads live — flag a pose and it
+comes back with the flag, approve the last replacement on a character and it goes
+as the button is clicked — and session work counts as settled for it: a pose
+placed but not yet exported, or marked reviewed.
+
+The list does not shrink to match. A pose joins it when something is outstanding
+and *stays* once answered, greyed and ticked, exactly as a reviewed entry stays
+on the updated list: approving a replacement or placing a pose is the moment you
+most want to keep looking at it, and an entry that vanished on the click took the
+thing you were about to adjust with it. So membership is what the codebase said
+at load, plus anything that has become outstanding since — never less, until a
+reload. The count on the dropdown entry is the *open* half, which is why it falls
+as the pass is worked and hits zero with the last dot while the grid holds still.
+
+The pose grid's own view filters are a third thing again and still read the
+committed answer (`hasSavedEdits`), so the working views do not reshuffle under
+an edit.
 
 The shared set is deliberately not on it. It carries no dot — an effect plate has
 no placement work of the kind the dot means — and listing drawings that nothing

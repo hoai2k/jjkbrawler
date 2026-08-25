@@ -628,40 +628,56 @@ if (unresolved.poses) {
     "each entry says whose it is and why it is here");
 }
 
-// THE RULE THE LIST EXISTS FOR, both ways round. A character with a dot must
-// have something on the list, or the dot points at nothing findable; and a
-// character with something on the list must have a dot, or clearing the list
-// would leave dots behind. Read off the same hooks the dropdown uses.
+// THE RULE THE LIST EXISTS FOR, both ways round — over the OPEN entries, which
+// are the ones the dot is about. A character with a dot must have an open entry,
+// or the dot points at nothing findable; a character with an open entry must
+// have a dot, or working the list to the end would leave dots behind. Settled
+// entries are exempt by construction: they stay listed precisely because they
+// are no longer counted.
 check(await page.evaluate(() => {
   const wb = window.__spriteWorkbench;
   if (!wb) return "no test hook";
-  const listed = new Set(wb.unresolvedPoses().map((e) => e.char));
+  const open = new Set(wb.unresolvedPoses().filter((e) => !e.settled).map((e) => e.char));
   const dotted = wb.fighters().filter((c) => wb.charTodo(c));
-  const missing = dotted.filter((c) => !listed.has(c));
-  const extra = [...listed].filter((c) => !wb.charTodo(c));
+  const missing = dotted.filter((c) => !open.has(c));
+  const extra = [...open].filter((c) => !wb.charTodo(c));
   return (!missing.length && !extra.length)
-    || `dot with nothing listed: ${missing.join(",") || "none"}; `
-       + `listed with no dot: ${extra.join(",") || "none"}`;
-}) === true, "every dot has entries on the list, and every entry has a dot");
+    || `dot with nothing open: ${missing.join(",") || "none"}; `
+       + `open with no dot: ${extra.join(",") || "none"}`;
+}) === true, "every dot has an open entry, and every open entry has a dot");
 
-// And that the list is exactly its own predicate — an entry that `poseTodo`
-// calls settled is one nothing on screen could ever clear.
+// An entry says why it is here, and `settled` is the live answer to that same
+// question — so the two must not contradict each other.
 check(await page.evaluate(() => {
   const wb = window.__spriteWorkbench;
   if (!wb) return "no test hook";
-  const wrong = wb.unresolvedPoses().filter((e) => wb.poseTodo(e.char, e.frame) !== e.why);
-  return wrong.length === 0 || `${wrong.length} listed for a reason that no longer holds`;
-}) === true, "everything listed is still outstanding, for the reason it says");
+  const wrong = wb.unresolvedPoses()
+    .filter((e) => (wb.poseTodo(e.char, e.frame) === null) !== e.settled);
+  return wrong.length === 0 || `${wrong.length} entries disagree with poseTodo`;
+}) === true, "each entry's settled flag is the live answer for that pose");
 
-// THE DOT KEEPS UP. Flagging a pose on a character puts a dot there and an
-// entry on the list; clearing it takes both away again — without an export and
-// without a reload, which is what the dot used to need.
+// The dropdown's count is what is LEFT, not what is listed — the number that
+// falls as the pass is worked and reaches zero with the last dot.
+check(await page.evaluate(() => {
+  const wb = window.__spriteWorkbench;
+  const open = wb.unresolvedPoses().filter((e) => !e.settled).length;
+  const shown = [...document.querySelectorAll("#charSel option")]
+    .find((o) => o.value === "__unresolved").textContent.match(/\((\d+)\)/)?.[1];
+  return String(open) === (shown ?? "0") || `option says ${shown}, ${open} open`;
+}) === true, "the dropdown counts the open entries, not the listed ones");
+
+// THE DOT KEEPS UP, AND THE LIST HOLDS ON. Flagging a pose puts the dot back and
+// the pose on the list; answering it takes the dot away again — without an
+// export and without a reload, which is what the dot used to need — while the
+// entry STAYS, greyed, because a list that emptied under the cursor would take
+// the pose you were about to adjust further with it.
 await page.selectOption("#charSel", "maki");
 await page.waitForTimeout(500);
 const dotState = () => page.evaluate(() => {
   const o = [...document.querySelectorAll("#charSel option")].find((x) => x.value === "maki");
-  return { dot: /^\u25cf/.test(o.textContent), listed: window.__spriteWorkbench
-    .unresolvedPoses().filter((e) => e.char === "maki").length };
+  const mine = window.__spriteWorkbench.unresolvedPoses().filter((e) => e.char === "maki");
+  return { dot: /^\u25cf/.test(o.textContent), listed: mine.length,
+    open: mine.filter((e) => !e.settled).length };
 });
 const dotBefore = await dotState();
 // A pose of hers that is settled today, so the flag is the only thing that can
@@ -680,13 +696,21 @@ if (cleanPose) {
   await page.check("#replaceBox");
   await page.waitForTimeout(400);
   const flaggedNow = await dotState();
-  check(flaggedNow.dot && flaggedNow.listed === dotBefore.listed + 1,
+  check(flaggedNow.dot && flaggedNow.open === dotBefore.open + 1
+    && flaggedNow.listed === dotBefore.listed + 1,
     "flagging a pose puts the dot back and the pose on the list", cleanPose);
   await page.uncheck("#replaceBox");
   await page.waitForTimeout(400);
   const dotAfter = await dotState();
-  check(dotAfter.dot === dotBefore.dot && dotAfter.listed === dotBefore.listed,
-    "clearing the flag takes both away again, with no reload");
+  check(dotAfter.dot === dotBefore.dot && dotAfter.open === dotBefore.open,
+    "answering it takes the dot away again, with no reload");
+  check(dotAfter.listed === dotBefore.listed + 1,
+    "...and the pose stays on the list to be adjusted further", cleanPose);
+  check(await page.evaluate((k) => {
+    const e = window.__spriteWorkbench.unresolvedPoses()
+      .find((x) => x.char === "maki" && x.frame === k);
+    return !!e?.settled;
+  }, cleanPose), "...marked settled, which is what draws it greyed and ticked");
 }
 
 // ---- WHICH DRAWINGS CAN BE THROWN AWAY

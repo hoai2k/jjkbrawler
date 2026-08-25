@@ -569,31 +569,66 @@ export function charTodo(charKey) {
   return parts.length ? parts.join(" \u00b7 ") : null;
 }
 
-/** Every pose that puts a dot on somebody, across the roster.
+// The list holds what it was given, and lets go only on a reload.
+//
+// A pose joins when something is outstanding on it and STAYS once it is
+// answered — greyed out, still selectable, still editable. It is a work list to
+// pass down, not a queue that empties under the cursor: approving a replacement
+// or placing a pose is exactly when you want to keep looking at it, and an entry
+// that vanished on the click took the thing you were about to adjust with it.
+// The same bargain the recently-updated list strikes, for the same reason.
+//
+// So membership is committed state — what the codebase says when the page loads
+// — plus anything that has BECOME outstanding since. Never less. The dot is the
+// live half of the pair (charTodo) and does go the moment the work does; this is
+// the half that remembers. Between them: the dropdown says what is left, the
+// list says what was there.
+const unresolvedSeen = new Map();     // "char/frame" -> why it is on the list
+
+/** Every pose that has put a dot on somebody, across the roster.
  *
- *  Exactly the poses `charTodo` counts, and over exactly the sets the dropdown
- *  stamps a dot on — fighters and actors. The shared set is deliberately out:
- *  it carries no dot (markEditedChars skips it, an effect plate having no
- *  placement work of the kind the dot means), and putting its drawings on a
- *  list whose promise is "clear this and the dots go" would leave entries
- *  nothing could ever clear. Rejected effect plates are on the flagged list,
- *  which does cover the shared set.
+ *  Over exactly the sets the dropdown stamps a dot on — fighters and actors.
+ *  The shared set is deliberately out: it carries no dot (markEditedChars skips
+ *  it, an effect plate having no placement work of the kind the dot means), and
+ *  listing drawings that nothing here could ever clear would leave the list with
+ *  a permanent floor. Rejected effect plates are on the flagged list, which does
+ *  cover the shared set.
+ *
+ *  `settled` is the live answer for an entry that is still on the list: it is
+ *  what draws it greyed and ticked, and what the counts read.
  *
  *  Grouped by reason and by character within it, so it holds still while it is
- *  worked through. */
+ *  worked through — including as entries settle, which changes nothing about
+ *  where they sit. */
 export function unresolvedPoses() {
-  const out = [];
   for (const charKey of [...WB_FIGHTERS, ...ACTOR_KEYS]) {
     for (const frameKey of allFramesOf(charKey)) {
+      // Refreshed while it is outstanding, kept when it settles: a pose that was
+      // unplaced and has since been flagged should say so, and one that has been
+      // answered should go on saying what it was answered about.
       const why = poseTodo(charKey, frameKey);
-      if (why) out.push({ char: charKey, frame: frameKey, why });
+      if (why) unresolvedSeen.set(`${charKey}/${frameKey}`, why);
     }
   }
   const order = TODO_REASONS.map(([id]) => id);
-  return out.sort((a, b) =>
-    order.indexOf(a.why) - order.indexOf(b.why)
-    || a.char.localeCompare(b.char)
-    || byPose(a.frame, b.frame));
+  return [...unresolvedSeen]
+    .map(([id, why]) => {
+      const cut = id.indexOf("/");
+      const char = id.slice(0, cut);
+      const frame = id.slice(cut + 1);
+      return { char, frame, why, settled: !poseTodo(char, frame) };
+    })
+    .sort((a, b) =>
+      order.indexOf(a.why) - order.indexOf(b.why)
+      || a.char.localeCompare(b.char)
+      || byPose(a.frame, b.frame));
+}
+
+/** How many of the listed poses are still outstanding — the number on the
+ *  dropdown entry, and the one that reaches zero exactly when the last dot
+ *  goes. The list's own length does not, by design. */
+export function unresolvedOpen() {
+  return unresolvedPoses().filter((e) => !e.settled).length;
 }
 
 /** The stand-in marker for a surfaced pose, shaped like an intake one so the
