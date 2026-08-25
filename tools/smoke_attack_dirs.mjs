@@ -156,7 +156,19 @@ const rows = await page.evaluate(async (angles) => {
     return { ...blank, deg, button };
   };
 
-  const out = { bodyH: Math.round(bodyH), light: [], heavy: [] };
+  // THE BAND'S EDGES COME FROM constants.js, never from a number typed here.
+  // This file used to carry its own 12 / 62 / 46 beside the game's, which is
+  // two places for one decision — and it sampled the hand-off EXACTLY, which
+  // is worse than stale. See the note on `angles` below.
+  const C = await import("/src/constants.js");
+  const out = {
+    bodyH: Math.round(bodyH), light: [], heavy: [],
+    edges: {
+      level: C.ATTACK_TILT_LEVEL_DEG,
+      cardinal: C.ATTACK_TILT_CARDINAL_DEG,
+      groundDown: C.ATTACK_TILT_GROUND_DOWN_DEG,
+    },
+  };
   // Where this fighter's rising attack is DRAWN landing, so the up arc can be
   // held to the arm that throws it rather than to a literal nobody measured.
   const up = strikePoint(f.spriteChar || f.charKey, "upHeavy");
@@ -165,7 +177,7 @@ const rows = await page.evaluate(async (angles) => {
   for (const deg of angles) out.light.push(throwAt(deg, "light"));
   for (const deg of angles) out.heavy.push(throwAt(deg, "heavy"));
   return out;
-}, [90, 70, 64, 62, 55, 45, 30, 20, 12, -12, -20, -30, -36, -45, -48, -60, -90]);
+}, [90, 70, 64, 62, 55, 45, 30, 20, 13, 11, -11, -13, -20, -30, -36, -45, -48, -60, -90]);
 
 const { bodyH, fistY, fistSource } = rows;
 const at = (deg) => rows.light.find((r) => r.deg === deg);
@@ -215,7 +227,22 @@ check(up.anim === "upHeavy" && /^Rising /.test(up.label),
 // comes at 46° where the two pictures meet, rather than at 62° where the arc
 // had to snap back through sixty degrees to level. See
 // ATTACK_TILT_GROUND_DOWN_DEG.
-const inBand = (r) => (r.deg > 0 ? r.deg >= 12 && r.deg <= 62 : -r.deg >= 12 && -r.deg <= 46);
+// SAMPLED JUST INSIDE THE HAND-OFF, NOT ON IT. The shallow edge used to be
+// probed at exactly ATTACK_TILT_LEVEL_DEG, and the rule there is `deg < 12 ->
+// level`, so the whole question was whether a stick held at 12.000000° came
+// back as 12 or as a hair under. It comes back as 11.999999999999998: the
+// angle is turned into axes with cos/sin and recovered with atan2, and that
+// round trip loses the last ulp at 12° (though not at 62°). Four checks failed
+// on it, all reporting the same one degree, none of them describing anything a
+// player can do — nobody holds a stick to fifteen decimal places.
+//
+// So the band is probed one degree inside each edge, and the edges themselves
+// come from the game's own constants. The hand-off still gets checked, but
+// deliberately and in one place: see "the hand-off itself" below.
+const EDGE = rows.edges;
+const inBand = (r) => (r.deg > 0
+  ? r.deg >= EDGE.level && r.deg <= EDGE.cardinal
+  : -r.deg >= EDGE.level && -r.deg <= EDGE.groundDown);
 const BAND = rows.light.filter(inBand);
 const aimed = BAND.filter((r) => r.verdict === "aimed");
 check(aimed.length === BAND.length,
@@ -253,6 +280,24 @@ const upper = BAND.filter((r) => r.deg > 0);
 check(upper.every((r) => r.anim === diag.anim && r.anim !== "crouchAttack"),
   "an upward diagonal keeps the standing drawing — only the arc turns",
   upper.map((r) => `${r.deg}°=${r.anim}`).join(" "));
+
+// ---- the hand-off itself
+//
+// The shallow edge, checked ON PURPOSE and in ONE place, a degree either side
+// of it rather than on it. Under the edge a stick a few degrees off horizontal
+// means "forward" and the swing must not wobble with it; over the edge the
+// attack is aimed. Both numbers are the game's own, so moving
+// ATTACK_TILT_LEVEL_DEG moves this check with it.
+for (const sign of [1, -1]) {
+  const below = at(sign * (EDGE.level - 1));
+  const above = at(sign * (EDGE.level + 1));
+  check(below?.verdict === "level",
+    `a stick just under the edge stays LEVEL (${sign > 0 ? "up" : "down"})`,
+    `${below?.deg}° = ${below?.verdict}`);
+  check(above?.verdict === "aimed",
+    `and a degree over it is AIMED (${sign > 0 ? "up" : "down"})`,
+    `${above?.deg}° = ${above?.verdict}`);
+}
 
 // Below the waist it does not, and that is not a cosmetic choice: past the
 // crouch threshold the fighter's HURTBOX ducks, so a standing drawing over it
