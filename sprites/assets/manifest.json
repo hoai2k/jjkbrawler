@@ -5629,9 +5629,9 @@
     "oy": -1176,
     "bodyBottom": 109.6,
     "bodyH": 344.5,
-    "centroidX": 155.4,
+    "centroidX": 153.5,
     "renderScale": 0.2317,
-    "file": "hanami/attack_diag_up_b.png",
+    "file": "hanami/incoming/attack_diag_up_b.png",
     "anchors": {
      "com": [
       442.2,
@@ -5643,24 +5643,42 @@
      "bodyBottom": 58.6
     },
     "replaced": {
-     "at": "2026-08-24T16:13:55+00:00",
-     "kept": "keep",
-     "how": "approved",
-     "lost": [],
-     "approvedAt": "2026-08-24T18:18:21+00:00"
+     "at": "2026-08-25T00:33:46+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "live": {
+      "w": 979,
+      "h": 1487,
+      "ox": -285.4,
+      "oy": -1176,
+      "bodyBottom": 109.6,
+      "bodyH": 344.5,
+      "bodyTop": 0,
+      "centroidX": 155.4,
+      "renderScale": 0.2317,
+      "anchors": {
+       "com": [
+        442.2,
+        665.7
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.2952,
+       "bodyBottom": 58.6
+      },
+      "file": "hanami/attack_diag_up_b.png"
+     }
     },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 979,
     "coreLeft": 92.9,
-    "coreRight": 836.4,
-    "autoTuned": {
-     "at": "2026-08-24T16:18:13+00:00",
-     "fields": {
-      "ox": "on the placed centre of mass"
-     }
-    },
-    "wantsImprovement": "alpha"
+    "coreRight": 836.4
    },
    "throw_back": {
     "w": 694,
@@ -5701,11 +5719,11 @@
     "h": 972,
     "ox": -352.8,
     "oy": -661,
-    "bodyBottom": 233.0,
+    "bodyBottom": 214.4,
     "bodyH": 240.6,
-    "centroidX": 162.2,
+    "centroidX": 162.7,
     "renderScale": 0.2475,
-    "file": "hanami/throw_down.png",
+    "file": "hanami/incoming/throw_down.png",
     "anchors": {
      "com": [
       509.5,
@@ -5716,11 +5734,35 @@
      "renderScale": 0.269
     },
     "replaced": {
-     "at": "2026-08-24T16:13:55+00:00",
-     "kept": "keep",
-     "how": "approved",
-     "lost": [],
-     "approvedAt": "2026-08-24T18:18:21+00:00"
+     "at": "2026-08-25T00:33:46+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "live": {
+      "w": 1038,
+      "h": 972,
+      "ox": -352.8,
+      "oy": -661,
+      "bodyBottom": 233.0,
+      "bodyH": 240.6,
+      "bodyTop": 0,
+      "centroidX": 162.2,
+      "renderScale": 0.2475,
+      "anchors": {
+       "com": [
+        509.5,
+        452.9
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.269
+      },
+      "file": "hanami/throw_down.png"
+     }
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -5728,12 +5770,11 @@
     "coreLeft": 64.9,
     "coreRight": 895.3,
     "autoTuned": {
-     "at": "2026-08-24T16:18:13+00:00",
+     "at": "2026-08-25T00:37:09+00:00",
      "fields": {
-      "bodyBottom": "foot=0.920 (character)"
+      "bodyBottom": "foot=0.901 (throwDown)"
      }
-    },
-    "wantsImprovement": "alpha"
+    }
    },
    "throw_fwd": {
     "w": 1018,
@@ -5742,9 +5783,9 @@
     "oy": -1153,
     "bodyBottom": 117.9,
     "bodyH": 339.5,
-    "centroidX": 156.8,
+    "centroidX": 156.9,
     "renderScale": 0.2319,
-    "file": "hanami/throw_fwd.png",
+    "file": "hanami/incoming/throw_fwd.png",
     "anchors": {
      "com": [
       456.3,
@@ -5756,29 +5797,53 @@
      "bodyBottom": 194.9
     },
     "replaced": {
-     "at": "2026-08-24T16:13:55+00:00",
-     "kept": "keep",
-     "how": "approved",
-     "lost": [],
-     "approvedAt": "2026-08-24T18:18:21+00:00"
+     "at": "2026-08-25T00:33:46+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "live": {
+      "w": 1018,
+      "h": 1464,
+      "ox": -300.0,
+      "oy": -1153,
+      "bodyBottom": 117.9,
+      "bodyH": 339.5,
+      "bodyTop": 0,
+      "centroidX": 156.8,
+      "renderScale": 0.2319,
+      "anchors": {
+       "com": [
+        456.3,
+        660.6
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.2681,
+       "bodyBottom": 194.9
+      },
+      "file": "hanami/throw_fwd.png"
+     }
     },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1018,
     "coreLeft": 91.5,
-    "coreRight": 887.6,
-    "wantsImprovement": "alpha"
+    "coreRight": 887.6
    },
    "throw_up": {
     "w": 496,
     "h": 1463,
     "ox": -87.3,
     "oy": -1152,
-    "bodyBottom": 183.2,
+    "bodyBottom": 188.2,
     "bodyH": 412.6,
-    "centroidX": 156.8,
+    "centroidX": 157.1,
     "renderScale": 0.282,
-    "file": "hanami/throw_up.png",
+    "file": "hanami/incoming/throw_up.png",
     "anchors": {
      "com": [
       243.4,
@@ -5789,11 +5854,35 @@
      "renderScale": 0.3547
     },
     "replaced": {
-     "at": "2026-08-24T03:13:55+00:00",
-     "kept": "keep",
-     "how": "approved",
-     "lost": [],
-     "approvedAt": "2026-08-24T09:25:24+00:00"
+     "at": "2026-08-25T00:33:46+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "live": {
+      "w": 496,
+      "h": 1463,
+      "ox": -87.3,
+      "oy": -1152,
+      "bodyBottom": 183.2,
+      "bodyH": 412.6,
+      "bodyTop": 0,
+      "centroidX": 156.8,
+      "renderScale": 0.282,
+      "anchors": {
+       "com": [
+        243.4,
+        733.5
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.3547
+      },
+      "file": "hanami/throw_up.png"
+     }
     },
     "bodyTop": 0,
     "bodyLeft": 0,
@@ -5801,12 +5890,11 @@
     "coreLeft": 45.7,
     "coreRight": 420.6,
     "autoTuned": {
-     "at": "2026-08-24T03:17:27+00:00",
+     "at": "2026-08-25T00:37:09+00:00",
      "fields": {
-      "bodyBottom": "foot=0.913 (throwUp)"
+      "bodyBottom": "foot=0.916 (character)"
      }
-    },
-    "wantsImprovement": "alpha"
+    }
    }
   },
   "geto": {
@@ -38613,41 +38701,64 @@
     }
    },
    "throw_back": {
-    "file": "yuji/throw_back.png",
-    "bodyLeft": 0,
-    "bodyRight": 647,
-    "coreLeft": 49.2,
-    "coreRight": 590.1,
-    "autoTuned": {
-     "at": "2026-08-24T16:22:01+00:00",
-     "fields": {
-      "bodyBottom": "foot=0.924 (throwBack)",
-      "bodyH": "area x 0.997 (throwBack)",
-      "renderScale": "area x 0.997 (throwBack)",
-      "ox": "centre of mass, not of the box"
-     }
-    },
     "w": 647,
     "h": 1124,
     "ox": -160.4,
     "oy": -813,
     "bodyBottom": 197.9,
     "bodyH": 255.7,
-    "bodyTop": 0,
     "centroidX": 156.6,
     "renderScale": 0.2275,
+    "file": "yuji/incoming/throw_back.png",
     "anchors": {
      "com": [
       317.1,
       444.0
      ]
     },
-    "wantsImprovement": "alpha",
     "edited": {
      "bodyBottom": 233.4,
      "renderScale": 0.2275,
      "ox": -160.4
-    }
+    },
+    "replaced": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "live": {
+      "w": 647,
+      "h": 1124,
+      "ox": -160.4,
+      "oy": -813,
+      "bodyBottom": 197.9,
+      "bodyH": 255.7,
+      "bodyTop": 0,
+      "centroidX": 156.6,
+      "renderScale": 0.2275,
+      "anchors": {
+       "com": [
+        317.1,
+        444.0
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "bodyBottom": 233.4,
+       "renderScale": 0.2275,
+       "ox": -160.4
+      },
+      "file": "yuji/throw_back.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 647,
+    "coreLeft": 49.2,
+    "coreRight": 590.1
    },
    "throw_down": {
     "w": 999,
@@ -40698,34 +40809,66 @@
     "coreRight": 766.2
    },
    "crouch_attack_b": {
-    "file": "gakuganji/attack_dash.png",
-    "bodyLeft": 0,
-    "bodyRight": 925,
-    "coreLeft": 62.2,
-    "coreRight": 839.5,
-    "w": 1404,
-    "h": 723,
-    "ox": -424.8,
-    "oy": -412,
+    "w": 925,
+    "h": 995,
+    "ox": -185.3,
+    "oy": -684,
     "bodyBottom": 276.5,
-    "bodyH": 151.1,
-    "bodyTop": 0,
-    "centroidX": 36.3,
+    "bodyH": 272.4,
+    "centroidX": 279.2,
     "renderScale": 0.2738,
+    "file": "gakuganji/incoming/crouch_attack_b.png",
     "anchors": {
      "com": [
-      582.1,
-      289.2
+      342.6,
+      561.2
      ]
     },
-    "wantsImprovement": "alpha",
-    "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
     "edited": {
      "renderScale": 0.209,
      "ox": -424.8,
      "bodyBottom": 276.5
     },
-    "borrowedFrom": "attack_dash"
+    "replaced": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "live": {
+      "w": 1404,
+      "h": 723,
+      "ox": -424.8,
+      "oy": -412,
+      "bodyBottom": 276.5,
+      "bodyH": 151.1,
+      "bodyTop": 0,
+      "centroidX": 36.3,
+      "renderScale": 0.2738,
+      "anchors": {
+       "com": [
+        582.1,
+        289.2
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "improvementNote": "the background flood leaked into the figure through the shading on a pale costume; re-keyed with the neck guard",
+      "edited": {
+       "renderScale": 0.209,
+       "ox": -424.8,
+       "bodyBottom": 276.5
+      },
+      "borrowedFrom": "attack_dash",
+      "file": "gakuganji/attack_dash.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 925,
+    "coreLeft": 62.2,
+    "coreRight": 839.5
    },
    "crouch_b": {
     "w": 922,
@@ -52106,71 +52249,122 @@
     }
    },
    "throw_back": {
-    "file": "kashimo/throw_back.png",
-    "bodyLeft": 0,
-    "bodyRight": 885,
-    "coreLeft": 78.2,
-    "coreRight": 781.9,
-    "autoTuned": {
-     "at": "2026-08-24T16:18:13+00:00",
-     "fields": {
-      "ox": "on the placed centre of mass"
-     }
-    },
     "w": 885,
     "h": 1390,
     "ox": -277.3,
     "oy": -1079,
     "bodyBottom": 252.8,
     "bodyH": 275.1,
-    "bodyTop": 0,
-    "centroidX": 156.7,
+    "centroidX": 154.8,
     "renderScale": 0.1979,
+    "file": "kashimo/incoming/throw_back.png",
     "anchors": {
      "com": [
       435.0,
       574.3
      ]
     },
-    "wantsImprovement": "alpha",
     "edited": {
      "renderScale": 0.2083,
      "bodyBottom": 192.3,
      "ox": -277.3
-    }
-   },
-   "throw_down": {
-    "file": "kashimo/throw_down.png",
-    "bodyLeft": 0,
-    "bodyRight": 924,
-    "coreLeft": 70.2,
-    "coreRight": 786.8,
-    "autoTuned": {
-     "at": "2026-08-24T16:18:13+00:00",
-     "fields": {
-      "bodyBottom": "foot=0.945 (character)"
+    },
+    "replaced": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "live": {
+      "w": 885,
+      "h": 1390,
+      "ox": -277.3,
+      "oy": -1079,
+      "bodyBottom": 252.8,
+      "bodyH": 275.1,
+      "bodyTop": 0,
+      "centroidX": 156.7,
+      "renderScale": 0.1979,
+      "anchors": {
+       "com": [
+        435.0,
+        574.3
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.2083,
+       "bodyBottom": 192.3,
+       "ox": -277.3
+      },
+      "file": "kashimo/throw_back.png"
      }
     },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 885,
+    "coreLeft": 78.2,
+    "coreRight": 781.9
+   },
+   "throw_down": {
     "w": 924,
     "h": 1124,
     "ox": -306.9,
     "oy": -813,
     "bodyBottom": 233.1,
     "bodyH": 220.4,
-    "bodyTop": 0,
-    "centroidX": 153.3,
+    "centroidX": 150.9,
     "renderScale": 0.1961,
+    "file": "kashimo/incoming/throw_down.png",
     "anchors": {
      "com": [
       463.7,
       470.4
      ]
     },
-    "wantsImprovement": "alpha",
     "edited": {
      "renderScale": 0.2109,
      "bodyBottom": 233.1
-    }
+    },
+    "replaced": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "live": {
+      "w": 924,
+      "h": 1124,
+      "ox": -306.9,
+      "oy": -813,
+      "bodyBottom": 233.1,
+      "bodyH": 220.4,
+      "bodyTop": 0,
+      "centroidX": 153.3,
+      "renderScale": 0.1961,
+      "anchors": {
+       "com": [
+        463.7,
+        470.4
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.2109,
+       "bodyBottom": 233.1
+      },
+      "file": "kashimo/throw_down.png"
+     }
+    },
+    "bodyTop": 0,
+    "bodyLeft": 0,
+    "bodyRight": 924,
+    "coreLeft": 70.2,
+    "coreRight": 786.8
    },
    "throw_fwd": {
     "w": 1152,
@@ -52205,9 +52399,9 @@
     "oy": -1131,
     "bodyBottom": 241.1,
     "bodyH": 291.1,
-    "centroidX": 157.3,
+    "centroidX": 156.8,
     "renderScale": 0.2019,
-    "file": "kashimo/throw_up.png",
+    "file": "kashimo/incoming/throw_up.png",
     "anchors": {
      "com": [
       317.8,
@@ -52219,24 +52413,42 @@
      "bodyBottom": 217.6
     },
     "replaced": {
-     "at": "2026-08-24T16:13:55+00:00",
-     "kept": "keep",
-     "how": "approved",
-     "lost": [],
-     "approvedAt": "2026-08-24T18:18:21+00:00"
+     "at": "2026-08-25T00:33:46+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "live": {
+      "w": 700,
+      "h": 1442,
+      "ox": -161.2,
+      "oy": -1131,
+      "bodyBottom": 241.1,
+      "bodyH": 291.1,
+      "bodyTop": 0,
+      "centroidX": 157.3,
+      "renderScale": 0.2019,
+      "anchors": {
+       "com": [
+        317.8,
+        590.7
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.2281,
+       "bodyBottom": 217.6
+      },
+      "file": "kashimo/throw_up.png"
+     }
     },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 700,
     "coreLeft": 54.1,
-    "coreRight": 594.8,
-    "autoTuned": {
-     "at": "2026-08-24T16:18:13+00:00",
-     "fields": {
-      "ox": "centre of mass, not of the box"
-     }
-    },
-    "wantsImprovement": "alpha"
+    "coreRight": 594.8
    }
   },
   "naoya": {
@@ -57317,7 +57529,7 @@
     "bodyH": 382.1,
     "centroidX": 156.7,
     "renderScale": 0.2249,
-    "file": "kirara/throw_up.png",
+    "file": "kirara/incoming/throw_up.png",
     "anchors": {
      "com": [
       303.9,
@@ -57329,18 +57541,42 @@
      "bodyBottom": 219.4
     },
     "replaced": {
-     "at": "2026-08-24T16:13:55+00:00",
-     "kept": "keep",
-     "how": "approved",
-     "lost": [],
-     "approvedAt": "2026-08-24T18:18:21+00:00"
+     "at": "2026-08-25T00:33:46+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T00:33:46+00:00",
+     "live": {
+      "w": 651,
+      "h": 1699,
+      "ox": -149.1,
+      "oy": -1388,
+      "bodyBottom": 245.4,
+      "bodyH": 382.1,
+      "bodyTop": 0,
+      "centroidX": 156.7,
+      "renderScale": 0.2249,
+      "anchors": {
+       "com": [
+        303.9,
+        731.3
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.2639,
+       "bodyBottom": 219.4
+      },
+      "file": "kirara/throw_up.png"
+     }
     },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 651,
     "coreLeft": 53.1,
-    "coreRight": 520.3,
-    "wantsImprovement": "alpha"
+    "coreRight": 520.3
    }
   },
   "haruta": {
@@ -63423,9 +63659,9 @@
        ]
       },
       "bodyLeft": 0,
-      "bodyRight": 922,
-      "coreLeft": 103.4,
-      "coreRight": 792.9
+      "bodyRight": 1021,
+      "coreLeft": 67.1,
+      "coreRight": 822.0
      },
      {
       "w": 948,
@@ -65017,7 +65253,11 @@
        "renderScale": 0.231
       },
       "file": "hanami/attack_air_diag_down_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 986,
+      "coreLeft": 103.8,
+      "coreRight": 895.3
      },
      {
       "w": 986,
@@ -85359,7 +85599,11 @@
        "renderScale": 0.247
       },
       "file": "gakuganji/attack_air_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1070,
+      "coreLeft": 64.4,
+      "coreRight": 873.1
      },
      {
       "file": "gakuganji/archive/attack_air_b_2.png",
@@ -85746,7 +85990,11 @@
        "renderScale": 0.2267
       },
       "file": "gakuganji/attack_air_diag_down_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1080,
+      "coreLeft": 50.2,
+      "coreRight": 924.8
      },
      {
       "w": 1080,
@@ -85930,7 +86178,11 @@
        ]
       },
       "file": "gakuganji/throw_up.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 780,
+      "coreLeft": 111.0,
+      "coreRight": 666.2
      },
      {
       "w": 780,
@@ -87282,7 +87534,11 @@
        ]
       },
       "file": "yuji/throw_up.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 666,
+      "coreLeft": 52.3,
+      "coreRight": 593.3
      },
      {
       "w": 666,
@@ -90418,7 +90674,11 @@
        "bodyBottom": 310.4
       },
       "file": "kashimo/throw_fwd.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 1152,
+      "coreLeft": 77.6,
+      "coreRight": 1009.1
      },
      {
       "w": 1152,
@@ -91342,7 +91602,11 @@
        "bodyBottom": 129.7
       },
       "file": "kirara/attack_light_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 954,
+      "coreLeft": 63.4,
+      "coreRight": 841.7
      },
      {
       "w": 923,
@@ -91826,7 +92090,11 @@
        ]
       },
       "file": "kirara/attack_air_diag_down_b.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 946,
+      "coreLeft": 123.6,
+      "coreRight": 850.4
      },
      {
       "w": 946,
@@ -91896,7 +92164,11 @@
        "bodyBottom": 182.4
       },
       "file": "kirara/throw_back.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 770,
+      "coreLeft": 104.8,
+      "coreRight": 712.3
      },
      {
       "w": 770,
@@ -91972,7 +92244,11 @@
        "renderScale": 0.2389
       },
       "file": "kirara/throw_down.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 975,
+      "coreLeft": 47.3,
+      "coreRight": 804.5
      },
      {
       "w": 975,
@@ -92045,7 +92321,11 @@
        "bodyBottom": 196.8
       },
       "file": "kirara/throw_fwd.png",
-      "label": "In game"
+      "label": "In game",
+      "bodyLeft": 0,
+      "bodyRight": 817,
+      "coreLeft": 36.3,
+      "coreRight": 671.1
      },
      {
       "w": 817,
