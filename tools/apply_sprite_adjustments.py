@@ -150,6 +150,8 @@ PLACEMENT_WORK = TRACKED | {"anchors"}
 VARIANT_PLACEMENT = [
     "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
     "centroidX", "renderScale", "rotationDeg", "anchors", "faceLeft",
+    # where the trimmed art sat in the delivered plate; see sprites.js
+    "srcBox",
 ]
 VARIANT_REVIEW = ["needsReplacement", "wantsImprovement",
                   "replacementNote", "improvementNote",

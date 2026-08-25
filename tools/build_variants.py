@@ -46,6 +46,8 @@ MANIFEST = os.path.join(SPRITES, "manifest.json")
 PLACEMENT = [
     "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
     "centroidX", "renderScale", "rotationDeg", "anchors", "faceLeft",
+    # where the trimmed art sat in the delivered plate; see sprites.js
+    "srcBox",
 ]
 REVIEW = ["needsReplacement", "wantsImprovement", "edited", "surfacedReviewed"]
 # A fact about the drawing, not the pose — see VARIANT_ORIGIN in sprites.js.

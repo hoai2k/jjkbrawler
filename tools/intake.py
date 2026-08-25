@@ -743,6 +743,16 @@ def main():
             unsure = conf < FACING_CONFIDENT
 
             m = measure(frame, box, raw.shape, key)
+            # WHERE THE TRIM CAME FROM, in the delivered plate's own pixels.
+            #
+            # It is the one number that makes a re-key free. `ox`/`oy` place the
+            # trimmed image in the cell, so a source pixel only stays where it
+            # was if `ox` moves by exactly the change in this box's left edge —
+            # and a re-key changes it whenever the new matte reaches a pixel
+            # further out, which is most of what a re-key is for. Without it the
+            # import has to guess from the silhouette, and a silhouette that
+            # changed shape is exactly the case where guessing is wrong.
+            m["box"] = [int(v) for v in box]
             m.update(char=char, key=key_name, mirrored=mirrored, facingUnsure=bool(unsure),
                      facingGuess=facing, facingConf=round(float(conf), 3),
                      states=key_to_states(anims, char, key_name))

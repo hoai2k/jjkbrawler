@@ -507,7 +507,13 @@
     "bodyLeft": 0,
     "bodyRight": 516,
     "coreLeft": 42.4,
-    "coreRight": 460.3
+    "coreRight": 460.3,
+    "srcBox": [
+     469,
+     175,
+     985,
+     1144
+    ]
    },
    "dodge_roll": {
     "w": 980,
@@ -532,7 +538,13 @@
     "bodyLeft": 0,
     "bodyRight": 980,
     "coreLeft": 79.6,
-    "coreRight": 894.2
+    "coreRight": 894.2,
+    "srcBox": [
+     106,
+     288,
+     1086,
+     1168
+    ]
    },
    "attack_air_a": {
     "w": 970,
@@ -586,7 +598,13 @@
     "bodyLeft": 0,
     "bodyRight": 952,
     "coreLeft": 40.1,
-    "coreRight": 913.4
+    "coreRight": 913.4,
+    "srcBox": [
+     48,
+     114,
+     1000,
+     1396
+    ]
    },
    "attack_down": {
     "w": 939,
@@ -620,7 +638,13 @@
     "bodyLeft": 0,
     "bodyRight": 939,
     "coreLeft": 73.4,
-    "coreRight": 831.3
+    "coreRight": 831.3,
+    "srcBox": [
+     24,
+     101,
+     963,
+     1405
+    ]
    },
    "attack_heavy_a": {
     "file": "gojo/attack_heavy_a.png",
@@ -656,7 +680,13 @@
      "ox": -289.8,
      "bodyBottom": 310.4,
      "rotationDeg": null
-    }
+    },
+    "srcBox": [
+     56,
+     99,
+     949,
+     1458
+    ]
    },
    "attack_heavy_b": {
     "file": "gojo/attack_heavy_b.png",
@@ -692,7 +722,13 @@
      "ox": -289.9,
      "bodyBottom": 244,
      "rotationDeg": null
-    }
+    },
+    "srcBox": [
+     47,
+     119,
+     989,
+     1448
+    ]
    },
    "attack_light_a": {
     "w": 966,
@@ -727,7 +763,13 @@
     "edited": {
      "renderScale": 0.1802,
      "bodyBottom": 240.6
-    }
+    },
+    "srcBox": [
+     64,
+     65,
+     1030,
+     1556
+    ]
    },
    "attack_light_b": {
     "w": 991,
@@ -762,7 +804,13 @@
     "bodyLeft": 0,
     "bodyRight": 991,
     "coreLeft": 82.2,
-    "coreRight": 904.6
+    "coreRight": 904.6,
+    "srcBox": [
+     22,
+     47,
+     1013,
+     1509
+    ]
    },
    "crouch_a": {
     "w": 960,
@@ -796,7 +844,13 @@
      "renderScale": 0.398,
      "ox": -266.9,
      "bodyBottom": 261.8
-    }
+    },
+    "srcBox": [
+     198,
+     99,
+     1158,
+     1130
+    ]
    },
    "crouch_attack_a": {
     "w": 876,
@@ -824,7 +878,13 @@
     "bodyLeft": 0,
     "bodyRight": 876,
     "coreLeft": 66.3,
-    "coreRight": 812.8
+    "coreRight": 812.8,
+    "srcBox": [
+     45,
+     129,
+     921,
+     1456
+    ]
    },
    "crouch_attack_b": {
     "w": 965,
@@ -918,7 +978,13 @@
     "bodyLeft": 0,
     "bodyRight": 918,
     "coreLeft": 76.9,
-    "coreRight": 861.7
+    "coreRight": 861.7,
+    "srcBox": [
+     44,
+     131,
+     962,
+     1362
+    ]
    },
    "land": {
     "w": 796,
@@ -987,7 +1053,13 @@
      "bodyBottom": 242.7,
      "rotationDeg": null
     },
-    "rotationDeg": 2.5
+    "rotationDeg": 2.5,
+    "srcBox": [
+     57,
+     83,
+     996,
+     1517
+    ]
    },
    "special_neutral": {
     "w": 959,
@@ -1014,7 +1086,13 @@
     "bodyLeft": 0,
     "bodyRight": 959,
     "coreLeft": 74.3,
-    "coreRight": 854.4
+    "coreRight": 854.4,
+    "srcBox": [
+     35,
+     35,
+     994,
+     1521
+    ]
    },
    "special_side": {
     "w": 976,
@@ -1043,7 +1121,13 @@
     "bodyLeft": 0,
     "bodyRight": 976,
     "coreLeft": 50.1,
-    "coreRight": 910.8
+    "coreRight": 910.8,
+    "srcBox": [
+     27,
+     128,
+     1003,
+     1465
+    ]
    },
    "ult_a": {
     "w": 906,
@@ -1071,7 +1155,13 @@
     "bodyLeft": 0,
     "bodyRight": 906,
     "coreLeft": 54,
-    "coreRight": 827.4
+    "coreRight": 827.4,
+    "srcBox": [
+     60,
+     58,
+     966,
+     1497
+    ]
    },
    "ult_b": {
     "w": 999,
@@ -1098,7 +1188,13 @@
     "bodyLeft": 0,
     "bodyRight": 999,
     "coreLeft": 56.1,
-    "coreRight": 906.1
+    "coreRight": 906.1,
+    "srcBox": [
+     10,
+     143,
+     1009,
+     1426
+    ]
    },
    "prone": {
     "w": 994,
@@ -1131,7 +1227,13 @@
      "bodyBottom": 310.4,
      "rotationDeg": null
     },
-    "rotationDeg": -5
+    "rotationDeg": -5,
+    "srcBox": [
+     20,
+     682,
+     1014,
+     932
+    ]
    },
    "run_pass_a": {
     "w": 688,
@@ -1164,7 +1266,13 @@
     "edited": {
      "renderScale": 0.281,
      "bodyBottom": 249.4
-    }
+    },
+    "srcBox": [
+     200,
+     168,
+     888,
+     1461
+    ]
    },
    "run_pass_b": {
     "w": 699,
@@ -1197,7 +1305,13 @@
     "edited": {
      "renderScale": 0.281,
      "bodyBottom": 249.5
-    }
+    },
+    "srcBox": [
+     156,
+     81,
+     855,
+     1373
+    ]
    },
    "run_reach_a": {
     "w": 945,
@@ -1244,7 +1358,13 @@
       "renderScale": 0.2122,
       "bodyH": 320.6
      }
-    }
+    },
+    "srcBox": [
+     38,
+     235,
+     983,
+     1376
+    ]
    },
    "run_reach_b": {
     "w": 941,
@@ -1291,7 +1411,13 @@
       "renderScale": 0.2136,
       "bodyH": 324
      }
-    }
+    },
+    "srcBox": [
+     30,
+     226,
+     971,
+     1379
+    ]
    },
    "attack_dash": {
     "w": 1036,
@@ -1324,7 +1450,13 @@
     "edited": {
      "renderScale": 0.281,
      "bodyBottom": 264.9
-    }
+    },
+    "srcBox": [
+     14,
+     296,
+     1050,
+     1258
+    ]
    },
    "grab_hold": {
     "w": 791,
@@ -1356,7 +1488,13 @@
     },
     "edited": {
      "renderScale": 0.281
-    }
+    },
+    "srcBox": [
+     157,
+     22,
+     948,
+     1485
+    ]
    },
    "grab_reach": {
     "w": 969,
@@ -1395,7 +1533,13 @@
      "anchors": {
       "grabHand": null
      }
-    }
+    },
+    "srcBox": [
+     24,
+     177,
+     993,
+     1359
+    ]
    },
    "grabbed": {
     "w": 798,
@@ -1434,7 +1578,13 @@
      "anchors": {
       "grabChest": null
      }
-    }
+    },
+    "srcBox": [
+     121,
+     97,
+     919,
+     1516
+    ]
    },
    "walk_a": {
     "w": 644,
@@ -1467,7 +1617,13 @@
     "edited": {
      "renderScale": 0.281,
      "bodyBottom": 246.6
-    }
+    },
+    "srcBox": [
+     190,
+     94,
+     834,
+     1443
+    ]
    },
    "walk_b": {
     "w": 459,
@@ -1500,7 +1656,13 @@
     "edited": {
      "renderScale": 0.281,
      "bodyBottom": 246.6
-    }
+    },
+    "srcBox": [
+     282,
+     95,
+     741,
+     1443
+    ]
    },
    "teeter": {
     "w": 864,
@@ -1543,7 +1705,13 @@
        1443.5
       ]
      }
-    }
+    },
+    "srcBox": [
+     84,
+     45,
+     948,
+     1493
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 1188,
@@ -1577,7 +1745,13 @@
     },
     "edited": {
      "ox": -403.1
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1252,
+     1194
+    ]
    },
    "attack_diag_up_b": {
     "w": 814,
@@ -1612,7 +1786,13 @@
      "bodyBottom": 151.1
     },
     "needsReplacement": "quality",
-    "replacementNote": "Only the punching fist should be visible, because the other one should be on the opposite side of his body in this pose. He is drawn side-on facing right: the NEAR arm throws the punch up the diagonal, and the off hand recovers to the chest ON THE FAR SIDE of the torso, where the body hides it. At most the far elbow clears the silhouette. Never a second fist on the near face of the chest \u2014 that is where both deliveries so far have put it, and it reads as a spare fist or an arm coming out of his own back. Exactly one hand is visible in this drawing."
+    "replacementNote": "Only the punching fist should be visible, because the other one should be on the opposite side of his body in this pose. He is drawn side-on facing right: the NEAR arm throws the punch up the diagonal, and the off hand recovers to the chest ON THE FAR SIDE of the torso, where the body hides it. At most the far elbow clears the silhouette. Never a second fist on the near face of the chest \u2014 that is where both deliveries so far have put it, and it reads as a spare fist or an arm coming out of his own back. Exactly one hand is visible in this drawing.",
+    "srcBox": [
+     64,
+     67,
+     878,
+     1735
+    ]
    },
    "domain_expansion": {
     "w": 466,
@@ -1644,7 +1824,13 @@
     },
     "edited": {
      "renderScale": 0.281
-    }
+    },
+    "srcBox": [
+     213,
+     64,
+     679,
+     1708
+    ]
    },
    "throw_back": {
     "w": 716,
@@ -1679,7 +1865,13 @@
     "edited": {
      "renderScale": 0.202,
      "bodyBottom": 245.6
-    }
+    },
+    "srcBox": [
+     101,
+     95,
+     817,
+     1481
+    ]
    },
    "throw_down": {
     "w": 943,
@@ -1711,7 +1903,13 @@
      "fields": {
       "bodyBottom": "foot=0.937 (throwDown)"
      }
-    }
+    },
+    "srcBox": [
+     64,
+     111,
+     1007,
+     1395
+    ]
    },
    "throw_fwd": {
     "w": 935,
@@ -1747,7 +1945,13 @@
      "renderScale": 0.1859,
      "ox": -272.7,
      "bodyBottom": 242.6
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     999,
+     1513
+    ]
    },
    "throw_up": {
     "w": 502,
@@ -1781,7 +1985,13 @@
     },
     "edited": {
      "renderScale": 0.209
-    }
+    },
+    "srcBox": [
+     195,
+     113,
+     697,
+     1657
+    ]
    }
   },
   "nanami": {
@@ -3607,7 +3817,13 @@
     "edited": {
      "renderScale": 0.215,
      "bodyBottom": 235.5
-    }
+    },
+    "srcBox": [
+     234,
+     58,
+     840,
+     1442
+    ]
    },
    "jump_rise": {
     "w": 655,
@@ -3778,7 +3994,13 @@
        724.1
       ]
      }
-    }
+    },
+    "srcBox": [
+     196,
+     32,
+     854,
+     1498
+    ]
    },
    "charge": {
     "w": 943,
@@ -3847,7 +4069,13 @@
      "renderScale": 0.228,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     162,
+     113,
+     843,
+     1392
+    ]
    },
    "victory": {
     "w": 856,
@@ -3880,7 +4108,13 @@
     "edited": {
      "renderScale": 0.223,
      "bodyBottom": 238.2
-    }
+    },
+    "srcBox": [
+     86,
+     94,
+     942,
+     1427
+    ]
    },
    "ledge_hang": {
     "w": 323,
@@ -3915,7 +4149,13 @@
     },
     "edited": {
      "renderScale": 0.257
-    }
+    },
+    "srcBox": [
+     371,
+     61,
+     694,
+     1392
+    ]
    },
    "dodge_air": {
     "w": 731,
@@ -3947,7 +4187,13 @@
     "edited": {
      "renderScale": 0.261,
      "bodyBottom": 310.4
-    }
+    },
+    "srcBox": [
+     91,
+     86,
+     822,
+     1392
+    ]
    },
    "dodge_roll": {
     "w": 1057,
@@ -4014,7 +4260,13 @@
      "bodyBottom": 239.4,
      "rotationDeg": null
     },
-    "rotationDeg": 9.5
+    "rotationDeg": 9.5,
+    "srcBox": [
+     83,
+     122,
+     909,
+     1451
+    ]
    },
    "special_side": {
     "w": 839,
@@ -4081,7 +4333,13 @@
     "edited": {
      "renderScale": 0.345,
      "bodyBottom": 310.4
-    }
+    },
+    "srcBox": [
+     96,
+     137,
+     933,
+     1347
+    ]
    },
    "attack_air_b": {
     "w": 1140,
@@ -4114,7 +4372,13 @@
      "renderScale": 0.536,
      "ox": -405.7,
      "bodyBottom": 310.4
-    }
+    },
+    "srcBox": [
+     217,
+     67,
+     1357,
+     863
+    ]
    },
    "attack_down": {
     "w": 981,
@@ -4147,7 +4411,13 @@
     "edited": {
      "renderScale": 0.386,
      "bodyBottom": 253
-    }
+    },
+    "srcBox": [
+     62,
+     243,
+     1043,
+     1320
+    ]
    },
    "attack_heavy_a": {
     "w": 721,
@@ -4211,7 +4481,13 @@
     },
     "edited": {
      "renderScale": 0.356
-    }
+    },
+    "srcBox": [
+     41,
+     193,
+     1082,
+     1241
+    ]
    },
    "attack_light_a": {
     "w": 920,
@@ -4243,7 +4519,13 @@
     },
     "edited": {
      "renderScale": 0.245
-    }
+    },
+    "srcBox": [
+     48,
+     89,
+     968,
+     1433
+    ]
    },
    "attack_light_b": {
     "file": "hanami/special_neutral.png",
@@ -4345,7 +4627,13 @@
     },
     "edited": {
      "renderScale": 0.426
-    }
+    },
+    "srcBox": [
+     178,
+     157,
+     1081,
+     967
+    ]
    },
    "crouch_attack_b": {
     "w": 1014,
@@ -4377,7 +4665,13 @@
     },
     "edited": {
      "renderScale": 0.463
-    }
+    },
+    "srcBox": [
+     61,
+     291,
+     1075,
+     1170
+    ]
    },
    "crouch_b": {
     "w": 854,
@@ -4409,7 +4703,13 @@
     },
     "edited": {
      "renderScale": 0.143
-    }
+    },
+    "srcBox": [
+     69,
+     147,
+     923,
+     1312
+    ]
    },
    "dash": {
     "w": 1181,
@@ -4442,7 +4742,13 @@
     "edited": {
      "renderScale": 0.412,
      "bodyBottom": 267.2
-    }
+    },
+    "srcBox": [
+     172,
+     131,
+     1353,
+     945
+    ]
    },
    "land": {
     "w": 1042,
@@ -4514,7 +4820,13 @@
     "edited": {
      "renderScale": 0.293,
      "bodyBottom": 237.1
-    }
+    },
+    "srcBox": [
+     111,
+     47,
+     1001,
+     1420
+    ]
    },
    "ult_a": {
     "w": 1025,
@@ -4548,7 +4860,13 @@
      "renderScale": 0.346,
      "ox": -354.4,
      "bodyBottom": 243.7
-    }
+    },
+    "srcBox": [
+     47,
+     114,
+     1072,
+     1364
+    ]
    },
    "ult_b": {
     "w": 1043,
@@ -4581,7 +4899,13 @@
     "edited": {
      "renderScale": 0.324,
      "bodyBottom": 240.1
-    }
+    },
+    "srcBox": [
+     13,
+     55,
+     1056,
+     1372
+    ]
    },
    "prone": {
     "w": 1495,
@@ -4645,7 +4969,13 @@
     "edited": {
      "renderScale": 0.351,
      "bodyBottom": 180.6
-    }
+    },
+    "srcBox": [
+     71,
+     129,
+     870,
+     1381
+    ]
    },
    "run_pass_b": {
     "w": 726,
@@ -4678,7 +5008,13 @@
     "edited": {
      "renderScale": 0.333,
      "bodyBottom": 172.6
-    }
+    },
+    "srcBox": [
+     149,
+     84,
+     875,
+     1447
+    ]
    },
    "run_reach_a": {
     "w": 1143,
@@ -4711,7 +5047,13 @@
     "edited": {
      "renderScale": 0.38,
      "bodyBottom": 205.1
-    }
+    },
+    "srcBox": [
+     134,
+     72,
+     1277,
+     1054
+    ]
    },
    "run_reach_b": {
     "w": 790,
@@ -4750,7 +5092,13 @@
        635.8
       ]
      }
-    }
+    },
+    "srcBox": [
+     126,
+     67,
+     916,
+     1454
+    ]
    },
    "attack_dash": {
     "w": 1465,
@@ -4782,7 +5130,13 @@
     },
     "edited": {
      "bodyBottom": 230.2
-    }
+    },
+    "srcBox": [
+     41,
+     30,
+     1506,
+     970
+    ]
    },
    "grab_hold": {
     "w": 875,
@@ -4815,7 +5169,13 @@
     "edited": {
      "renderScale": 0.231,
      "bodyBottom": 194.9
-    }
+    },
+    "srcBox": [
+     162,
+     12,
+     1037,
+     1363
+    ]
    },
    "grab_reach": {
     "w": 1345,
@@ -4854,7 +5214,13 @@
      "anchors": {
       "grabHand": null
      }
-    }
+    },
+    "srcBox": [
+     18,
+     7,
+     1363,
+     1133
+    ]
    },
    "grabbed": {
     "w": 798,
@@ -4900,7 +5266,13 @@
       ]
      }
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     120,
+     23,
+     918,
+     1506
+    ]
    },
    "walk_a": {
     "w": 795,
@@ -4933,7 +5305,13 @@
     "edited": {
      "renderScale": 0.231,
      "bodyBottom": 195
-    }
+    },
+    "srcBox": [
+     114,
+     93,
+     909,
+     1443
+    ]
    },
    "walk_b": {
     "w": 447,
@@ -4966,7 +5344,13 @@
     "edited": {
      "renderScale": 0.231,
      "bodyBottom": 195.1
-    }
+    },
+    "srcBox": [
+     288,
+     93,
+     735,
+     1442
+    ]
    },
    "teeter": {
     "w": 805,
@@ -5009,7 +5393,13 @@
        1804.3
       ]
      }
-    }
+    },
+    "srcBox": [
+     15,
+     37,
+     820,
+     1847
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 986,
@@ -5034,7 +5424,13 @@
     "bodyLeft": 0,
     "bodyRight": 986,
     "coreLeft": 103.8,
-    "coreRight": 895.3
+    "coreRight": 895.3,
+    "srcBox": [
+     64,
+     221,
+     1050,
+     1259
+    ]
    },
    "attack_diag_up_b": {
     "w": 979,
@@ -5060,7 +5456,13 @@
     "bodyLeft": 0,
     "bodyRight": 979,
     "coreLeft": 92.9,
-    "coreRight": 836.4
+    "coreRight": 836.4,
+    "srcBox": [
+     64,
+     64,
+     1043,
+     1551
+    ]
    },
    "throw_back": {
     "w": 694,
@@ -5094,7 +5496,13 @@
     },
     "edited": {
      "bodyBottom": 194.2
-    }
+    },
+    "srcBox": [
+     139,
+     64,
+     833,
+     1537
+    ]
    },
    "throw_down": {
     "w": 1038,
@@ -5125,7 +5533,13 @@
      "fields": {
       "bodyBottom": "foot=0.901 (throwDown)"
      }
-    }
+    },
+    "srcBox": [
+     64,
+     245,
+     1102,
+     1217
+    ]
    },
    "throw_fwd": {
     "w": 1018,
@@ -5151,7 +5565,13 @@
     "bodyLeft": 0,
     "bodyRight": 1018,
     "coreLeft": 91.5,
-    "coreRight": 887.6
+    "coreRight": 887.6,
+    "srcBox": [
+     64,
+     64,
+     1082,
+     1528
+    ]
    },
    "throw_up": {
     "w": 496,
@@ -5183,7 +5603,13 @@
       "bodyBottom": "foot=0.916 (character)"
      }
     },
-    "wantsImprovement": "alpha"
+    "wantsImprovement": "alpha",
+    "srcBox": [
+     271,
+     64,
+     767,
+     1527
+    ]
    }
   },
   "geto": {
@@ -5787,7 +6213,13 @@
     "bodyLeft": 0,
     "bodyRight": 1165,
     "coreLeft": 400.5,
-    "coreRight": 1063.1
+    "coreRight": 1063.1,
+    "srcBox": [
+     200,
+     106,
+     1365,
+     943
+    ]
    },
    "dodge_roll": {
     "w": 1043,
@@ -5812,7 +6244,13 @@
     "bodyLeft": 0,
     "bodyRight": 1043,
     "coreLeft": 306.4,
-    "coreRight": 990.9
+    "coreRight": 990.9,
+    "srcBox": [
+     133,
+     138,
+     1176,
+     897
+    ]
    },
    "attack_down": {
     "w": 860,
@@ -5877,7 +6315,13 @@
     "bodyLeft": 0,
     "bodyRight": 895,
     "coreLeft": 76,
-    "coreRight": 770
+    "coreRight": 770,
+    "srcBox": [
+     17,
+     95,
+     912,
+     1616
+    ]
    },
    "special_side": {
     "w": 932,
@@ -5903,7 +6347,13 @@
     "bodyLeft": 0,
     "bodyRight": 932,
     "coreLeft": 67.4,
-    "coreRight": 863.2
+    "coreRight": 863.2,
+    "srcBox": [
+     0,
+     226,
+     932,
+     1305
+    ]
    },
    "attack_air_a": {
     "w": 900,
@@ -5928,7 +6378,13 @@
     "bodyLeft": 0,
     "bodyRight": 900,
     "coreLeft": 95.6,
-    "coreRight": 812.9
+    "coreRight": 812.9,
+    "srcBox": [
+     49,
+     93,
+     949,
+     1186
+    ]
    },
    "attack_air_b": {
     "w": 1001,
@@ -5954,7 +6410,13 @@
     "bodyLeft": 0,
     "bodyRight": 1001,
     "coreLeft": 64.9,
-    "coreRight": 858.3
+    "coreRight": 858.3,
+    "srcBox": [
+     9,
+     147,
+     1010,
+     1301
+    ]
    },
    "attack_heavy_a": {
     "file": "geto/attack_heavy_a.png",
@@ -6087,7 +6549,13 @@
        623.7
       ]
      }
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1011,
+     1530
+    ]
    },
    "crouch_a": {
     "w": 705,
@@ -6120,7 +6588,13 @@
     "edited": {
      "renderScale": 0.369,
      "bodyBottom": 274
-    }
+    },
+    "srcBox": [
+     126,
+     380,
+     831,
+     1375
+    ]
    },
    "crouch_attack_a": {
     "w": 876,
@@ -6154,7 +6628,13 @@
     "bodyLeft": 0,
     "bodyRight": 876,
     "coreLeft": 47.2,
-    "coreRight": 795
+    "coreRight": 795,
+    "srcBox": [
+     69,
+     319,
+     945,
+     1397
+    ]
    },
    "crouch_attack_b": {
     "file": "geto/crouch_attack_b.png",
@@ -6221,7 +6701,13 @@
     },
     "edited": {
      "renderScale": 0.398
-    }
+    },
+    "srcBox": [
+     57,
+     374,
+     882,
+     1408
+    ]
    },
    "dash": {
     "w": 774,
@@ -6247,7 +6733,13 @@
     "bodyLeft": 0,
     "bodyRight": 774,
     "coreLeft": 56.5,
-    "coreRight": 728.9
+    "coreRight": 728.9,
+    "srcBox": [
+     66,
+     299,
+     840,
+     1203
+    ]
    },
    "land": {
     "w": 846,
@@ -6273,7 +6765,13 @@
     "bodyLeft": 0,
     "bodyRight": 846,
     "coreLeft": 91.8,
-    "coreRight": 780.2
+    "coreRight": 780.2,
+    "srcBox": [
+     61,
+     289,
+     907,
+     1338
+    ]
    },
    "special_down": {
     "w": 995,
@@ -6300,7 +6798,13 @@
     "bodyLeft": 0,
     "bodyRight": 995,
     "coreLeft": 59.4,
-    "coreRight": 890.2
+    "coreRight": 890.2,
+    "srcBox": [
+     29,
+     233,
+     1024,
+     1420
+    ]
    },
    "ult_a": {
     "w": 988,
@@ -6327,7 +6831,13 @@
     "bodyLeft": 0,
     "bodyRight": 988,
     "coreLeft": 110.7,
-    "coreRight": 909.2
+    "coreRight": 909.2,
+    "srcBox": [
+     18,
+     153,
+     1006,
+     1418
+    ]
    },
    "ult_b": {
     "w": 993,
@@ -6354,7 +6864,13 @@
     "bodyLeft": 0,
     "bodyRight": 993,
     "coreLeft": 67.4,
-    "coreRight": 914.2
+    "coreRight": 914.2,
+    "srcBox": [
+     20,
+     151,
+     1013,
+     1350
+    ]
    },
    "prone": {
     "w": 940,
@@ -6429,7 +6945,13 @@
       "renderScale": 0.2488,
       "bodyH": 355.5
      }
-    }
+    },
+    "srcBox": [
+     122,
+     179,
+     905,
+     1316
+    ]
    },
    "run_pass_b": {
     "w": 722,
@@ -6470,7 +6992,13 @@
       "renderScale": 0.2457,
       "bodyH": 352.1
      }
-    }
+    },
+    "srcBox": [
+     164,
+     176,
+     886,
+     1302
+    ]
    },
    "run_reach_a": {
     "w": 985,
@@ -6511,7 +7039,13 @@
       "renderScale": 0.2848,
       "bodyH": 286.4
      }
-    }
+    },
+    "srcBox": [
+     15,
+     307,
+     1000,
+     1223
+    ]
    },
    "run_reach_b": {
     "w": 995,
@@ -6552,7 +7086,13 @@
       "renderScale": 0.2707,
       "bodyH": 311.8
      }
-    }
+    },
+    "srcBox": [
+     19,
+     237,
+     1014,
+     1234
+    ]
    },
    "attack_dash": {
     "w": 1101,
@@ -6584,7 +7124,13 @@
     },
     "edited": {
      "renderScale": 0.313
-    }
+    },
+    "srcBox": [
+     46,
+     177,
+     1147,
+     1123
+    ]
    },
    "grab_hold": {
     "w": 926,
@@ -6616,7 +7162,13 @@
     },
     "edited": {
      "renderScale": 0.313
-    }
+    },
+    "srcBox": [
+     71,
+     28,
+     997,
+     1518
+    ]
    },
    "grab_reach": {
     "w": 999,
@@ -6656,7 +7208,13 @@
      "anchors": {
       "grabHand": null
      }
-    }
+    },
+    "srcBox": [
+     17,
+     137,
+     1016,
+     1389
+    ]
    },
    "grabbed": {
     "w": 791,
@@ -6696,7 +7254,13 @@
      "anchors": {
       "grabChest": null
      }
-    }
+    },
+    "srcBox": [
+     70,
+     97,
+     861,
+     1588
+    ]
    },
    "walk_a": {
     "w": 675,
@@ -6729,7 +7293,13 @@
     "edited": {
      "renderScale": 0.313,
      "bodyBottom": 255.4
-    }
+    },
+    "srcBox": [
+     174,
+     93,
+     849,
+     1443
+    ]
    },
    "walk_b": {
     "w": 595,
@@ -6762,7 +7332,13 @@
     "edited": {
      "renderScale": 0.313,
      "bodyBottom": 255.4
-    }
+    },
+    "srcBox": [
+     214,
+     93,
+     809,
+     1443
+    ]
    },
    "teeter": {
     "w": 841,
@@ -6805,7 +7381,13 @@
        1339.8
       ]
      }
-    }
+    },
+    "srcBox": [
+     41,
+     135,
+     882,
+     1479
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 952,
@@ -6839,7 +7421,13 @@
     },
     "edited": {
      "renderScale": 0.23
-    }
+    },
+    "srcBox": [
+     65,
+     71,
+     1017,
+     1496
+    ]
    },
    "attack_diag_up_b": {
     "w": 914,
@@ -6874,7 +7462,13 @@
     "edited": {
      "renderScale": 0.2059,
      "bodyBottom": 247.6
-    }
+    },
+    "srcBox": [
+     67,
+     64,
+     981,
+     1577
+    ]
    },
    "throw_back": {
     "w": 821,
@@ -6909,7 +7503,13 @@
     "edited": {
      "renderScale": 0.2035,
      "bodyBottom": 244.9
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     885,
+     1643
+    ]
    },
    "throw_down": {
     "w": 1212,
@@ -6943,7 +7543,13 @@
     },
     "edited": {
      "renderScale": 0.2401
-    }
+    },
+    "srcBox": [
+     64,
+     112,
+     1276,
+     1085
+    ]
    },
    "throw_fwd": {
     "w": 924,
@@ -6978,7 +7584,13 @@
     "edited": {
      "ox": -312.6,
      "bodyBottom": 256.9
-    }
+    },
+    "srcBox": [
+     64,
+     176,
+     988,
+     1467
+    ]
    },
    "throw_up": {
     "w": 807,
@@ -7010,7 +7622,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     80,
+     64,
+     887,
+     1597
+    ]
    }
   },
   "momo": {
@@ -7640,7 +8258,13 @@
     "bodyLeft": 0,
     "bodyRight": 853,
     "coreLeft": 138,
-    "coreRight": 766.9
+    "coreRight": 766.9,
+    "srcBox": [
+     92,
+     110,
+     945,
+     1337
+    ]
    },
    "attack_air_b": {
     "w": 988,
@@ -7665,7 +8289,13 @@
     "bodyLeft": 0,
     "bodyRight": 988,
     "coreLeft": 67.9,
-    "coreRight": 950.9
+    "coreRight": 950.9,
+    "srcBox": [
+     18,
+     296,
+     1006,
+     1208
+    ]
    },
    "attack_down": {
     "w": 781,
@@ -7692,7 +8322,13 @@
     "bodyLeft": 0,
     "bodyRight": 781,
     "coreLeft": 51.4,
-    "coreRight": 697.1
+    "coreRight": 697.1,
+    "srcBox": [
+     116,
+     248,
+     897,
+     1422
+    ]
    },
    "attack_heavy_a": {
     "w": 958,
@@ -7725,7 +8361,13 @@
     "bodyLeft": 0,
     "bodyRight": 958,
     "coreLeft": 146.7,
-    "coreRight": 871.8
+    "coreRight": 871.8,
+    "srcBox": [
+     26,
+     58,
+     984,
+     1439
+    ]
    },
    "attack_heavy_b": {
     "w": 1019,
@@ -7778,7 +8420,13 @@
     "bodyLeft": 0,
     "bodyRight": 958,
     "coreLeft": 69.2,
-    "coreRight": 884.8
+    "coreRight": 884.8,
+    "srcBox": [
+     57,
+     110,
+     1015,
+     1341
+    ]
    },
    "attack_light_b": {
     "w": 997,
@@ -7811,7 +8459,13 @@
     "edited": {
      "renderScale": 0.413,
      "ox": -232
-    }
+    },
+    "srcBox": [
+     14,
+     362,
+     1011,
+     1322
+    ]
    },
    "crouch_a": {
     "w": 1054,
@@ -7843,7 +8497,13 @@
     },
     "edited": {
      "renderScale": 0.326
-    }
+    },
+    "srcBox": [
+     32,
+     415,
+     1086,
+     1276
+    ]
    },
    "crouch_attack_a": {
     "w": 926,
@@ -7869,7 +8529,13 @@
     "bodyLeft": 0,
     "bodyRight": 926,
     "coreLeft": 48,
-    "coreRight": 827.1
+    "coreRight": 827.1,
+    "srcBox": [
+     71,
+     403,
+     997,
+     1362
+    ]
    },
    "crouch_attack_b": {
     "w": 940,
@@ -7902,7 +8568,13 @@
     "edited": {
      "renderScale": 0.379,
      "ox": -269.8
-    }
+    },
+    "srcBox": [
+     53,
+     614,
+     993,
+     1354
+    ]
    },
    "crouch_b": {
     "w": 1001,
@@ -7935,7 +8607,13 @@
     "edited": {
      "renderScale": 0.368,
      "bodyBottom": 268.7
-    }
+    },
+    "srcBox": [
+     23,
+     291,
+     1024,
+     1256
+    ]
    },
    "dash": {
     "w": 991,
@@ -7966,7 +8644,13 @@
     "bodyLeft": 0,
     "bodyRight": 991,
     "coreLeft": 37.2,
-    "coreRight": 885.7
+    "coreRight": 885.7,
+    "srcBox": [
+     0,
+     299,
+     991,
+     1235
+    ]
    },
    "land": {
     "w": 945,
@@ -7998,7 +8682,13 @@
     "bodyLeft": 0,
     "bodyRight": 945,
     "coreLeft": 70.9,
-    "coreRight": 868.2
+    "coreRight": 868.2,
+    "srcBox": [
+     38,
+     425,
+     983,
+     1328
+    ]
    },
    "special_down": {
     "w": 767,
@@ -8030,7 +8720,13 @@
     "bodyLeft": 0,
     "bodyRight": 767,
     "coreLeft": 69.2,
-    "coreRight": 682.9
+    "coreRight": 682.9,
+    "srcBox": [
+     147,
+     70,
+     914,
+     1453
+    ]
    },
    "special_neutral": {
     "w": 980,
@@ -8057,7 +8753,13 @@
     "bodyLeft": 0,
     "bodyRight": 980,
     "coreLeft": 108.1,
-    "coreRight": 945.9
+    "coreRight": 945.9,
+    "srcBox": [
+     44,
+     233,
+     1024,
+     1314
+    ]
    },
    "special_side": {
     "w": 1006,
@@ -8083,7 +8785,13 @@
     "bodyLeft": 0,
     "bodyRight": 1006,
     "coreLeft": 69.2,
-    "coreRight": 861.4
+    "coreRight": 861.4,
+    "srcBox": [
+     9,
+     335,
+     1015,
+     1055
+    ]
    },
    "ult_a": {
     "w": 826,
@@ -8146,7 +8854,13 @@
     "bodyLeft": 0,
     "bodyRight": 1003,
     "coreLeft": 112.3,
-    "coreRight": 954.2
+    "coreRight": 954.2,
+    "srcBox": [
+     21,
+     66,
+     1024,
+     1349
+    ]
    },
    "prone": {
     "w": 943,
@@ -8177,7 +8891,13 @@
     "coreRight": 913.5,
     "edited": {
      "bodyBottom": 310.4
-    }
+    },
+    "srcBox": [
+     37,
+     601,
+     980,
+     965
+    ]
    },
    "run_pass_a": {
     "w": 951,
@@ -8218,7 +8938,13 @@
       "renderScale": 0.2556,
       "bodyH": 365.5
      }
-    }
+    },
+    "srcBox": [
+     13,
+     202,
+     964,
+     1304
+    ]
    },
    "run_pass_b": {
     "w": 967,
@@ -8259,7 +8985,13 @@
       "renderScale": 0.2573,
       "bodyH": 357.9
      }
-    }
+    },
+    "srcBox": [
+     6,
+     187,
+     973,
+     1266
+    ]
    },
    "run_reach_a": {
     "w": 964,
@@ -8292,7 +9024,13 @@
     "edited": {
      "renderScale": 0.332,
      "bodyBottom": 261.9
-    }
+    },
+    "srcBox": [
+     0,
+     295,
+     964,
+     1261
+    ]
    },
    "run_reach_b": {
     "w": 925,
@@ -8325,7 +9063,13 @@
     "edited": {
      "renderScale": 0.332,
      "bodyBottom": 265.2
-    }
+    },
+    "srcBox": [
+     9,
+     290,
+     934,
+     1191
+    ]
    },
    "attack_dash": {
     "w": 1468,
@@ -8364,7 +9108,13 @@
        342.1
       ]
      }
-    }
+    },
+    "srcBox": [
+     43,
+     145,
+     1511,
+     907
+    ]
    },
    "grab_hold": {
     "w": 899,
@@ -8396,7 +9146,13 @@
     },
     "edited": {
      "renderScale": 0.332
-    }
+    },
+    "srcBox": [
+     19,
+     12,
+     918,
+     1681
+    ]
    },
    "grab_reach": {
     "w": 966,
@@ -8436,7 +9192,13 @@
      "anchors": {
       "grabHand": null
      }
-    }
+    },
+    "srcBox": [
+     25,
+     171,
+     991,
+     1366
+    ]
    },
    "grabbed": {
     "w": 843,
@@ -8476,7 +9238,13 @@
      "anchors": {
       "grabChest": null
      }
-    }
+    },
+    "srcBox": [
+     77,
+     118,
+     920,
+     1540
+    ]
    },
    "walk_a": {
     "w": 942,
@@ -8509,7 +9277,13 @@
     "edited": {
      "renderScale": 0.332,
      "bodyBottom": 253.5
-    }
+    },
+    "srcBox": [
+     41,
+     149,
+     983,
+     1386
+    ]
    },
    "walk_b": {
     "w": 828,
@@ -8542,7 +9316,13 @@
     "edited": {
      "renderScale": 0.332,
      "bodyBottom": 248.3
-    }
+    },
+    "srcBox": [
+     97,
+     92,
+     925,
+     1442
+    ]
    },
    "teeter": {
     "w": 900,
@@ -8585,7 +9365,13 @@
        1367.7
       ]
      }
-    }
+    },
+    "srcBox": [
+     44,
+     78,
+     944,
+     1450
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 942,
@@ -8619,7 +9405,13 @@
     },
     "edited": {
      "ox": -285.9
-    }
+    },
+    "srcBox": [
+     74,
+     64,
+     1016,
+     1519
+    ]
    },
    "attack_diag_up_b": {
     "w": 1090,
@@ -8651,7 +9443,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     64,
+     64,
+     1154,
+     1454
+    ]
    },
    "throw_back": {
     "w": 756,
@@ -8684,7 +9482,13 @@
     "edited": {
      "renderScale": 0.332,
      "bodyBottom": 240.8
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     820,
+     1901
+    ]
    },
    "throw_down": {
     "w": 930,
@@ -8716,7 +9520,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     64,
+     156,
+     994,
+     1331
+    ]
    },
    "throw_fwd": {
     "w": 934,
@@ -8751,7 +9561,13 @@
     "edited": {
      "renderScale": 0.2512,
      "bodyBottom": 165.5
-    }
+    },
+    "srcBox": [
+     97,
+     64,
+     1031,
+     1387
+    ]
    },
    "throw_up": {
     "w": 755,
@@ -8783,7 +9599,13 @@
       "bodyBottom": "foot=0.951 (throwUp)",
       "ox": "on the placed centre of mass"
      }
-    }
+    },
+    "srcBox": [
+     64,
+     93,
+     819,
+     1776
+    ]
    }
   },
   "mahito": {
@@ -14789,7 +15611,13 @@
     },
     "edited": {
      "renderScale": 0.219
-    }
+    },
+    "srcBox": [
+     162,
+     142,
+     932,
+     1368
+    ]
    },
    "jump_rise": {
     "file": "jogo/jump_rise.png",
@@ -14932,7 +15760,13 @@
        688.1
       ]
      }
-    }
+    },
+    "srcBox": [
+     185,
+     64,
+     905,
+     1487
+    ]
    },
    "attack_air": {
     "file": "jogo/attack_air.png",
@@ -15219,7 +16053,13 @@
     "bodyLeft": 0,
     "bodyRight": 897,
     "coreLeft": 57.4,
-    "coreRight": 803
+    "coreRight": 803,
+    "srcBox": [
+     71,
+     114,
+     968,
+     1425
+    ]
    },
    "attack_air_b": {
     "w": 936,
@@ -15244,7 +16084,13 @@
     "bodyLeft": 0,
     "bodyRight": 936,
     "coreLeft": 59.5,
-    "coreRight": 818.1
+    "coreRight": 818.1,
+    "srcBox": [
+     43,
+     150,
+     979,
+     1340
+    ]
    },
    "attack_down": {
     "w": 944,
@@ -15270,7 +16116,13 @@
     "bodyLeft": 0,
     "bodyRight": 944,
     "coreLeft": 85.5,
-    "coreRight": 847.9
+    "coreRight": 847.9,
+    "srcBox": [
+     30,
+     335,
+     974,
+     1475
+    ]
    },
    "attack_heavy_a": {
     "w": 969,
@@ -15299,7 +16151,13 @@
     "bodyLeft": 0,
     "bodyRight": 969,
     "coreLeft": 57.9,
-    "coreRight": 819.2
+    "coreRight": 819.2,
+    "srcBox": [
+     46,
+     133,
+     1015,
+     1457
+    ]
    },
    "attack_heavy_b": {
     "w": 980,
@@ -15457,7 +16315,13 @@
     "bodyLeft": 0,
     "bodyRight": 996,
     "coreLeft": 106.9,
-    "coreRight": 886.5
+    "coreRight": 886.5,
+    "srcBox": [
+     14,
+     342,
+     1010,
+     1348
+    ]
    },
    "crouch_attack_b": {
     "w": 1077,
@@ -15491,7 +16355,13 @@
      "renderScale": 0.35,
      "ox": -367.6,
      "bodyBottom": 262.2
-    }
+    },
+    "srcBox": [
+     22,
+     364,
+     1099,
+     1356
+    ]
    },
    "crouch_b": {
     "w": 948,
@@ -15552,7 +16422,13 @@
     "bodyLeft": 0,
     "bodyRight": 904,
     "coreLeft": 56.5,
-    "coreRight": 853.2
+    "coreRight": 853.2,
+    "srcBox": [
+     54,
+     378,
+     958,
+     1225
+    ]
    },
    "land": {
     "w": 936,
@@ -15691,7 +16567,13 @@
     "bodyLeft": 0,
     "bodyRight": 996,
     "coreLeft": 74.1,
-    "coreRight": 944.8
+    "coreRight": 944.8,
+    "srcBox": [
+     28,
+     3,
+     1024,
+     1485
+    ]
    },
    "prone": {
     "w": 934,
@@ -15725,7 +16607,13 @@
      "bodyBottom": 310,
      "rotationDeg": null
     },
-    "rotationDeg": -3.5
+    "rotationDeg": -3.5,
+    "srcBox": [
+     47,
+     663,
+     981,
+     948
+    ]
    },
    "run_pass_a": {
     "w": 884,
@@ -15766,7 +16654,13 @@
       "renderScale": 0.2321,
       "bodyH": 336.2
      }
-    }
+    },
+    "srcBox": [
+     75,
+     143,
+     959,
+     1333
+    ]
    },
    "run_pass_b": {
     "w": 915,
@@ -15813,7 +16707,13 @@
       "renderScale": 0.2496,
       "bodyH": 330.2
      }
-    }
+    },
+    "srcBox": [
+     53,
+     176,
+     968,
+     1345
+    ]
    },
    "run_reach_a": {
     "w": 937,
@@ -15860,7 +16760,13 @@
       "renderScale": 0.2858,
       "bodyH": 262.2
      }
-    }
+    },
+    "srcBox": [
+     46,
+     351,
+     983,
+     1279
+    ]
    },
    "run_reach_b": {
     "w": 1001,
@@ -15907,7 +16813,13 @@
       "renderScale": 0.2933,
       "bodyH": 250
      }
-    }
+    },
+    "srcBox": [
+     18,
+     334,
+     1019,
+     1219
+    ]
    },
    "attack_dash": {
     "w": 1100,
@@ -15939,7 +16851,13 @@
     },
     "edited": {
      "renderScale": 0.222
-    }
+    },
+    "srcBox": [
+     18,
+     234,
+     1118,
+     1240
+    ]
    },
    "grab_hold": {
     "w": 937,
@@ -16013,7 +16931,13 @@
      "anchors": {
       "grabHand": null
      }
-    }
+    },
+    "srcBox": [
+     39,
+     121,
+     1039,
+     1260
+    ]
    },
    "grabbed": {
     "w": 832,
@@ -16089,7 +17013,13 @@
      "bodyBottom": 242.1,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     137,
+     93,
+     887,
+     1442
+    ]
    },
    "walk_b": {
     "w": 696,
@@ -16124,7 +17054,13 @@
      "bodyBottom": 242.1,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     164,
+     93,
+     860,
+     1442
+    ]
    },
    "teeter": {
     "w": 910,
@@ -16167,7 +17103,13 @@
        1277
       ]
      }
-    }
+    },
+    "srcBox": [
+     2,
+     128,
+     912,
+     1409
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 1020,
@@ -16202,7 +17144,13 @@
     "edited": {
      "renderScale": 0.2112,
      "ox": -374.1
-    }
+    },
+    "srcBox": [
+     64,
+     129,
+     1084,
+     1434
+    ]
    },
    "attack_diag_up_b": {
     "w": 1001,
@@ -16239,7 +17187,13 @@
      "bodyBottom": 242.1,
      "rotationDeg": null
     },
-    "rotationDeg": 3.5
+    "rotationDeg": 3.5,
+    "srcBox": [
+     64,
+     77,
+     1065,
+     1438
+    ]
    },
    "domain_expansion": {
     "w": 708,
@@ -16273,7 +17227,13 @@
     },
     "edited": {
      "renderScale": 0.1826
-    }
+    },
+    "srcBox": [
+     141,
+     64,
+     849,
+     1602
+    ]
    },
    "throw_back": {
     "w": 994,
@@ -16307,7 +17267,13 @@
     },
     "edited": {
      "renderScale": 0.1816
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1058,
+     1647
+    ]
    },
    "throw_down": {
     "w": 1292,
@@ -16339,7 +17305,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     78,
+     117,
+     1370,
+     1012
+    ]
    },
    "throw_fwd": {
     "w": 1064,
@@ -16371,7 +17343,13 @@
     },
     "edited": {
      "bodyBottom": 247.6
-    }
+    },
+    "srcBox": [
+     64,
+     81,
+     1128,
+     1334
+    ]
    },
    "throw_up": {
     "w": 513,
@@ -16403,7 +17381,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     241,
+     66,
+     754,
+     1534
+    ]
    }
   },
   "hakari": {
@@ -17007,7 +17991,13 @@
       "ox": "on the placed centre of mass"
      }
     },
-    "wantsImprovement": "alpha"
+    "wantsImprovement": "alpha",
+    "srcBox": [
+     168,
+     187,
+     758,
+     1260
+    ]
    },
    "dodge_roll": {
     "w": 937,
@@ -17032,7 +18022,13 @@
     "bodyLeft": 0,
     "bodyRight": 937,
     "coreLeft": 52.7,
-    "coreRight": 855
+    "coreRight": 855,
+    "srcBox": [
+     71,
+     329,
+     1008,
+     1048
+    ]
    },
    "special_down": {
     "w": 907,
@@ -17060,7 +18056,13 @@
     "bodyLeft": 0,
     "bodyRight": 907,
     "coreLeft": 89.4,
-    "coreRight": 858
+    "coreRight": 858,
+    "srcBox": [
+     58,
+     65,
+     965,
+     1495
+    ]
    },
    "attack_air_a": {
     "w": 806,
@@ -17085,7 +18087,13 @@
     "bodyLeft": 0,
     "bodyRight": 806,
     "coreLeft": 56,
-    "coreRight": 744.6
+    "coreRight": 744.6,
+    "srcBox": [
+     63,
+     96,
+     869,
+     1377
+    ]
    },
    "attack_air_b": {
     "w": 968,
@@ -17112,7 +18120,13 @@
     "bodyLeft": 0,
     "bodyRight": 968,
     "coreLeft": 48.2,
-    "coreRight": 922.1
+    "coreRight": 922.1,
+    "srcBox": [
+     29,
+     200,
+     997,
+     1301
+    ]
    },
    "attack_down": {
     "w": 936,
@@ -17145,7 +18159,13 @@
     "bodyLeft": 0,
     "bodyRight": 936,
     "coreLeft": 87.8,
-    "coreRight": 871.6
+    "coreRight": 871.6,
+    "srcBox": [
+     31,
+     249,
+     967,
+     1330
+    ]
    },
    "attack_heavy_a": {
     "file": "hakari/attack_heavy_a.png",
@@ -17213,7 +18233,13 @@
        393.4
       ]
      }
-    }
+    },
+    "srcBox": [
+     34,
+     120,
+     994,
+     1426
+    ]
    },
    "attack_light_a": {
     "w": 829,
@@ -17247,7 +18273,13 @@
      "renderScale": 0.304,
      "ox": -263.7,
      "bodyBottom": 213.3
-    }
+    },
+    "srcBox": [
+     68,
+     41,
+     897,
+     1504
+    ]
    },
    "attack_light_b": {
     "w": 968,
@@ -17317,7 +18349,13 @@
      "renderScale": 0.34,
      "ox": -230.8,
      "bodyBottom": 224.8
-    }
+    },
+    "srcBox": [
+     129,
+     297,
+     927,
+     1483
+    ]
    },
    "crouch_attack_a": {
     "w": 883,
@@ -17343,7 +18381,13 @@
     "bodyLeft": 0,
     "bodyRight": 883,
     "coreLeft": 71.7,
-    "coreRight": 772.6
+    "coreRight": 772.6,
+    "srcBox": [
+     70,
+     406,
+     953,
+     1267
+    ]
    },
    "crouch_attack_b": {
     "w": 970,
@@ -17377,7 +18421,13 @@
      "renderScale": 0.571,
      "ox": -235.1,
      "bodyBottom": 255.5
-    }
+    },
+    "srcBox": [
+     27,
+     487,
+     997,
+     1250
+    ]
    },
    "crouch_b": {
     "w": 718,
@@ -17411,7 +18461,13 @@
      "renderScale": 0.402,
      "ox": -171.4,
      "bodyBottom": 229.3
-    }
+    },
+    "srcBox": [
+     145,
+     372,
+     863,
+     1496
+    ]
    },
    "dash": {
     "w": 970,
@@ -17436,7 +18492,13 @@
     "bodyLeft": 0,
     "bodyRight": 970,
     "coreLeft": 66.6,
-    "coreRight": 905.2
+    "coreRight": 905.2,
+    "srcBox": [
+     39,
+     279,
+     1009,
+     1344
+    ]
    },
    "land": {
     "w": 847,
@@ -17468,7 +18530,13 @@
     "bodyLeft": 0,
     "bodyRight": 847,
     "coreLeft": 91.5,
-    "coreRight": 745.3
+    "coreRight": 745.3,
+    "srcBox": [
+     69,
+     303,
+     916,
+     1349
+    ]
    },
    "special_neutral": {
     "w": 984,
@@ -17495,7 +18563,13 @@
     "bodyLeft": 0,
     "bodyRight": 984,
     "coreLeft": 80.2,
-    "coreRight": 935.2
+    "coreRight": 935.2,
+    "srcBox": [
+     15,
+     38,
+     999,
+     1463
+    ]
    },
    "special_side": {
     "w": 884,
@@ -17587,7 +18661,13 @@
     "bodyLeft": 0,
     "bodyRight": 983,
     "coreLeft": 83,
-    "coreRight": 922.5
+    "coreRight": 922.5,
+    "srcBox": [
+     18,
+     27,
+     1001,
+     1503
+    ]
    },
    "ult_b": {
     "w": 999,
@@ -17615,7 +18695,13 @@
     "bodyLeft": 0,
     "bodyRight": 999,
     "coreLeft": 53.2,
-    "coreRight": 912.8
+    "coreRight": 912.8,
+    "srcBox": [
+     25,
+     62,
+     1024,
+     1480
+    ]
    },
    "prone": {
     "w": 915,
@@ -17647,7 +18733,13 @@
     "edited": {
      "renderScale": 0.321,
      "bodyBottom": 310
-    }
+    },
+    "srcBox": [
+     59,
+     667,
+     974,
+     942
+    ]
    },
    "run_pass_a": {
     "w": 719,
@@ -17688,7 +18780,13 @@
       "renderScale": 0.2415,
       "bodyH": 394
      }
-    }
+    },
+    "srcBox": [
+     136,
+     157,
+     855,
+     1382
+    ]
    },
    "run_pass_b": {
     "w": 723,
@@ -17729,7 +18827,13 @@
       "renderScale": 0.2479,
       "bodyH": 389.1
      }
-    }
+    },
+    "srcBox": [
+     129,
+     170,
+     852,
+     1380
+    ]
    },
    "run_reach_a": {
     "w": 829,
@@ -17762,7 +18866,13 @@
     "edited": {
      "renderScale": 0.322,
      "bodyBottom": 225.4
-    }
+    },
+    "srcBox": [
+     87,
+     224,
+     916,
+     1362
+    ]
    },
    "run_reach_b": {
     "w": 830,
@@ -17795,7 +18905,13 @@
     "edited": {
      "renderScale": 0.322,
      "bodyBottom": 227.9
-    }
+    },
+    "srcBox": [
+     97,
+     191,
+     927,
+     1296
+    ]
    },
    "attack_dash": {
     "w": 1067,
@@ -17828,7 +18944,13 @@
     "edited": {
      "renderScale": 0.322,
      "bodyBottom": 247.5
-    }
+    },
+    "srcBox": [
+     35,
+     307,
+     1102,
+     1171
+    ]
    },
    "grab_hold": {
     "w": 979,
@@ -17860,7 +18982,13 @@
     },
     "edited": {
      "renderScale": 0.322
-    }
+    },
+    "srcBox": [
+     22,
+     24,
+     1001,
+     1509
+    ]
    },
    "grab_reach": {
     "w": 1007,
@@ -17900,7 +19028,13 @@
      "anchors": {
       "grabHand": null
      }
-    }
+    },
+    "srcBox": [
+     21,
+     120,
+     1028,
+     1372
+    ]
    },
    "grabbed": {
     "w": 860,
@@ -17939,7 +19073,13 @@
      "anchors": {
       "grabChest": null
      }
-    }
+    },
+    "srcBox": [
+     79,
+     40,
+     939,
+     1496
+    ]
    },
    "walk_a": {
     "w": 730,
@@ -17978,7 +19118,13 @@
        604.7
       ]
      }
-    }
+    },
+    "srcBox": [
+     147,
+     94,
+     877,
+     1442
+    ]
    },
    "walk_b": {
     "w": 516,
@@ -18011,7 +19157,13 @@
     "edited": {
      "renderScale": 0.322,
      "bodyBottom": 211.9
-    }
+    },
+    "srcBox": [
+     254,
+     94,
+     770,
+     1443
+    ]
    },
    "teeter": {
     "w": 824,
@@ -18054,7 +19206,13 @@
        1343.8
       ]
      }
-    }
+    },
+    "srcBox": [
+     107,
+     87,
+     931,
+     1435
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 985,
@@ -18086,7 +19244,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     64,
+     113,
+     1049,
+     1113
+    ]
    },
    "attack_diag_up_b": {
     "w": 950,
@@ -18120,7 +19284,13 @@
     },
     "edited": {
      "renderScale": 0.2228
-    }
+    },
+    "srcBox": [
+     64,
+     79,
+     1014,
+     1458
+    ]
    },
    "domain_expansion": {
     "w": 436,
@@ -18154,7 +19324,13 @@
     },
     "edited": {
      "renderScale": 0.2722
-    }
+    },
+    "srcBox": [
+     407,
+     64,
+     843,
+     1255
+    ]
    },
    "throw_back": {
     "w": 920,
@@ -18189,7 +19365,13 @@
     "edited": {
      "renderScale": 0.2334,
      "bodyBottom": 219.7
-    }
+    },
+    "srcBox": [
+     64,
+     97,
+     984,
+     1443
+    ]
    },
    "throw_down": {
     "w": 978,
@@ -18221,7 +19403,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     232,
+     94,
+     1210,
+     1008
+    ]
    },
    "throw_fwd": {
     "w": 970,
@@ -18256,7 +19444,13 @@
     "edited": {
      "renderScale": 0.2324,
      "bodyBottom": 219.1
-    }
+    },
+    "srcBox": [
+     64,
+     107,
+     1034,
+     1462
+    ]
    },
    "throw_up": {
     "w": 701,
@@ -18292,7 +19486,13 @@
      "renderScale": 0.2408
     },
     "needsReplacement": "quality",
-    "replacementNote": "Weird arms going on"
+    "replacementNote": "Weird arms going on",
+    "srcBox": [
+     166,
+     64,
+     867,
+     1586
+    ]
    }
   },
   "yuta": {
@@ -24113,7 +25313,13 @@
      "renderScale": 0.176,
      "bodyBottom": 224,
      "ox": -88.4
-    }
+    },
+    "srcBox": [
+     158,
+     106,
+     680,
+     1570
+    ]
    },
    "idle_b": {
     "file": "inumaki/idle_b.png",
@@ -24147,7 +25353,13 @@
      "renderScale": 0.172,
      "ox": -93.3,
      "bodyBottom": 221.9
-    }
+    },
+    "srcBox": [
+     158,
+     94,
+     688,
+     1594
+    ]
    },
    "jump_rise": {
     "file": "inumaki/jump_rise.png",
@@ -24489,7 +25701,13 @@
     "bodyLeft": 0,
     "bodyRight": 583,
     "coreLeft": 79.9,
-    "coreRight": 515.6
+    "coreRight": 515.6,
+    "srcBox": [
+     331,
+     186,
+     914,
+     1348
+    ]
    },
    "dodge_roll": {
     "w": 1010,
@@ -24539,7 +25757,13 @@
     "bodyLeft": 0,
     "bodyRight": 767,
     "coreLeft": 39.8,
-    "coreRight": 661.4
+    "coreRight": 661.4,
+    "srcBox": [
+     148,
+     80,
+     915,
+     1355
+    ]
    },
    "attack_air_b": {
     "w": 946,
@@ -24565,7 +25789,13 @@
     "bodyLeft": 0,
     "bodyRight": 946,
     "coreLeft": 39.8,
-    "coreRight": 894.4
+    "coreRight": 894.4,
+    "srcBox": [
+     50,
+     194,
+     996,
+     1254
+    ]
    },
    "attack_down": {
     "w": 840,
@@ -24621,7 +25851,13 @@
     "bodyLeft": 0,
     "bodyRight": 947,
     "coreLeft": 75.2,
-    "coreRight": 818.9
+    "coreRight": 818.9,
+    "srcBox": [
+     38,
+     115,
+     985,
+     1452
+    ]
    },
    "attack_heavy_b": {
     "w": 961,
@@ -24650,7 +25886,13 @@
     "bodyLeft": 0,
     "bodyRight": 961,
     "coreLeft": 68.5,
-    "coreRight": 821.4
+    "coreRight": 821.4,
+    "srcBox": [
+     32,
+     116,
+     993,
+     1485
+    ]
    },
    "attack_light_a": {
     "file": "inumaki/attack_light_a.png",
@@ -24744,7 +25986,13 @@
      "renderScale": 0.316,
      "ox": -138.1,
      "bodyBottom": 258.7
-    }
+    },
+    "srcBox": [
+     257,
+     432,
+     871,
+     1341
+    ]
    },
    "crouch_attack_a": {
     "w": 886,
@@ -24773,7 +26021,13 @@
     "bodyLeft": 0,
     "bodyRight": 886,
     "coreLeft": 65.9,
-    "coreRight": 778.1
+    "coreRight": 778.1,
+    "srcBox": [
+     106,
+     311,
+     992,
+     1366
+    ]
    },
    "crouch_attack_b": {
     "w": 938,
@@ -24807,7 +26061,13 @@
      "renderScale": 0.407,
      "ox": -233.2,
      "bodyBottom": 262.8
-    }
+    },
+    "srcBox": [
+     51,
+     363,
+     989,
+     1201
+    ]
    },
    "crouch_b": {
     "w": 711,
@@ -24840,7 +26100,13 @@
     "edited": {
      "renderScale": 0.359,
      "ox": -201.4
-    }
+    },
+    "srcBox": [
+     115,
+     392,
+     826,
+     1398
+    ]
    },
    "dash": {
     "w": 891,
@@ -24865,7 +26131,13 @@
     "bodyLeft": 0,
     "bodyRight": 891,
     "coreLeft": 66.3,
-    "coreRight": 832.3
+    "coreRight": 832.3,
+    "srcBox": [
+     46,
+     384,
+     937,
+     1349
+    ]
    },
    "land": {
     "w": 906,
@@ -24897,7 +26169,13 @@
     "bodyLeft": 0,
     "bodyRight": 906,
     "coreLeft": 94.7,
-    "coreRight": 825
+    "coreRight": 825,
+    "srcBox": [
+     24,
+     330,
+     930,
+     1412
+    ]
    },
    "special_down": {
     "w": 876,
@@ -24931,7 +26209,13 @@
     "bodyLeft": 0,
     "bodyRight": 876,
     "coreLeft": 81.7,
-    "coreRight": 772.9
+    "coreRight": 772.9,
+    "srcBox": [
+     61,
+     248,
+     937,
+     1437
+    ]
    },
    "special_neutral": {
     "w": 886,
@@ -24958,7 +26242,13 @@
     "bodyLeft": 0,
     "bodyRight": 886,
     "coreLeft": 71,
-    "coreRight": 833.7
+    "coreRight": 833.7,
+    "srcBox": [
+     51,
+     90,
+     937,
+     1509
+    ]
    },
    "special_side": {
     "w": 978,
@@ -24987,7 +26277,13 @@
     "bodyLeft": 0,
     "bodyRight": 978,
     "coreLeft": 67.6,
-    "coreRight": 777.4
+    "coreRight": 777.4,
+    "srcBox": [
+     8,
+     120,
+     986,
+     1472
+    ]
    },
    "ult_a": {
     "w": 735,
@@ -25019,7 +26315,13 @@
     "bodyLeft": 0,
     "bodyRight": 735,
     "coreLeft": 73.6,
-    "coreRight": 625.6
+    "coreRight": 625.6,
+    "srcBox": [
+     152,
+     54,
+     887,
+     1526
+    ]
    },
    "ult_b": {
     "w": 1016,
@@ -25052,7 +26354,13 @@
     "bodyLeft": 0,
     "bodyRight": 1016,
     "coreLeft": 64.2,
-    "coreRight": 990.9
+    "coreRight": 990.9,
+    "srcBox": [
+     8,
+     20,
+     1024,
+     1488
+    ]
    },
    "prone": {
     "w": 927,
@@ -25086,7 +26394,13 @@
      "bodyBottom": 310,
      "rotationDeg": null
     },
-    "rotationDeg": -3.5
+    "rotationDeg": -3.5,
+    "srcBox": [
+     60,
+     678,
+     987,
+     934
+    ]
    },
    "run_pass_a": {
     "w": 898,
@@ -25127,7 +26441,13 @@
       "renderScale": 0.1956,
       "bodyH": 327.2
      }
-    }
+    },
+    "srcBox": [
+     81,
+     187,
+     979,
+     1408
+    ]
    },
    "run_pass_b": {
     "w": 790,
@@ -25168,7 +26488,13 @@
       "renderScale": 0.1903,
       "bodyH": 356.4
      }
-    }
+    },
+    "srcBox": [
+     119,
+     103,
+     909,
+     1433
+    ]
    },
    "run_reach_a": {
     "w": 861,
@@ -25209,7 +26535,13 @@
       "renderScale": 0.2345,
       "bodyH": 281.9
      }
-    }
+    },
+    "srcBox": [
+     62,
+     240,
+     923,
+     1292
+    ]
    },
    "run_reach_b": {
     "w": 954,
@@ -25250,7 +26582,13 @@
       "renderScale": 0.2278,
       "bodyH": 292.7
      }
-    }
+    },
+    "srcBox": [
+     35,
+     221,
+     989,
+     1313
+    ]
    },
    "attack_dash": {
     "w": 1049,
@@ -25282,7 +26620,13 @@
     },
     "edited": {
      "renderScale": 0.181
-    }
+    },
+    "srcBox": [
+     53,
+     215,
+     1102,
+     1207
+    ]
    },
    "grab_hold": {
     "w": 884,
@@ -25314,7 +26658,13 @@
     },
     "edited": {
      "renderScale": 0.181
-    }
+    },
+    "srcBox": [
+     36,
+     22,
+     920,
+     1610
+    ]
    },
    "grab_reach": {
     "w": 998,
@@ -25354,7 +26704,13 @@
      "anchors": {
       "grabHand": null
      }
-    }
+    },
+    "srcBox": [
+     10,
+     207,
+     1008,
+     1329
+    ]
    },
    "grabbed": {
     "w": 745,
@@ -25393,7 +26749,13 @@
      "anchors": {
       "grabChest": null
      }
-    }
+    },
+    "srcBox": [
+     179,
+     51,
+     924,
+     1458
+    ]
    },
    "walk_a": {
     "w": 684,
@@ -25426,7 +26788,13 @@
     "edited": {
      "renderScale": 0.181,
      "bodyBottom": 231.8
-    }
+    },
+    "srcBox": [
+     170,
+     93,
+     854,
+     1442
+    ]
    },
    "walk_b": {
     "w": 451,
@@ -25459,7 +26827,13 @@
     "edited": {
      "renderScale": 0.181,
      "bodyBottom": 231.7
-    }
+    },
+    "srcBox": [
+     286,
+     93,
+     737,
+     1443
+    ]
    },
    "teeter": {
     "w": 847,
@@ -25502,7 +26876,13 @@
        1406.6
       ]
      }
-    }
+    },
+    "srcBox": [
+     71,
+     118,
+     918,
+     1529
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 949,
@@ -25534,7 +26914,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     64,
+     84,
+     1013,
+     1518
+    ]
    },
    "attack_diag_up_b": {
     "w": 992,
@@ -25571,7 +26957,13 @@
      "bodyBottom": 226.5,
      "rotationDeg": null
     },
-    "rotationDeg": 3
+    "rotationDeg": 3,
+    "srcBox": [
+     65,
+     64,
+     1057,
+     1565
+    ]
    },
    "throw_back": {
     "w": 840,
@@ -25606,7 +26998,13 @@
     "edited": {
      "renderScale": 0.1565,
      "bodyBottom": 217.5
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     904,
+     1725
+    ]
    },
    "throw_down": {
     "w": 949,
@@ -25640,7 +27038,13 @@
     },
     "edited": {
      "renderScale": 0.185
-    }
+    },
+    "srcBox": [
+     65,
+     258,
+     1014,
+     1394
+    ]
    },
    "throw_fwd": {
     "w": 999,
@@ -25675,7 +27079,13 @@
     "edited": {
      "renderScale": 0.1678,
      "bodyBottom": 226.5
-    }
+    },
+    "srcBox": [
+     65,
+     64,
+     1064,
+     1564
+    ]
    },
    "throw_up": {
     "w": 682,
@@ -25710,7 +27120,13 @@
     "edited": {
      "renderScale": 0.1739,
      "bodyBottom": 214.8
-    }
+    },
+    "srcBox": [
+     117,
+     64,
+     799,
+     1772
+    ]
    }
   },
   "panda": {
@@ -31193,7 +32609,13 @@
      "renderScale": 0.181,
      "bodyBottom": 243.8,
      "ox": -96.8
-    }
+    },
+    "srcBox": [
+     196,
+     48,
+     715,
+     1654
+    ]
    },
    "attack_air": {
     "w": 1256,
@@ -31219,7 +32641,13 @@
     "bodyLeft": 0,
     "bodyRight": 1256,
     "coreLeft": 78.5,
-    "coreRight": 1099
+    "coreRight": 1099,
+    "srcBox": [
+     71,
+     60,
+     1327,
+     1043
+    ]
    },
    "attack_down": {
     "w": 1192,
@@ -31245,7 +32673,13 @@
     "bodyLeft": 0,
     "bodyRight": 1192,
     "coreLeft": 111.8,
-    "coreRight": 1043
+    "coreRight": 1043,
+    "srcBox": [
+     94,
+     178,
+     1286,
+     1010
+    ]
    },
    "attack_heavy": {
     "w": 969,
@@ -31272,7 +32706,13 @@
     "bodyLeft": 0,
     "bodyRight": 969,
     "coreLeft": 78.7,
-    "coreRight": 860
+    "coreRight": 860,
+    "srcBox": [
+     37,
+     295,
+     1006,
+     1228
+    ]
    },
    "attack_light_a": {
     "file": "choso/attack_light_a.png",
@@ -31359,7 +32799,13 @@
     "bodyLeft": 0,
     "bodyRight": 750,
     "coreLeft": 60.8,
-    "coreRight": 642.4
+    "coreRight": 642.4,
+    "srcBox": [
+     137,
+     86,
+     887,
+     1475
+    ]
    },
    "charge": {
     "w": 816,
@@ -31387,7 +32833,13 @@
     "bodyLeft": 0,
     "bodyRight": 816,
     "coreLeft": 82.2,
-    "coreRight": 754.3
+    "coreRight": 754.3,
+    "srcBox": [
+     109,
+     111,
+     925,
+     1306
+    ]
    },
    "crouch_a": {
     "w": 880,
@@ -31413,7 +32865,13 @@
     "bodyLeft": 0,
     "bodyRight": 880,
     "coreLeft": 72.6,
-    "coreRight": 810.7
+    "coreRight": 810.7,
+    "srcBox": [
+     118,
+     205,
+     998,
+     1173
+    ]
    },
    "crouch_attack_a": {
     "w": 1178,
@@ -31466,7 +32924,13 @@
     "bodyLeft": 0,
     "bodyRight": 1253,
     "coreLeft": 78.3,
-    "coreRight": 1104.2
+    "coreRight": 1104.2,
+    "srcBox": [
+     26,
+     364,
+     1279,
+     1148
+    ]
    },
    "crouch_b": {
     "w": 849,
@@ -31493,7 +32957,13 @@
     "bodyLeft": 0,
     "bodyRight": 849,
     "coreLeft": 68,
-    "coreRight": 778.8
+    "coreRight": 778.8,
+    "srcBox": [
+     119,
+     231,
+     968,
+     1220
+    ]
    },
    "dash": {
     "w": 1152,
@@ -31518,7 +32988,13 @@
     "bodyLeft": 0,
     "bodyRight": 1152,
     "coreLeft": 79.2,
-    "coreRight": 1065.6
+    "coreRight": 1065.6,
+    "srcBox": [
+     119,
+     86,
+     1271,
+     939
+    ]
    },
    "dizzy": {
     "w": 490,
@@ -31543,7 +33019,13 @@
     "coreRight": 436.2,
     "edited": {
      "bodyBottom": 310.4
-    }
+    },
+    "srcBox": [
+     245,
+     63,
+     735,
+     1459
+    ]
    },
    "dodge_air": {
     "w": 668,
@@ -31568,7 +33050,13 @@
     "bodyLeft": 0,
     "bodyRight": 668,
     "coreLeft": 111.4,
-    "coreRight": 612.6
+    "coreRight": 612.6,
+    "srcBox": [
+     146,
+     85,
+     814,
+     1358
+    ]
    },
    "dodge_roll": {
     "w": 1045,
@@ -31597,7 +33085,13 @@
     "bodyRight": 1045,
     "coreLeft": 117.6,
     "coreRight": 973.2,
-    "rotationDeg": -23.5
+    "rotationDeg": -23.5,
+    "srcBox": [
+     179,
+     171,
+     1224,
+     862
+    ]
    },
    "fall": {
     "w": 826,
@@ -31622,7 +33116,13 @@
     "coreRight": 673.6,
     "edited": {
      "renderScale": 0.214
-    }
+    },
+    "srcBox": [
+     98,
+     68,
+     924,
+     1351
+    ]
    },
    "guard": {
     "w": 748,
@@ -31650,7 +33150,13 @@
     "bodyLeft": 0,
     "bodyRight": 748,
     "coreLeft": 60.3,
-    "coreRight": 655.8
+    "coreRight": 655.8,
+    "srcBox": [
+     176,
+     88,
+     924,
+     1294
+    ]
    },
    "hurt": {
     "w": 604,
@@ -31675,7 +33181,13 @@
     "bodyLeft": 0,
     "bodyRight": 604,
     "coreLeft": 49.5,
-    "coreRight": 577.5
+    "coreRight": 577.5,
+    "srcBox": [
+     181,
+     82,
+     785,
+     1402
+    ]
    },
    "idle_b": {
     "w": 522,
@@ -31708,7 +33220,13 @@
     "edited": {
      "renderScale": 0.173,
      "bodyBottom": 168
-    }
+    },
+    "srcBox": [
+     197,
+     32,
+     719,
+     1710
+    ]
    },
    "jump_rise": {
     "w": 791,
@@ -31733,7 +33251,13 @@
     "bodyLeft": 0,
     "bodyRight": 791,
     "coreLeft": 66,
-    "coreRight": 696.5
+    "coreRight": 696.5,
+    "srcBox": [
+     62,
+     160,
+     853,
+     1333
+    ]
    },
    "land": {
     "w": 1022,
@@ -31767,7 +33291,13 @@
     "bodyLeft": 0,
     "bodyRight": 1022,
     "coreLeft": 95.8,
-    "coreRight": 875.1
+    "coreRight": 875.1,
+    "srcBox": [
+     55,
+     172,
+     1077,
+     1190
+    ]
    },
    "ledge_hang": {
     "w": 240,
@@ -31796,7 +33326,13 @@
     "bodyLeft": 0,
     "bodyRight": 240,
     "coreLeft": 34.1,
-    "coreRight": 221.7
+    "coreRight": 221.7,
+    "srcBox": [
+     333,
+     57,
+     573,
+     1421
+    ]
    },
    "run_a": {
     "w": 1134,
@@ -31821,7 +33357,13 @@
     "bodyLeft": 0,
     "bodyRight": 1134,
     "coreLeft": 70.9,
-    "coreRight": 1034.8
+    "coreRight": 1034.8,
+    "srcBox": [
+     113,
+     35,
+     1247,
+     940
+    ]
    },
    "run_b": {
     "w": 1032,
@@ -31846,7 +33388,13 @@
     "bodyLeft": 0,
     "bodyRight": 1032,
     "coreLeft": 64.5,
-    "coreRight": 961.1
+    "coreRight": 961.1,
+    "srcBox": [
+     186,
+     66,
+     1218,
+     954
+    ]
    },
    "special_down": {
     "w": 528,
@@ -31872,7 +33420,13 @@
     "bodyLeft": 0,
     "bodyRight": 528,
     "coreLeft": 52.8,
-    "coreRight": 448.8
+    "coreRight": 448.8,
+    "srcBox": [
+     207,
+     69,
+     735,
+     1477
+    ]
    },
    "special_neutral": {
     "w": 899,
@@ -31900,7 +33454,13 @@
     "bodyLeft": 0,
     "bodyRight": 899,
     "coreLeft": 112.5,
-    "coreRight": 735
+    "coreRight": 735,
+    "srcBox": [
+     41,
+     171,
+     940,
+     1371
+    ]
    },
    "special_side": {
     "w": 607,
@@ -31928,7 +33488,13 @@
     "bodyLeft": 0,
     "bodyRight": 607,
     "coreLeft": 43.2,
-    "coreRight": 535.9
+    "coreRight": 535.9,
+    "srcBox": [
+     187,
+     80,
+     794,
+     1463
+    ]
    },
    "ult_a": {
     "w": 957,
@@ -31956,7 +33522,13 @@
     "bodyLeft": 0,
     "bodyRight": 957,
     "coreLeft": 74.8,
-    "coreRight": 855.5
+    "coreRight": 855.5,
+    "srcBox": [
+     32,
+     110,
+     989,
+     1439
+    ]
    },
    "ult_b": {
     "w": 780,
@@ -31984,7 +33556,13 @@
     "bodyLeft": 0,
     "bodyRight": 780,
     "coreLeft": 75.3,
-    "coreRight": 723
+    "coreRight": 723,
+    "srcBox": [
+     138,
+     84,
+     918,
+     1289
+    ]
    },
    "victory": {
     "w": 569,
@@ -32011,7 +33589,13 @@
     "bodyLeft": 0,
     "bodyRight": 569,
     "coreLeft": 34.1,
-    "coreRight": 425.9
+    "coreRight": 425.9,
+    "srcBox": [
+     286,
+     93,
+     855,
+     1456
+    ]
    },
    "attack_air_a": {
     "w": 768,
@@ -32036,7 +33620,13 @@
     "bodyLeft": 0,
     "bodyRight": 768,
     "coreLeft": 86.9,
-    "coreRight": 695.4
+    "coreRight": 695.4,
+    "srcBox": [
+     135,
+     131,
+     903,
+     1290
+    ]
    },
    "attack_air_b": {
     "w": 947,
@@ -32062,7 +33652,13 @@
     "bodyLeft": 0,
     "bodyRight": 947,
     "coreLeft": 41.4,
-    "coreRight": 846.4
+    "coreRight": 846.4,
+    "srcBox": [
+     58,
+     242,
+     1005,
+     1163
+    ]
    },
    "attack_heavy_a": {
     "w": 926,
@@ -32088,7 +33684,13 @@
     "bodyLeft": 0,
     "bodyRight": 926,
     "coreLeft": 60.5,
-    "coreRight": 772
+    "coreRight": 772,
+    "srcBox": [
+     64,
+     181,
+     990,
+     1392
+    ]
    },
    "attack_heavy_b": {
     "w": 952,
@@ -32115,7 +33717,13 @@
     "bodyLeft": 0,
     "bodyRight": 952,
     "coreLeft": 60.2,
-    "coreRight": 876.9
+    "coreRight": 876.9,
+    "srcBox": [
+     51,
+     201,
+     1003,
+     1272
+    ]
    },
    "prone": {
     "w": 930,
@@ -32147,7 +33755,13 @@
     "edited": {
      "renderScale": 0.231,
      "bodyBottom": 310
-    }
+    },
+    "srcBox": [
+     46,
+     709,
+     976,
+     938
+    ]
    },
    "run_pass_a": {
     "w": 748,
@@ -32188,7 +33802,13 @@
       "renderScale": 0.2056,
       "bodyH": 293
      }
-    }
+    },
+    "srcBox": [
+     137,
+     125,
+     885,
+     1393
+    ]
    },
    "run_pass_b": {
     "w": 795,
@@ -32229,7 +33849,13 @@
       "renderScale": 0.2206,
       "bodyH": 284.9
      }
-    }
+    },
+    "srcBox": [
+     57,
+     108,
+     852,
+     1341
+    ]
    },
    "run_reach_a": {
     "w": 939,
@@ -32269,7 +33895,13 @@
       "renderScale": 0.2529,
       "bodyH": 237.1
      }
-    }
+    },
+    "srcBox": [
+     44,
+     194,
+     983,
+     1220
+    ]
    },
    "run_reach_b": {
     "w": 955,
@@ -32310,7 +33942,13 @@
       "renderScale": 0.2737,
       "bodyH": 211.2
      }
-    }
+    },
+    "srcBox": [
+     32,
+     299,
+     987,
+     1213
+    ]
    },
    "attack_dash": {
     "w": 1028,
@@ -32343,7 +33981,13 @@
     "edited": {
      "renderScale": 0.196,
      "bodyBottom": 270.8
-    }
+    },
+    "srcBox": [
+     33,
+     258,
+     1061,
+     1186
+    ]
    },
    "grab_hold": {
     "w": 863,
@@ -32375,7 +34019,13 @@
     },
     "edited": {
      "renderScale": 0.196
-    }
+    },
+    "srcBox": [
+     21,
+     28,
+     884,
+     1745
+    ]
    },
    "grab_reach": {
     "w": 967,
@@ -32415,7 +34065,13 @@
      "anchors": {
       "grabHand": null
      }
-    }
+    },
+    "srcBox": [
+     27,
+     115,
+     994,
+     1396
+    ]
    },
    "grabbed": {
     "w": 650,
@@ -32455,7 +34111,13 @@
      "anchors": {
       "grabChest": null
      }
-    }
+    },
+    "srcBox": [
+     127,
+     50,
+     777,
+     1728
+    ]
    },
    "walk_a": {
     "w": 582,
@@ -32488,7 +34150,13 @@
     "edited": {
      "renderScale": 0.196,
      "bodyBottom": 249.3
-    }
+    },
+    "srcBox": [
+     220,
+     94,
+     802,
+     1443
+    ]
    },
    "walk_b": {
     "w": 470,
@@ -32521,7 +34189,13 @@
     "edited": {
      "renderScale": 0.196,
      "bodyBottom": 249.3
-    }
+    },
+    "srcBox": [
+     278,
+     93,
+     748,
+     1442
+    ]
    },
    "teeter": {
     "w": 874,
@@ -32564,7 +34238,13 @@
        1437.5
       ]
      }
-    }
+    },
+    "srcBox": [
+     54,
+     21,
+     928,
+     1463
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 932,
@@ -32598,7 +34278,13 @@
     },
     "edited": {
      "renderScale": 0.2173
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     996,
+     1484
+    ]
    },
    "attack_diag_up_b": {
     "w": 1079,
@@ -32633,7 +34319,13 @@
     "edited": {
      "renderScale": 0.1934,
      "bodyBottom": 249.2
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1143,
+     1387
+    ]
    },
    "throw_back": {
     "w": 832,
@@ -32667,7 +34359,13 @@
     },
     "edited": {
      "bodyBottom": 232.4
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     896,
+     1747
+    ]
    },
    "throw_down": {
     "w": 1134,
@@ -32700,7 +34398,13 @@
     },
     "edited": {
      "renderScale": 0.2052
-    }
+    },
+    "srcBox": [
+     64,
+     169,
+     1198,
+     1204
+    ]
    },
    "throw_fwd": {
     "w": 974,
@@ -32737,7 +34441,13 @@
      "bodyBottom": 246.3,
      "rotationDeg": null
     },
-    "rotationDeg": 3
+    "rotationDeg": 3,
+    "srcBox": [
+     64,
+     67,
+     1038,
+     1452
+    ]
    },
    "throw_up": {
     "w": 878,
@@ -32772,7 +34482,13 @@
     "edited": {
      "renderScale": 0.2006,
      "bodyBottom": 236.2
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     942,
+     1667
+    ]
    }
   },
   "meimei": {
@@ -36186,7 +37902,13 @@
      "renderScale": 0.191,
      "ox": -24.4,
      "bodyBottom": 232.2
-    }
+    },
+    "srcBox": [
+     295,
+     44,
+     718,
+     1541
+    ]
    },
    "attack_air": {
     "w": 1087,
@@ -36211,7 +37933,13 @@
     "bodyLeft": 0,
     "bodyRight": 1087,
     "coreLeft": 61.1,
-    "coreRight": 964.7
+    "coreRight": 964.7,
+    "srcBox": [
+     63,
+     128,
+     1150,
+     1181
+    ]
    },
    "attack_down": {
     "w": 1231,
@@ -36237,7 +37965,13 @@
     "bodyLeft": 0,
     "bodyRight": 1231,
     "coreLeft": 92.3,
-    "coreRight": 1115.6
+    "coreRight": 1115.6,
+    "srcBox": [
+     119,
+     255,
+     1350,
+     936
+    ]
    },
    "attack_heavy": {
     "w": 1145,
@@ -36263,7 +37997,13 @@
     "bodyLeft": 0,
     "bodyRight": 1145,
     "coreLeft": 78.7,
-    "coreRight": 1023.3
+    "coreRight": 1023.3,
+    "srcBox": [
+     56,
+     138,
+     1201,
+     1109
+    ]
    },
    "attack_light_a": {
     "w": 1055,
@@ -36304,7 +38044,13 @@
        530.9
       ]
      }
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1119,
+     1331
+    ]
    },
    "attack_light_b": {
     "w": 966,
@@ -36331,7 +38077,13 @@
     "bodyLeft": 0,
     "bodyRight": 966,
     "coreLeft": 65.2,
-    "coreRight": 854
+    "coreRight": 854,
+    "srcBox": [
+     78,
+     210,
+     1044,
+     1253
+    ]
    },
    "attack_up": {
     "w": 693,
@@ -36356,7 +38108,13 @@
     "bodyLeft": 0,
     "bodyRight": 693,
     "coreLeft": 56.5,
-    "coreRight": 637.4
+    "coreRight": 637.4,
+    "srcBox": [
+     193,
+     76,
+     886,
+     1367
+    ]
    },
    "charge": {
     "w": 691,
@@ -36381,7 +38139,13 @@
     "bodyLeft": 0,
     "bodyRight": 691,
     "coreLeft": 50.4,
-    "coreRight": 640.8
+    "coreRight": 640.8,
+    "srcBox": [
+     123,
+     265,
+     814,
+     1417
+    ]
    },
    "crouch_a": {
     "w": 687,
@@ -36413,7 +38177,13 @@
     },
     "edited": {
      "bodyBottom": 219.7
-    }
+    },
+    "srcBox": [
+     149,
+     261,
+     836,
+     1399
+    ]
    },
    "crouch_attack_a": {
     "file": "yuji/crouch_attack_a.png",
@@ -36478,7 +38248,13 @@
     "bodyLeft": 0,
     "bodyRight": 1451,
     "coreLeft": 81.6,
-    "coreRight": 1333.1
+    "coreRight": 1333.1,
+    "srcBox": [
+     34,
+     251,
+     1485,
+     924
+    ]
    },
    "crouch_b": {
     "w": 949,
@@ -36504,7 +38280,13 @@
     "bodyLeft": 0,
     "bodyRight": 949,
     "coreLeft": 59.3,
-    "coreRight": 842.2
+    "coreRight": 842.2,
+    "srcBox": [
+     80,
+     433,
+     1029,
+     1274
+    ]
    },
    "dash": {
     "w": 1159,
@@ -36535,7 +38317,13 @@
     "bodyLeft": 0,
     "bodyRight": 1159,
     "coreLeft": 50.7,
-    "coreRight": 1086.6
+    "coreRight": 1086.6,
+    "srcBox": [
+     161,
+     139,
+     1320,
+     940
+    ]
    },
    "dizzy": {
     "w": 504,
@@ -36560,7 +38348,13 @@
     "bodyLeft": 0,
     "bodyRight": 504,
     "coreLeft": 57.6,
-    "coreRight": 436.3
+    "coreRight": 436.3,
+    "srcBox": [
+     272,
+     102,
+     776,
+     1419
+    ]
    },
    "dodge_air": {
     "w": 566,
@@ -36591,7 +38385,13 @@
     "bodyLeft": 0,
     "bodyRight": 566,
     "coreLeft": 78.4,
-    "coreRight": 502
+    "coreRight": 502,
+    "srcBox": [
+     206,
+     133,
+     772,
+     1388
+    ]
    },
    "dodge_roll": {
     "w": 727,
@@ -36616,7 +38416,13 @@
     "bodyLeft": 0,
     "bodyRight": 727,
     "coreLeft": 54.5,
-    "coreRight": 654.3
+    "coreRight": 654.3,
+    "srcBox": [
+     254,
+     308,
+     981,
+     1035
+    ]
    },
    "fall": {
     "w": 747,
@@ -36642,7 +38448,13 @@
     "bodyLeft": 0,
     "bodyRight": 747,
     "coreLeft": 97.7,
-    "coreRight": 705.1
+    "coreRight": 705.1,
+    "srcBox": [
+     88,
+     124,
+     835,
+     1241
+    ]
    },
    "guard": {
     "w": 714,
@@ -36667,7 +38479,13 @@
     "bodyLeft": 0,
     "bodyRight": 714,
     "coreLeft": 56.9,
-    "coreRight": 626.1
+    "coreRight": 626.1,
+    "srcBox": [
+     129,
+     139,
+     843,
+     1440
+    ]
    },
    "hurt": {
     "w": 630,
@@ -36736,7 +38554,13 @@
      "renderScale": 0.19,
      "ox": -25.9,
      "bodyBottom": 231.9
-    }
+    },
+    "srcBox": [
+     293,
+     42,
+     718,
+     1544
+    ]
    },
    "jump_rise": {
     "w": 728,
@@ -36761,7 +38585,13 @@
     "bodyLeft": 0,
     "bodyRight": 728,
     "coreLeft": 77.7,
-    "coreRight": 598.2
+    "coreRight": 598.2,
+    "srcBox": [
+     186,
+     135,
+     914,
+     1378
+    ]
    },
    "land": {
     "w": 845,
@@ -36787,7 +38617,13 @@
     "bodyLeft": 0,
     "bodyRight": 845,
     "coreLeft": 58.1,
-    "coreRight": 718.2
+    "coreRight": 718.2,
+    "srcBox": [
+     127,
+     383,
+     972,
+     1201
+    ]
    },
    "ledge_hang": {
     "w": 261,
@@ -36816,7 +38652,13 @@
     "bodyLeft": 0,
     "bodyRight": 261,
     "coreLeft": 26.4,
-    "coreRight": 228.6
+    "coreRight": 228.6,
+    "srcBox": [
+     390,
+     32,
+     651,
+     1439
+    ]
    },
    "run_a": {
     "w": 1096,
@@ -36841,7 +38683,13 @@
     "bodyLeft": 0,
     "bodyRight": 1096,
     "coreLeft": 47.9,
-    "coreRight": 1000.1
+    "coreRight": 1000.1,
+    "srcBox": [
+     66,
+     105,
+     1162,
+     1109
+    ]
    },
    "run_b": {
     "w": 1019,
@@ -36866,7 +38714,13 @@
     "bodyLeft": 0,
     "bodyRight": 1019,
     "coreLeft": 51,
-    "coreRight": 929.8
+    "coreRight": 929.8,
+    "srcBox": [
+     106,
+     139,
+     1125,
+     1141
+    ]
    },
    "special_down": {
     "w": 564,
@@ -36892,7 +38746,13 @@
     "bodyLeft": 0,
     "bodyRight": 564,
     "coreLeft": 41.8,
-    "coreRight": 450.9
+    "coreRight": 450.9,
+    "srcBox": [
+     256,
+     104,
+     820,
+     1440
+    ]
    },
    "special_neutral": {
     "w": 894,
@@ -36918,7 +38778,13 @@
     "bodyLeft": 0,
     "bodyRight": 894,
     "coreLeft": 39.8,
-    "coreRight": 796.9
+    "coreRight": 796.9,
+    "srcBox": [
+     62,
+     128,
+     956,
+     1403
+    ]
    },
    "special_side": {
     "w": 1167,
@@ -36944,7 +38810,13 @@
     "bodyLeft": 0,
     "bodyRight": 1167,
     "coreLeft": 94.8,
-    "coreRight": 1072.2
+    "coreRight": 1072.2,
+    "srcBox": [
+     24,
+     260,
+     1191,
+     1026
+    ]
    },
    "ult_a": {
     "w": 972,
@@ -36970,7 +38842,13 @@
     "bodyLeft": 0,
     "bodyRight": 972,
     "coreLeft": 67.2,
-    "coreRight": 907.9
+    "coreRight": 907.9,
+    "srcBox": [
+     44,
+     217,
+     1016,
+     1293
+    ]
    },
    "ult_b": {
     "w": 933,
@@ -36997,7 +38875,13 @@
     "bodyLeft": 0,
     "bodyRight": 933,
     "coreLeft": 85.4,
-    "coreRight": 832.9
+    "coreRight": 832.9,
+    "srcBox": [
+     68,
+     198,
+     1001,
+     1337
+    ]
    },
    "victory": {
     "w": 381,
@@ -37023,7 +38907,13 @@
     "bodyLeft": 0,
     "bodyRight": 381,
     "coreLeft": 44.4,
-    "coreRight": 337.5
+    "coreRight": 337.5,
+    "srcBox": [
+     312,
+     76,
+     693,
+     1497
+    ]
    },
    "attack_air_a": {
     "w": 795,
@@ -37049,7 +38939,13 @@
     "bodyLeft": 0,
     "bodyRight": 795,
     "coreLeft": 81.3,
-    "coreRight": 738.8
+    "coreRight": 738.8,
+    "srcBox": [
+     88,
+     109,
+     883,
+     1291
+    ]
    },
    "attack_air_b": {
     "w": 972,
@@ -37075,7 +38971,13 @@
     "bodyLeft": 0,
     "bodyRight": 972,
     "coreLeft": 48.6,
-    "coreRight": 917.3
+    "coreRight": 917.3,
+    "srcBox": [
+     27,
+     276,
+     999,
+     1177
+    ]
    },
    "attack_heavy_a": {
     "w": 864,
@@ -37110,7 +39012,13 @@
     "bodyRight": 864,
     "coreLeft": 45.9,
     "coreRight": 799.9,
-    "rotationDeg": -3
+    "rotationDeg": -3,
+    "srcBox": [
+     54,
+     224,
+     918,
+     1273
+    ]
    },
    "attack_heavy_b": {
     "w": 960,
@@ -37145,7 +39053,13 @@
     "bodyRight": 960,
     "coreLeft": 67.9,
     "coreRight": 895.9,
-    "rotationDeg": 6
+    "rotationDeg": 6,
+    "srcBox": [
+     41,
+     272,
+     1001,
+     1358
+    ]
    },
    "prone": {
     "w": 939,
@@ -37177,7 +39091,13 @@
     "edited": {
      "renderScale": 0.206,
      "bodyBottom": 310
-    }
+    },
+    "srcBox": [
+     45,
+     682,
+     984,
+     890
+    ]
    },
    "run_pass_a": {
     "w": 732,
@@ -37218,7 +39138,13 @@
       "renderScale": 0.2173,
       "bodyH": 254
      }
-    }
+    },
+    "srcBox": [
+     129,
+     118,
+     861,
+     1351
+    ]
    },
    "run_pass_b": {
     "w": 750,
@@ -37258,7 +39184,13 @@
       "renderScale": 0.206,
       "bodyH": 259.4
      }
-    }
+    },
+    "srcBox": [
+     119,
+     124,
+     869,
+     1383
+    ]
    },
    "run_reach_a": {
     "w": 994,
@@ -37299,7 +39231,13 @@
       "renderScale": 0.2729,
       "bodyH": 173.7
      }
-    }
+    },
+    "srcBox": [
+     14,
+     331,
+     1008,
+     1174
+    ]
    },
    "run_reach_b": {
     "w": 941,
@@ -37340,7 +39278,13 @@
       "renderScale": 0.2657,
       "bodyH": 182.7
      }
-    }
+    },
+    "srcBox": [
+     35,
+     274,
+     976,
+     1161
+    ]
    },
    "attack_dash": {
     "w": 1411,
@@ -37372,7 +39316,13 @@
     },
     "edited": {
      "bodyBottom": 264.8
-    }
+    },
+    "srcBox": [
+     42,
+     79,
+     1453,
+     957
+    ]
    },
    "grab_hold": {
     "file": "yuji/grab_hold.png",
@@ -37406,7 +39356,13 @@
      "renderScale": 0.193,
      "bodyBottom": 310.4,
      "ox": -320.2
-    }
+    },
+    "srcBox": [
+     38,
+     67,
+     992,
+     1459
+    ]
    },
    "grab_reach": {
     "file": "yuji/grab_reach.png",
@@ -37447,7 +39403,13 @@
      "anchors": {
       "grabHand": null
      }
-    }
+    },
+    "srcBox": [
+     28,
+     193,
+     1012,
+     1338
+    ]
    },
    "grabbed": {
     "file": "yuji/grabbed.png",
@@ -37488,7 +39450,13 @@
      "anchors": {
       "grabChest": null
      }
-    }
+    },
+    "srcBox": [
+     143,
+     81,
+     918,
+     1426
+    ]
    },
    "walk_a": {
     "w": 572,
@@ -37521,7 +39489,13 @@
     "edited": {
      "renderScale": 0.193,
      "bodyBottom": 239.9
-    }
+    },
+    "srcBox": [
+     226,
+     93,
+     798,
+     1443
+    ]
    },
    "walk_b": {
     "w": 392,
@@ -37554,7 +39528,13 @@
     "edited": {
      "renderScale": 0.193,
      "bodyBottom": 239.9
-    }
+    },
+    "srcBox": [
+     316,
+     92,
+     708,
+     1442
+    ]
    },
    "teeter": {
     "w": 888,
@@ -37630,7 +39610,13 @@
     },
     "edited": {
      "renderScale": 0.2133
-    }
+    },
+    "srcBox": [
+     214,
+     96,
+     1268,
+     966
+    ]
    },
    "attack_diag_up_b": {
     "w": 1021,
@@ -37664,7 +39650,13 @@
     },
     "edited": {
      "renderScale": 0.1751
-    }
+    },
+    "srcBox": [
+     96,
+     73,
+     1117,
+     1499
+    ]
    },
    "throw_back": {
     "w": 647,
@@ -37692,7 +39684,13 @@
     "bodyRight": 647,
     "coreLeft": 49.2,
     "coreRight": 590.1,
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     266,
+     91,
+     913,
+     1215
+    ]
    },
    "throw_down": {
     "w": 999,
@@ -37726,7 +39724,13 @@
     },
     "edited": {
      "renderScale": 0.2095
-    }
+    },
+    "srcBox": [
+     66,
+     220,
+     1065,
+     1217
+    ]
    },
    "throw_fwd": {
     "w": 1101,
@@ -37761,7 +39765,13 @@
     "edited": {
      "renderScale": 0.1886,
      "bodyBottom": 241.2
-    }
+    },
+    "srcBox": [
+     82,
+     83,
+     1183,
+     1421
+    ]
    },
    "throw_up": {
     "w": 666,
@@ -37793,7 +39803,13 @@
     },
     "edited": {
      "bodyBottom": 238.2
-    }
+    },
+    "srcBox": [
+     246,
+     124,
+     912,
+     1520
+    ]
    }
   },
   "reggie": {
@@ -39482,7 +41498,13 @@
     "bodyLeft": 0,
     "bodyRight": 788,
     "coreLeft": 70.3,
-    "coreRight": 606.3
+    "coreRight": 606.3,
+    "srcBox": [
+     157,
+     78,
+     945,
+     1484
+    ]
    },
    "attack_air": {
     "w": 978,
@@ -39507,7 +41529,13 @@
     "bodyLeft": 0,
     "bodyRight": 978,
     "coreLeft": 65,
-    "coreRight": 837.4
+    "coreRight": 837.4,
+    "srcBox": [
+     33,
+     109,
+     1011,
+     1264
+    ]
    },
    "attack_down": {
     "w": 992,
@@ -39535,7 +41563,13 @@
     "bodyLeft": 0,
     "bodyRight": 992,
     "coreLeft": 86.2,
-    "coreRight": 915.1
+    "coreRight": 915.1,
+    "srcBox": [
+     11,
+     284,
+     1003,
+     1345
+    ]
    },
    "attack_heavy": {
     "w": 975,
@@ -39563,7 +41597,13 @@
     "bodyLeft": 0,
     "bodyRight": 975,
     "coreLeft": 58.6,
-    "coreRight": 835.1
+    "coreRight": 835.1,
+    "srcBox": [
+     31,
+     196,
+     1006,
+     1368
+    ]
    },
    "attack_light_a": {
     "file": "gakuganji/attack_light_a.png",
@@ -39667,7 +41707,13 @@
     "bodyLeft": 0,
     "bodyRight": 644,
     "coreLeft": 81.6,
-    "coreRight": 607.6
+    "coreRight": 607.6,
+    "srcBox": [
+     161,
+     33,
+     805,
+     1484
+    ]
    },
    "charge": {
     "w": 900,
@@ -39693,7 +41739,13 @@
     "bodyLeft": 0,
     "bodyRight": 900,
     "coreLeft": 56.1,
-    "coreRight": 827.5
+    "coreRight": 827.5,
+    "srcBox": [
+     42,
+     200,
+     942,
+     1322
+    ]
    },
    "crouch_a": {
     "w": 950,
@@ -39719,7 +41771,13 @@
     "bodyLeft": 0,
     "bodyRight": 950,
     "coreLeft": 74.8,
-    "coreRight": 803.8
+    "coreRight": 803.8,
+    "srcBox": [
+     51,
+     313,
+     1001,
+     1310
+    ]
    },
    "crouch_attack_a": {
     "w": 943,
@@ -39745,7 +41803,13 @@
     "bodyLeft": 0,
     "bodyRight": 943,
     "coreLeft": 58.9,
-    "coreRight": 766.2
+    "coreRight": 766.2,
+    "srcBox": [
+     41,
+     353,
+     984,
+     1236
+    ]
    },
    "crouch_attack_b": {
     "file": "gakuganji/attack_dash.png",
@@ -39799,7 +41863,13 @@
     "bodyLeft": 0,
     "bodyRight": 922,
     "coreLeft": 51.5,
-    "coreRight": 801.8
+    "coreRight": 801.8,
+    "srcBox": [
+     57,
+     162,
+     979,
+     1339
+    ]
    },
    "dash": {
     "w": 985,
@@ -39824,7 +41894,13 @@
     "bodyLeft": 0,
     "bodyRight": 985,
     "coreLeft": 73.9,
-    "coreRight": 837.2
+    "coreRight": 837.2,
+    "srcBox": [
+     24,
+     353,
+     1009,
+     1146
+    ]
    },
    "dizzy": {
     "w": 742,
@@ -39850,7 +41926,13 @@
     "bodyLeft": 0,
     "bodyRight": 742,
     "coreLeft": 59,
-    "coreRight": 606.6
+    "coreRight": 606.6,
+    "srcBox": [
+     195,
+     68,
+     937,
+     1416
+    ]
    },
    "dodge_air": {
     "w": 767,
@@ -39875,7 +41957,13 @@
     "bodyLeft": 0,
     "bodyRight": 767,
     "coreLeft": 95.7,
-    "coreRight": 709.8
+    "coreRight": 709.8,
+    "srcBox": [
+     122,
+     19,
+     889,
+     1295
+    ]
    },
    "dodge_roll": {
     "w": 970,
@@ -39927,7 +42015,13 @@
     "bodyLeft": 0,
     "bodyRight": 901,
     "coreLeft": 96,
-    "coreRight": 775
+    "coreRight": 775,
+    "srcBox": [
+     61,
+     137,
+     962,
+     1318
+    ]
    },
    "guard": {
     "w": 744,
@@ -39959,7 +42053,13 @@
     "bodyLeft": 0,
     "bodyRight": 744,
     "coreLeft": 47.5,
-    "coreRight": 712.7
+    "coreRight": 712.7,
+    "srcBox": [
+     103,
+     133,
+     847,
+     1400
+    ]
    },
    "hurt": {
     "w": 864,
@@ -40012,7 +42112,13 @@
     "bodyLeft": 0,
     "bodyRight": 760,
     "coreLeft": 70.5,
-    "coreRight": 572.4
+    "coreRight": 572.4,
+    "srcBox": [
+     161,
+     75,
+     921,
+     1484
+    ]
    },
    "jump_rise": {
     "w": 892,
@@ -40037,7 +42143,13 @@
     "bodyLeft": 0,
     "bodyRight": 892,
     "coreLeft": 56.7,
-    "coreRight": 800.9
+    "coreRight": 800.9,
+    "srcBox": [
+     63,
+     52,
+     955,
+     1186
+    ]
    },
    "land": {
     "w": 948,
@@ -40063,7 +42175,13 @@
     "bodyLeft": 0,
     "bodyRight": 948,
     "coreLeft": 55.5,
-    "coreRight": 825.6
+    "coreRight": 825.6,
+    "srcBox": [
+     43,
+     264,
+     991,
+     1374
+    ]
    },
    "ledge_hang": {
     "w": 598,
@@ -40092,7 +42210,13 @@
     "bodyLeft": 0,
     "bodyRight": 598,
     "coreLeft": 55.1,
-    "coreRight": 496.1
+    "coreRight": 496.1,
+    "srcBox": [
+     269,
+     0,
+     867,
+     1470
+    ]
    },
    "run_a": {
     "w": 990,
@@ -40117,7 +42241,13 @@
     "bodyLeft": 0,
     "bodyRight": 990,
     "coreLeft": 77.3,
-    "coreRight": 850.8
+    "coreRight": 850.8,
+    "srcBox": [
+     29,
+     208,
+     1019,
+     1333
+    ]
    },
    "run_b": {
     "w": 975,
@@ -40143,7 +42273,13 @@
     "bodyLeft": 0,
     "bodyRight": 975,
     "coreLeft": 61.6,
-    "coreRight": 808.3
+    "coreRight": 808.3,
+    "srcBox": [
+     20,
+     159,
+     995,
+     1255
+    ]
    },
    "special_down": {
     "w": 978,
@@ -40170,7 +42306,13 @@
     "bodyLeft": 0,
     "bodyRight": 978,
     "coreLeft": 54.4,
-    "coreRight": 870.8
+    "coreRight": 870.8,
+    "srcBox": [
+     21,
+     141,
+     999,
+     1385
+    ]
    },
    "special_neutral": {
     "w": 901,
@@ -40198,7 +42340,13 @@
     "bodyLeft": 0,
     "bodyRight": 901,
     "coreLeft": 66,
-    "coreRight": 783.8
+    "coreRight": 783.8,
+    "srcBox": [
+     66,
+     107,
+     967,
+     1427
+    ]
    },
    "special_side": {
     "w": 965,
@@ -40224,7 +42372,13 @@
     "bodyLeft": 0,
     "bodyRight": 965,
     "coreLeft": 81.1,
-    "coreRight": 843
+    "coreRight": 843,
+    "srcBox": [
+     9,
+     138,
+     974,
+     1435
+    ]
    },
    "ult_a": {
     "w": 887,
@@ -40251,7 +42405,13 @@
     "bodyLeft": 0,
     "bodyRight": 887,
     "coreLeft": 71.9,
-    "coreRight": 799.4
+    "coreRight": 799.4,
+    "srcBox": [
+     64,
+     167,
+     951,
+     1446
+    ]
    },
    "ult_b": {
     "w": 854,
@@ -40278,7 +42438,13 @@
     "bodyLeft": 0,
     "bodyRight": 854,
     "coreLeft": 74.6,
-    "coreRight": 770.7
+    "coreRight": 770.7,
+    "srcBox": [
+     75,
+     116,
+     929,
+     1442
+    ]
    },
    "victory": {
     "w": 635,
@@ -40310,7 +42476,13 @@
     "bodyLeft": 0,
     "bodyRight": 635,
     "coreLeft": 65.2,
-    "coreRight": 577.8
+    "coreRight": 577.8,
+    "srcBox": [
+     166,
+     9,
+     801,
+     1500
+    ]
    },
    "attack_air_a": {
     "w": 906,
@@ -40342,7 +42514,13 @@
     "edited": {
      "renderScale": 0.207,
      "ox": -240
-    }
+    },
+    "srcBox": [
+     89,
+     106,
+     995,
+     1284
+    ]
    },
    "attack_air_b": {
     "w": 1070,
@@ -40367,7 +42545,13 @@
     "bodyLeft": 0,
     "bodyRight": 1070,
     "coreLeft": 64.4,
-    "coreRight": 873.1
+    "coreRight": 873.1,
+    "srcBox": [
+     64,
+     118,
+     1134,
+     1263
+    ]
    },
    "attack_heavy_a": {
     "w": 835,
@@ -40400,7 +42584,13 @@
     "edited": {
      "renderScale": 0.213,
      "ox": -265.1
-    }
+    },
+    "srcBox": [
+     40,
+     152,
+     875,
+     1574
+    ]
    },
    "attack_heavy_b": {
     "file": "gakuganji/attack_heavy_b.png",
@@ -40434,7 +42624,13 @@
      "renderScale": 0.224,
      "ox": -182.9,
      "bodyBottom": 196
-    }
+    },
+    "srcBox": [
+     111,
+     253,
+     1039,
+     1428
+    ]
    },
    "prone": {
     "w": 981,
@@ -40468,7 +42664,13 @@
      "bodyBottom": 310.4,
      "rotationDeg": null
     },
-    "rotationDeg": -3.5
+    "rotationDeg": -3.5,
+    "srcBox": [
+     19,
+     615,
+     1000,
+     943
+    ]
    },
    "run_pass_a": {
     "w": 914,
@@ -40508,7 +42710,13 @@
       "renderScale": 0.2236,
       "bodyH": 258.5
      }
-    }
+    },
+    "srcBox": [
+     67,
+     126,
+     981,
+     1363
+    ]
    },
    "run_pass_b": {
     "w": 908,
@@ -40548,7 +42756,13 @@
       "renderScale": 0.2309,
       "bodyH": 253.7
      }
-    }
+    },
+    "srcBox": [
+     61,
+     109,
+     969,
+     1323
+    ]
    },
    "run_reach_a": {
     "w": 942,
@@ -40588,7 +42802,13 @@
       "renderScale": 0.2686,
       "bodyH": 207.5
      }
-    }
+    },
+    "srcBox": [
+     33,
+     236,
+     975,
+     1229
+    ]
    },
    "run_reach_b": {
     "w": 970,
@@ -40628,7 +42848,13 @@
       "renderScale": 0.2738,
       "bodyH": 204.6
      }
-    }
+    },
+    "srcBox": [
+     24,
+     286,
+     994,
+     1265
+    ]
    },
    "attack_dash": {
     "w": 1404,
@@ -40660,7 +42886,13 @@
     },
     "edited": {
      "renderScale": 0.209
-    }
+    },
+    "srcBox": [
+     107,
+     175,
+     1511,
+     898
+    ]
    },
    "grab_hold": {
     "w": 936,
@@ -40692,7 +42924,13 @@
     },
     "edited": {
      "renderScale": 0.209
-    }
+    },
+    "srcBox": [
+     0,
+     106,
+     936,
+     1583
+    ]
    },
    "grab_reach": {
     "w": 924,
@@ -40731,7 +42969,13 @@
      "anchors": {
       "grabHand": null
      }
-    }
+    },
+    "srcBox": [
+     12,
+     154,
+     936,
+     1503
+    ]
    },
    "grabbed": {
     "w": 895,
@@ -40774,7 +43018,13 @@
        682.1
       ]
      }
-    }
+    },
+    "srcBox": [
+     15,
+     69,
+     910,
+     1519
+    ]
    },
    "walk_a": {
     "w": 646,
@@ -40807,7 +43057,13 @@
     "edited": {
      "renderScale": 0.209,
      "bodyBottom": 246.7
-    }
+    },
+    "srcBox": [
+     189,
+     93,
+     835,
+     1443
+    ]
    },
    "walk_b": {
     "w": 665,
@@ -40840,7 +43096,13 @@
     "edited": {
      "renderScale": 0.209,
      "bodyBottom": 246.7
-    }
+    },
+    "srcBox": [
+     179,
+     92,
+     844,
+     1442
+    ]
    },
    "teeter": {
     "w": 912,
@@ -40881,7 +43143,13 @@
        1372.7
       ]
      }
-    }
+    },
+    "srcBox": [
+     19,
+     150,
+     931,
+     1527
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 1080,
@@ -40913,7 +43181,13 @@
       "bodyBottom": "foot=0.956 (character)",
       "ox": "on the placed centre of mass"
      }
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1144,
+     1211
+    ]
    },
    "attack_diag_up_b": {
     "w": 920,
@@ -40939,7 +43213,13 @@
     "bodyLeft": 0,
     "bodyRight": 920,
     "coreLeft": 51.4,
-    "coreRight": 719.2
+    "coreRight": 719.2,
+    "srcBox": [
+     64,
+     64,
+     984,
+     1708
+    ]
    },
    "throw_back": {
     "w": 851,
@@ -40973,7 +43253,13 @@
     },
     "edited": {
      "renderScale": 0.1747
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     915,
+     1676
+    ]
    },
    "throw_down": {
     "w": 924,
@@ -41006,7 +43292,13 @@
       "renderScale": "area x 1.030 (throwDown)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "srcBox": [
+     64,
+     135,
+     988,
+     1516
+    ]
    },
    "throw_fwd": {
     "w": 911,
@@ -41040,7 +43332,13 @@
     },
     "edited": {
      "renderScale": 0.1759
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     975,
+     1668
+    ]
    },
    "throw_up": {
     "w": 780,
@@ -41075,7 +43373,13 @@
     "edited": {
      "renderScale": 0.1966,
      "bodyBottom": 153
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     844,
+     1679
+    ]
    }
   },
   "mahoraga": {
@@ -41103,7 +43407,13 @@
     "bodyLeft": 0,
     "bodyRight": 971,
     "coreLeft": 78.1,
-    "coreRight": 835.3
+    "coreRight": 835.3,
+    "srcBox": [
+     31,
+     139,
+     1002,
+     1388
+    ]
    },
    "attack_light_a": {
     "w": 979,
@@ -41138,7 +43448,13 @@
      "bodyBottom": 259.9,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     90,
+     42,
+     1069,
+     1321
+    ]
    },
    "attack_light_b": {
     "w": 1284,
@@ -41179,7 +43495,13 @@
       ]
      }
     },
-    "rotationDeg": -2
+    "rotationDeg": -2,
+    "srcBox": [
+     51,
+     18,
+     1335,
+     1080
+    ]
    },
    "attack_up": {
     "w": 759,
@@ -41205,7 +43527,13 @@
     "bodyLeft": 0,
     "bodyRight": 759,
     "coreLeft": 55.5,
-    "coreRight": 703
+    "coreRight": 703,
+    "srcBox": [
+     113,
+     15,
+     872,
+     1495
+    ]
    },
    "charge": {
     "w": 989,
@@ -41233,7 +43561,13 @@
     "bodyLeft": 0,
     "bodyRight": 989,
     "coreLeft": 70.1,
-    "coreRight": 825.5
+    "coreRight": 825.5,
+    "srcBox": [
+     9,
+     115,
+     998,
+     1361
+    ]
    },
    "crouch_a": {
     "w": 770,
@@ -41268,7 +43602,13 @@
      "bodyBottom": 272,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     152,
+     340,
+     922,
+     1332
+    ]
    },
    "crouch_attack_a": {
     "file": "mahoraga/crouch_attack_a.png",
@@ -41339,7 +43679,13 @@
     "edited": {
      "renderScale": 0.4047,
      "bodyBottom": 124.3
-    }
+    },
+    "srcBox": [
+     65,
+     78,
+     1523,
+     982
+    ]
    },
    "crouch_b": {
     "w": 1124,
@@ -41373,7 +43719,13 @@
      "bodyBottom": 278.8,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     86,
+     45,
+     1210,
+     1089
+    ]
    },
    "dash": {
     "w": 1002,
@@ -41398,7 +43750,13 @@
     "bodyLeft": 0,
     "bodyRight": 1002,
     "coreLeft": 47.4,
-    "coreRight": 853.7
+    "coreRight": 853.7,
+    "srcBox": [
+     11,
+     234,
+     1013,
+     1318
+    ]
    },
    "dizzy": {
     "w": 963,
@@ -41424,7 +43782,13 @@
     "bodyLeft": 0,
     "bodyRight": 963,
     "coreLeft": 58.4,
-    "coreRight": 809.6
+    "coreRight": 809.6,
+    "srcBox": [
+     36,
+     120,
+     999,
+     1287
+    ]
    },
    "dodge_air": {
     "w": 991,
@@ -41449,7 +43813,13 @@
     "bodyLeft": 0,
     "bodyRight": 991,
     "coreLeft": 67.8,
-    "coreRight": 846.9
+    "coreRight": 846.9,
+    "srcBox": [
+     29,
+     56,
+     1020,
+     1411
+    ]
    },
    "dodge_roll": {
     "w": 1013,
@@ -41474,7 +43844,13 @@
     "bodyLeft": 0,
     "bodyRight": 1013,
     "coreLeft": 59.1,
-    "coreRight": 886.8
+    "coreRight": 886.8,
+    "srcBox": [
+     6,
+     175,
+     1019,
+     1226
+    ]
    },
    "fall": {
     "w": 950,
@@ -41499,7 +43875,13 @@
     "bodyLeft": 0,
     "bodyRight": 950,
     "coreLeft": 50.4,
-    "coreRight": 814.3
+    "coreRight": 814.3,
+    "srcBox": [
+     52,
+     92,
+     1002,
+     1245
+    ]
    },
    "guard": {
     "w": 939,
@@ -41525,7 +43907,13 @@
     "bodyLeft": 0,
     "bodyRight": 939,
     "coreLeft": 76.1,
-    "coreRight": 862.5
+    "coreRight": 862.5,
+    "srcBox": [
+     49,
+     106,
+     988,
+     1459
+    ]
    },
    "hurt": {
     "w": 974,
@@ -41652,7 +44040,13 @@
     "bodyLeft": 0,
     "bodyRight": 947,
     "coreLeft": 58.8,
-    "coreRight": 806.4
+    "coreRight": 806.4,
+    "srcBox": [
+     53,
+     39,
+     1000,
+     1383
+    ]
    },
    "land": {
     "w": 996,
@@ -41678,7 +44072,13 @@
     "bodyLeft": 0,
     "bodyRight": 996,
     "coreLeft": 46.1,
-    "coreRight": 835.8
+    "coreRight": 835.8,
+    "srcBox": [
+     28,
+     298,
+     1024,
+     1351
+    ]
    },
    "ledge_hang": {
     "w": 545,
@@ -41707,7 +44107,13 @@
     "bodyLeft": 0,
     "bodyRight": 545,
     "coreLeft": 44.2,
-    "coreRight": 504.4
+    "coreRight": 504.4,
+    "srcBox": [
+     189,
+     31,
+     734,
+     1447
+    ]
    },
    "run_a": {
     "w": 1003,
@@ -41732,7 +44138,13 @@
     "bodyLeft": 0,
     "bodyRight": 1003,
     "coreLeft": 68.9,
-    "coreRight": 865.2
+    "coreRight": 865.2,
+    "srcBox": [
+     21,
+     146,
+     1024,
+     1371
+    ]
    },
    "run_b": {
     "w": 1014,
@@ -41758,7 +44170,13 @@
     "bodyLeft": 0,
     "bodyRight": 1014,
     "coreLeft": 73.5,
-    "coreRight": 849.5
+    "coreRight": 849.5,
+    "srcBox": [
+     0,
+     50,
+     1014,
+     1357
+    ]
    },
    "special_down": {
     "w": 1004,
@@ -41790,7 +44208,13 @@
     "bodyLeft": 0,
     "bodyRight": 1004,
     "coreLeft": 71.2,
-    "coreRight": 893.4
+    "coreRight": 893.4,
+    "srcBox": [
+     16,
+     207,
+     1020,
+     1472
+    ]
    },
    "special_neutral": {
     "w": 994,
@@ -41816,7 +44240,13 @@
     "bodyLeft": 0,
     "bodyRight": 994,
     "coreLeft": 66.3,
-    "coreRight": 904
+    "coreRight": 904,
+    "srcBox": [
+     22,
+     34,
+     1016,
+     1361
+    ]
    },
    "special_side": {
     "w": 951,
@@ -41844,7 +44274,13 @@
     "bodyLeft": 0,
     "bodyRight": 951,
     "coreLeft": 43.9,
-    "coreRight": 916.2
+    "coreRight": 916.2,
+    "srcBox": [
+     50,
+     243,
+     1001,
+     1247
+    ]
    },
    "ult_a": {
     "w": 1001,
@@ -41870,7 +44306,13 @@
     "bodyLeft": 0,
     "bodyRight": 1001,
     "coreLeft": 91.6,
-    "coreRight": 888.8
+    "coreRight": 888.8,
+    "srcBox": [
+     16,
+     16,
+     1017,
+     1482
+    ]
    },
    "ult_b": {
     "w": 1002,
@@ -41898,7 +44340,13 @@
     "bodyLeft": 0,
     "bodyRight": 1002,
     "coreLeft": 72.3,
-    "coreRight": 956.5
+    "coreRight": 956.5,
+    "srcBox": [
+     14,
+     92,
+     1016,
+     1378
+    ]
    },
    "victory": {
     "w": 947,
@@ -41924,7 +44372,13 @@
     "bodyLeft": 0,
     "bodyRight": 947,
     "coreLeft": 56.2,
-    "coreRight": 787
+    "coreRight": 787,
+    "srcBox": [
+     48,
+     12,
+     995,
+     1511
+    ]
    },
    "attack_air_a": {
     "w": 982,
@@ -41950,7 +44404,13 @@
     "bodyLeft": 0,
     "bodyRight": 982,
     "coreLeft": 50.2,
-    "coreRight": 844.6
+    "coreRight": 844.6,
+    "srcBox": [
+     26,
+     42,
+     1008,
+     1380
+    ]
    },
    "attack_air_b": {
     "w": 988,
@@ -41976,7 +44436,13 @@
     "bodyLeft": 0,
     "bodyRight": 988,
     "coreLeft": 52,
-    "coreRight": 794.5
+    "coreRight": 794.5,
+    "srcBox": [
+     22,
+     153,
+     1010,
+     1341
+    ]
    },
    "attack_heavy_a": {
     "w": 1005,
@@ -42002,7 +44468,13 @@
     "bodyLeft": 0,
     "bodyRight": 1005,
     "coreLeft": 56.7,
-    "coreRight": 843.4
+    "coreRight": 843.4,
+    "srcBox": [
+     5,
+     168,
+     1010,
+     1302
+    ]
    },
    "attack_heavy_b": {
     "file": "mahoraga/attack_heavy_b.png",
@@ -42106,7 +44578,13 @@
       "renderScale": 0.4282,
       "bodyH": 522.4
      }
-    }
+    },
+    "srcBox": [
+     33,
+     130,
+     984,
+     1300
+    ]
    },
    "run_pass_b": {
     "w": 932,
@@ -42147,7 +44625,13 @@
       "renderScale": 0.4215,
       "bodyH": 501.4
      }
-    }
+    },
+    "srcBox": [
+     36,
+     195,
+     968,
+     1318
+    ]
    },
    "run_reach_a": {
     "w": 999,
@@ -42188,7 +44672,13 @@
       "renderScale": 0.4103,
       "bodyH": 509.9
      }
-    }
+    },
+    "srcBox": [
+     12,
+     158,
+     1011,
+     1300
+    ]
    },
    "run_reach_b": {
     "w": 973,
@@ -42229,7 +44719,13 @@
       "renderScale": 0.4438,
       "bodyH": 442
      }
-    }
+    },
+    "srcBox": [
+     17,
+     264,
+     990,
+     1254
+    ]
    },
    "attack_dash": {
     "w": 1626,
@@ -42261,7 +44757,13 @@
     },
     "edited": {
      "renderScale": 0.394
-    }
+    },
+    "srcBox": [
+     22,
+     32,
+     1648,
+     899
+    ]
    },
    "grab_hold": {
     "w": 1156,
@@ -42293,7 +44795,13 @@
     },
     "edited": {
      "bodyBottom": 264.2
-    }
+    },
+    "srcBox": [
+     20,
+     11,
+     1176,
+     1291
+    ]
    },
    "grab_reach": {
     "w": 1372,
@@ -42325,7 +44833,13 @@
     },
     "edited": {
      "bodyBottom": 271.6
-    }
+    },
+    "srcBox": [
+     21,
+     11,
+     1393,
+     1090
+    ]
    },
    "grabbed": {
     "w": 996,
@@ -42359,7 +44873,13 @@
      "renderScale": 0.394,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     64,
+     53,
+     1060,
+     1318
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 1351,
@@ -42391,7 +44911,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "wantsImprovement": "alpha"
+    "wantsImprovement": "alpha",
+    "srcBox": [
+     69,
+     112,
+     1420,
+     1169
+    ]
    },
    "attack_diag_up_b": {
     "w": 1055,
@@ -42425,7 +44951,13 @@
     },
     "edited": {
      "bodyBottom": 251.8
-    }
+    },
+    "srcBox": [
+     89,
+     85,
+     1144,
+     1471
+    ]
    },
    "teeter": {
     "w": 1092,
@@ -42464,7 +44996,13 @@
     "edited": {
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     64,
+     90,
+     1156,
+     1373
+    ]
    },
    "throw_back": {
     "w": 1148,
@@ -42501,7 +45039,13 @@
      "renderScale": 0.3973,
      "bodyBottom": 256
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     64,
+     64,
+     1212,
+     1351
+    ]
    },
    "throw_down": {
     "w": 1213,
@@ -42535,7 +45079,13 @@
     },
     "edited": {
      "bodyBottom": 268.3
-    }
+    },
+    "srcBox": [
+     64,
+     78,
+     1277,
+     1077
+    ]
    },
    "throw_fwd": {
     "w": 1173,
@@ -42565,7 +45115,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     71,
+     113,
+     1244,
+     1354
+    ]
    },
    "throw_up": {
     "w": 773,
@@ -42600,7 +45156,13 @@
     "edited": {
      "renderScale": 0.4542,
      "bodyBottom": 248.8
-    }
+    },
+    "srcBox": [
+     176,
+     81,
+     949,
+     1536
+    ]
    },
    "walk_a": {
     "w": 922,
@@ -42635,7 +45197,13 @@
     "edited": {
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     81,
+     68,
+     1003,
+     1649
+    ]
    },
    "walk_b": {
     "w": 1068,
@@ -42676,7 +45244,13 @@
        517.8
       ]
      }
-    }
+    },
+    "srcBox": [
+     121,
+     86,
+     1189,
+     1322
+    ]
    }
   },
   "effects": {
@@ -42817,7 +45391,13 @@
     "edited": {
      "renderScale": 0.25,
      "ox": -345.2
-    }
+    },
+    "srcBox": [
+     86,
+     129,
+     1090,
+     1201
+    ]
    },
    "attack_air_b": {
     "w": 1289,
@@ -42849,7 +45429,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     67,
+     67,
+     1356,
+     1030
+    ]
    },
    "attack_down": {
     "w": 1125,
@@ -42881,7 +45467,13 @@
     },
     "edited": {
      "ox": -473.7
-    }
+    },
+    "srcBox": [
+     60,
+     115,
+     1185,
+     1077
+    ]
    },
    "attack_heavy_a": {
     "w": 1265,
@@ -42914,7 +45506,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 257.5
-    }
+    },
+    "srcBox": [
+     63,
+     73,
+     1328,
+     1076
+    ]
    },
    "attack_heavy_b": {
     "w": 1300,
@@ -42947,7 +45545,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 263.3
-    }
+    },
+    "srcBox": [
+     64,
+     106,
+     1364,
+     999
+    ]
    },
    "attack_light_a": {
     "w": 945,
@@ -42980,7 +45584,13 @@
     "edited": {
      "renderScale": 0.224,
      "ox": -353.1
-    }
+    },
+    "srcBox": [
+     73,
+     22,
+     1018,
+     1105
+    ]
    },
    "attack_light_b": {
     "w": 1252,
@@ -43013,7 +45623,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 258.9
-    }
+    },
+    "srcBox": [
+     60,
+     90,
+     1312,
+     1067
+    ]
    },
    "attack_up": {
     "w": 802,
@@ -43053,7 +45669,13 @@
        682.2
       ]
      }
-    }
+    },
+    "srcBox": [
+     67,
+     66,
+     869,
+     1480
+    ]
    },
    "charge": {
     "w": 1285,
@@ -43086,7 +45708,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 259.1
-    }
+    },
+    "srcBox": [
+     46,
+     84,
+     1331,
+     1056
+    ]
    },
    "crouch_a": {
     "w": 1065,
@@ -43118,7 +45746,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     42,
+     237,
+     1107,
+     1149
+    ]
    },
    "crouch_attack_a": {
     "w": 1210,
@@ -43152,7 +45786,13 @@
      "renderScale": 0.25,
      "ox": -476.6,
      "bodyBottom": 263.4
-    }
+    },
+    "srcBox": [
+     66,
+     164,
+     1276,
+     1056
+    ]
    },
    "crouch_attack_b": {
     "w": 1524,
@@ -43184,7 +45824,13 @@
     },
     "edited": {
      "renderScale": 0.311
-    }
+    },
+    "srcBox": [
+     12,
+     243,
+     1536,
+     876
+    ]
    },
    "crouch_b": {
     "w": 1146,
@@ -43216,7 +45862,13 @@
     },
     "edited": {
      "renderScale": 0.302
-    }
+    },
+    "srcBox": [
+     82,
+     189,
+     1228,
+     1074
+    ]
    },
    "dash": {
     "w": 1348,
@@ -43249,7 +45901,13 @@
     "edited": {
      "renderScale": 0.25,
      "ox": -495.9
-    }
+    },
+    "srcBox": [
+     83,
+     81,
+     1431,
+     982
+    ]
    },
    "dizzy": {
     "w": 818,
@@ -43283,7 +45941,13 @@
      "renderScale": 0.25,
      "ox": -287.4,
      "bodyBottom": 241.8
-    }
+    },
+    "srcBox": [
+     73,
+     166,
+     891,
+     1463
+    ]
    },
    "dodge_air": {
     "w": 801,
@@ -43315,7 +45979,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     374,
+     108,
+     1175,
+     922
+    ]
    },
    "dodge_roll": {
     "w": 1113,
@@ -43349,7 +46019,13 @@
      "bodyBottom": 275.5,
      "rotationDeg": null
     },
-    "rotationDeg": 80
+    "rotationDeg": 80,
+    "srcBox": [
+     189,
+     209,
+     1302,
+     874
+    ]
    },
    "fall": {
     "w": 767,
@@ -43381,7 +46057,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     88,
+     131,
+     855,
+     1361
+    ]
    },
    "guard": {
     "w": 1025,
@@ -43414,7 +46096,13 @@
     "edited": {
      "renderScale": 0.25,
      "ox": -405.1
-    }
+    },
+    "srcBox": [
+     113,
+     83,
+     1138,
+     1094
+    ]
    },
    "hurt": {
     "w": 1149,
@@ -43448,7 +46136,13 @@
      "renderScale": 0.25,
      "ox": -429.4,
      "bodyBottom": 259.2
-    }
+    },
+    "srcBox": [
+     66,
+     91,
+     1215,
+     1062
+    ]
    },
    "idle_a": {
     "w": 878,
@@ -43481,7 +46175,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 238.5
-    }
+    },
+    "srcBox": [
+     53,
+     104,
+     931,
+     1463
+    ]
    },
    "idle_b": {
     "w": 875,
@@ -43514,7 +46214,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 238.5
-    }
+    },
+    "srcBox": [
+     54,
+     105,
+     929,
+     1464
+    ]
    },
    "jump_rise": {
     "w": 683,
@@ -43546,7 +46252,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     136,
+     68,
+     819,
+     1420
+    ]
    },
    "land": {
     "w": 851,
@@ -43579,7 +46291,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 238.5
-    }
+    },
+    "srcBox": [
+     57,
+     118,
+     908,
+     1477
+    ]
    },
    "ledge_hang": {
     "w": 523,
@@ -43615,7 +46333,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     230,
+     154,
+     753,
+     1388
+    ]
    },
    "prone": {
     "w": 1435,
@@ -43647,7 +46371,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 310.4
-    }
+    },
+    "srcBox": [
+     59,
+     293,
+     1494,
+     764
+    ]
    },
    "run_pass_a": {
     "w": 850,
@@ -43688,7 +46418,13 @@
       "renderScale": 0.2712,
       "bodyH": 303.2
      }
-    }
+    },
+    "srcBox": [
+     153,
+     60,
+     1003,
+     1273
+    ]
    },
    "run_pass_b": {
     "w": 877,
@@ -43729,7 +46465,13 @@
       "renderScale": 0.2425,
       "bodyH": 340.5
      }
-    }
+    },
+    "srcBox": [
+     37,
+     79,
+     914,
+     1441
+    ]
    },
    "run_reach_a": {
     "w": 958,
@@ -43770,7 +46512,13 @@
       "renderScale": 0.324,
       "bodyH": 286.8
      }
-    }
+    },
+    "srcBox": [
+     79,
+     125,
+     1037,
+     1011
+    ]
    },
    "run_reach_b": {
     "w": 1134,
@@ -43811,7 +46559,13 @@
       "renderScale": 0.3555,
       "bodyH": 275.2
      }
-    }
+    },
+    "srcBox": [
+     132,
+     182,
+     1266,
+     957
+    ]
    },
    "special_down": {
     "w": 920,
@@ -43844,7 +46598,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 262.9
-    }
+    },
+    "srcBox": [
+     287,
+     62,
+     1207,
+     963
+    ]
    },
    "special_neutral": {
     "w": 1274,
@@ -43885,7 +46645,13 @@
       ]
      }
     },
-    "rotationDeg": 4.5
+    "rotationDeg": 4.5,
+    "srcBox": [
+     126,
+     115,
+     1400,
+     1011
+    ]
    },
    "special_side": {
     "w": 1252,
@@ -43919,7 +46685,13 @@
      "bodyBottom": 256.6,
      "faceLeft": null
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     64,
+     55,
+     1316,
+     1074
+    ]
    },
    "ult_a": {
     "w": 1397,
@@ -43958,7 +46730,13 @@
        361.9
       ]
      }
-    }
+    },
+    "srcBox": [
+     74,
+     68,
+     1471,
+     977
+    ]
    },
    "ult_b": {
     "w": 1445,
@@ -43997,7 +46775,13 @@
        315.5
       ]
      }
-    }
+    },
+    "srcBox": [
+     34,
+     105,
+     1479,
+     957
+    ]
    },
    "victory": {
     "w": 1060,
@@ -44030,7 +46814,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 251.7
-    }
+    },
+    "srcBox": [
+     70,
+     133,
+     1130,
+     1244
+    ]
    },
    "attack_dash": {
     "w": 1135,
@@ -44063,7 +46853,13 @@
     "edited": {
      "renderScale": 0.261,
      "bodyBottom": 232.6
-    }
+    },
+    "srcBox": [
+     18,
+     241,
+     1153,
+     1125
+    ]
    },
    "grab_hold": {
     "w": 1001,
@@ -44138,7 +46934,13 @@
      "anchors": {
       "grabHand": null
      }
-    }
+    },
+    "srcBox": [
+     9,
+     54,
+     1102,
+     1381
+    ]
    },
    "grabbed": {
     "w": 993,
@@ -44177,7 +46979,13 @@
      "anchors": {
       "grabChest": null
      }
-    }
+    },
+    "srcBox": [
+     6,
+     50,
+     999,
+     1488
+    ]
    },
    "walk_a": {
     "w": 869,
@@ -44210,7 +47018,13 @@
     "edited": {
      "renderScale": 0.261,
      "bodyBottom": 196.6
-    }
+    },
+    "srcBox": [
+     77,
+     93,
+     946,
+     1441
+    ]
    },
    "walk_b": {
     "w": 599,
@@ -44243,7 +47057,13 @@
     "edited": {
      "renderScale": 0.261,
      "bodyBottom": 196.5
-    }
+    },
+    "srcBox": [
+     212,
+     93,
+     811,
+     1442
+    ]
    },
    "teeter": {
     "w": 960,
@@ -44287,7 +47107,13 @@
       ]
      }
     },
-    "rotationDeg": -2
+    "rotationDeg": -2,
+    "srcBox": [
+     21,
+     98,
+     981,
+     1484
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 1098,
@@ -44322,7 +47148,13 @@
     "edited": {
      "renderScale": 0.2898,
      "ox": -425.2
-    }
+    },
+    "srcBox": [
+     64,
+     69,
+     1162,
+     1287
+    ]
    },
    "attack_diag_up_b": {
     "w": 1042,
@@ -44356,7 +47188,13 @@
     },
     "edited": {
      "bodyBottom": 221.9
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1106,
+     1307
+    ]
    },
    "domain_expansion": {
     "w": 973,
@@ -44390,7 +47228,13 @@
     },
     "edited": {
      "renderScale": 0.2327
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1037,
+     1581
+    ]
    },
    "throw_back": {
     "w": 917,
@@ -44425,7 +47269,13 @@
     "edited": {
      "renderScale": 0.2668,
      "bodyBottom": 207
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     981,
+     1515
+    ]
    },
    "throw_down": {
     "w": 1510,
@@ -44457,7 +47307,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     64,
+     117,
+     1574,
+     910
+    ]
    },
    "throw_fwd": {
     "w": 963,
@@ -44492,7 +47348,13 @@
     "edited": {
      "renderScale": 0.3216,
      "bodyBottom": 221.6
-    }
+    },
+    "srcBox": [
+     64,
+     184,
+     1027,
+     1431
+    ]
    },
    "throw_up": {
     "w": 747,
@@ -44526,7 +47388,13 @@
     },
     "edited": {
      "renderScale": 0.3151
-    }
+    },
+    "srcBox": [
+     79,
+     64,
+     826,
+     1576
+    ]
    }
   },
   "mechamaru": {
@@ -47899,7 +50767,13 @@
        711.5
       ]
      }
-    }
+    },
+    "srcBox": [
+     112,
+     43,
+     972,
+     1363
+    ]
    },
    "attack_air_b": {
     "w": 1373,
@@ -47930,7 +50804,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     27,
+     34,
+     1400,
+     1053
+    ]
    },
    "attack_down": {
     "w": 930,
@@ -47969,7 +50849,13 @@
        674.1
       ]
      }
-    }
+    },
+    "srcBox": [
+     51,
+     122,
+     981,
+     1406
+    ]
    },
    "attack_heavy_a": {
     "w": 766,
@@ -48008,7 +50894,13 @@
        695.1
       ]
      }
-    }
+    },
+    "srcBox": [
+     142,
+     34,
+     908,
+     1402
+    ]
    },
    "attack_heavy_b": {
     "file": "kurourushi/attack_heavy_b.png",
@@ -48081,7 +50973,13 @@
        723.1
       ]
      }
-    }
+    },
+    "srcBox": [
+     70,
+     68,
+     896,
+     1501
+    ]
    },
    "attack_light_b": {
     "file": "kurourushi/attack_light_b.png",
@@ -48154,7 +51052,13 @@
        714.7
       ]
      }
-    }
+    },
+    "srcBox": [
+     83,
+     58,
+     921,
+     1471
+    ]
    },
    "charge": {
     "w": 1013,
@@ -48193,7 +51097,13 @@
        687.6
       ]
      }
-    }
+    },
+    "srcBox": [
+     63,
+     96,
+     1076,
+     1304
+    ]
    },
    "crouch_a": {
     "w": 1317,
@@ -48225,7 +51135,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     43,
+     43,
+     1360,
+     1079
+    ]
    },
    "crouch_attack_a": {
     "w": 1411,
@@ -48259,7 +51175,13 @@
      "renderScale": 0.25,
      "ox": -571.7,
      "bodyBottom": 259.4
-    }
+    },
+    "srcBox": [
+     35,
+     30,
+     1446,
+     988
+    ]
    },
    "crouch_attack_b": {
     "file": "kurourushi/crouch_attack_b.png",
@@ -48325,7 +51247,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     144,
+     43,
+     1328,
+     979
+    ]
    },
    "dash": {
     "file": "kurourushi/dash.png",
@@ -48391,7 +51319,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     114,
+     96,
+     883,
+     1458
+    ]
    },
    "dodge_air": {
     "w": 959,
@@ -48422,7 +51356,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     32,
+     127,
+     991,
+     1284
+    ]
    },
    "dodge_roll": {
     "w": 1368,
@@ -48454,7 +51394,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     70,
+     92,
+     1438,
+     897
+    ]
    },
    "fall": {
     "w": 947,
@@ -48492,7 +51438,13 @@
        748
       ]
      }
-    }
+    },
+    "srcBox": [
+     38,
+     36,
+     985,
+     1492
+    ]
    },
    "guard": {
     "w": 882,
@@ -48531,7 +51483,13 @@
        719.5
       ]
      }
-    }
+    },
+    "srcBox": [
+     59,
+     78,
+     941,
+     1443
+    ]
    },
    "hurt": {
     "w": 853,
@@ -48571,7 +51529,13 @@
       ]
      }
     },
-    "faceLeft": true
+    "faceLeft": true,
+    "srcBox": [
+     89,
+     149,
+     942,
+     1426
+    ]
    },
    "idle_a": {
     "w": 725,
@@ -48610,7 +51574,13 @@
        730.4
       ]
      }
-    }
+    },
+    "srcBox": [
+     112,
+     28,
+     837,
+     1503
+    ]
    },
    "idle_b": {
     "w": 717,
@@ -48645,7 +51615,13 @@
     "edited": {
      "renderScale": 0.253,
      "bodyBottom": 232.4
-    }
+    },
+    "srcBox": [
+     116,
+     42,
+     833,
+     1501
+    ]
    },
    "jump_rise": {
     "w": 877,
@@ -48677,7 +51653,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 310.4
-    }
+    },
+    "srcBox": [
+     74,
+     48,
+     951,
+     1416
+    ]
    },
    "land": {
     "w": 733,
@@ -48716,7 +51698,13 @@
        516.9
       ]
      }
-    }
+    },
+    "srcBox": [
+     344,
+     24,
+     1077,
+     1060
+    ]
    },
    "ledge_hang": {
     "w": 1004,
@@ -48784,7 +51772,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 310.4
-    }
+    },
+    "srcBox": [
+     37,
+     218,
+     1498,
+     822
+    ]
    },
    "run_pass_a": {
     "w": 1245,
@@ -48816,7 +51810,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     35,
+     47,
+     1280,
+     957
+    ]
    },
    "run_pass_b": {
     "w": 781,
@@ -48855,7 +51855,13 @@
        656.4
       ]
      }
-    }
+    },
+    "srcBox": [
+     78,
+     117,
+     859,
+     1430
+    ]
    },
    "run_reach_a": {
     "w": 1121,
@@ -48888,7 +51894,13 @@
     "edited": {
      "renderScale": 0.25,
      "ox": -394.7
-    }
+    },
+    "srcBox": [
+     192,
+     25,
+     1313,
+     988
+    ]
    },
    "run_reach_b": {
     "w": 948,
@@ -48920,7 +51932,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     21,
+     120,
+     969,
+     1386
+    ]
    },
    "special_down": {
     "w": 955,
@@ -48959,7 +51977,13 @@
        766
       ]
      }
-    }
+    },
+    "srcBox": [
+     35,
+     34,
+     990,
+     1481
+    ]
    },
    "special_neutral": {
     "w": 1043,
@@ -48992,7 +52016,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 239.3
-    }
+    },
+    "srcBox": [
+     22,
+     44,
+     1065,
+     1376
+    ]
    },
    "special_side": {
     "w": 1405,
@@ -49025,7 +52055,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 258.3
-    }
+    },
+    "srcBox": [
+     67,
+     23,
+     1472,
+     1001
+    ]
    },
    "ult_a": {
     "w": 994,
@@ -49058,7 +52094,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 235
-    }
+    },
+    "srcBox": [
+     130,
+     156,
+     1124,
+     1568
+    ]
    },
    "ult_b": {
     "w": 1082,
@@ -49091,7 +52133,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 240.6
-    }
+    },
+    "srcBox": [
+     29,
+     43,
+     1111,
+     1351
+    ]
    },
    "victory": {
     "w": 867,
@@ -49130,7 +52178,13 @@
        783.6
       ]
      }
-    }
+    },
+    "srcBox": [
+     53,
+     20,
+     920,
+     1491
+    ]
    },
    "attack_dash": {
     "w": 1484,
@@ -49168,7 +52222,13 @@
        435.4
       ]
      }
-    }
+    },
+    "srcBox": [
+     30,
+     77,
+     1514,
+     909
+    ]
    },
    "grab_hold": {
     "w": 1000,
@@ -49206,7 +52266,13 @@
        761.6
       ]
      }
-    }
+    },
+    "srcBox": [
+     12,
+     12,
+     1012,
+     1524
+    ]
    },
    "grab_reach": {
     "w": 1001,
@@ -49249,7 +52315,13 @@
        721.6
       ]
      }
-    }
+    },
+    "srcBox": [
+     8,
+     35,
+     1009,
+     1496
+    ]
    },
    "grabbed": {
     "w": 990,
@@ -49292,7 +52364,13 @@
        764.2
       ]
      }
-    }
+    },
+    "srcBox": [
+     17,
+     21,
+     1007,
+     1511
+    ]
    },
    "walk_a": {
     "w": 903,
@@ -49330,7 +52408,13 @@
        697.6
       ]
      }
-    }
+    },
+    "srcBox": [
+     60,
+     93,
+     963,
+     1443
+    ]
    },
    "walk_b": {
     "w": 859,
@@ -49362,7 +52446,13 @@
     },
     "edited": {
      "bodyBottom": 194.9
-    }
+    },
+    "srcBox": [
+     82,
+     94,
+     941,
+     1442
+    ]
    },
    "teeter": {
     "w": 823,
@@ -49405,7 +52495,13 @@
        1350.8
       ]
      }
-    }
+    },
+    "srcBox": [
+     107,
+     79,
+     930,
+     1434
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 1007,
@@ -49437,7 +52533,13 @@
       "ox": "on the placed centre of mass"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     64,
+     64,
+     1071,
+     1435
+    ]
    },
    "attack_diag_up_b": {
     "w": 938,
@@ -49472,7 +52574,13 @@
     "edited": {
      "renderScale": 0.3146,
      "ox": -233.3
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1002,
+     1626
+    ]
    },
    "throw_back": {
     "w": 963,
@@ -49507,7 +52615,13 @@
     "edited": {
      "renderScale": 0.2599,
      "ox": -330.9
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1027,
+     1616
+    ]
    },
    "throw_down": {
     "w": 1045,
@@ -49541,7 +52655,13 @@
     },
     "edited": {
      "bodyBottom": 203.1
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1109,
+     1461
+    ]
    },
    "throw_fwd": {
     "w": 985,
@@ -49576,7 +52696,13 @@
     "edited": {
      "renderScale": 0.2754,
      "bodyBottom": 204
-    }
+    },
+    "srcBox": [
+     64,
+     74,
+     1049,
+     1460
+    ]
    },
    "throw_up": {
     "w": 720,
@@ -49608,7 +52734,13 @@
     },
     "edited": {
      "renderScale": 0.292
-    }
+    },
+    "srcBox": [
+     111,
+     64,
+     831,
+     1700
+    ]
    }
   },
   "kashimo": {
@@ -49672,7 +52804,13 @@
     },
     "edited": {
      "ox": -279.8
-    }
+    },
+    "srcBox": [
+     62,
+     174,
+     1216,
+     1041
+    ]
    },
    "attack_down": {
     "w": 872,
@@ -49704,7 +52842,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     126,
+     154,
+     998,
+     1140
+    ]
    },
    "attack_heavy_a": {
     "w": 797,
@@ -49736,7 +52880,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     131,
+     119,
+     928,
+     1127
+    ]
    },
    "attack_heavy_b": {
     "w": 1149,
@@ -49768,7 +52918,13 @@
     },
     "edited": {
      "ox": -233
-    }
+    },
+    "srcBox": [
+     64,
+     160,
+     1213,
+     1157
+    ]
    },
    "attack_light_a": {
     "w": 953,
@@ -49801,7 +52957,13 @@
     "edited": {
      "ox": -445.6,
      "bodyBottom": 252.6
-    }
+    },
+    "srcBox": [
+     65,
+     95,
+     1018,
+     1183
+    ]
    },
    "attack_light_b": {
     "w": 982,
@@ -49835,7 +52997,13 @@
      "renderScale": 0.25,
      "ox": -263,
      "bodyBottom": 254.7
-    }
+    },
+    "srcBox": [
+     154,
+     107,
+     1136,
+     1155
+    ]
    },
    "attack_up": {
     "w": 754,
@@ -49874,7 +53042,13 @@
        584.2
       ]
      }
-    }
+    },
+    "srcBox": [
+     267,
+     51,
+     1021,
+     1168
+    ]
    },
    "charge": {
     "w": 571,
@@ -49906,7 +53080,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     316,
+     60,
+     887,
+     1195
+    ]
    },
    "crouch_a": {
     "w": 881,
@@ -49938,7 +53118,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     223,
+     250,
+     1104,
+     1086
+    ]
    },
    "crouch_attack_a": {
     "w": 938,
@@ -49971,7 +53157,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 266.9
-    }
+    },
+    "srcBox": [
+     118,
+     242,
+     1056,
+     1063
+    ]
    },
    "crouch_attack_b": {
     "w": 1124,
@@ -50004,7 +53196,13 @@
     "edited": {
      "renderScale": 0.25,
      "ox": -272.8
-    }
+    },
+    "srcBox": [
+     90,
+     373,
+     1214,
+     1002
+    ]
    },
    "crouch_b": {
     "w": 710,
@@ -50036,7 +53234,13 @@
     },
     "edited": {
      "bodyBottom": 269.9
-    }
+    },
+    "srcBox": [
+     272,
+     339,
+     982,
+     1105
+    ]
    },
    "dash": {
     "w": 914,
@@ -50075,7 +53279,13 @@
        510.6
       ]
      }
-    }
+    },
+    "srcBox": [
+     68,
+     95,
+     982,
+     1111
+    ]
    },
    "dizzy": {
     "w": 485,
@@ -50107,7 +53317,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     344,
+     53,
+     829,
+     1173
+    ]
    },
    "dodge_air": {
     "w": 694,
@@ -50136,7 +53352,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     240,
+     72,
+     934,
+     1086
+    ]
    },
    "dodge_roll": {
     "w": 508,
@@ -50168,7 +53390,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     354,
+     168,
+     862,
+     1086
+    ]
    },
    "fall": {
     "w": 1095,
@@ -50205,7 +53433,13 @@
        508.6
       ]
      }
-    }
+    },
+    "srcBox": [
+     12,
+     65,
+     1107,
+     998
+    ]
    },
    "guard": {
     "w": 494,
@@ -50237,7 +53471,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     350,
+     138,
+     844,
+     1148
+    ]
    },
    "hurt": {
     "w": 942,
@@ -50269,7 +53509,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     71,
+     66,
+     1013,
+     1191
+    ]
    },
    "idle_a": {
     "w": 370,
@@ -50301,7 +53547,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     469,
+     53,
+     839,
+     1170
+    ]
    },
    "idle_b": {
     "w": 372,
@@ -50335,7 +53587,13 @@
     },
     "edited": {
      "renderScale": 0.249
-    }
+    },
+    "srcBox": [
+     466,
+     51,
+     838,
+     1171
+    ]
    },
    "jump_rise": {
     "w": 759,
@@ -50364,7 +53622,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     162,
+     59,
+     921,
+     1146
+    ]
    },
    "land": {
     "w": 844,
@@ -50403,7 +53667,13 @@
        682.1
       ]
      }
-    }
+    },
+    "srcBox": [
+     85,
+     75,
+     929,
+     1136
+    ]
    },
    "ledge_hang": {
     "w": 289,
@@ -50438,7 +53708,13 @@
     },
     "edited": {
      "renderScale": 0.248
-    }
+    },
+    "srcBox": [
+     470,
+     29,
+     759,
+     1194
+    ]
    },
    "prone": {
     "w": 1356,
@@ -50470,7 +53746,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 310.4
-    }
+    },
+    "srcBox": [
+     99,
+     302,
+     1455,
+     865
+    ]
    },
    "run_pass_a": {
     "w": 740,
@@ -50511,7 +53793,13 @@
       "renderScale": 0.2562,
       "bodyH": 268.7
      }
-    }
+    },
+    "srcBox": [
+     185,
+     91,
+     925,
+     1140
+    ]
    },
    "run_pass_b": {
     "w": 750,
@@ -50551,7 +53839,13 @@
       "renderScale": 0.25,
       "bodyH": 241.2
      }
-    }
+    },
+    "srcBox": [
+     184,
+     150,
+     934,
+     1115
+    ]
    },
    "run_reach_a": {
     "w": 1045,
@@ -50592,7 +53886,13 @@
       "renderScale": 0.2863,
       "bodyH": 205.9
      }
-    }
+    },
+    "srcBox": [
+     63,
+     263,
+     1108,
+     982
+    ]
    },
    "run_reach_b": {
     "w": 1186,
@@ -50634,7 +53934,13 @@
       "renderScale": 0.2813,
       "bodyH": 236.9
      }
-    }
+    },
+    "srcBox": [
+     38,
+     163,
+     1224,
+     1005
+    ]
    },
    "special_down": {
     "w": 1055,
@@ -50667,7 +53973,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 254.1
-    }
+    },
+    "srcBox": [
+     103,
+     100,
+     1158,
+     1159
+    ]
    },
    "special_neutral": {
     "w": 1023,
@@ -50700,7 +54012,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 250.7
-    }
+    },
+    "srcBox": [
+     144,
+     63,
+     1167,
+     1186
+    ]
    },
    "special_side": {
     "w": 901,
@@ -50732,7 +54050,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     166,
+     170,
+     1067,
+     1110
+    ]
    },
    "ult_a": {
     "w": 854,
@@ -50762,7 +54086,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     125,
+     32,
+     979,
+     1198
+    ]
    },
    "ult_b": {
     "w": 941,
@@ -50795,7 +54125,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 250.5
-    }
+    },
+    "srcBox": [
+     160,
+     64,
+     1101,
+     1190
+    ]
    },
    "victory": {
     "w": 529,
@@ -50827,7 +54163,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     334,
+     33,
+     863,
+     1200
+    ]
    },
    "attack_dash": {
     "w": 1176,
@@ -50867,7 +54209,13 @@
        339.8
       ]
      }
-    }
+    },
+    "srcBox": [
+     45,
+     228,
+     1221,
+     1043
+    ]
    },
    "grab_hold": {
     "w": 672,
@@ -50899,7 +54247,13 @@
     },
     "edited": {
      "bodyBottom": 230.8
-    }
+    },
+    "srcBox": [
+     330,
+     66,
+     1002,
+     1153
+    ]
    },
    "grab_reach": {
     "w": 972,
@@ -50938,7 +54292,13 @@
       "grabHand": null
      },
      "renderScale": 0.258
-    }
+    },
+    "srcBox": [
+     153,
+     120,
+     1125,
+     1128
+    ]
    },
    "grabbed": {
     "w": 567,
@@ -50977,7 +54337,13 @@
       "grabChest": null
      },
      "renderScale": 0.258
-    }
+    },
+    "srcBox": [
+     376,
+     52,
+     943,
+     1180
+    ]
    },
    "teeter": {
     "w": 760,
@@ -51023,7 +54389,13 @@
        1077.6
       ]
      }
-    }
+    },
+    "srcBox": [
+     211,
+     88,
+     971,
+     1169
+    ]
    },
    "walk_a": {
     "w": 474,
@@ -51062,7 +54434,13 @@
        468.7
       ]
      }
-    }
+    },
+    "srcBox": [
+     413,
+     66,
+     887,
+     1139
+    ]
    },
    "walk_b": {
     "w": 483,
@@ -51101,7 +54479,13 @@
        483.4
       ]
      }
-    }
+    },
+    "srcBox": [
+     395,
+     56,
+     878,
+     1151
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 1205,
@@ -51133,7 +54517,13 @@
       "ox": "on the placed centre of mass"
      }
     },
-    "wantsImprovement": "alpha"
+    "wantsImprovement": "alpha",
+    "srcBox": [
+     127,
+     82,
+     1332,
+     1001
+    ]
    },
    "attack_diag_up_b": {
     "w": 1281,
@@ -51167,7 +54557,13 @@
       "bodyH": "area, no pose ratio",
       "renderScale": "area, no pose ratio"
      }
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1345,
+     1192
+    ]
    },
    "throw_back": {
     "w": 885,
@@ -51194,7 +54590,13 @@
     "bodyLeft": 0,
     "bodyRight": 885,
     "coreLeft": 78.2,
-    "coreRight": 781.9
+    "coreRight": 781.9,
+    "srcBox": [
+     84,
+     64,
+     969,
+     1454
+    ]
    },
    "throw_down": {
     "w": 924,
@@ -51220,7 +54622,13 @@
     "bodyLeft": 0,
     "bodyRight": 924,
     "coreLeft": 70.2,
-    "coreRight": 786.8
+    "coreRight": 786.8,
+    "srcBox": [
+     64,
+     221,
+     988,
+     1345
+    ]
    },
    "throw_fwd": {
     "w": 1152,
@@ -51246,7 +54654,13 @@
     "bodyLeft": 0,
     "bodyRight": 1152,
     "coreLeft": 77.6,
-    "coreRight": 1009.1
+    "coreRight": 1009.1,
+    "srcBox": [
+     64,
+     64,
+     1216,
+     1306
+    ]
    },
    "throw_up": {
     "w": 700,
@@ -51272,7 +54686,13 @@
     "bodyLeft": 0,
     "bodyRight": 700,
     "coreLeft": 54.1,
-    "coreRight": 594.8
+    "coreRight": 594.8,
+    "srcBox": [
+     185,
+     64,
+     885,
+     1506
+    ]
    }
   },
   "naoya": {
@@ -54729,7 +58149,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     198,
+     144,
+     778,
+     1292
+    ]
    },
    "attack_air_b": {
     "w": 901,
@@ -54760,7 +58186,13 @@
     },
     "edited": {
      "ox": -255.8
-    }
+    },
+    "srcBox": [
+     74,
+     176,
+     975,
+     1320
+    ]
    },
    "attack_down": {
     "w": 766,
@@ -54799,7 +58231,13 @@
        359.8
       ]
      }
-    }
+    },
+    "srcBox": [
+     63,
+     426,
+     829,
+     1293
+    ]
    },
    "attack_heavy_a": {
     "file": "kirara/attack_heavy_a.png",
@@ -54871,7 +58309,13 @@
        370.3
       ]
      }
-    }
+    },
+    "srcBox": [
+     37,
+     188,
+     953,
+     1398
+    ]
    },
    "attack_light_a": {
     "w": 638,
@@ -54905,7 +58349,13 @@
      "renderScale": 0.214,
      "ox": -184.6,
      "bodyBottom": 190.4
-    }
+    },
+    "srcBox": [
+     145,
+     86,
+     783,
+     1500
+    ]
    },
    "attack_light_b": {
     "w": 954,
@@ -54937,7 +58387,13 @@
      "fields": {
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1018,
+     1512
+    ]
    },
    "attack_up": {
     "w": 511,
@@ -54972,7 +58428,13 @@
      "bodyBottom": 232.9,
      "rotationDeg": null
     },
-    "rotationDeg": -11.5
+    "rotationDeg": -11.5,
+    "srcBox": [
+     210,
+     38,
+     721,
+     1503
+    ]
    },
    "charge": {
     "w": 624,
@@ -55004,7 +58466,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     173,
+     111,
+     797,
+     1461
+    ]
    },
    "crouch_a": {
     "w": 651,
@@ -55036,7 +58504,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     174,
+     278,
+     825,
+     1301
+    ]
    },
    "crouch_attack_a": {
     "w": 1206,
@@ -55071,7 +58545,13 @@
     "edited": {
      "renderScale": 0.1968,
      "bodyBottom": 200.6
-    }
+    },
+    "srcBox": [
+     89,
+     79,
+     1295,
+     1134
+    ]
    },
    "crouch_attack_b": {
     "w": 1423,
@@ -55110,7 +58590,13 @@
        440.5
       ]
      }
-    }
+    },
+    "srcBox": [
+     53,
+     78,
+     1476,
+     956
+    ]
    },
    "crouch_b": {
     "w": 738,
@@ -55145,7 +58631,13 @@
      "bodyBottom": 259.4,
      "rotationDeg": null
     },
-    "rotationDeg": -11.5
+    "rotationDeg": -11.5,
+    "srcBox": [
+     94,
+     377,
+     832,
+     1345
+    ]
    },
    "dash": {
     "w": 824,
@@ -55178,7 +58670,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 255.9
-    }
+    },
+    "srcBox": [
+     43,
+     269,
+     867,
+     1302
+    ]
    },
    "dizzy": {
     "w": 449,
@@ -55211,7 +58709,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 234.9
-    }
+    },
+    "srcBox": [
+     275,
+     58,
+     724,
+     1485
+    ]
    },
    "dodge_air": {
     "w": 596,
@@ -55242,7 +58746,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     138,
+     148,
+     734,
+     1298
+    ]
    },
    "dodge_roll": {
     "w": 402,
@@ -55272,7 +58782,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     281,
+     361,
+     683,
+     1142
+    ]
    },
    "fall": {
     "w": 744,
@@ -55301,7 +58817,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     76,
+     88,
+     820,
+     1162
+    ]
    },
    "guard": {
     "w": 566,
@@ -55334,7 +58856,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 244.2
-    }
+    },
+    "srcBox": [
+     213,
+     159,
+     779,
+     1412
+    ]
    },
    "hurt": {
     "w": 788,
@@ -55367,7 +58895,13 @@
     "edited": {
      "renderScale": 0.25,
      "ox": -287.2
-    }
+    },
+    "srcBox": [
+     66,
+     106,
+     854,
+     1475
+    ]
    },
    "idle_a": {
     "w": 413,
@@ -55400,7 +58934,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 236.3
-    }
+    },
+    "srcBox": [
+     286,
+     69,
+     699,
+     1470
+    ]
    },
    "idle_b": {
     "w": 418,
@@ -55435,7 +58975,13 @@
     "edited": {
      "renderScale": 0.249,
      "bodyBottom": 235.9
-    }
+    },
+    "srcBox": [
+     280,
+     70,
+     698,
+     1478
+    ]
    },
    "jump_rise": {
     "w": 469,
@@ -55466,7 +59012,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     277,
+     63,
+     746,
+     1428
+    ]
    },
    "land": {
     "w": 711,
@@ -55505,7 +59057,13 @@
        447.6
       ]
      }
-    }
+    },
+    "srcBox": [
+     128,
+     356,
+     839,
+     1348
+    ]
    },
    "ledge_hang": {
     "w": 268,
@@ -55540,7 +59098,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     363,
+     60,
+     631,
+     1484
+    ]
    },
    "prone": {
     "w": 1342,
@@ -55571,7 +59135,13 @@
     },
     "edited": {
      "bodyBottom": 310.4
-    }
+    },
+    "srcBox": [
+     113,
+     566,
+     1455,
+     942
+    ]
    },
    "run_pass_a": {
     "w": 716,
@@ -55611,7 +59181,13 @@
       "renderScale": 0.25,
       "bodyH": 297.2
      }
-    }
+    },
+    "srcBox": [
+     127,
+     191,
+     843,
+     1380
+    ]
    },
    "run_pass_b": {
     "w": 730,
@@ -55652,7 +59228,13 @@
       "renderScale": 0.2787,
       "bodyH": 304.9
      }
-    }
+    },
+    "srcBox": [
+     60,
+     232,
+     790,
+     1326
+    ]
    },
    "run_reach_a": {
     "w": 921,
@@ -55693,7 +59275,13 @@
       "renderScale": 0.2825,
       "bodyH": 269.8
      }
-    }
+    },
+    "srcBox": [
+     23,
+     275,
+     944,
+     1230
+    ]
    },
    "run_reach_b": {
     "w": 902,
@@ -55734,7 +59322,13 @@
       "renderScale": 0.2775,
       "bodyH": 276.6
      }
-    }
+    },
+    "srcBox": [
+     50,
+     268,
+     952,
+     1265
+    ]
    },
    "special_down": {
     "w": 868,
@@ -55773,7 +59367,13 @@
        621.1
       ]
      }
-    }
+    },
+    "srcBox": [
+     60,
+     101,
+     928,
+     1437
+    ]
    },
    "special_neutral": {
     "w": 790,
@@ -55806,7 +59406,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 239.4
-    }
+    },
+    "srcBox": [
+     127,
+     112,
+     917,
+     1455
+    ]
    },
    "special_side": {
     "w": 924,
@@ -55839,7 +59445,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 246.2
-    }
+    },
+    "srcBox": [
+     53,
+     185,
+     977,
+     1399
+    ]
    },
    "ult_a": {
     "w": 926,
@@ -55872,7 +59484,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 235.8
-    }
+    },
+    "srcBox": [
+     42,
+     80,
+     968,
+     1490
+    ]
    },
    "ult_b": {
     "w": 903,
@@ -55905,7 +59523,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 243.8
-    }
+    },
+    "srcBox": [
+     35,
+     154,
+     938,
+     1413
+    ]
    },
    "victory": {
     "w": 546,
@@ -55938,7 +59562,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 232.8
-    }
+    },
+    "srcBox": [
+     237,
+     54,
+     783,
+     1521
+    ]
    },
    "attack_dash": {
     "w": 892,
@@ -55978,7 +59608,13 @@
        475
       ]
      }
-    }
+    },
+    "srcBox": [
+     34,
+     183,
+     926,
+     1382
+    ]
    },
    "grab_hold": {
     "w": 749,
@@ -56010,7 +59646,13 @@
     },
     "edited": {
      "renderScale": 0.246
-    }
+    },
+    "srcBox": [
+     158,
+     157,
+     907,
+     1414
+    ]
    },
    "grab_reach": {
     "w": 875,
@@ -56050,7 +59692,13 @@
      },
      "renderScale": 0.246,
      "ox": -320.9
-    }
+    },
+    "srcBox": [
+     69,
+     256,
+     944,
+     1332
+    ]
    },
    "grabbed": {
     "w": 615,
@@ -56089,7 +59737,13 @@
       "grabChest": null
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     237,
+     84,
+     852,
+     1483
+    ]
    },
    "teeter": {
     "w": 827,
@@ -56132,7 +59786,13 @@
        1306.9
       ]
      }
-    }
+    },
+    "srcBox": [
+     89,
+     131,
+     916,
+     1442
+    ]
    },
    "walk_a": {
     "w": 604,
@@ -56165,7 +59825,13 @@
     "edited": {
      "renderScale": 0.246,
      "bodyBottom": 257.4
-    }
+    },
+    "srcBox": [
+     187,
+     98,
+     791,
+     1459
+    ]
    },
    "walk_b": {
     "w": 529,
@@ -56198,7 +59864,13 @@
     "edited": {
      "renderScale": 0.246,
      "bodyBottom": 255.6
-    }
+    },
+    "srcBox": [
+     212,
+     76,
+     741,
+     1482
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 946,
@@ -56230,7 +59902,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     64,
+     112,
+     1010,
+     1275
+    ]
    },
    "attack_diag_up_b": {
     "w": 769,
@@ -56264,7 +59942,13 @@
     },
     "edited": {
      "bodyBottom": 253.4
-    }
+    },
+    "srcBox": [
+     82,
+     69,
+     851,
+     1429
+    ]
    },
    "throw_back": {
     "w": 770,
@@ -56290,7 +59974,13 @@
     "bodyLeft": 0,
     "bodyRight": 770,
     "coreLeft": 104.8,
-    "coreRight": 712.3
+    "coreRight": 712.3,
+    "srcBox": [
+     64,
+     64,
+     834,
+     1740
+    ]
    },
    "throw_down": {
     "w": 975,
@@ -56321,7 +60011,13 @@
      "fields": {
       "bodyBottom": "foot=0.958 (character)"
      }
-    }
+    },
+    "srcBox": [
+     64,
+     143,
+     1039,
+     1405
+    ]
    },
    "throw_fwd": {
     "w": 817,
@@ -56347,7 +60043,13 @@
     "bodyLeft": 0,
     "bodyRight": 817,
     "coreLeft": 36.3,
-    "coreRight": 671.1
+    "coreRight": 671.1,
+    "srcBox": [
+     64,
+     140,
+     881,
+     1591
+    ]
    },
    "throw_up": {
     "w": 651,
@@ -56406,7 +60108,13 @@
     "bodyRight": 651,
     "coreLeft": 53.1,
     "coreRight": 520.3,
-    "wantsImprovement": "alpha"
+    "wantsImprovement": "alpha",
+    "srcBox": [
+     108,
+     64,
+     759,
+     1763
+    ]
    }
   },
   "haruta": {
@@ -56439,7 +60147,13 @@
     },
     "edited": {
      "renderScale": 0.244
-    }
+    },
+    "srcBox": [
+     56,
+     237,
+     707,
+     1265
+    ]
    },
    "attack_air_b": {
     "w": 1438,
@@ -56470,7 +60184,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     73,
+     148,
+     1511,
+     879
+    ]
    },
    "attack_down": {
     "w": 855,
@@ -56503,7 +60223,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 249
-    }
+    },
+    "srcBox": [
+     29,
+     414,
+     884,
+     1577
+    ]
    },
    "attack_heavy_a": {
     "w": 837,
@@ -56536,7 +60262,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 237.6
-    }
+    },
+    "srcBox": [
+     37,
+     102,
+     874,
+     1479
+    ]
    },
    "attack_heavy_b": {
     "w": 999,
@@ -56570,7 +60302,13 @@
      "renderScale": 0.25,
      "ox": -196.9,
      "bodyBottom": 259.5
-    }
+    },
+    "srcBox": [
+     146,
+     190,
+     1145,
+     1155
+    ]
    },
    "attack_light_a": {
     "w": 859,
@@ -56603,7 +60341,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 241.9
-    }
+    },
+    "srcBox": [
+     36,
+     247,
+     895,
+     1543
+    ]
    },
    "attack_light_b": {
     "w": 1075,
@@ -56637,7 +60381,13 @@
      "renderScale": 0.25,
      "ox": -233.2,
      "bodyBottom": 256.9
-    }
+    },
+    "srcBox": [
+     54,
+     161,
+     1129,
+     1175
+    ]
    },
    "attack_up": {
     "w": 752,
@@ -56675,7 +60425,13 @@
        807.3
       ]
      }
-    }
+    },
+    "srcBox": [
+     137,
+     36,
+     889,
+     1542
+    ]
    },
    "charge": {
     "w": 663,
@@ -56705,7 +60461,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     139,
+     131,
+     802,
+     1562
+    ]
    },
    "crouch_a": {
     "w": 783,
@@ -56737,7 +60499,13 @@
     },
     "edited": {
      "bodyBottom": 267.9
-    }
+    },
+    "srcBox": [
+     115,
+     553,
+     898,
+     1361
+    ]
    },
    "crouch_attack_a": {
     "w": 1186,
@@ -56767,7 +60535,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     23,
+     422,
+     1209,
+     1101
+    ]
    },
    "crouch_attack_b": {
     "w": 1202,
@@ -56801,7 +60575,13 @@
      "renderScale": 0.25,
      "ox": -275.1,
      "bodyBottom": 278.2
-    }
+    },
+    "srcBox": [
+     81,
+     413,
+     1283,
+     1028
+    ]
    },
    "crouch_b": {
     "w": 760,
@@ -56833,7 +60613,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     115,
+     446,
+     875,
+     1328
+    ]
    },
    "dash": {
     "w": 830,
@@ -56866,7 +60652,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 268.3
-    }
+    },
+    "srcBox": [
+     24,
+     431,
+     854,
+     1231
+    ]
    },
    "dizzy": {
     "w": 360,
@@ -56898,7 +60690,13 @@
     },
     "edited": {
      "bodyBottom": 200.5
-    }
+    },
+    "srcBox": [
+     604,
+     80,
+     964,
+     936
+    ]
    },
    "dodge_air": {
     "w": 802,
@@ -56929,7 +60727,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     38,
+     216,
+     840,
+     1284
+    ]
    },
    "dodge_roll": {
     "w": 746,
@@ -56963,7 +60767,13 @@
      "renderScale": 0.25,
      "rotationDeg": null
     },
-    "rotationDeg": 40
+    "rotationDeg": 40,
+    "srcBox": [
+     101,
+     360,
+     847,
+     1102
+    ]
    },
    "fall": {
     "w": 782,
@@ -56994,7 +60804,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     66,
+     269,
+     848,
+     1409
+    ]
    },
    "guard": {
     "w": 486,
@@ -57032,7 +60848,13 @@
        697.8
       ]
      }
-    }
+    },
+    "srcBox": [
+     242,
+     76,
+     728,
+     1576
+    ]
    },
    "hurt": {
     "w": 731,
@@ -57062,7 +60884,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     110,
+     204,
+     841,
+     1554
+    ]
    },
    "idle_a": {
     "w": 553,
@@ -57092,7 +60920,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     183,
+     136,
+     736,
+     1567
+    ]
    },
    "idle_b": {
     "w": 552,
@@ -57122,7 +60956,13 @@
       "ox": "centre of mass, not of the box"
      }
     },
-    "surfacedReviewed": true
+    "surfacedReviewed": true,
+    "srcBox": [
+     183,
+     136,
+     735,
+     1567
+    ]
    },
    "jump_rise": {
     "w": 613,
@@ -57153,7 +60993,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     154,
+     40,
+     767,
+     1325
+    ]
    },
    "land": {
     "w": 849,
@@ -57188,7 +61034,13 @@
      "bodyBottom": 257.7,
      "rotationDeg": null
     },
-    "rotationDeg": 6.5
+    "rotationDeg": 6.5,
+    "srcBox": [
+     39,
+     486,
+     888,
+     1485
+    ]
    },
    "ledge_hang": {
     "w": 339,
@@ -57223,7 +61075,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     284,
+     109,
+     623,
+     1566
+    ]
    },
    "prone": {
     "w": 1336,
@@ -57255,7 +61113,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 310.4
-    }
+    },
+    "srcBox": [
+     174,
+     436,
+     1510,
+     845
+    ]
    },
    "run_pass_a": {
     "w": 789,
@@ -57296,7 +61160,13 @@
       "renderScale": 0.285,
       "bodyH": 308.9
      }
-    }
+    },
+    "srcBox": [
+     37,
+     347,
+     826,
+     1431
+    ]
    },
    "run_pass_b": {
     "w": 763,
@@ -57337,7 +61207,13 @@
       "renderScale": 0.2875,
       "bodyH": 317.4
      }
-    }
+    },
+    "srcBox": [
+     41,
+     288,
+     804,
+     1392
+    ]
    },
    "run_reach_a": {
     "w": 1080,
@@ -57378,7 +61254,13 @@
       "renderScale": 0.3038,
       "bodyH": 274
      }
-    }
+    },
+    "srcBox": [
+     35,
+     222,
+     1115,
+     1124
+    ]
    },
    "run_reach_b": {
     "w": 840,
@@ -57419,7 +61301,13 @@
       "renderScale": 0.3237,
       "bodyH": 307.1
      }
-    }
+    },
+    "srcBox": [
+     37,
+     381,
+     877,
+     1330
+    ]
    },
    "special_down": {
     "w": 921,
@@ -57454,7 +61342,13 @@
      "bodyBottom": 265,
      "rotationDeg": null
     },
-    "rotationDeg": 6
+    "rotationDeg": 6,
+    "srcBox": [
+     42,
+     236,
+     963,
+     1260
+    ]
    },
    "special_neutral": {
     "w": 852,
@@ -57487,7 +61381,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 245.2
-    }
+    },
+    "srcBox": [
+     48,
+     248,
+     900,
+     1482
+    ]
    },
    "special_side": {
     "w": 872,
@@ -57519,7 +61419,13 @@
     },
     "edited": {
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     28,
+     242,
+     900,
+     1445
+    ]
    },
    "ult_a": {
     "w": 615,
@@ -57556,7 +61462,13 @@
        714.9
       ]
      }
-    }
+    },
+    "srcBox": [
+     175,
+     34,
+     790,
+     1564
+    ]
    },
    "ult_b": {
     "w": 843,
@@ -57588,7 +61500,13 @@
     },
     "edited": {
      "bodyBottom": 231.8
-    }
+    },
+    "srcBox": [
+     32,
+     79,
+     875,
+     1563
+    ]
    },
    "victory": {
     "w": 635,
@@ -57621,7 +61539,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 234.2
-    }
+    },
+    "srcBox": [
+     131,
+     101,
+     766,
+     1540
+    ]
    },
    "attack_dash": {
     "w": 875,
@@ -57663,7 +61587,13 @@
       ]
      }
     },
-    "rotationDeg": 4
+    "rotationDeg": 4,
+    "srcBox": [
+     17,
+     457,
+     892,
+     1201
+    ]
    },
    "grab_hold": {
     "w": 816,
@@ -57696,7 +61626,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 252.7
-    }
+    },
+    "srcBox": [
+     45,
+     172,
+     861,
+     1506
+    ]
    },
    "grab_reach": {
     "w": 849,
@@ -57735,7 +61671,13 @@
      "anchors": {
       "grabHand": null
      }
-    }
+    },
+    "srcBox": [
+     39,
+     352,
+     888,
+     1342
+    ]
    },
    "grabbed": {
     "w": 761,
@@ -57774,7 +61716,13 @@
       "grabChest": null
      },
      "renderScale": 0.25
-    }
+    },
+    "srcBox": [
+     93,
+     259,
+     854,
+     1475
+    ]
    },
    "teeter": {
     "w": 838,
@@ -57817,7 +61765,13 @@
        1272
       ]
      }
-    }
+    },
+    "srcBox": [
+     29,
+     209,
+     867,
+     1485
+    ]
    },
    "walk_a": {
     "w": 592,
@@ -57850,7 +61804,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 252.9
-    }
+    },
+    "srcBox": [
+     171,
+     199,
+     763,
+     1529
+    ]
    },
    "walk_b": {
     "w": 639,
@@ -57883,7 +61843,13 @@
     "edited": {
      "renderScale": 0.25,
      "bodyBottom": 250.4
-    }
+    },
+    "srcBox": [
+     128,
+     138,
+     767,
+     1524
+    ]
    },
    "attack_air_diag_down_b": {
     "w": 935,
@@ -57917,7 +61883,13 @@
     },
     "edited": {
      "renderScale": 0.2938
-    }
+    },
+    "srcBox": [
+     64,
+     143,
+     999,
+     1264
+    ]
    },
    "attack_diag_up_b": {
     "w": 979,
@@ -57951,7 +61923,13 @@
     },
     "edited": {
      "bodyBottom": 231.8
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     1043,
+     1542
+    ]
    },
    "throw_back": {
     "w": 797,
@@ -57985,7 +61963,13 @@
     },
     "edited": {
      "bodyBottom": 221.4
-    }
+    },
+    "srcBox": [
+     64,
+     64,
+     861,
+     1736
+    ]
    },
    "throw_down": {
     "w": 1041,
@@ -58019,7 +62003,13 @@
     },
     "edited": {
      "bodyBottom": 255.6
-    }
+    },
+    "srcBox": [
+     64,
+     170,
+     1105,
+     1203
+    ]
    },
    "throw_fwd": {
     "w": 897,
@@ -58053,7 +62043,13 @@
     },
     "edited": {
      "bodyBottom": 238.1
-    }
+    },
+    "srcBox": [
+     64,
+     142,
+     961,
+     1502
+    ]
    },
    "throw_up": {
     "w": 835,
@@ -58078,7 +62074,13 @@
     "bodyLeft": 0,
     "bodyRight": 835,
     "coreLeft": 78.1,
-    "coreRight": 712.7
+    "coreRight": 712.7,
+    "srcBox": [
+     64,
+     64,
+     899,
+     1626
+    ]
    }
   },
   "tengen": {

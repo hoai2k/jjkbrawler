@@ -266,6 +266,11 @@ export function hasVariants(charKey, frameKey) {
 export const VARIANT_PLACEMENT = [
   "w", "h", "ox", "oy", "bodyBottom", "bodyH", "bodyTop",
   "centroidX", "renderScale", "rotationDeg", "anchors", "faceLeft",
+  // Where the trimmed art sat in the delivered plate. Not drawn with, but the
+  // only thing that lets a RE-KEY of the same plate keep the placement exactly:
+  // `ox` has to move by the change in this box's left edge, and a silhouette
+  // that changed shape cannot be asked. Belongs to the image like the rest.
+  "srcBox",
 ];
 
 /** The review fields, which travel with the image for the same reason.

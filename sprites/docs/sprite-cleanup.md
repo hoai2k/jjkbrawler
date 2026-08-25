@@ -99,6 +99,31 @@ run the affected frames back through it.
 That mapping is `KIND_PLACEMENT` in `sprites/src/sprites.js` and it is not
 optional: applying the wrong one silently resizes or displaces the sprite.
 
+**A re-key keeps its placement exactly, and `srcBox` is why.** `ox`/`oy` place
+the trimmed image in the cell and the art is drawn at
+`((ox - CELL_W/2) + imgX) * renderScale`, so a pixel of the delivered plate lands
+where it did if and only if `ox` moves by the change in the trim box's LEFT EDGE.
+Intake records that box — the trim in the plate's own pixels — and the import
+carries `ox`/`oy` by the difference.
+
+Before it, the import could only line the new SILHOUETTE up with the old one:
+centres together, bottoms together. That is right for a re-crop, where the
+drawing is unchanged and only the framing moved, and wrong for a re-key, which
+is a change to the silhouette itself — cut a gap out of one side and the centre
+moves, recover a shadow at the feet and the bottom moves. It cost up to **111
+rendered pixels** on Gojo's fall, and every one of those was re-placed by hand.
+
+`tools/test_rekey_placement.py` asserts the invariant on a synthesised plate —
+a matte that grows all round, one cut back on a single side, one that reaches
+the feet — and requires the same source pixel to land in the same place to
+within a millionth of a pixel. It is in `npm run check`.
+
+Art imported before this carries no box. `tools/backfill_src_boxes.py` works
+them out for what is already in the tree, by keying each archived candidate with
+the verdicts suppressed and seeing which one reproduces the art on disk — a real
+test, not a guess, so a plate today's keyer cannot reproduce is reported and left
+alone rather than given a number that would move it.
+
 **The `alpha` fault that keeps coming back is the flood LEAKING IN, not a hard
 edge.** `intake.py` decides what is background by flooding inward from the
 canvas border through everything close to the key colour — and on a GREY screen
