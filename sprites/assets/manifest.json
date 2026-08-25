@@ -17581,28 +17581,64 @@
    "dodge_air": {
     "w": 590,
     "h": 1073,
-    "ox": -138.2,
+    "ox": -199.1,
     "oy": -762,
     "bodyBottom": 310.4,
-    "bodyH": 316.5,
-    "centroidX": 217.0,
+    "bodyH": 273.8,
+    "centroidX": 234.5,
     "renderScale": 0.2552,
-    "file": "hakari/dodge_air.png",
+    "file": "hakari/incoming/dodge_air.png",
     "anchors": {
      "com": [
       355.8,
       400.1
      ]
     },
-    "bodyTop": 0,
     "edited": {
      "renderScale": 0.295
     },
-    "wantsImprovement": "alpha",
+    "replaced": {
+     "at": "2026-08-25T01:15:44+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T01:15:44+00:00",
+     "live": {
+      "w": 590,
+      "h": 1073,
+      "ox": -138.2,
+      "oy": -762,
+      "bodyBottom": 310.4,
+      "bodyH": 316.5,
+      "bodyTop": 0,
+      "centroidX": 217.0,
+      "renderScale": 0.2552,
+      "anchors": {
+       "com": [
+        355.8,
+        400.1
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.295
+      },
+      "file": "hakari/dodge_air.png"
+     }
+    },
+    "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 590,
-    "coreLeft": 140.8,
-    "coreRight": 549.9
+    "coreLeft": 174.4,
+    "coreRight": 549.9,
+    "autoTuned": {
+     "at": "2026-08-25T01:17:05+00:00",
+     "fields": {
+      "ox": "on the placed centre of mass"
+     }
+    }
    },
    "dodge_roll": {
     "w": 937,
@@ -30857,28 +30893,64 @@
    "dodge_air": {
     "w": 572,
     "h": 877,
-    "ox": -129.2,
+    "ox": -143.9,
     "oy": -566,
     "bodyBottom": 310.4,
-    "bodyH": 262.2,
-    "centroidX": 172.3,
+    "bodyH": 237.3,
+    "centroidX": 175.4,
     "renderScale": 0.2706,
-    "file": "toji/dodge_air.png",
+    "file": "toji/incoming/dodge_air.png",
     "anchors": {
      "com": [
       300.7,
       400.7
      ]
     },
-    "bodyTop": 0,
     "edited": {
      "renderScale": 0.299
     },
-    "wantsImprovement": "alpha",
+    "replaced": {
+     "at": "2026-08-25T01:15:44+00:00",
+     "kept": "await",
+     "how": "await",
+     "lost": []
+    },
+    "awaitingApproval": {
+     "at": "2026-08-25T01:15:44+00:00",
+     "live": {
+      "w": 572,
+      "h": 877,
+      "ox": -129.2,
+      "oy": -566,
+      "bodyBottom": 310.4,
+      "bodyH": 262.2,
+      "bodyTop": 0,
+      "centroidX": 172.3,
+      "renderScale": 0.2706,
+      "anchors": {
+       "com": [
+        300.7,
+        400.7
+       ]
+      },
+      "wantsImprovement": "alpha",
+      "edited": {
+       "renderScale": 0.299
+      },
+      "file": "toji/dodge_air.png"
+     }
+    },
+    "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 572,
-    "coreLeft": 54.8,
-    "coreRight": 515.2
+    "coreLeft": 65.8,
+    "coreRight": 515.2,
+    "autoTuned": {
+     "at": "2026-08-25T01:17:05+00:00",
+     "fields": {
+      "ox": "on the placed centre of mass"
+     }
+    }
    },
    "dodge_roll": {
     "w": 1242,
