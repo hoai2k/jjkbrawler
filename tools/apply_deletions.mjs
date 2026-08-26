@@ -220,13 +220,24 @@ for (const row of go) {
       for (const key of pruned) console.log(`           ${char}/${key}: pose read pruned`);
     }
   }
-  const entry = man.variants[char][pose];
-  entry.options = (entry.options || []).filter((o) => o.file !== file);
-  // A pose with one drawing is a pose with no choice: the chevron goes.
-  if (entry.options.length <= 1) {
-    delete man.variants[char][pose];
-    console.log(`           ${char}/${pose}: variants entry dropped `
-      + `(${entry.options.length} option left)`);
+  // EVERY POSE THAT OFFERED IT, not only the one it was deleted from. A sheet
+  // cell is shared: `jogo/r1c2.png` was an option on `dodge_roll`, and cells
+  // like it are offered on several poses at once. Dropping it from the target
+  // pose alone left eight options across Jogo naming files that were gone — the
+  // picker offering a drawing that cannot load, silently, because nothing
+  // opened the art until check_sprite_files.py did.
+  for (const [key, entry] of Object.entries(man.variants[char] || {})) {
+    if (!(entry.options || []).some((o) => o.file === file)) continue;
+    entry.options = entry.options.filter((o) => o.file !== file);
+    if (key !== pose) {
+      console.log(`           ${char}/${key}: option dropped too — it offered the same cell`);
+    }
+    // A pose with one drawing is a pose with no choice: the chevron goes.
+    if (entry.options.length <= 1) {
+      delete man.variants[char][key];
+      console.log(`           ${char}/${key}: variants entry dropped `
+        + `(${entry.options.length} option left)`);
+    }
   }
   if (!Object.keys(man.variants[char] || {}).length) delete man.variants[char];
 }

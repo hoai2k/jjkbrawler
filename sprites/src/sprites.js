@@ -55,11 +55,20 @@ export const EXTRA_ANCHORS = {
   // request and becomes a measurement: src/grab.js reads both and stands the
   // two bodies hand-on-chest.
   grabHand: {
+    // BOTH HALVES OF THE GRAB, because src/grab.js asks for both and the
+    // handle only ever appeared on one. `holdGapOf` reads the hold's own hand
+    // first and falls back to the reach's — and the fallback was all there ever
+    // was, on all 34 fighters, because there was no handle on `grab_hold` to
+    // drag. So the distance the game pins a hold at was taken from a pose with
+    // the arm thrown out straight, which is not where a closed hold keeps its
+    // fist. A slot the code reads and the tool cannot fill is a slot that stays
+    // empty.
     label: "Grabbing hand",
-    states: ["grabReach"],
-    hint: "The open hand that closes on the collar — the leading one. The grab " +
-          "reaches exactly this far, instead of a formula off measured art " +
-          "reach. Starts at chest height on the frontmost pixel.",
+    states: ["grabReach", "grabHold"],
+    hint: "The hand that has hold of them — open and closing on the reach, " +
+          "closed on the collar in the hold. Place it on each: the reach's " +
+          "sets how far the grab gets, and the hold's sets how far apart the " +
+          "two fighters stand. Starts at chest height on the frontmost pixel.",
     defaultYFrac: 0.45,
   },
   grabChest: {

@@ -1188,6 +1188,24 @@ function drawGrabShape(cx, g) {
   ctx.restore();
 }
 
+/**
+ * THE GRAB GUIDES ARE ANCHOR WORK, so they ride with the anchors.
+ *
+ * Everything else the canvas draws is there to tell you where to PUT the
+ * drawing — the hurtbox to sit inside, the foot line, the idle to match. These
+ * three say the opposite in so many words: the reach box's own caption is "the
+ * fix is to place the anchor rather than to slide the drawing until it touches
+ * a line", and the hold's is "NEITHER POSE MOVES TO IT". Left on the canvas
+ * unconditionally they read as two more targets pulling at the sprite, which is
+ * exactly how the hold's pair got read.
+ *
+ * Behind the Anchors toggle they appear when somebody is placing the point they
+ * are about, and the default view is only the references that move the sprite.
+ */
+function showGrabGuides() {
+  return $("showAnchors")?.checked !== false;
+}
+
 function drawRangeTargets(cx) {
   const char = CHARACTERS[state.char];
   if (!char?.light || !char?.heavy) return false;   // sprite actors have no kit
@@ -1211,7 +1229,7 @@ function drawRangeTargets(cx) {
     // matters — it is what the drawing is placed against — so the hurtbox and
     // the grab's own geometry are drawn on their own.
     drawHurtbox(cx);
-    for (const g of grabs) drawGrabShape(cx, g);
+    if (showGrabGuides()) for (const g of grabs) drawGrabShape(cx, g);
     return true;
   }
 
@@ -1365,7 +1383,7 @@ function drawRangeTargets(cx) {
   // A pose can serve both — a dash attack whose frame is also the grab reach —
   // so the grab geometry is drawn here too rather than only on the path where
   // there are no moves at all.
-  for (const g of grabs) drawGrabShape(cx, g);
+  if (showGrabGuides()) for (const g of grabs) drawGrabShape(cx, g);
   return true;      // it drew, hurtbox included
 }
 
@@ -2589,7 +2607,7 @@ function refreshHeadControl() {
   const hh = headHeight(state.char);
   const changed = Math.abs(hh - state.originalHeads[state.char]) > 1e-4;
   const cm = actorOf(state.char)?.heightCm;
-  $("headRange").value = hh.toFixed(1);
+  setPair("head", hh);
   const source = hasHeightOverride(state.char)
     ? (changed ? "hand-set, changed" : "hand-set")
     : cm ? `from ${heightLabel(cm)}` : "no published height — reference default";
@@ -3562,6 +3580,14 @@ const PAIRS = {
   offset: { show: (v) => v, store: (v) => v, digits: 1 },
   ground: { show: (v) => v, store: (v) => v, digits: 1 },
   rotation: { show: (v) => v, store: (v) => v, digits: 1 },
+  // Character height is a pair like the rest now. Its track ran 110-240 while
+  // the roster it has to show runs 87.6 (Momo) to 118.9 (Hanami), so THIRTY-ONE
+  // of thirty-five fighters sat pinned against the left stop: the control read
+  // as "this fighter can only get bigger", and the half of it that mattered was
+  // off the track entirely. 80-130 is the roster with room either side, and
+  // Mahoraga — 189, and alone out there — is what the number box and the
+  // growing track are for.
+  head: { show: (v) => v, store: (v) => v, digits: 1 },
 };
 
 /** Write a value to both halves of a pair, without either echoing back. */
@@ -3756,7 +3782,7 @@ async function boot() {
   bindPair("offset", applyOffset);
   bindPair("ground", applyGround);
   bindPair("rotation", applyRotation);
-  bindSlider("headRange", applyHead);
+  bindPair("head", applyHead);
   $("resetHead").onclick = () => {
     pushHeadHistory(state.char);
     restoreHeadHeight(state.char);

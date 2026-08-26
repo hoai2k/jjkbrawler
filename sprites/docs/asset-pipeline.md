@@ -412,11 +412,27 @@ half the reach — **9 to 27px inside the fist it was naming**, 22px on Sukuna.
 Read as a target that says "move him left", which is the one thing the guide
 must never say.
 
-**No fighter has a `grabHand` on `grab_hold`.** All 34 borrow the one placed on
-`grab_reach`, which is a pose with the arm thrown out straight — not where a
-closed hold keeps its fist. So the gap the game pins at, and both guides with
-it, are describing a different drawing. The canvas now says so on the line
-itself; placing the anchor on the hold's own fist is what settles it.
+**No fighter had a `grabHand` on `grab_hold`, because there was no handle to
+drag.** `src/grab.js` reads the hold's own hand first and falls back to the
+reach's — and the fallback was all there ever was, on all 34, because
+`EXTRA_ANCHORS.grabHand` listed only `grabReach` among its states. A slot the
+code reads and the tool cannot fill is a slot that stays empty. It lists both
+now, so the handle appears on the hold and placing it is ordinary work on the
+pose in front of you.
+
+There is no verification queue for it, and there should not be: `grabHand` and
+`grabChest` HAD review queues in that bench once, and they were taken out for
+the reason the preamble of `workbench/verify_body_points.js` gives — the bench
+that shows the drawing is the one that should ask where a point on it belongs,
+and two doors into one value is a place for them to disagree about which door
+the game came through.
+
+**The grab guides ride with the Anchors toggle**, because that is what they are
+about. Every other reference on that canvas says where to put the DRAWING; these
+three say the opposite in so many words — "place the anchor rather than slide
+the drawing until it touches a line", "NEITHER POSE MOVES TO IT". Drawn
+unconditionally they read as two more targets pulling at the sprite, which is
+exactly how the hold's pair got read.
 
 ## Preparing delivered effect art
 
