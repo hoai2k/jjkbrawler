@@ -420,6 +420,16 @@ code reads and the tool cannot fill is a slot that stays empty. It lists both
 now, so the handle appears on the hold and placing it is ordinary work on the
 pose in front of you.
 
+**A verification queue loads the drawings it draws, not the fighter.** A fighter
+is about 50 drawings and 38 MB; every set in that bench shows ONE of them at a
+time. `ensureFrames` used to pull the whole character, and the engine warms the
+neighbours too, so stepping five fighters in the grip queue fetched **406 files
+and 29.7 MB** to look at five pictures — which over a real connection is a canvas
+that sits on "loading art…" and never finishes. It tracks by frame now and
+`ensureTaskArt` asks only for the ones a task can put on screen: the same five
+steps are **7 files and 4.3 MB**. A caller that cannot say what it will draw
+still gets the whole character.
+
 **And it has a queue as well — "The grip", in the verification bench.** Two
 doors into one value is fine; two ANALOGOUS values is what rots. So that queue
 keeps no store of its own: it reads `meta.anchors.grabHand` out of the sprite
