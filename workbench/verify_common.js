@@ -118,39 +118,64 @@ export function frameStepper(container, task, redraw) {
   container.appendChild(wrap);
 }
 
-const ready = new Set();      // characters whose art is in memory
-const inFlight = new Map();   // charKey -> the one load promise
+// Art already in memory, and the loads still running, BY FRAME rather than by
+// character. See ensureFrames for why the unit matters so much.
+const ready = new Set();      // "char/frame" whose art is in memory
+const inFlight = new Map();   // "char/frame" -> the one load promise
 
 /**
- * Pull a character's frames into memory. Resolves true when the art arrived
+ * Pull the art a task needs into memory. Resolves true when something arrived
  * on THIS call's watch — so a caller repaints when there is a reason to, and
  * only then.
  *
- * The in-flight map is the whole point, and its absence was a bug you could
- * see: an earlier version marked the character loaded BEFORE awaiting, so a
- * second draw during the load — and there is always a second draw, because
- * selecting an item renders the editor and the canvas — was told "nothing
- * new" and scheduled no repaint. The load then finished with nobody
- * listening, and the canvas sat on "loading art…" until something else
- * repainted it. Switching away and back worked because by then the art was
- * in memory and the first draw succeeded.
+ * ONLY THE FRAMES ASKED FOR, and that is the difference between a queue that
+ * works and one that sits on "loading art…". A fighter is about 50 drawings and
+ * 38 MB; every set here shows ONE of them at a time. Loading the character
+ * pulled all 50, and the engine warms the neighbours too, so stepping five
+ * fighters in the grip queue fetched 406 files and 29.7 MB to look at five
+ * pictures. Over a real connection that is a canvas that never finishes.
  *
- * Now every caller that arrives mid-load gets the SAME promise and all of
- * them resolve true together, so whichever draw was last still repaints.
+ * The in-flight map is the other half, and its absence was a bug you could see:
+ * an earlier version marked the art loaded BEFORE awaiting, so a second draw
+ * during the load — and there is always a second draw, because selecting an
+ * item renders the editor and the canvas — was told "nothing new" and scheduled
+ * no repaint. The load then finished with nobody listening, and the canvas sat
+ * on "loading art…" until something else disturbed it.
+ *
+ * `keys` omitted still means the whole character, for a caller that cannot say
+ * what it will draw.
  */
-export function ensureFrames(charKey) {
-  if (ready.has(charKey)) return Promise.resolve(false);
-  let load = inFlight.get(charKey);
-  if (!load) {
-    load = Promise.all(frameKeys(charKey).map((k) => loadFrame(charKey, k).catch(() => {})))
-      .then(() => {
-        ready.add(charKey);
-        inFlight.delete(charKey);
-        return true;
+export function ensureFrames(charKey, keys = null) {
+  const want = (keys && keys.length ? keys : frameKeys(charKey)).filter(Boolean);
+  const jobs = [];
+  for (const key of want) {
+    const id = `${charKey}/${key}`;
+    if (ready.has(id)) continue;
+    let load = inFlight.get(id);
+    if (!load) {
+      load = loadFrame(charKey, key).catch(() => {}).then(() => {
+        ready.add(id);
+        inFlight.delete(id);
       });
-    inFlight.set(charKey, load);
+      inFlight.set(id, load);
+    }
+    jobs.push(load);
   }
-  return load;
+  if (!jobs.length) return Promise.resolve(false);
+  return Promise.all(jobs).then(() => true);
+}
+
+/** The drawings a task can actually put on the canvas: the one it names, and
+ *  every frame of the state it is about — `frameStepper` walks those, so they
+ *  all have to be there. Anything this cannot answer for falls back to the
+ *  whole character, which is what every set did before. */
+function framesForTask(task) {
+  const keys = new Set();
+  if (task.frame) keys.add(task.frame);
+  for (const f of resolvedAnim(task.charKey, task.state)?.frames || []) {
+    if (f) keys.add(f);
+  }
+  return [...keys];
 }
 
 // ------------------------------------------------------------------ canvas
@@ -386,7 +411,7 @@ export function pointEditor(container, charKey, value, onChange, bindSync) {
  * nothing to wait for — which is what stops the engine repainting forever.
  */
 export const ensureTaskArt = (task) =>
-  (task?.charKey ? ensureFrames(task.charKey) : Promise.resolve(false));
+  (task?.charKey ? ensureFrames(task.charKey, framesForTask(task)) : Promise.resolve(false));
 
 
 /** A read-only line of context above the editor. */
