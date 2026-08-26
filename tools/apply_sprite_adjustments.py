@@ -272,8 +272,38 @@ def load_payloads(sources):
                   f"'no changes' placeholder --- nothing in it was applied")
             continue
         data = json.loads(raw)
-        payloads.extend(data if isinstance(data, list) else [data])
+        payloads.extend(unwrap(data))
     return payloads
+
+
+def unwrap(doc):
+    """The payloads in a document, whether it is one, a list, or a bench export.
+
+    The verification bench downloads a whole sitting — sets, decisions, counts,
+    and each set's ready-made block under `apply.text`. Its grip queue writes
+    `anchors.grabHand`, which is a sprite adjustment and belongs to this tool
+    rather than to a config of its own, so the file a person actually has in
+    their hands has to be readable here. Cutting the block out by hand is a step
+    with nothing to decide in it, and getting it wrong looks like a crash.
+    """
+    if isinstance(doc, list):
+        return doc
+    if not isinstance(doc, dict) or "sets" not in doc:
+        return [doc]
+    out = []
+    for entry in (doc.get("sets") or {}).values():
+        block = (entry.get("apply") or {}).get("text")
+        if not block:
+            continue
+        try:
+            inner = json.loads(block)
+        except ValueError:
+            # A set whose block is a config snippet rather than JSON — every
+            # other queue here files into src/ and is applied by
+            # tools/apply_verification.mjs. Not ours; leave it alone.
+            continue
+        out.extend(inner if isinstance(inner, list) else [inner])
+    return out
 
 
 def main():

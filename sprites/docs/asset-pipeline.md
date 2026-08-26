@@ -420,12 +420,26 @@ code reads and the tool cannot fill is a slot that stays empty. It lists both
 now, so the handle appears on the hold and placing it is ordinary work on the
 pose in front of you.
 
-There is no verification queue for it, and there should not be: `grabHand` and
-`grabChest` HAD review queues in that bench once, and they were taken out for
-the reason the preamble of `workbench/verify_body_points.js` gives — the bench
-that shows the drawing is the one that should ask where a point on it belongs,
-and two doors into one value is a place for them to disagree about which door
-the game came through.
+**And it has a queue as well — "The grip", in the verification bench.** Two
+doors into one value is fine; two ANALOGOUS values is what rots. So that queue
+keeps no store of its own: it reads `meta.anchors.grabHand` out of the sprite
+manifest, and its export is a sprite-adjustment payload applied by the same
+`tools/apply_sprite_adjustments.py` the sprite workbench's export goes through.
+One field, one writer. A fighter leaves the queue when the anchor is placed,
+whichever bench placed it, because "placed" is `edited.anchors.grabHand` in the
+manifest and both benches read it back.
+
+`edited` rather than the anchor's mere presence, for the reason
+`apply_sprite_adjustments.py` records it: an anchor can arrive from a bake or a
+default, and a queue that read "the anchor exists" as "somebody answered" would
+count its own starting guess as 34 confirmed answers — which the teeter queue
+did, and 26 of those feet then moved by hundreds of pixels.
+
+The handle opens where the sprite workbench's does, on this drawing. Starting it
+at the number the game actually pins with — the hand placed on `grab_reach` —
+would be more honest but unusable: that pose has the arm thrown out straight,
+and on Sukuna and Momo it lands 100px past the edge of the hold's own picture.
+The borrowed number is said in words instead.
 
 **The grab guides ride with the Anchors toggle**, because that is what they are
 about. Every other reference on that canvas says where to put the DRAWING; these

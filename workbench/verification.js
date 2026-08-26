@@ -97,6 +97,21 @@ const SETS = {
       + "answering last.",
     load: () => import(withKey("./verify_sealed_regions.js")).then((m) => m.unusedProvider()),
   },
+  // ONE STORE, TWO DOORS. This queue edits `meta.anchors.grabHand` in the sprite
+  // manifest — the same field the sprite workbench's handle drags — and exports
+  // a sprite-adjustment payload applied by the same tool. So a hand placed in
+  // either bench is the same number, and each sees the other's work: a fighter
+  // leaves this queue when the anchor is placed, whichever door it came through.
+  "grab-grip": {
+    label: "The grip",
+    blurb: "Where each fighter's fist has hold of the other. src/grab.js stands the two "
+      + "bodies hand-on-chest, so this point sets how far apart they stand for the whole "
+      + "hold — and until now nobody had one on the hold at all: all 34 borrowed the hand "
+      + "placed on the REACH, a pose with the arm thrown out straight. The body being held "
+      + "is drawn on the canvas and moves as you drag. The same handle is on the pose in "
+      + "the sprite workbench; this is that value asked for as a sweep.",
+    load: () => import(withKey("./verify_grab_grip.js")).then((m) => m.provider()),
+  },
   "strike-points": {
     label: "Strike points",
     blurb: "Where each attack actually lands — the fist, the foot or the blade — "
