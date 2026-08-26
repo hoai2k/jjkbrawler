@@ -1075,6 +1075,7 @@ function grabShapes(charKey, anim) {
   // this build, there being only one body on this canvas.
   const g = holdGapOf(charKey, charKey);
   return [{ kind: "partner", gap: g.gap, source: g.source,
+            hand: g.hand, handFrom: g.handFrom, anim,
             w: m.width, h: m.height * HURTBOX.standH,
             label: anim === "grabHold" ? "the fighter held" : "the fighter holding" }];
 }
@@ -1137,13 +1138,22 @@ function drawGrabShape(cx, g) {
     // constraint that spans fighters": `grab_hold`'s closed fist and
     // `grabbed`'s prying hands both sit at chest height on the leading edge,
     // because the game stands the two bodies at a fixed gap and the pair is
-    // what a player reads. Halfway between the two body centres is where those
-    // two hands meet — derived from `holdGap`, not invented for the picture.
+    // what a player reads.
+    //
+    // IT IS THE HAND, not halfway between the two bodies. This line used to be
+    // drawn at `gap / 2` on the reasoning that the midpoint is where the two
+    // hands meet — which only holds if the holder's hand and the victim's chest
+    // are the same distance out from their own centres. They are not: the chest
+    // anchor sits near the victim's centre line on every fighter, between -10
+    // and +4, so the midpoint came out at about half the reach and the line
+    // landed 9 to 27px INSIDE the fist it was naming. Sukuna's was 22px short,
+    // which reads as "move him left" — and moving him is the one thing this
+    // guide must never ask for.
     //
     // NEITHER POSE MOVES TO IT. The body stays on its own ground contact; what
     // lines up with this is the HANDS. Sliding the drawing sideways to reach
     // the line would take the fighter off the spot the game pins them to.
-    const grip = g.gap / 2;
+    const grip = Number.isFinite(g.hand) ? g.hand : g.gap / 2;
     // Which store this gap came from — the two placed anchors, or the width
     // formula that stands in until they are.
     ctx.fillStyle = "rgba(255, 140, 110, 0.7)";
@@ -1160,7 +1170,20 @@ function drawGrabShape(cx, g) {
     ctx.fillStyle = "rgba(150, 220, 250, 0.95)";
     // Clear of the anchor handle's own label, which sits at chest height —
     // which is exactly where this line is about.
+    //
+    // WHOSE HAND IT IS, said out loud. Nothing on the roster has a `grabHand`
+    // on `grab_hold`, so the line is the one placed on `grab_reach` — a pose
+    // with the arm thrown out straight, which is not where a closed hold keeps
+    // its fist. Reading that as a target for THIS drawing is the mistake the
+    // caption now heads off: place the anchor on this fist and the line comes
+    // to it.
+    const borrowed = g.anim === "grabHold" && g.handFrom === "grabReach";
     ctx.fillText("the grip — hands here, chest height", wx(grip) + 6, wy(-g.h * 0.82));
+    if (borrowed) {
+      ctx.fillStyle = "rgba(150, 220, 250, 0.7)";
+      ctx.fillText("borrowed from Grab reach — place Grabbing hand on this fist",
+        wx(grip) + 6, wy(-g.h * 0.82) + 13);
+    }
   }
   ctx.restore();
 }

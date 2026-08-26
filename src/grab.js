@@ -96,11 +96,19 @@ export function grabReachOf(charKey) {
  *  `holdGap` gives for a live pair, available to the workbench, which has only
  *  one fighter on the canvas and stands them against another of this build. */
 export function holdGapOf(holderKey, victimKey) {
-  const hand = anchorX(holderKey, "grabHold", "grabHand")
-            ?? anchorX(holderKey, "grabReach", "grabHand");
+  const own = anchorX(holderKey, "grabHold", "grabHand");
+  const hand = own ?? anchorX(holderKey, "grabReach", "grabHand");
   const chest = anchorX(victimKey, "grabbed", "grabChest");
   if (Number.isFinite(hand) && Number.isFinite(chest)) {
-    return { gap: hand - chest, source: "grip" };
+    // `hand` and `handFrom` ride along for the workbench, which draws the grip
+    // and has to draw it where the fist IS. Halfway between the two body
+    // centres is not that: it is `(hand - chest) / 2`, and with a chest anchor
+    // sitting near the victim's own centre line — it is between -10 and +4 on
+    // every fighter — that comes out at about half the reach, 9 to 27px short
+    // of the hand on the whole roster. A guide that names the hand has to be
+    // able to say which pose the hand came from, too.
+    return { gap: hand - chest, source: "grip", hand,
+             handFrom: Number.isFinite(own) ? "grabHold" : "grabReach" };
   }
   const a = bodyMetrics(holderKey);
   const b = bodyMetrics(victimKey);
