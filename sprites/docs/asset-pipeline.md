@@ -396,6 +396,28 @@ arithmetic at the workbench's live measurements:
   the same distance forward, because the victim is turned to face the holder:
   the hands in one and the body in the other have the same place to be.
 
+**Neither grab guide asks you to move the drawing.** The red box is where the
+game pins the other fighter and its caption says where that distance came from;
+the blue line is where the two fighters' hands meet. The body stays on its own
+ground contact either way — what lines up with the blue line is the HAND, and
+the way to move it is to place the `grabHand` anchor on the fist, not to slide
+the sprite sideways off the spot the game pins it to.
+
+**The blue line is the hand, not halfway between the bodies.** It was drawn at
+`gap / 2` on the reasoning that the midpoint is where the two hands meet, which
+only holds if the holder's hand and the victim's chest sit the same distance out
+from their own centres. They do not: `grabChest` is near the victim's own centre
+line on every fighter, between -10 and +4, so the midpoint came out at about
+half the reach — **9 to 27px inside the fist it was naming**, 22px on Sukuna.
+Read as a target that says "move him left", which is the one thing the guide
+must never say.
+
+**No fighter has a `grabHand` on `grab_hold`.** All 34 borrow the one placed on
+`grab_reach`, which is a pose with the arm thrown out straight — not where a
+closed hold keeps its fist. So the gap the game pins at, and both guides with
+it, are describing a different drawing. The canvas now says so on the line
+itself; placing the anchor on the hold's own fist is what settles it.
+
 ## Preparing delivered effect art
 
 `tools/prep_effects.py` runs over `assets/sprites/effects/` and

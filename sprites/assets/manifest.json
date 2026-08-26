@@ -8304,12 +8304,6 @@
      "ox": -352.8,
      "bodyBottom": 310.4
     },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
-    },
     "bodyTop": 0,
     "bodyLeft": 0,
     "bodyRight": 1020,
@@ -9396,7 +9390,8 @@
     "bodyLeft": 0,
     "bodyRight": 930,
     "coreLeft": 66.1,
-    "coreRight": 793.1
+    "coreRight": 793.1,
+    "wantsImprovement": "alpha"
    },
    "throw_fwd": {
     "w": 934,
@@ -19370,7 +19365,8 @@
     "bodyLeft": 0,
     "bodyRight": 978,
     "coreLeft": 55.0,
-    "coreRight": 849.6
+    "coreRight": 849.6,
+    "wantsImprovement": "alpha"
    },
    "throw_fwd": {
     "w": 970,
@@ -19449,7 +19445,8 @@
       "renderScale": "area x 1.014 (throwUp)",
       "ox": "centre of mass, not of the box"
      }
-    }
+    },
+    "surfacedReviewed": true
    }
   },
   "yuta": {
@@ -37763,7 +37760,8 @@
     "bodyLeft": 0,
     "bodyRight": 960,
     "coreLeft": 62.1,
-    "coreRight": 869.1
+    "coreRight": 869.1,
+    "surfacedReviewed": true
    },
    "attack_diag_up_b": {
     "w": 879,
@@ -44870,7 +44868,8 @@
     "bodyLeft": 0,
     "bodyRight": 1351,
     "coreLeft": 109.8,
-    "coreRight": 1148.3
+    "coreRight": 1148.3,
+    "wantsImprovement": "alpha"
    },
    "attack_diag_up_b": {
     "w": 1055,
@@ -53452,7 +53451,8 @@
     "bodyLeft": 0,
     "bodyRight": 854,
     "coreLeft": 109.3,
-    "coreRight": 794.3
+    "coreRight": 794.3,
+    "surfacedReviewed": true
    },
    "ult_b": {
     "w": 941,
@@ -53844,7 +53844,8 @@
     "bodyLeft": 0,
     "bodyRight": 1205,
     "coreLeft": 60.2,
-    "coreRight": 1001.7
+    "coreRight": 1001.7,
+    "surfacedReviewed": true
    },
    "attack_diag_up_b": {
     "w": 1281,
@@ -58082,7 +58083,8 @@
     "bodyLeft": 0,
     "bodyRight": 402,
     "coreLeft": 34.2,
-    "coreRight": 371.0
+    "coreRight": 371.0,
+    "surfacedReviewed": true
    },
    "fall": {
     "w": 744,
@@ -58111,7 +58113,8 @@
     "bodyLeft": 0,
     "bodyRight": 744,
     "coreLeft": 127.5,
-    "coreRight": 637.7
+    "coreRight": 637.7,
+    "surfacedReviewed": true
    },
    "guard": {
     "w": 566,
@@ -59152,7 +59155,8 @@
     "bodyLeft": 0,
     "bodyRight": 946,
     "coreLeft": 123.6,
-    "coreRight": 850.4
+    "coreRight": 850.4,
+    "surfacedReviewed": true
    },
    "attack_diag_up_b": {
     "w": 769,
@@ -59713,12 +59717,6 @@
     },
     "edited": {
      "renderScale": 0.25
-    },
-    "replaced": {
-     "at": "2026-08-25T22:49:25+00:00",
-     "kept": "keep",
-     "how": "import",
-     "lost": []
     },
     "bodyTop": 0,
     "bodyLeft": 0,
