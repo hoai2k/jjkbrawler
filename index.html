@@ -220,11 +220,9 @@
     <div id="errorToast" class="error-toast hidden" role="alert"></div>
 
     <audio id="musicTrack" preload="auto"></audio>
-    <script type="module" src="src/main.js"></script>
-
-    <!-- Visitor counting, off until a code is set in src/config_stats.js.
-         Last, and its own module, so nothing about it can delay the game
-         starting; see /stats/ for what it collects and what it does not. -->
-    <script type="module" src="src/stats.js"></script>
+    <!-- The door first, then the game and the visitor counting behind it, in
+         that order — see src/gate/boot.js. The door is off on localhost, so
+         local runs and the check tooling never meet it. -->
+    <script type="module" src="src/gate/boot.js"></script>
   </body>
 </html>
