@@ -49,6 +49,14 @@
     <script type="module" src="../../src/deploystamp.js"></script>
 </head>
   <body>
+    <!-- The door, as a curtain: this page loads behind it. Nothing links
+         here, and the veil is what a passer-by meets. Off on localhost —
+         see the gate module for why and for `?gatetest=1`. -->
+    <script type="module">
+      import { openGate } from "../../src/gate/gate.js";
+      openGate({ title: "JJK Brawler — render3d", blurb: "This game is for friends of Hoai Nguyen. Use your invite link, or enter your code below.", game: "jjkbrawler-render3d" });
+    </script>
+
     <header class="bar">
       <strong id="wbTitle">3D Pose Workbench</strong>
       <span class="hint pose-only">One sprite pose at a time, the drawing beside the

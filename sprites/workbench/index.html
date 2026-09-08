@@ -12,6 +12,14 @@
     <script type="module" src="../../src/deploystamp.js"></script>
 </head>
   <body>
+    <!-- The door, as a curtain: this page loads behind it. Nothing links
+         here, and the veil is what a passer-by meets. Off on localhost —
+         see the gate module for why and for `?gatetest=1`. -->
+    <script type="module">
+      import { openGate } from "../../src/gate/gate.js";
+      openGate({ title: "JJK Brawler — sprites", blurb: "This game is for friends of Hoai Nguyen. Use your invite link, or enter your code below.", game: "jjkbrawler-sprites" });
+    </script>
+
     <header class="bar">
       <strong id="wbTitle">Sprite Workbench</strong>
       <span class="hint">Renders through the game's own sprite pipeline — what you see is what the game draws.</span>
