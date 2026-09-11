@@ -193,6 +193,20 @@ export function opponentOf(f) {
   );
 }
 
+/** The live foe of `owner` nearest a point on the stage. `opponentOf` measures
+ *  from the owner's own body, which is the right answer for a move he is
+ *  swinging; a shot already in flight is somewhere else, so anything it steers
+ *  at — homing, charge-seeking, a gravity well — asks from where the SHOT is. */
+export function nearestFoeTo(owner, x, y) {
+  let best = null, bestD = Infinity;
+  for (const o of state.fighters) {
+    if (!isFoe(owner, o) || o.dead || o.respawnTimer > 0) continue;
+    const d = Math.hypot(o.x - x, bodyY(o, 80) - y);
+    if (d < bestD) { bestD = d; best = o; }
+  }
+  return best;
+}
+
 // ---------------------------------------------------------------- hitboxes
 
 export function spawnMelee(owner, cfg) {
@@ -510,7 +524,11 @@ export function updateProjectiles(dt) {
       if (p.trailPts.length > PROJ_TRAIL.len * 2) p.trailPts.splice(0, 2);
     }
     projectileEmit(p, dt);
-    const target = state.fighters.find((f) => isFoe(p.owner, f) && !f.dead);
+    // What this shot STEERS at. It used to be the first foe in the fighter
+    // list, which in a three- or four-way match is simply whoever was built
+    // first: every homing shot in the game ignored the fighter standing in
+    // front of it to chase player 2 across the stage.
+    const target = nearestFoeTo(p.owner, p.x, p.y);
 
     // Flying it by hand. The path turns toward the stick at a limited rate
     // rather than snapping, so a steered curse arcs instead of teleporting its
@@ -564,12 +582,17 @@ export function updateProjectiles(dt) {
     // middle of a mostly-empty plate.
     const hp = projectileHit(p);
 
-    if (p.pull && target && target.hitstun <= 0) {
-      const dx = p.x - target.x;
-      const dist = Math.abs(dx);
-      if (dist < p.pull) {
-        target.vx += sign(dx) * 520 * dt * (1 - dist / p.pull);
-        if (target.y > p.y) target.vy -= 320 * dt * (1 - dist / p.pull);
+    // The gravity well (Gojo's Blue) drags in EVERY foe inside its radius, not
+    // just the one the shot is steering at — a core of attraction that only
+    // attracted one of the three bodies around it was the tell.
+    if (p.pull) {
+      for (const t of state.fighters) {
+        if (!isFoe(p.owner, t) || t.dead || t.respawnTimer > 0 || t.hitstun > 0) continue;
+        const dx = p.x - t.x;
+        const dist = Math.abs(dx);
+        if (dist >= p.pull) continue;
+        t.vx += sign(dx) * 520 * dt * (1 - dist / p.pull);
+        if (t.y > p.y) t.vy -= 320 * dt * (1 - dist / p.pull);
       }
     }
 
@@ -606,41 +629,53 @@ export function updateProjectiles(dt) {
       }
     }
 
-    if (!remove && target && target.respawnTimer <= 0 && !p.hit.has(target)) {
-      const box = hurtbox(target);
+    // Every foe the shot is touching, in fighter order. This test used to run
+    // against the single steering `target` above, so in a three- or four-way
+    // match a projectile could physically only ever hit one particular
+    // fighter: Gojo's Blue, Red and Purple passed straight through player 3
+    // like they were not there, and so did every other shot in the game.
+    let reflected = false;
+    for (const t of state.fighters) {
+      if (remove) break;
+      if (!isFoe(p.owner, t) || t.dead || t.respawnTimer > 0 || p.hit.has(t)) continue;
+      const box = hurtbox(t);
       // Crouching under a high projectile dodges it. The threshold is this
       // fighter's own measured crouch top — a flat 70 px was over half of one
       // body and a third of another.
-      const tb = bodyMetrics(target.spriteChar || target.charKey);
-      const ducked = isDucking(target) && p.y < target.y - tb.height * tb.crouch;
+      const tb = bodyMetrics(t.spriteChar || t.charKey);
+      const ducked = isDucking(t) && p.y < t.y - tb.height * tb.crouch;
+      if (ducked) continue;
       // Sky Fold (Uro): projectiles entering the folded sky are bent straight
       // back at their owner instead of landing
-      if (!ducked && target.reflect && target.reflect.t > 0 &&
+      if (t.reflect && t.reflect.t > 0 &&
           circleRectOverlap(hp.x, hp.y, hp.r + 30, box)) {
-        p.owner = target;
+        p.owner = t;
         p.vx = -p.vx;
         p.vy = -p.vy * 0.4;
         p.hit.clear();
         p.dur = Math.max(p.dur, 0.7);
-        burst(p.x, p.y, target.reflect.color || target.char.theme, 14, 0.9);
-        ring(p.x, p.y, target.reflect.color || target.char.theme, 70);
-        popup(target.x, target.y - 168 * ART_SCALE, "RETURNED", target.char.theme, 20);
+        burst(p.x, p.y, t.reflect.color || t.char.theme, 14, 0.9);
+        ring(p.x, p.y, t.reflect.color || t.char.theme, 70);
+        popup(t.x, t.y - 168 * ART_SCALE, "RETURNED", t.char.theme, 20);
         playSfx("guardHit", 0.9, 1.3);
-        continue;
+        reflected = true;
+        break;
       }
-      if (!ducked && circleRectOverlap(hp.x, hp.y, hp.r, box)) {
-        if (p.explode) {
-          explodeProjectile(p);
-          remove = true;
-        } else {
-          const res = applyHit(p.owner, target, { ...p, sfx: "blast" }, "projectile");
-          if (res !== "ignored") {
-            p.hit.add(target);
-            if (!p.pierce) remove = true;
-          }
+      if (!circleRectOverlap(hp.x, hp.y, hp.r, box)) continue;
+      if (p.explode) {
+        explodeProjectile(p);
+        remove = true;
+      } else {
+        const res = applyHit(p.owner, t, { ...p, sfx: "blast" }, "projectile");
+        if (res !== "ignored") {
+          p.hit.add(t);
+          if (!p.pierce) remove = true;
         }
       }
     }
+    // A shot that has just been turned around is no longer this frame's
+    // business: it keeps flying, under its new owner, from where it bounced.
+    if (reflected) continue;
 
     if (remove) state.projectiles.splice(i, 1);
   }
