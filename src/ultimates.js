@@ -34,7 +34,7 @@ import { getImage } from "./assets.js";
 // so easy to miss.
 import { meteorAt, paintedHeight } from "./shared_sprites.js";
 import { paintShared } from "./shared_paint.js";
-import { isFoe } from "./teams.js";
+import { isFoe, foesOf } from "./teams.js";
 import { bodyY } from "./body_points.js";
 import { spawnOffset } from "./muzzle.js";
 
@@ -422,30 +422,38 @@ const DIRECTORS = {
     state.domainOverlay = { color: p.color, life: p.duration + 0.4, maxLife: p.duration + 0.4, label: "Great Tempest", ownerId: f.id };
     state.entities.push({
       owner: f, t: 0, tick: 0.5, dead: false,
+      // "A stage-wide storm that grinds everything caught in it" is the kit's
+      // own description of this move, and with a third fighter on the stage it
+      // was grinding exactly one of them: the storm asked `opponentOf` every
+      // frame, buffeted that single body, and — since the answer is whoever is
+      // nearest RIGHT NOW — handed the weather to somebody else the moment
+      // they walked past. It is weather. It falls on every foe there is.
       update(dt) {
         this.t += dt;
         if (this.t >= p.duration) {
           this.dead = true;
-          const opp = opponentOf(f);
-          if (opp && !opp.dead && opp.respawnTimer <= 0) {
-            applyHit(f, opp, {
+          for (const t of foesOf(f)) {
+            applyHit(f, t, {
               dmg: 12, baseKb: p.finalBase, growth: p.growth * 1.6, angle: 1.2,
               label: "GREAT TEMPEST", sfx: "blast", unblockable: true, heavy: true,
             }, "script");
           }
           return;
         }
-        const opp = opponentOf(f);
-        if (opp && !opp.dead && opp.respawnTimer <= 0) {
-          opp.vx += Math.sin(this.t * 5) * 900 * dt;
-          if (!opp.grounded) opp.vy -= 300 * dt;
-          this.tick -= dt;
-          if (this.tick <= 0 && opp.invuln <= 0) {
-            this.tick = p.tickRate;
-            opp.damage = Math.min(999, opp.damage + p.dmgTick);
-            opp.hitstun = Math.max(opp.hitstun, 0.14);
-            burst(opp.x + rand(-40, 40), opp.y - rand(30, 130), "#d5d6ff", 5, 0.8);
-            popup(opp.x, opp.y - 140 * ART_SCALE, `${p.dmgTick}%`, p.color, 13);
+        const caught = foesOf(f);
+        for (const t of caught) {
+          t.vx += Math.sin(this.t * 5) * 900 * dt;
+          if (!t.grounded) t.vy -= 300 * dt;
+        }
+        this.tick -= dt;
+        if (this.tick <= 0 && caught.length) {
+          this.tick = p.tickRate;
+          for (const t of caught) {
+            if (t.invuln > 0) continue;
+            t.damage = Math.min(999, t.damage + p.dmgTick);
+            t.hitstun = Math.max(t.hitstun, 0.14);
+            burst(t.x + rand(-40, 40), t.y - rand(30, 130), "#d5d6ff", 5, 0.8);
+            popup(t.x, t.y - 140 * ART_SCALE, `${p.dmgTick}%`, p.color, 13);
           }
         }
       },
@@ -544,11 +552,17 @@ const DIRECTORS = {
     opp.hitstun = Math.max(opp.hitstun, total);
     let i = 0;
     const events = [];
+    // The victim is decided ONCE, on the read that opened the rush. Every blow
+    // used to re-ask `opponentOf`, which is "whoever is nearest right now" —
+    // so in a royal match a fighter who wandered closer mid-combo inherited
+    // the rest of somebody else's ultimate, and the finisher landed on a body
+    // the caster never committed to. A flurry is one target held through one
+    // animation; if they get away from it, it stops.
     for (; i < p.hits; i++) {
       events.push({
         at: 0.3 + i * 0.15,
         fn: (self) => {
-          const t = opponentOf(self);
+          const t = opp;
           if (!t || t.dead || t.respawnTimer > 0 || t.invuln > 0.3) return;
           const side = p.teleport ? (Math.random() < 0.5 ? -1 : 1) : (self.x < t.x ? -1 : 1);
           self.x = clamp(t.x + side * 70, 60, 1220);
@@ -570,7 +584,7 @@ const DIRECTORS = {
     events.push({
       at: 0.3 + p.hits * 0.15 + 0.15,
       fn: (self) => {
-        const t = opponentOf(self);
+        const t = opp;                     // the same body the rush opened on
         if (!t || t.dead || t.respawnTimer > 0) return;
         // the full lattice appears as the finisher lands
         if (p.lattice) dismantleLatticeFx(t.x, bodyY(t, 90), CHAR_FX.dismantleFinisher);
@@ -857,17 +871,23 @@ const DIRECTORS = {
       update(dt) {
         this.t += dt;
         if (this.t <= p.delay) return;
-        const target = opponentOf(f);
+        // Who is INSIDE the ring, asked of the ring. The orbs were placed
+        // around a point at cast time (cx/cy, fixed above) and then detonate
+        // inward on it, so what they catch is a question about that circle —
+        // not about which single fighter happened to be nearest Choso when
+        // each orb went off, which is what this asked and which let two of the
+        // three bodies standing in the blast walk out of it untouched.
+        const inRing = (t, mul = 1) => Math.hypot(t.x - cx, bodyY(t, 90) - cy) < p.radius * mul;
         const should = Math.min(p.orbs, Math.floor((this.t - p.delay) / orbGap) + 1);
         while (this.fired < should) {
           this.fired += 1;
           playSfx("blast", 0.45, 1.3);
-          if (target && !target.dead && target.respawnTimer <= 0 && target.invuln <= 0 &&
-              Math.hypot(target.x - cx, bodyY(target, 90) - cy) < p.radius) {
-            target.damage = Math.min(999, target.damage + p.dmgPerOrb);
-            target.hitstun = Math.max(target.hitstun, 0.2);
-            burst(target.x, target.y - 90 * ART_SCALE, p.color, 8, 0.8);
-            popup(target.x, target.y - 140 * ART_SCALE, `${p.dmgPerOrb}%`, p.color, 14);
+          for (const t of foesOf(f)) {
+            if (t.invuln > 0 || !inRing(t)) continue;
+            t.damage = Math.min(999, t.damage + p.dmgPerOrb);
+            t.hitstun = Math.max(t.hitstun, 0.2);
+            burst(t.x, t.y - 90 * ART_SCALE, p.color, 8, 0.8);
+            popup(t.x, t.y - 140 * ART_SCALE, `${p.dmgPerOrb}%`, p.color, 14);
           }
         }
         if (this.fired >= p.orbs && this.t > p.delay + p.orbs * orbGap + 0.25) {
@@ -876,9 +896,9 @@ const DIRECTORS = {
           ring(cx, cy, p.color, 260);
           playSfx("blast", 1, 0.6);
           state.camera.shake = Math.max(state.camera.shake, 14);
-          if (target && !target.dead && target.respawnTimer <= 0 &&
-              Math.hypot(target.x - cx, bodyY(target, 90) - cy) < p.radius * 1.1) {
-            applyHit(f, target, {
+          for (const t of foesOf(f)) {
+            if (!inRing(t, 1.1)) continue;
+            applyHit(f, t, {
               dmg: p.finalDmg, baseKb: p.finalBase, growth: p.finalGrowth, angle: 0.6,
               label: "SUPERNOVA", sfx: "blast", unblockable: true, heavy: true,
             }, "script");
@@ -993,7 +1013,12 @@ const DIRECTORS = {
       owner: f, t: 0, phase: 0, dead: false,
       update(dt) {
         this.t += dt;
-        const t2 = opponentOf(f);
+        // The body the sky closed on, held for the whole fold. Re-asking
+        // `opponentOf` each frame (as this did) meant the lift could start on
+        // one fighter and the slam land on another the instant somebody else
+        // walked nearer — and the sky crack, spawned over the first one at
+        // cast, stayed where it was while a different body went up.
+        const t2 = opp;
         if (!t2 || t2.dead || t2.respawnTimer > 0) { this.dead = true; return; }
         if (this.phase === 0 && this.t > 0.25) {
           this.phase = 1;
@@ -1032,7 +1057,7 @@ const DIRECTORS = {
       },
       draw(ctx) {
         if (p.crack) return;   // the breaking sky is the whole picture
-        const t2 = opponentOf(f);
+        const t2 = opp;          // draw the fold around the body it grabbed
         if (!t2) return;
         const img = p.sprite ? getImage(p.sprite) : null;
         ctx.save();

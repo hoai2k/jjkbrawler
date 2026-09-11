@@ -163,6 +163,12 @@ export function updateGrabReach(f) {
     y: f.y - h, w: reach, h,
   };
   debugShape(rect);
+  // Everyone the hand can actually close on, and then the CLOSEST of them.
+  // This used to take the first match in `state.fighters`, which is select-
+  // screen slot order: with two bodies inside one grab box — a real thing in
+  // a royal match, and the moment a grab matters most — the lower slot was
+  // grabbed every time however far back they stood.
+  let victim = null, bestGap = Infinity;
   for (const t of state.fighters) {
     if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
     // A hand cannot close on: i-frames (dodges included), someone freshly
@@ -171,9 +177,10 @@ export function updateGrabReach(f) {
     if (t.invuln > 0 || t.grabImmune > 0 || t.grabbedBy || t.ledge) continue;
     if (t.prone > 0 && t.hitstun <= 0) continue;
     if (!rectsOverlap(rect, hurtbox(t))) continue;
-    connectGrab(f, t);
-    return;
+    const gap = Math.abs(t.x - f.x);
+    if (gap < bestGap) { bestGap = gap; victim = t; }
   }
+  if (victim) connectGrab(f, victim);
 }
 
 function connectGrab(f, victim) {

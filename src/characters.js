@@ -1923,7 +1923,7 @@ export const CHARACTERS = {
       side: {
         name: "Same Star: Debris", type: "projectile", cooldown: 1.25,
         desc: "The attraction half of the chart: loose debris marked with the enemy's own star, thrown — and same stars are drawn together, so it hunts them.",
-        p: { speed: 520, vy: -60, gravity: 160, r: 26, dur: 1.1, dmg: 11, base: 360, growth: 6.6, angle: 0.4, color: "#d9a8ff", seekStatus: "starMark", seekRate: 8, ox: 79, oy: -133, label: "Same Star", sprite: "effect:star_debris", spriteH: 70 },
+        p: { speed: 520, vy: -60, gravity: 160, r: 26, dur: 1.1, dmg: 11, base: 360, growth: 6.6, angle: 0.4, color: "#d9a8ff", seekStatus: "starMarks", seekRate: 8, ox: 79, oy: -133, label: "Same Star", sprite: "effect:star_debris", spriteH: 70 },
       },
       down: {
         name: "Southern Cross", type: "constellation", cooldown: 2.6,

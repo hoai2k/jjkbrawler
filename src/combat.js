@@ -1,7 +1,7 @@
 import { state } from "./state.js";
 import { spawnSkyCrack } from "./sky_crack.js";
 import { groundY as stageGroundY } from "./stages.js";
-import { clamp, sign, rectsOverlap, circleRectOverlap } from "./utils.js";
+import { clamp, sign, pick, rectsOverlap, circleRectOverlap } from "./utils.js";
 import { burst, dust, sparkLine, ring, popup, banner } from "./particles.js";
 import { hitFx, elementOf, burnTickFx, bleedTickFx, projectileEmit, explodeFx, blackFlashFx, ratioSeamFx, specks, spray } from "./fx.js";
 import { PROJ_TRAIL, BLACK_FLASH, RUMBLE } from "./config_fx.js";
@@ -185,22 +185,76 @@ export function hurtbox(f) {
                w: W, h: H * HURTBOX.standH }, "stand");
 }
 
+/** Pick one at random. Every tie in this file goes through here rather than
+ *  through the fighter list's own order, which is the slot a player took on
+ *  the select screen and means nothing on the stage: without it, two foes
+ *  standing at the same distance — mirrored spawns, a pair caught in the same
+ *  corner — resolved to the lower slot every single time, so player 2 soaked
+ *  every coin-flip in the game and player 4 never won one. */
+function pickOne(list) {
+  return list.length ? pick(list) : null;
+}
+
+/** The distance at which two foes count as equally close. Coarse on purpose:
+ *  bodies a few pixels apart are the same read to the player, and a tie broken
+ *  by the sixth decimal place is a tie broken by slot order again. */
+const TIE_PX = 24;
+
+/** Nearest live foe, ties broken at random. */
 export function opponentOf(f) {
   const candidates = state.fighters.filter((o) => isFoe(f, o) && !o.dead && o.respawnTimer <= 0);
   if (!candidates.length) return state.fighters.find((o) => isFoe(f, o) && !o.dead) || null;
-  return candidates.reduce((best, o) =>
-    Math.abs(o.x - f.x) < Math.abs(best.x - f.x) ? o : best
-  );
+  const near = Math.min(...candidates.map((o) => Math.abs(o.x - f.x)));
+  return pickOne(candidates.filter((o) => Math.abs(o.x - f.x) <= near + TIE_PX));
 }
 
-/** The live foe of `owner` nearest a point on the stage. `opponentOf` measures
- *  from the owner's own body, which is the right answer for a move he is
- *  swinging; a shot already in flight is somewhere else, so anything it steers
- *  at — homing, charge-seeking, a gravity well — asks from where the SHOT is. */
-export function nearestFoeTo(owner, x, y) {
+/** The foe a fighter is LOOKING AT: one of the live foes on the side `dir`
+ *  (defaults to their facing), within `range`, chosen at random among them.
+ *
+ *  An aimed move — Todo's clap, a spoken command — is pointed somewhere, and
+ *  pointing it is the player's decision. `opponentOf` answers "who is closest"
+ *  and would hand the move to somebody standing behind the caster; this asks
+ *  the question the move is actually asking. Random among the several in front
+ *  because they are all equally aimed at, and the alternative is the fighter
+ *  list's slot order deciding it. */
+export function foeToward(f, { dir = f.facing, range = Infinity } = {}) {
+  const ahead = state.fighters.filter((o) =>
+    isFoe(f, o) && !o.dead && o.respawnTimer <= 0 &&
+    // `>= 0` rather than a sign match, so a foe standing exactly on top of
+    // the caster counts as in front of them instead of in neither direction.
+    (o.x - f.x) * sign(dir || 1) >= 0 && Math.abs(o.x - f.x) <= range);
+  return pickOne(ahead);
+}
+
+/** The nearest live foe carrying a status, ties broken at random — and, when
+ *  a status records who applied it, only the ones this fighter marked.
+ *
+ *  Everything that CASHES IN a mark (Nobara's nails, Kirara's stars) used to
+ *  ask `opponentOf` and then check whether that one body happened to be the
+ *  marked one. With a third fighter on the stage it usually is not: you nail
+ *  player 3, player 2 wanders past, and the detonator reports "no nails set"
+ *  while three nails sit in somebody you can see. */
+export function markedFoe(f, key, fromKey = null) {
+  const marked = state.fighters.filter((o) =>
+    isFoe(f, o) && !o.dead && o.respawnTimer <= 0 &&
+    (o.statuses?.[key] || 0) > 0 &&
+    (!fromKey || !o.statuses[fromKey] || o.statuses[fromKey] === f));
+  if (!marked.length) return null;
+  const near = Math.min(...marked.map((o) => Math.abs(o.x - f.x)));
+  return pickOne(marked.filter((o) => Math.abs(o.x - f.x) <= near + TIE_PX));
+}
+
+/** The live foe of `owner` nearest a point on the stage, optionally narrowed
+ *  by `want` (a shot that only answers to marked bodies passes the mark test).
+ *  `opponentOf` measures from the owner's own body, which is the right answer
+ *  for a move he is swinging; a shot already in flight is somewhere else, so
+ *  anything it steers at — homing, charge-seeking, a gravity well — asks from
+ *  where the SHOT is. */
+export function nearestFoeTo(owner, x, y, want = null) {
   let best = null, bestD = Infinity;
   for (const o of state.fighters) {
     if (!isFoe(owner, o) || o.dead || o.respawnTimer > 0) continue;
+    if (want && !want(o)) continue;
     const d = Math.hypot(o.x - x, bodyY(o, 80) - y);
     if (d < bestD) { bestD = d; best = o; }
   }
@@ -552,12 +606,20 @@ export function updateProjectiles(dt) {
     }
 
     // Kashimo — the planted charge makes the next bolt a sure thing: a shot
-    // tagged `seekStatus` bends hard toward any foe carrying that status,
+    // tagged `seekStatus` bends hard toward a foe carrying that status,
     // preserving its speed. This is his charge-separation trick — no domain,
     // and the discharge still cannot miss a body he has already marked.
-    if (p.seekStatus && target && !steering && (target.statuses?.[p.seekStatus] || 0) > 0) {
+    //
+    // It asks for the nearest MARKED body rather than testing the mark on the
+    // nearest one: a charge planted in one fighter, or a star Kirara set on
+    // another, is a mark on THAT fighter, and with somebody else standing
+    // closer the shot simply flew straight past the body it was hunting.
+    const marked = p.seekStatus
+      ? nearestFoeTo(p.owner, p.x, p.y, (o) => (o.statuses?.[p.seekStatus] || 0) > 0)
+      : null;
+    if (marked && !steering) {
       const speed = Math.hypot(p.vx, p.vy) || 1;
-      const dx = target.x - p.x, dy = bodyY(target, 80) - p.y;
+      const dx = marked.x - p.x, dy = bodyY(marked, 80) - p.y;
       const len = Math.hypot(dx, dy) || 1;
       const k = Math.min(1, (p.seekRate ?? 10) * dt);
       p.vx += ((dx / len) * speed - p.vx) * k;
