@@ -4,7 +4,7 @@ import { getCharacter } from "./characters.js";
 import { lightMove, heavyMove, swingMove, crouchPivot } from "./moves.js";
 import { bodyMetrics } from "./silhouette.js";
 import { comFrac } from "./body_points.js";
-import { spawnMelee, opponentOf, updateStatuses } from "./combat.js";
+import { spawnMelee, updateStatuses } from "./combat.js";
 import { performSpecial, updateSpecialState, bankedMiracle } from "./specials.js";
 import { performUltimate } from "./ultimates.js";
 import { performDomain, domainInput, canOpenDomain, activeDomain, domainSlotFor, domainSpecialSlot } from "./domains.js";
@@ -1183,7 +1183,6 @@ function startDash(f, dir) {
 // ------------------------------------------------------------------- KO
 
 export function ringOut(f) {
-  const opp = opponentOf(f);
   f.stocks -= 1;
   // Result-screen bookkeeping. The KO is credited to whoever last hit them
   // while that credit still stands (combat.js) — a fighter who walked off the
@@ -1197,7 +1196,11 @@ export function ringOut(f) {
   rumbleEvent(f, "ko");
   state.camera.shake = Math.max(state.camera.shake, 16);
   state.slowMo = Math.max(state.slowMo, 0.35);
-  state.screenFlash = { color: opp ? opp.char.theme : "#ffffff", life: 0.28, maxLife: 0.28 };
+  // The KO flash is the KILLER's colour, taken from the credit resolved just
+  // above. It used to be "the nearest opponent's", which in a 1v1 is the same
+  // fighter and in a royal match is whoever happened to be standing closest to
+  // the blast zone — the screen flashed the colour of a bystander.
+  state.screenFlash = { color: killer ? killer.char.theme : "#ffffff", life: 0.28, maxLife: 0.28 };
   const bx = clamp(f.x, 80, 1200);
   const by = clamp(f.y, 80, 640);
   burst(bx, by, f.char.theme, 54, 1.9);

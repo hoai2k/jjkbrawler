@@ -23,7 +23,7 @@ import { clamp, sign } from "./utils.js";
 // height-normalisation moves.js applies to normals.
 import {
   spawnMeleeScaled as spawnMelee, spawnProjectileScaled as spawnProjectile, opponentOf,
-  applyHit, hurtbox, applyStatus, ownerStick, debugShape,
+  foeToward, markedFoe, applyHit, hurtbox, applyStatus, ownerStick, debugShape,
 } from "./combat.js";
 import { burst, dust, ring, popup, banner } from "./particles.js";
 import {
@@ -421,7 +421,12 @@ const HANDLERS = {
   },
 
   swap(f, p, cfg) {
-    const opp = opponentOf(f);
+    // Todo claps at somebody. WHICH somebody is the clap's whole mind game, so
+    // it is the fighter he is LOOKING AT — one of the foes on his facing side,
+    // inside the clap's range, picked at random when there are several. Asking
+    // for the nearest foe (as this did) let the clap reach round behind him,
+    // and in a royal match that is the one body the player was not aiming at.
+    const opp = foeToward(f, { range: p.range || 560 });
     beginSpecialAction(f, currentSlot(cfg, f), 0.5);
     if (p.sprite) spawnSummonFlash(f, p.sprite, 0.42, p.spriteH || 190, 0);
     if (!opp || opp.dead || Math.abs(opp.x - f.x) > (p.range || 560) || opp.respawnTimer > 0) {
@@ -569,7 +574,12 @@ const HANDLERS = {
 
   detonate(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.44);
-    const opp = opponentOf(f);
+    // Whoever is carrying the nails, nearest first — not whoever is closest
+    // and then a check that they happen to be nailed. With a third fighter on
+    // the stage the closest body usually is NOT the one you nailed, and this
+    // reported "no nails set" with three of them sticking out of somebody
+    // standing in plain view.
+    const opp = markedFoe(f, "nailMarks");
     const marks = opp ? opp.statuses.nailMarks : 0;
     if (!opp || marks <= 0) {
       popup(f.x, f.y - 160 * ART_SCALE, "no nails set…", "#9aa4c0", 15);
@@ -590,7 +600,7 @@ const HANDLERS = {
 
   resonance(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.55);
-    const opp = opponentOf(f);
+    const opp = markedFoe(f, "nailMarks");   // the nailed body — see detonate
     const marks = opp ? opp.statuses.nailMarks : 0;
     if (!opp || marks <= 0) {
       popup(f.x, f.y - 160 * ART_SCALE, "no nails set…", "#9aa4c0", 15);
@@ -1045,7 +1055,10 @@ const HANDLERS = {
   // are spent, and more stars is more everything.
   constellation(f, p, cfg) {
     beginSpecialAction(f, currentSlot(cfg, f), 0.46);
-    const opp = opponentOf(f);
+    // The starred body, and only stars THIS Kirara set: the status already
+    // records who chartered them (`starFrom`), and in a mirror match cashing
+    // in the other one's chart is not her technique.
+    const opp = markedFoe(f, "starMarks", "starFrom");
     const marks = opp ? opp.statuses.starMarks : 0;
     if (!opp || marks <= 0) {
       popup(f.x, f.y - 160 * ART_SCALE, "no stars set…", "#9aa4c0", 15);
