@@ -4,7 +4,7 @@ import { sharedAdjust, sharedFadeIn, paintedHeight, AURA_H, AURA_PULSE, AURA_FOO
 import { getStage } from "./stages.js";
 import { stagePalette } from "./stage_palette.js";
 import { drawCharFrame, currentFrame, anchorOffset } from "./render_backend.js";
-import { drawScreenShatter, sparedFighters, overPane } from "./screen_shatter.js";
+import { drawScreenShatter, sparedFighters, overPane, shatterFade } from "./screen_shatter.js";
 import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
 import { bodyMetrics } from "./silhouette.js";
@@ -111,7 +111,7 @@ function drawOverPane(ctx, frame) {
   if (!spared) return;
   overPane(ctx, () => {
     frame(ctx);
-    drawFighters(ctx, { only: spared });
+    drawFighters(ctx, { only: spared, overPane: true });
     releaseCamera(ctx);
   });
 }
@@ -723,14 +723,21 @@ function comHoldShift(f, key, frame, opts) {
   return Math.max(-cap, Math.min(cap, want)) * holdW;
 }
 
-/** `only` narrows the pass to a given set of fighters — used by the repaint
- *  over a broken pane, which draws the ones the sky did not take and nobody
- *  else. Everything else about how a fighter is drawn is unchanged, so the
- *  repaint cannot drift from the real thing. */
-function drawFighters(ctx, { bodies = true, only = null } = {}) {
+/** `only` narrows the pass to a given set of fighters, and `overPane` says
+ *  this IS the repaint over a broken pane — the one pass that draws fighters
+ *  the breaking sky is otherwise keeping out of the scene, so it is also the
+ *  one pass that does not ask `shatterFade` whether to. Everything else about
+ *  how a fighter is drawn is unchanged, so the repaint cannot drift from the
+ *  real thing. */
+function drawFighters(ctx, { bodies = true, only = null, overPane: isRepaint = false } = {}) {
   const sorted = [...(only || state.fighters)].sort((a, b) => a.y - b.y);
   for (const f of sorted) {
     if (f.dead) continue;
+    // How much of this fighter the breaking sky is letting through. 0 while
+    // they belong to the glass instead of to the scene (src/screen_shatter.js);
+    // a ramp while they reform out of the dark afterwards.
+    const seen = isRepaint ? 1 : shatterFade(f);
+    if (seen <= 0) continue;
     if (f.respawnTimer > 0) {
       // Still blacked out: only the marker showing where they are about to
       // come back, so the other players can read it before it happens.
@@ -740,13 +747,16 @@ function drawFighters(ctx, { bodies = true, only = null } = {}) {
     // Back, standing on their revival platform — and drawn normally, because
     // they are playing. The platform goes UNDER them.
     if (f.respawnPlat) drawRevivalPlatform(ctx, f);
-    if (bodies) drawShadow(ctx, f);
+    // Mid-reform there is no floor under them to speak of — the hole is still
+    // open — and an aura at full strength beside a half-there body reads as
+    // the glow arriving first. Both wait for the body to finish.
+    if (bodies && seen >= 1) drawShadow(ctx, f);
     // The aura goes UNDER the body, which this canvas can only manage while
     // the body is also on it. In the 2.5D pass the body is in the WebGL layer
     // and this canvas is strictly above it, so drawing here painted the aura
     // over the fighter it belongs to — billboards.js draws it in the scene
     // instead, between the shadow and the body, exactly as here.
-    if (bodies) drawInstallAura(ctx, f);
+    if (bodies && seen >= 1) drawInstallAura(ctx, f);
 
     // A transformed fighter (Megumi as Mahoraga) draws from another actor's
     // sprite set for the duration of the install; everything else about them —
@@ -775,7 +785,7 @@ function drawFighters(ctx, { bodies = true, only = null } = {}) {
       paintShared(ctx, f.installs.sprite, transformed,
         { x: f.x + shakeX, y: bodyY(f, -10) }, paintedHeight(f.installs.sprite, 210), {
           anchor: "feet", mirrored: f.facing > 0,
-          alpha: flicker ? 0.6 : 1,
+          alpha: (flicker ? 0.6 : 1) * seen,
           shadow: { color: f.installs.color || f.char.shadow, blur: 24 },
         });
     }
@@ -805,7 +815,7 @@ function drawFighters(ctx, { bodies = true, only = null } = {}) {
         // Where the current state was cut from (fighter.js setAnim), for
         // backends that cross-fade a state change instead of snapping.
         prevAnim: f.prevAnim,
-        alpha: flicker ? 0.6 : 1,
+        alpha: (flicker ? 0.6 : 1) * seen,
         rotation: m.rotation,
         scaleX: m.scaleX,
         scaleY: m.scaleY,

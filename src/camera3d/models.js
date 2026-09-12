@@ -38,6 +38,7 @@ import { headHeightTarget } from "../heights.js";
 import { fighterTransform } from "../motion.js";
 import { comFrac } from "../body_points.js";
 import { LIGHT_RIG } from "../../render3d/src/light_rig.js";
+import { shatterFade } from "../screen_shatter.js";
 
 const S = C.simScale;
 
@@ -221,6 +222,12 @@ export function makeModels() {
       for (const child of group.children) if (child !== lights) child.visible = false;
       for (const f of st.fighters) {
         if (f.dead || f.respawnTimer > 0) continue;
+        // Kept out of the scene while Uro's broken sky is carrying them away,
+        // exactly as the card path and the flat renderer do. A rig has no
+        // alpha to fade here, so it comes back whole on the reform's first
+        // frame rather than resolving over it — the ring the reform throws is
+        // what sells the arrival in this mode.
+        if (shatterFade(f) <= 0) continue;
         // A transformed fighter (Megumi as Mahoraga) draws from the install's
         // own still art in every mode; leave it to the card path. Unless the
         // drawing stands BEHIND them rather than replacing them (Naoya's

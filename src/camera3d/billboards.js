@@ -32,6 +32,7 @@ import { paintProceduralAura, AURA_ELLIPSE } from "../render.js";
 import { paintedHeight, AURA_H, AURA_PULSE, AURA_FOOT_DY } from "../shared_sprites.js";
 import { sharedPlacement } from "../shared_paint.js";
 import { makeEffectLayer } from "./effects.js";
+import { shatterFade } from "../screen_shatter.js";
 // The SPRITE pose resolver, deliberately not the render-backend dispatcher.
 //
 // The sprite CARD path below has to come out of frameArt(), which
@@ -388,14 +389,25 @@ export function makeBillboards() {
     const sorted = [...st.fighters].sort((a, b) => a.y - b.y);
     for (const f of sorted) {
       if (f.dead || f.respawnTimer > 0) continue;
+      // How much of this fighter Uro's breaking sky is letting through — 0
+      // while they belong to the glass rather than to the scene, a ramp while
+      // they reform out of the dark afterwards (src/screen_shatter.js). The
+      // flat renderer asks the same question in the same place; a body left in
+      // the scene here would show through as a second copy of one the glass is
+      // already carrying away.
+      const seen = shatterFade(f);
+      if (seen <= 0) continue;
 
-      // shadow
-      const gy = groundBelow(f, st.platforms);
-      const shAlpha = Math.min(0.42, Math.max(0.08, 0.42 - (gy - f.y) / 900));
-      drawRect(shadowTexture(), f.x, gy + 8, 68, 16, { alpha: shAlpha }, 0.01, order++);
+      // shadow — held back until the body is whole, like the aura below: there
+      // is no floor under a reforming fighter yet, only the open hole.
+      if (seen >= 1) {
+        const gy = groundBelow(f, st.platforms);
+        const shAlpha = Math.min(0.42, Math.max(0.08, 0.42 - (gy - f.y) / 900));
+        drawRect(shadowTexture(), f.x, gy + 8, 68, 16, { alpha: shAlpha }, 0.01, order++);
 
-      // ...then the aura, under the body — render.js's own order.
-      drawAura(f, order++);
+        // ...then the aura, under the body — render.js's own order.
+        drawAura(f, order++);
+      }
 
       const spriteKey = f.spriteChar || f.charKey;
       const spriteActor = getActor(spriteKey) || f.char;
@@ -413,7 +425,7 @@ export function makeBillboards() {
         const h = 210;
         const w = transformed.width * h / transformed.height;
         drawRect(imageTexture(transformed), f.x + shakeX, f.y + 10 - h / 2, w, h,
-          { flipX: f.facing > 0, alpha: flicker ? 0.6 : 1 }, 0, order++);
+          { flipX: f.facing > 0, alpha: (flicker ? 0.6 : 1) * seen }, 0, order++);
         if (!behind) continue;
       }
 
@@ -424,7 +436,7 @@ export function makeBillboards() {
           const g = f.trail[i];
           const fade = ((i + 1) / f.trail.length) * TRAIL_ALPHA * strength;
           drawChar(f.charKey, g.frame, g.x, g.y, {
-            scale: f.char.scale, facing: g.facing, alpha: fade, rotation: g.rot,
+            scale: f.char.scale, facing: g.facing, alpha: fade * seen, rotation: g.rot,
           }, -0.02, order++);
         }
       }
@@ -444,7 +456,7 @@ export function makeBillboards() {
       drawChar(spriteKey, frameKey, f.x + shakeX, f.y, {
         scale: spriteActor.scale,
         facing: f.facingVis,
-        alpha: flicker ? 0.6 : 1,
+        alpha: (flicker ? 0.6 : 1) * seen,
         rotation: m.rotation,
         scaleX: m.scaleX,
         scaleY: m.scaleY,
