@@ -309,6 +309,72 @@ check(peak > Math.max(500, calm * 1.6),
 check(!uroInGlass, "Uro is never a victim of her own sky");
 check(uroSpared, "...so the sky hands her back to be drawn over it",
       `spared ${(watchResult.sparedIds || []).join(", ") || "nobody"}`);
+// ---- the sequence, driven by hand ------------------------------------------
+//
+// Who is in the photograph, and how long the body it took stays in it. Both
+// are decided by `shatterFade`, which the two renderers consult for every
+// fighter every frame — so this drives a shatter directly and reads the
+// function at the beats that matter, rather than trying to catch single frames
+// out of a live match.
+const sequence = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const mod = await import("/src/screen_shatter.js");
+  const { triggerScreenShatter } = mod;
+  // Read defensively: a build where the sky photographs everybody has no such
+  // function, and that has to come back as failed checks rather than as a
+  // throw that takes the whole run with it.
+  const shatterFade = mod.shatterFade || (() => 1);
+  const [uro, foe] = state.fighters;
+  if (!foe) return null;
+  const read = () => ({
+    uro: Math.round(shatterFade(uro) * 100) / 100,
+    foe: Math.round(shatterFade(foe) * 100) / 100,
+  });
+  triggerScreenShatter({ cx: 0.5, cy: 0.45, scale: 1, tempo: 1, owner: uro, victims: [foe] });
+  const sh = state.skyShatter;
+  // The capture frame, read before any draw has run: this is the frame whose
+  // pixels become the glass, and what it leaves out is what the glass cannot
+  // contain.
+  const capture = read();
+  // Everything after it reads off a BUILT pane, so stand one up.
+  sh.pending = false;
+  sh.shards = [{}];
+  const at = (t) => { sh.t = t; return read(); };
+  const out = {
+    capture,
+    cracking: at(0.3),          // the web races across the frozen pane
+    falling: at(1.4),           // the pieces are dropping away
+    darkened: at(1.86),         // the last shard has just gone
+    reforming: at(1.86 + 0.15), // coming back over the black
+    whole: at(1.86 + 0.4),      // and back to being themselves
+  };
+  state.skyShatter = null;
+  state.simHold = 0;
+  return out;
+});
+
+if (!sequence) {
+  check(false, "the sequence needs a second fighter on the stage");
+} else {
+  const { capture, cracking, falling, darkened, reforming, whole } = sequence;
+  // The answer to "I can still see Uro in the broken glass": she is not in the
+  // frame the glass is cut from, so there is nothing of her in it to break.
+  check(capture.uro === 0 && capture.foe === 1,
+        "the photograph is taken without the fighters the sky did not take",
+        `spared ${capture.uro}, victim ${capture.foe} on the capture frame`);
+  // And the answer to seeing the victim twice: while the glass is carrying
+  // them, the glass is the only place they are.
+  check(cracking.foe === 0 && falling.foe === 0 && darkened.foe === 0,
+        "the victim is in the glass and nowhere else while it falls",
+        `${cracking.foe} / ${falling.foe} / ${darkened.foe} through crack, fall, dark`);
+  check(cracking.uro === 1 && falling.uro === 1,
+        "...while everyone else goes on being drawn");
+  // Then they come back, over the black, as the sky heals behind them.
+  check(reforming.foe > 0 && reforming.foe < 1 && whole.foe === 1,
+        "...then reforms once the last shard is gone",
+        `${darkened.foe} → ${reforming.foe} → ${whole.foe}`);
+}
+
 check(pairs > 0 && withRepaint > without + MEASURABLE,
       "...and her body is actually painted over the broken pane",
       `${withRepaint} warm px with the repaint, ${without} without it (${pairs} pairs)`);

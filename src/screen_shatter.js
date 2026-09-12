@@ -12,17 +12,29 @@
 // screen — drop away like glass, leaving a dark not-sky hole that then heals
 // over as the sky regenerates. No sprite is involved anywhere.
 //
-// WHO IS IN THE GLASS. The capture is a readback of the composited frame, so
-// everything standing in the pane is baked into it — which, when the technique
-// only landed on one of them, is wrong twice over. Uro is usually inside her
-// own pane and was shattering with it, and a bystander who wandered through
-// came apart on screen while taking no damage at all; worse, once the pieces
-// start falling they carry that bystander's frozen image downward while the
-// live one plays on underneath, so there are briefly two of them. The sky
-// takes the fighters the blow actually caught (`victims`, handed in by the
-// technique) and nobody else: `sparedFighters` lists the rest, and both
-// renderers draw them again over the finished pane. They are in front of the
-// breaking sky, not part of it.
+// WHO IS IN THE GLASS, and who is in front of it. The capture is a readback of
+// the composited frame, so by default everything standing in the pane is baked
+// into the picture and comes apart with it. That is right for exactly one set
+// of people — the ones the blow landed on — and the technique says who they
+// are (`victims`). Everyone else, Uro very much included, is kept OUT of the
+// glass and drawn in front of it, and the two halves of that are separate:
+//
+//   * OUT OF THE GLASS. On the one frame the capture is taken, both renderers
+//     leave the spared fighters out of the scene entirely (`shatterFade`
+//     returns 0 for them), so the photograph is of the sky, the stage and the
+//     victim — nobody else was standing there to be photographed. They are
+//     painted back in immediately after the capture, so they are never missing
+//     from a frame the player sees.
+//   * IN FRONT OF IT. On every later frame they are drawn normally and then
+//     again over the pane (`overPane`), because the glass still COVERS the
+//     live scene even though it no longer contains them.
+//
+// THE VICTIM, meanwhile, is only in the glass. They are hidden from the scene
+// from the capture until the shards have finished falling, so the body you see
+// break apart is the only body there is; then, over the standing darkness and
+// as the sky heals behind them, they reform — already knocked back, because
+// the world resumed at the break and the blow has been landing all along. The
+// freeze and the cracks never showed the hit; the heal reveals what it did.
 //
 // HOW THE CAPTURE WORKS, and why it lives inside render.js's frame. In 2.5D
 // the scene is two stacked canvases — the WebGL layer with the world and
@@ -51,6 +63,7 @@
 import { state } from "./state.js";
 import { WORLD } from "./constants.js";
 import { playSfx } from "./audio.js";
+import { ring, burst } from "./particles.js";
 
 // Cosmetic tuning — nothing here touches gameplay. Edit freely.
 const SHATTER = {
@@ -73,6 +86,10 @@ const SHATTER = {
   darkTime: 0.30,      // the hole stands alone, fully dark
   regenTime: 0.75,     // the sky fades back in over the blank
   maxShards: 40,       // safety valve; the web above yields ~27
+  // How long the victim takes to come back once the shards are gone. Short:
+  // this is a body resolving out of the dark, not a slow dissolve, and the
+  // point of it is the knocked-back pose underneath.
+  reformTime: 0.3,
 };
 
 /** Where a sim-space point sits on screen, as fractions, under the flat
@@ -130,6 +147,10 @@ export function triggerScreenShatter(opts = {}) {
     victims: new Set([opts.victims || []].flat().filter(Boolean)),
     t: 0,
     broke: false,
+    reformed: false,
+    // Set by drawScreenShatter on the frame it captures, and consumed by
+    // `overPane` later in that same frame.
+    justCaptured: false,
     shards: null,
     rays: null,
   };
@@ -155,6 +176,18 @@ export function stepScreenShatter(dt) {
     sh.broke = true;
     playSfx("parry", 1, 0.65);
   }
+  // The reform: the last shard has fallen and the body it took comes back out
+  // of the dark, already knocked back. A ring on each of them so the moment
+  // reads as something arriving rather than a sprite switching on.
+  if (!sh.reformed && sh.shards && sh.t >= revealAt(sh)) {
+    sh.reformed = true;
+    for (const f of sh.victims) {
+      if (f.dead) continue;
+      ring(f.x, f.y - 90, sh.color, 120);
+      burst(f.x, f.y - 90, sh.color, 14, 0.9);
+    }
+    if (sh.victims.size) playSfx("whoosh", 0.7, 1.5);
+  }
   if (sh.t >= b.crack + b.hold + b.split + b.fall + b.dark + b.regen) {
     state.skyShatter = null;
   }
@@ -170,6 +203,7 @@ export function drawScreenShatter(ctx, layers) {
   if (sh.pending) {
     build(sh, layers);
     sh.pending = false;
+    sh.justCaptured = true;
   }
   if (!sh.shards) {
     // Capture failed (no readable canvas). Do not leave the world frozen for
@@ -280,6 +314,42 @@ export function sparedFighters() {
   return spared.length ? spared : null;
 }
 
+/** When the victim comes back: the instant the last shard has fallen, so they
+ *  reform over the standing darkness and are whole again by the time the sky
+ *  has healed behind them. */
+function revealAt(sh) {
+  const b = beats(sh);
+  return b.crack + b.hold + b.split + b.fall;
+}
+
+/** How solidly this fighter is drawn in the SCENE this frame, 0 (not at all)
+ *  to 1 (normally). Both renderers ask, for every fighter, every frame — it is
+ *  the whole of "who is in the glass" as far as they are concerned.
+ *
+ *  Three answers, and each is the same rule from a different side:
+ *
+ *    * On the capture frame the spared are invisible, so they do not get
+ *      photographed into the sky that is about to break. (They are painted
+ *      back on top of the finished pane the same frame — see render.js.)
+ *    * From the capture until the shards are gone the victims are invisible,
+ *      because for that stretch the glass is where they are. A body on screen
+ *      AND the same body sliding away on a shard is two of them.
+ *    * Through the reform they come back over the darkness, and after it
+ *      everyone is simply themselves again.
+ */
+export function shatterFade(f) {
+  const sh = state.skyShatter;
+  if (!sh || !f) return 1;
+  const victim = sh.victims.has(f);
+  // `pending` is only ever true during the frame that captures.
+  if (sh.pending) return victim ? 1 : 0;
+  if (!sh.shards) return 1;
+  if (!victim) return 1;
+  const since = sh.t - revealAt(sh);
+  if (since <= 0) return 0;
+  return Math.min(1, since / SHATTER.reformTime);
+}
+
 /** Run `paint` clipped to the part of the frame this shatter can reach — the
  *  pane itself and the column of screen its pieces fall through.
  *
@@ -296,13 +366,21 @@ export function sparedFighters() {
 export function overPane(ctx, paint) {
   const sh = state.skyShatter;
   if (!sh || !sh.shards) return;
-  // Sideways for the shards' outward shove, and all the way down because
-  // gravity takes them off the bottom of the frame.
-  const halfW = sh.reach * 2;
   ctx.save();
-  ctx.beginPath();
-  ctx.rect(sh.ix - halfW, sh.iy - sh.reach * 1.25, halfW * 2, WORLD.h);
-  ctx.clip();
+  // THE CAPTURE FRAME IS THE EXCEPTION. The spared were left out of the whole
+  // scene that frame, not just out of the pane, so this is the only thing
+  // drawing them anywhere and it must not be fenced in — a fighter standing
+  // clear of the glass would otherwise blink out for exactly one frame.
+  if (sh.justCaptured) {
+    sh.justCaptured = false;
+  } else {
+    // Sideways for the shards' outward shove, and all the way down because
+    // gravity takes them off the bottom of the frame.
+    const halfW = sh.reach * 2;
+    ctx.beginPath();
+    ctx.rect(sh.ix - halfW, sh.iy - sh.reach * 1.25, halfW * 2, WORLD.h);
+    ctx.clip();
+  }
   paint(ctx);
   ctx.restore();
 }
