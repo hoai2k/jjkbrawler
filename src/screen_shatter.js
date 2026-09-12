@@ -12,6 +12,18 @@
 // screen — drop away like glass, leaving a dark not-sky hole that then heals
 // over as the sky regenerates. No sprite is involved anywhere.
 //
+// WHO IS IN THE GLASS. The capture is a readback of the composited frame, so
+// everything standing in the pane is baked into it — which, when the technique
+// only landed on one of them, is wrong twice over. Uro is usually inside her
+// own pane and was shattering with it, and a bystander who wandered through
+// came apart on screen while taking no damage at all; worse, once the pieces
+// start falling they carry that bystander's frozen image downward while the
+// live one plays on underneath, so there are briefly two of them. The sky
+// takes the fighters the blow actually caught (`victims`, handed in by the
+// technique) and nobody else: `sparedFighters` lists the rest, and both
+// renderers draw them again over the finished pane. They are in front of the
+// breaking sky, not part of it.
+//
 // HOW THE CAPTURE WORKS, and why it lives inside render.js's frame. In 2.5D
 // the scene is two stacked canvases — the WebGL layer with the world and
 // fighters, the 2D overlay with arcs, particles and popups. A WebGL canvas can
@@ -99,6 +111,10 @@ function beats(sh) {
  *                 all follow it (default 1).
  *  `opts.tempo`   0..1 pacing — scales every beat together. The ultimate runs
  *                 the full 1; a special that fires often wants ~0.7.
+ *  `opts.victims` the fighters the blow actually landed on — the only ones the
+ *                 glass is allowed to keep. Everyone else, Uro included, is
+ *                 drawn back over the pane (see `sparedFighters`). Pass the
+ *                 bodies the technique hit, not the ones standing nearby.
  *
  *  One at a time: a second request while one is playing replaces it, because
  *  two half-broken panes on top of each other read as a renderer bug.
@@ -111,6 +127,7 @@ export function triggerScreenShatter(opts = {}) {
     color: opts.color || "#8fd7e8",
     scale: Math.max(0.3, Math.min(1, opts.scale ?? 1)),
     tempo: Math.max(0.4, Math.min(1, opts.tempo ?? 1)),
+    victims: new Set([opts.victims || []].flat().filter(Boolean)),
     t: 0,
     broke: false,
     shards: null,
@@ -247,6 +264,46 @@ export function drawScreenShatter(ctx, layers) {
   // Beats 5 and 6 — the standing darkness and the heal — are the hole alone,
   // drawn above.
 
+  ctx.restore();
+}
+
+/** The live fighters the sky did NOT take, or null when nothing is breaking.
+ *  Both renderers draw these again over the finished pane (`overPane` below),
+ *  which is what keeps Uro and any passer-by in front of the glass instead of
+ *  inside it. A fighter who is out, or still on the respawn platform, is not
+ *  drawn by anybody and is not listed. */
+export function sparedFighters() {
+  const sh = state.skyShatter;
+  if (!sh || !sh.shards) return null;
+  const spared = state.fighters.filter(
+    (f) => !f.dead && f.respawnTimer <= 0 && !sh.victims.has(f));
+  return spared.length ? spared : null;
+}
+
+/** Run `paint` clipped to the part of the frame this shatter can reach — the
+ *  pane itself and the column of screen its pieces fall through.
+ *
+ *  The clip is the whole point. Over the pane a spared fighter has to be
+ *  repainted, because the glass in front of them is a photograph of them; ANY-
+ *  WHERE ELSE the frame under this call is already correct, and painting a
+ *  body on top of itself doubles every semi-transparent thing about it — an
+ *  install aura, a dash trail, the drop shadow — into a visibly brighter
+ *  fighter. So the repaint is confined to where the sky is actually broken.
+ *
+ *  In WORLD units, like every other draw in this file: called after the camera
+ *  is released, so the clip lands in screen space and the paint callback is
+ *  free to re-apply whatever transform it draws fighters under. */
+export function overPane(ctx, paint) {
+  const sh = state.skyShatter;
+  if (!sh || !sh.shards) return;
+  // Sideways for the shards' outward shove, and all the way down because
+  // gravity takes them off the bottom of the frame.
+  const halfW = sh.reach * 2;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(sh.ix - halfW, sh.iy - sh.reach * 1.25, halfW * 2, WORLD.h);
+  ctx.clip();
+  paint(ctx);
   ctx.restore();
 }
 

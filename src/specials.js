@@ -802,21 +802,29 @@ const HANDLERS = {
         burst(tx, ty, p.color, 20, 1.0);
         ring(tx, ty, p.color, 90);
         playSfx("blast", 0.85, 1.15);
-        // The impact: the crack that grew through the windup gives, and the
-        // whole frame breaks with it (src/screen_shatter.js).
-        if (p.crack) {
-          const at = simToScreenFrac(tx, ty - 40);
-          triggerScreenShatter({ cx: at.x, cy: at.y, color: p.color, scale: 0.55, tempo: 0.7, owner: f });
-        }
         debugShape({ x: tx, y: ty, r: p.r || 95 });
+        // Resolved BEFORE the sky breaks, because the break needs to be told
+        // who it caught: the bodies in the circle go into the glass, and Uro
+        // and anyone who merely walked past are drawn over it.
+        const caught = [];
         for (const t of state.fighters) {
           if (!isFoe(f, t) || t.dead || t.respawnTimer > 0) continue;
           if (circleRectOverlap(tx, ty, p.r || 95, hurtbox(t))) {
+            caught.push(t);
             applyHit(f, t, {
               dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: p.angle,
               label: cfg.name, sfx: "blast",
             }, "script");
           }
+        }
+        // The impact: the crack that grew through the windup gives, and the
+        // whole frame breaks with it (src/screen_shatter.js).
+        if (p.crack) {
+          const at = simToScreenFrac(tx, ty - 40);
+          triggerScreenShatter({
+            cx: at.x, cy: at.y, color: p.color, scale: 0.55, tempo: 0.7,
+            owner: f, victims: caught,
+          });
         }
       },
       draw(ctx) {

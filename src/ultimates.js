@@ -1040,7 +1040,12 @@ const DIRECTORS = {
             // the hit stretches it, which is the shot.
             if (p.crack) {
               const at = simToScreenFrac(t2.x, t2.y - 120);
-              triggerScreenShatter({ cx: at.x, cy: at.y, color: p.color, scale: 1, owner: f });
+              // The sky keeps the body it folded shut on, and only that one.
+              // Uro stands inside her own pane and used to break with it.
+              triggerScreenShatter({
+                cx: at.x, cy: at.y, color: p.color, scale: 1,
+                owner: f, victims: [t2],
+              });
             }
           }
         }

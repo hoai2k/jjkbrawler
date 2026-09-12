@@ -12,7 +12,14 @@
 //     Clothing FX bug shipped because every check stopped short of the
 //     framebuffer; effects here get asserted on the framebuffer, full stop;
 //   * no page errors anywhere in the run — the capture path touches WebGL
-//     readback, which is exactly the kind of thing that fails quietly.
+//     readback, which is exactly the kind of thing that fails quietly;
+//   * Uro is NOT IN HER OWN GLASS. The pane is a photograph of the frame, so
+//     everyone standing in it was captured and came apart with it — Uro most
+//     of all, since she is usually inside the pane she just made. The sky now
+//     keeps only the bodies the blow landed on and both renderers paint the
+//     rest back over it, and this asserts that on the framebuffer: in 2.5D a
+//     fighter's body lives in the WebGL layer, so her body pixels appearing on
+//     the 2D OVERLAY is the repaint, and nothing else.
 
 import { chromium } from "playwright";
 import { mkdir } from "node:fs/promises";
@@ -28,7 +35,7 @@ const SHOTS = flag("shots", null);
 
 let failures = 0;
 const check = (ok, label, detail = "") => {
-  if (ok) console.log(`ok   ${label}`);
+  if (ok) console.log(`ok   ${label}${detail ? `   ${detail}` : ""}`);
   else {
     failures++;
     console.log(`FAIL ${label}${detail ? `   ${detail}` : ""}`);
@@ -55,6 +62,28 @@ function overlayWhite() {
     return n;
   })()`;
 }
+
+/** In-page helper, injected into the watcher below as source.
+ *
+ *  `warmPx()` counts WARM opaque pixels on the 2D overlay — red clearly ahead
+ *  of blue. Bodies are warm (skin, cloth, the missing-art placeholder's red
+ *  dashes); the pane's glass, its crack hairlines and the not-sky hole behind
+ *  them are all blue-white or near-black. The count is taken over the whole
+ *  canvas rather than a box on a fighter, because "where is Uro on screen"
+ *  differs between the flat camera and the 2.5D rig and a test that has to
+ *  guess it measures the guess. */
+const PAGE_HELPERS = `
+  function warmPx() {
+    const c = document.getElementById("gameCanvas");
+    if (!c) return -1;
+    const d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    let n = 0;
+    for (let i = 0; i < d.length; i += 8) {
+      if (d[i + 3] > 120 && d[i] > 150 && d[i] - d[i + 2] > 34) n++;
+    }
+    return n;
+  }
+`;
 
 if (SHOTS) await mkdir(SHOTS, { recursive: true });
 
@@ -95,6 +124,26 @@ await page.waitForTimeout(400);
 
 const calm = await page.evaluate(overlayWhite());
 
+// Stand the fight up where the measurement can see it. The pane is LOCAL — a
+// disc around wherever the palm lands — and the palm lands on the opponent, so
+// against a live CPU that runs away half the casts break the sky nowhere near
+// Uro and there is simply no glass over her to repaint. Putting the opponent
+// an arm's length away, and taking their hands off the controls, makes every
+// cast the case this test exists to measure. Everything else about the cast —
+// the real special, the real capture, the real beats — is untouched.
+await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const [uro, foe] = state.fighters;
+  if (!foe) return;
+  foe.aiState = null;
+  foe.x = uro.x + 130 * (uro.facing || 1);
+  foe.y = uro.y;
+  foe.vx = 0; foe.vy = 0;
+  foe.grounded = true;
+  foe.stocks = 9;
+});
+await page.waitForTimeout(300);
+
 // Cast, then let an in-page frame loop watch the whole lifetime: it samples
 // the overlay every animation frame while state.skyShatter lives, so the
 // quarter-second of visible cracks cannot fall between out-of-process polls.
@@ -102,24 +151,48 @@ const calm = await page.evaluate(overlayWhite());
 // Cast up to three times: the CPU is a live opponent, and a hit landing
 // during the windup cancels the special — a real match fact, not a bug, and
 // not what this smoke exists to measure.
+// Cast until there is something to measure, and keep the best attempt.
+//
+// The pane is LOCAL — a disc around wherever the palm landed — and the CPU is
+// a live opponent, so some casts break the sky far enough from Uro that she is
+// nowhere near the glass. Those are not evidence: with no pane over her there
+// is nothing to repaint, both samples come back identical, and reading that as
+// a verdict is how a smoke test starts failing at random. A build that has
+// LOST the repaint fails all the same, because its two samples are identical
+// on every attempt, however close to the glass she stands.
+const MEASURABLE = 200;
+const delta = (r) => (r.sawShatter ? (r.withRepaint || 0) - (r.without || 0) : -1);
 let run = { sawShatter: false, sawHold: false, heldStill: false, peak: 0 };
-for (let attempt = 0; attempt < 3 && !run.sawShatter; attempt++) {
+for (let attempt = 0; attempt < 4 && delta(run) <= MEASURABLE; attempt++) {
   await page.keyboard.press("KeyL");
-  run = await watch(page);
-  if (!run.sawShatter) await page.waitForTimeout(600);
+  const got = await watch(page);
+  if (delta(got) > delta(run)) run = got;
+  if (delta(run) <= MEASURABLE) await page.waitForTimeout(600);
 }
 const watchResult = run;
 
 async function watch(page2) {
-  return await page2.evaluate(async (expr) => {
+  return await page2.evaluate(async ([expr, helpers]) => {
   const mod = await import("/src/state.js");
+  const shatter = await import("/src/screen_shatter.js");
   const sample = () => eval(expr);
+  // eslint-disable-next-line no-eval
+  eval(helpers);
   return await new Promise((resolve) => {
     let sawShatter = false;
     let sawHold = false;
     let heldStill = false;
     let holdSample = null;
     let peak = 0;
+    let withRepaint = 0;
+    let without = 0;
+    let phase = 0;
+    let abStarted = false;
+    let pinT = null;
+    let pairs = 0;
+    let uroInGlass = false;
+    let uroSpared = false;
+    let sparedIds = [];
     let frames = 0;
     const tick = () => {
       frames++;
@@ -127,6 +200,71 @@ async function watch(page2) {
       if (live) {
         sawShatter = true;
         peak = Math.max(peak, sample());
+        // Who the sky kept, and who it handed back. Uro must never be in her
+        // own glass, and must be in the list both renderers repaint.
+        const caster = mod.state.fighters[0];
+        const victims = mod.state.skyShatter.victims;
+        // Read defensively: a build where the sky keeps everybody has neither
+        // of these, and that has to come back as a failed check rather than as
+        // a throw inside an animation frame that never resolves.
+        // Read BEFORE the break, because the A/B below puts her in and out of
+        // this very set to take its two samples.
+        if (!mod.state.skyShatter.broke &&
+            victims && victims.has && victims.has(caster)) uroInGlass = true;
+        if (typeof shatter.sparedFighters === "function") {
+          const spared = shatter.sparedFighters() || [];
+          if (spared.includes(caster)) uroSpared = true;
+          if (spared.length) sparedIds = spared.map((f) => f.id);
+        }
+        // THE REPAINT, ON THE FRAMEBUFFER, measured A/B against itself.
+        //
+        // Sampled only from the break onward — before that the pane is the
+        // frozen frame Uro is already standing in and the repaint lands
+        // exactly on top of itself, so there is nothing to see. Once the
+        // pieces move there is: her body is in front of them.
+        //
+        // The comparison is the same shatter, the same beat, the same shards,
+        // with the repaint the only difference — done by putting her in and
+        // out of the victim set every few frames. Anything else that is warm
+        // on screen (the captured backdrop inside the shards, the HUD) is in
+        // both samples and cancels. Two frames are allowed to pass after each
+        // flip so the game's own rAF has certainly drawn under it.
+        if (mod.state.skyShatter.broke && victims && victims.add && pairs < 3) {
+          // PIN THE FRAME. The samples below are taken seconds apart in wall
+          // time, and during the fall beats the world is live again — fighters
+          // move, particles spawn, the camera drifts — so a count taken over
+          // the whole canvas wanders by thousands between them and buries the
+          // thing being measured. So for the length of the measurement the
+          // world is held (simHold), the shatter's own clock is pinned, and
+          // the camera shake is stilled: two consecutive samples are then the
+          // same picture, and the ONLY difference between them is whether Uro
+          // is in the victim set and therefore left out of the repaint.
+          mod.state.simHold = 0.5;
+          mod.state.camera.shake = 0;
+          if (pinT === null) pinT = mod.state.skyShatter.t;
+          mod.state.skyShatter.t = pinT;
+          if (!abStarted) {
+            // Begin with the repaint OFF, so the first sample of each kind is
+            // taken under a setting that has actually been in force. Sampling
+            // straight away would read a repainted frame and call it the
+            // un-repainted one.
+            abStarted = true;
+            phase = 0;
+            victims.add(caster);
+          } else if (++phase === 3) {
+            without = Math.max(without, warmPx());
+            victims.delete(caster);
+          } else if (phase >= 6) {
+            withRepaint = Math.max(withRepaint, warmPx());
+            victims.add(caster);
+            phase = 0;
+            pairs++;
+          }
+        } else if (abStarted && pairs >= 3 && victims && victims.delete) {
+          // Measured. Let go of the world and let the sky finish breaking.
+          victims.delete(caster);
+          mod.state.simHold = 0;
+        }
         // The crack beat freezes the WORLD: while simHold drains, no fighter
         // moves and no animation clock advances. Sample one fighter twice a
         // few frames apart inside the hold and require identity — the pixels
@@ -143,16 +281,16 @@ async function watch(page2) {
         }
       }
       if ((sawShatter && !live) || frames > 600 || (!sawShatter && frames > 120)) {
-        resolve({ sawShatter, sawHold, heldStill, peak, ended: !live });
+        resolve({ sawShatter, sawHold, heldStill, peak, withRepaint, without, pairs, uroInGlass, uroSpared, sparedIds, ended: !live });
         return;
       }
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
   });
-  }, overlayWhite());
+  }, [overlayWhite(), PAGE_HELPERS]);
 }
-const { sawShatter, sawHold, heldStill, peak } = watchResult;
+const { sawShatter, sawHold, heldStill, peak, withRepaint, without, pairs, uroInGlass, uroSpared } = watchResult;
 if (SHOTS) await page.screenshot({ path: path.join(SHOTS, "after.png") });
 
 const cleared = await page.evaluate(async () => !(await import("/src/state.js")).state.skyShatter);
@@ -168,6 +306,12 @@ check(cleared, "the shatter cleans itself up");
 check(peak > Math.max(500, calm * 1.6),
       "the crack web reaches the framebuffer",
       `calm ${calm} bright px, peak ${peak}`);
+check(!uroInGlass, "Uro is never a victim of her own sky");
+check(uroSpared, "...so the sky hands her back to be drawn over it",
+      `spared ${(watchResult.sparedIds || []).join(", ") || "nobody"}`);
+check(pairs > 0 && withRepaint > without + MEASURABLE,
+      "...and her body is actually painted over the broken pane",
+      `${withRepaint} warm px with the repaint, ${without} without it (${pairs} pairs)`);
 
 await browser.close();
 console.log(failures ? `\n${failures} failure(s)` : "\nthe sky breaks on screen");

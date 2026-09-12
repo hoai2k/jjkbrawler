@@ -481,12 +481,25 @@ export function updateCamera(dt) {
   cam.shake = Math.max(0, cam.shake - dt * 44);
 }
 
-export function applyCamera(ctx) {
+// The shake offset this frame's camera was applied with, kept so a SECOND
+// pass over the same frame can land on the first one. Nothing in the game
+// drew the world twice until Uro's broken pane needed the fighters it did not
+// take painted back over it (src/screen_shatter.js), and a fresh roll of the
+// dice there would have put those bodies up to `shake` pixels away from the
+// ones underneath — a jitter that reads as the repaint being a separate,
+// badly-registered object, which is exactly what it must not look like.
+let lastShake = { x: 0, y: 0 };
+
+export function applyCamera(ctx, { reuseShake = false } = {}) {
   const cam = state.camera;
-  const sx = (Math.random() - 0.5) * cam.shake;
-  const sy = (Math.random() - 0.5) * cam.shake;
+  if (!reuseShake) {
+    lastShake = {
+      x: (Math.random() - 0.5) * cam.shake,
+      y: (Math.random() - 0.5) * cam.shake,
+    };
+  }
   ctx.save();
-  ctx.translate(WORLD.w / 2 + sx, WORLD.h / 2 + sy);
+  ctx.translate(WORLD.w / 2 + lastShake.x, WORLD.h / 2 + lastShake.y);
   ctx.scale(cam.zoom, cam.zoom);
   ctx.translate(-cam.x, -cam.y);
 }
