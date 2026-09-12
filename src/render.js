@@ -4,7 +4,7 @@ import { sharedAdjust, sharedFadeIn, paintedHeight, AURA_H, AURA_PULSE, AURA_FOO
 import { getStage } from "./stages.js";
 import { stagePalette } from "./stage_palette.js";
 import { drawCharFrame, currentFrame, anchorOffset } from "./render_backend.js";
-import { drawScreenShatter } from "./screen_shatter.js";
+import { drawScreenShatter, sparedFighters, overPane } from "./screen_shatter.js";
 import { getActor } from "./characters.js";
 import { fighterTransform, trailStrength } from "./motion.js";
 import { bodyMetrics } from "./silhouette.js";
@@ -96,6 +96,24 @@ export function draw(ctx) {
   // Last, over the whole composite: the frame itself breaking (Uro's Thin Ice
   // Breaker, src/screen_shatter.js) — flat has one canvas to capture.
   drawScreenShatter(ctx, [ctx.canvas]);
+  // …and then, over the broken glass, the fighters it was not aimed at. The
+  // pane is a photograph of the frame, so anybody standing in it was captured
+  // and would crack and fall with the sky; only the bodies the blow actually
+  // caught belong to it.
+  drawOverPane(ctx, (c) => applyCamera(c, { reuseShake: true }));
+}
+
+/** Repaint the fighters the sky did not take, on top of the finished pane.
+ *  `frame` installs whatever transform that renderer draws the world under —
+ *  the flat camera, or the 2.5D overlay's projection of the gameplay plane. */
+function drawOverPane(ctx, frame) {
+  const spared = sparedFighters();
+  if (!spared) return;
+  overPane(ctx, () => {
+    frame(ctx);
+    drawFighters(ctx, { only: spared });
+    releaseCamera(ctx);
+  });
 }
 
 // The 2.5D frame (docs/2.5d-camera-plan.md §6). The WebGL canvas underneath
@@ -142,6 +160,15 @@ function draw3d(ctx) {
   // because it captures BOTH canvases, and the GL one can only be read back in
   // the task that rendered it.
   drawScreenShatter(ctx, [document.getElementById("glCanvas"), ctx.canvas]);
+  // The spared fighters, repainted over the pane. Their bodies live in the
+  // WebGL layer in this mode, so unlike every other overlay draw this one asks
+  // for `bodies` — the pane is covering the scene, and a body left out of the
+  // repaint would still be in the glass.
+  drawOverPane(ctx, (c) => {
+    const ot = camera3d.overlayTransform();
+    c.save();
+    c.transform(ot.a, ot.b, ot.c, ot.d, ot.e, ot.f);
+  });
 }
 
 /** How far past each world edge the shot currently reaches. Zero at zoom 1 and
@@ -696,8 +723,12 @@ function comHoldShift(f, key, frame, opts) {
   return Math.max(-cap, Math.min(cap, want)) * holdW;
 }
 
-function drawFighters(ctx, { bodies = true } = {}) {
-  const sorted = [...state.fighters].sort((a, b) => a.y - b.y);
+/** `only` narrows the pass to a given set of fighters — used by the repaint
+ *  over a broken pane, which draws the ones the sky did not take and nobody
+ *  else. Everything else about how a fighter is drawn is unchanged, so the
+ *  repaint cannot drift from the real thing. */
+function drawFighters(ctx, { bodies = true, only = null } = {}) {
+  const sorted = [...(only || state.fighters)].sort((a, b) => a.y - b.y);
   for (const f of sorted) {
     if (f.dead) continue;
     if (f.respawnTimer > 0) {
