@@ -18,6 +18,7 @@ import { RANDOM_KEY, randomCharacterKey } from "./characters.js";
 import { makeAiState, aiInput, cpuDamageMul } from "./ai.js";
 import { initUi, setPhase, setLoadProgress, updateHud, showRoundOver, showBattleIntro, fadeBattleIntro, hideBattleIntro, leaveTitle, updateMenuButtons, updateSelectionUi, updateControllerStatus, updateMenuNav, syncControllerPlayers, resetReady, setPauseNotice, reportError, resetHudCache } from "./ui.js";
 import { WORLD, SUDDEN_DEATH_DAMAGE } from "./constants.js";
+import { releaseShatterHolds } from "./screen_shatter.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -200,6 +201,9 @@ async function resetMatch() {
   state.screenFlash = null;
   state.slowMo = 0;
   state.simHold = 0;
+  // Any body a shatter was holding is handed back before the record goes, so
+  // a match cannot start with a fighter frozen by the last one's glass.
+  releaseShatterHolds();
   state.skyShatter = null;
   state.matchTime = 0;
   state.timeLeft = state.timeLimit;

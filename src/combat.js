@@ -1071,6 +1071,10 @@ export function applyHit(owner, target, hit, source) {
   // a team match no matter which kit spawned the hit (teams.js).
   if (!isFoe(owner, target)) return "ignored";
   if (target.invuln > 0 || target.dead || target.respawnTimer > 0) return "ignored";
+  // A body Uro's sky is still holding is not on the board to be hit: it is
+  // inside the glass, waiting for the pane to finish falling before it comes
+  // back (src/screen_shatter.js). Nothing reaches it there.
+  if (target.heldBySky) return "ignored";
   if (owner.dead || owner.respawnTimer > 0) return "ignored";
 
   // WHICH WAY THIS SENDS THEM. Normally it is away from the attacker's body,

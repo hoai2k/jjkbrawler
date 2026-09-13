@@ -154,6 +154,7 @@ export function triggerScreenShatter(opts = {}) {
     shards: null,
     rays: null,
   };
+  releaseShatterHolds();   // a second pane replaces the first; let its bodies go
   state.skyShatter = sh;
   // The world stands still while the cracks spread and hold. Released exactly
   // on the break, so the moment the pane gives is the moment things move.
@@ -170,6 +171,7 @@ export function stepScreenShatter(dt) {
   const sh = state.skyShatter;
   if (!sh) return;
   sh.t += dt;
+  holdVictims(sh);
   const b = beats(sh);
   // The break: one glassy report as the pane gives way and the world resumes.
   if (!sh.broke && sh.t >= b.crack + b.hold) {
@@ -189,6 +191,7 @@ export function stepScreenShatter(dt) {
     if (sh.victims.size) playSfx("whoosh", 0.7, 1.5);
   }
   if (sh.t >= b.crack + b.hold + b.split + b.fall + b.dark + b.regen) {
+    releaseShatterHolds(sh);
     state.skyShatter = null;
   }
 }
@@ -209,6 +212,7 @@ export function drawScreenShatter(ctx, layers) {
     // Capture failed (no readable canvas). Do not leave the world frozen for
     // a beat of nothing — release the hold and drop the effect.
     state.simHold = 0;
+    releaseShatterHolds(sh);
     state.skyShatter = null;
     return;
   }
@@ -320,6 +324,52 @@ export function sparedFighters() {
 function revealAt(sh) {
   const b = beats(sh);
   return b.crack + b.hold + b.split + b.fall;
+}
+
+/** Hold the bodies the sky took, for exactly as long as it is hiding them.
+ *
+ *  A DELAY, not a stun. While the glass has them they are frozen in hitlag —
+ *  the same freeze a heavy blow already uses — so nothing about them advances:
+ *  not their position, not their animation, and not the hitstun clock, which
+ *  means the hold spends none of the disadvantage they were owed. They are
+ *  also off the board while it lasts: `heldBySky` makes applyHit and the grab
+ *  refuse them, because a body inside the glass is not somewhere you can reach.
+ *
+ *  Without this the hit lands at the break and they spend the next second and
+ *  a half flying while invisible, so the reform happens wherever they have got
+ *  to — off the edge of the hole, most of the time. Held, they come back in
+ *  the middle of the dark the sky left, which is the whole point of revealing
+ *  them there. */
+function holdVictims(sh) {
+  // Held through the REFORM as well as through the hiding, so the body has
+  // finished coming back before it starts moving. Let go at the reveal instead
+  // and they fade in already streaking away, which is a blur leaving the hole
+  // rather than somebody appearing in the middle of it.
+  const until = revealAt(sh) + SHATTER.reformTime;
+  for (const f of sh.victims) {
+    if (sh.shards && sh.t < until && !f.dead) {
+      f.heldBySky = true;
+      // Exactly the time left, re-set every frame: the freeze runs out by
+      // itself on the last beat even if nothing gets round to releasing it.
+      f.hitPause = Math.max(f.hitPause, until - sh.t);
+    } else if (f.heldBySky) {
+      releaseVictim(f);
+    }
+  }
+}
+
+function releaseVictim(f) {
+  f.heldBySky = false;
+  f.hitPause = 0;
+}
+
+/** Give every held body back. Called wherever a shatter stops existing —
+ *  it finishes, its capture fails, a second one replaces it, the match resets
+ *  — because a fighter left frozen by an effect that is no longer on screen is
+ *  a fighter who has stopped playing. */
+export function releaseShatterHolds(sh = state.skyShatter) {
+  if (!sh) return;
+  for (const f of sh.victims) if (f.heldBySky) releaseVictim(f);
 }
 
 /** How solidly this fighter is drawn in the SCENE this frame, 0 (not at all)

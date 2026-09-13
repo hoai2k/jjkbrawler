@@ -175,6 +175,8 @@ export function updateGrabReach(f) {
     // released, a body already held, a hanging fighter, or one flat on the
     // floor — prone is below the reach the same way it is below high pokes.
     if (t.invuln > 0 || t.grabImmune > 0 || t.grabbedBy || t.ledge) continue;
+    if (t.heldBySky) continue;          // inside Uro's glass, out of reach
+
     if (t.prone > 0 && t.hitstun <= 0) continue;
     if (!rectsOverlap(rect, hurtbox(t))) continue;
     const gap = Math.abs(t.x - f.x);
