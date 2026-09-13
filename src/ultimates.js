@@ -1049,7 +1049,12 @@ const DIRECTORS = {
             }
           }
         }
-        if (this.phase === 2 && (t2.grounded || this.t > 2.2)) {
+        // The slam resolves once the body is BACK. While the sky is holding
+        // them (src/screen_shatter.js) they are not falling and not hittable,
+        // and the timeout below would otherwise fire into that gap and spend
+        // the ultimate on nothing. Released, they drop the rest of the way and
+        // the blow lands — which is the reveal doing what the reveal is for.
+        if (this.phase === 2 && !t2.heldBySky && (t2.grounded || this.t > 2.2)) {
           this.dead = true;
           applyHit(f, t2, {
             dmg: p.dmg, baseKb: p.base, growth: p.growth, angle: 0.7,

@@ -74,6 +74,11 @@ export function makeFighter(id, charKey, x, facing) {
     skidding: false, skidFxT: 0,
     teeterT: 0, teeterDir: 0, comHoldW: 0,
     invuln: 1.4, hitstun: 0, hitPause: 0, shakeMag: 0,
+    // Taken out of time by Uro's broken sky: not drawn, not simulated, and not
+    // hittable, until the pane that swallowed them has finished falling
+    // (src/screen_shatter.js). A delay rather than a stun — the hitstun clock
+    // is frozen with everything else, so nothing is spent while it lasts.
+    heldBySky: false,
     dizzy: 0, prone: 0, dodgeStale: 0, lastDodgeAt: -10,
     airT: 0, shieldDownSince: -10,
     action: null, charging: null, jabStep: 0, jabResetT: 0,

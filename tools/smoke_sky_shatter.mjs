@@ -375,6 +375,91 @@ if (!sequence) {
         `${darkened.foe} → ${reforming.foe} → ${whole.foe}`);
 }
 
+// ---- the hold: a delay, not a stun -----------------------------------------
+//
+// The victim is frozen for exactly as long as the sky is hiding them, so they
+// come back in the MIDDLE of the dark it left rather than wherever the
+// knockback had carried them by then. What has to be true of that freeze: they
+// do not move, nothing can reach them, and it costs them nothing — the hitstun
+// clock is stopped with everything else, so the hold is time the sky borrows
+// rather than time they are punished for.
+//
+// The world is stepped normally throughout (no simHold), so this also says the
+// freeze is theirs alone and not a hold on the match.
+const hold = await page.evaluate(async () => {
+  const { state } = await import("/src/state.js");
+  const shatter = await import("/src/screen_shatter.js");
+  const { applyHit } = await import("/src/combat.js");
+  const { stepWorld } = await import("/src/sim.js");
+  const { blankInput } = await import("/src/input.js");
+  const [uro, foe] = state.fighters;
+  if (!foe || !shatter.releaseShatterHolds) return null;
+
+  for (const f of [uro, foe]) {
+    f.dead = false; f.respawnTimer = 0; f.invuln = 0; f.hitPause = 0;
+    f.heldBySky = false; f.grounded = true; f.vy = 0;
+  }
+  foe.x = 600; foe.y = uro.y; foe.damage = 0;
+  // Knocked back and stunned, exactly as the blow that broke the sky leaves
+  // them: this is what must still be waiting for them when they come back.
+  foe.hitstun = 0.9;
+  foe.vx = 900;
+  uro.x = 400;
+
+  shatter.triggerScreenShatter({ cx: 0.5, cy: 0.45, scale: 1, tempo: 1, owner: uro, victims: [foe] });
+  const sh = state.skyShatter;
+  sh.pending = false;
+  sh.shards = [{}];
+  sh.t = 0;
+  const start = { x: foe.x, hitstun: foe.hitstun, vx: foe.vx };
+  // Drive the shatter's clock and the world side by side, the way advanceWorld
+  // does — minus the world hold, so anything that stands still here is
+  // standing still on its own account.
+  const run = (sec) => {
+    for (let i = 0; i < Math.round(sec * 60); i++) {
+      state.simHold = 0;
+      shatter.stepScreenShatter(1 / 60);
+      if (state.skyShatter) { state.skyShatter.pending = false; state.skyShatter.shards = [{}]; }
+      stepWorld(1 / 60, () => blankInput());
+    }
+  };
+  run(1.2);                       // deep in the fall, well inside the hiding
+  const held = {
+    flag: !!foe.heldBySky,
+    moved: Math.round(Math.abs(foe.x - start.x)),
+    hitstun: Math.round(foe.hitstun * 100) / 100,
+    hit: applyHit(uro, foe, { dmg: 12, baseKb: 300, growth: 5, angle: 0.3 }, "melee"),
+    damage: Math.round(foe.damage),
+  };
+  run(1.1);                       // past the reveal and the reform
+  const freed = {
+    flag: !!foe.heldBySky,
+    moved: Math.round(Math.abs(foe.x - start.x)),
+    hitstun: Math.round(foe.hitstun * 100) / 100,
+  };
+  shatter.releaseShatterHolds();
+  state.skyShatter = null;
+  state.simHold = 0;
+  return { start: { hitstun: start.hitstun }, held, freed };
+});
+
+if (!hold) {
+  check(false, "the hold needs a second fighter and a build that has one");
+} else {
+  check(hold.held.flag && hold.held.moved === 0,
+        "the sky holds the body it took exactly where it took it",
+        `moved ${hold.held.moved}px through the whole fall`);
+  check(hold.held.hitstun === hold.start.hitstun,
+        "...a delay rather than a stun — it spends none of their hitstun",
+        `${hold.start.hitstun}s before, ${hold.held.hitstun}s after`);
+  check(hold.held.hit === "ignored" && hold.held.damage === 0,
+        "...and nothing can reach them inside the glass",
+        `applyHit said "${hold.held.hit}", damage ${hold.held.damage}%`);
+  check(!hold.freed.flag && hold.freed.moved > 0,
+        "...then lets go, and the knockback that was waiting takes them",
+        `${hold.freed.moved}px once the reform is over`);
+}
+
 check(pairs > 0 && withRepaint > without + MEASURABLE,
       "...and her body is actually painted over the broken pane",
       `${withRepaint} warm px with the repaint, ${without} without it (${pairs} pairs)`);
